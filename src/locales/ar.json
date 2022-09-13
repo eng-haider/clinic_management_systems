@@ -1,0 +1,118 @@
+{
+
+  "lang":"English",
+  "address":"العنوان",
+  "Board_Directors":"أعضاء مجلس الادارة",
+  "phone":"رقم الهاتف",
+  "update":"تعديل",
+  "Delete": "حذف",
+  "flow_me":"تابعنا على وسائل التواصل",
+  "contact":"أتصل بنا",
+  "save":"حفط",
+  "art":"اعمالنا",
+  "male":"ذكر",
+  "female":"انثئ",
+  "exist":"خروج",
+  "You_donate_via_bank_account":"يمكنك التبرع عن طريق الحساب المصرفي ",
+  "bank":"في مصرف بغداد",
+  "WE_NEED_YOUR_HELP":"نحن نحتاج مساعدتك",
+  "show_all":"الكل",
+  "more":"قراءه المزيد",
+  "web_pages":"صفحات الموقع",
+  "cats":"القسم",
+  "name":"الاسم",
+  "next":"التالي",
+  "org_goals":"اهداف المنظمة",
+  "add_new":"اضافه جديد",
+  "Processes":"العمليات",
+  "Successfully": " تمت العملية  بنجاح",
+  "done": "تم",
+  "not_done": "لم يتم",
+  "not_successful": "لم تمت العملية  بنجاح",
+  "sure_process": "هل انت متاكد من العملية ؟",
+  "send":"ارسال",
+  "about":"من نحن",
+  "add_pic":"اضافه الصور المرفقة",
+  "message":"الرسالة",
+  "yes":"نعم",
+  "home":"الرئيسية",
+  "close": "الغاء",
+  "arbic": "عربي",
+  "en": "الانكليزي",
+  "latest_work":"اخر أعمالنا",
+  "email":"الايميل الالكتروني",
+  "loc_address":"كربلاء - شارع حولي النجف  مقابل عمود 1333",
+  "web_name":"مؤسسة ابناء كربلاء للخير والرحمة",
+  "AppBar": {
+    "profile": "ملفي",
+    "Settings": "اعدادات",
+    "sign_out": "تسجيل الخروج",
+    "You_transaction_name": "لديك معاملة بأسم",
+    "You_have_mail_from": "لديك بريد من"
+  },
+  "datatable":{
+    
+    "name":"اسم المراجع",
+    "message":"الرساله",
+    "email":"الايميل",
+    "phone":"الهاتف",
+    "phone":"الهاتف",
+    "sex":"الجنس",
+    "price":"السعر",
+    "status_Description":"وصف الحالة",
+
+    "age":"العمر",
+  
+    "title":"العنوان",
+    "data_create":"تاريخ الاضافه",
+    "status":"الحاله",
+    "description":"الوصف"
+
+  },
+  "Drawer": {
+    "statistics": "الاحصائيات",
+    "casesheet":"سجل المراجعين",
+    "User_management": "اداره المستخدمين",
+    "users": "المستخدمين",
+    "about": "من نحن",
+    "dashbourd":"الاحصائيات والحسابات",
+    "articles":"اعمالنا",
+    "Booking":"الحجوزات",
+    "Gallery": "معرض الصور",
+    "types_users": "انواع المستخدمين",
+    "Types_organizations": "انواع المنظمات",
+    "charts": "المخططات",
+    "cat_arts":"اقسام اعمال الموسسه",
+    "fields": "الحقول",
+    "Mail": "البريد",
+    "messages":"الرسائل",
+    "Incomings": "الوارد",
+    "Issued": "الصادر",
+    "Archive": "الارشيف",
+    "MailsPhrases": "افتراحات البريد",
+    "orders": "المعاملات",
+    "reports": "التقارير",
+    "GalleryCats": "اقسام الصور",
+    "settingss": "الاعدادات"
+  }
+
+  
+  ,
+  "dashboard":{
+    "Case_number_stats":"احصائيات عدد الحالات"
+  }
+  ,
+
+  "header":{
+    "home":"الرئيسية",
+    "requestBooking":"الحجوزات",
+    "About_Us":"من نحن",
+    "casesheet":"سجل المراجعين",
+    "Blog":"أعمالنا",
+    "dashbourd":"الاحصائيات والحسابات",
+    "profile":"الاعدادت",
+    "Gallery":"معرض الصور",
+    "showCases":"الحالات",
+    "Contact":"اتصل بنا"
+  }
+}
