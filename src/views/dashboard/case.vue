@@ -18,6 +18,15 @@
                 <v-card-text>
                     <v-container>
                         <div class="patiant_status">
+
+
+
+                            <v-chip class="ma-2" color="primary">
+                                اختر السن :
+                            </v-chip>
+                            <teeth :tooth_num="editedItem.tooth_num" />
+
+
                             <v-row row wrap>
                                 <v-col cols="12" md="3"></v-col>
                                 <v-col cols="12" md="6" sm="6">
@@ -29,7 +38,7 @@
 
                             </v-row>
 
-                            <v-layout row wrap dense>
+                            <!-- <v-layout row wrap dense>
                                 <v-flex xs1 md2 class="d-none d-sm-flex">
                                 </v-flex>
                                 <v-flex xs6 md4>
@@ -43,10 +52,10 @@
                                 <v-flex xs1 md2 class="d-none d-sm-flex">
                                 </v-flex>
 
-                            </v-layout>
+                            </v-layout> -->
 
 
-
+                            <!-- 
                             <v-layout row wrap dense>
                                 <v-flex xs1 md2 class="d-none d-sm-flex">
                                 </v-flex>
@@ -62,95 +71,94 @@
                                 <v-flex xs1 md2 class="d-none d-sm-flex">
                                 </v-flex>
 
-                            </v-layout>
+                            </v-layout> -->
 
 
 
                             <v-row row wrap v-for="(note, index) in editedItem.sessions" :key="note">
                                 <v-col cols="12" md="2" style="    padding: 0px !important;">
-                                  
 
-                                     <v-chip
-      class="ma-2"
-      color="primary"
-    >
-    الجلسه رقم : {{index+1}}
-    </v-chip>
+
+                                    <v-chip class="ma-2" color="primary">
+                                        الجلسه رقم : {{index+1}}
+                                    </v-chip>
 
                                 </v-col>
                                 <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
 
                                     <v-textarea v-model="editedItem.sessions[index].note" outlined name="input-7-1"
-                                        label="ملاحظات الجلسه " >
+                                        label="ملاحظات الجلسه ">
                                     </v-textarea>
                                 </v-col>
 
-                                <v-col cols="12" md="2" v-if="editedItem.sessions[index].date==''" >
+                                <v-col cols="12" md="2" v-if="editedItem.sessions[index].date==''">
 
-                                    <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''" >{{ moment(new Date()).format('DD-MM-YYYY') }}</p>
+                                    <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
+                                        {{ moment(new Date()).format('DD-MM-YYYY') }}</p>
 
 
-                                     
+
                                 </v-col>
 
-                                 <v-col cols="12" md="2" v-else>
+                                <v-col cols="12" md="2" v-else>
 
-                                   <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''"> {{ moment(editedItem.sessions[index].date).format('DD-MM-YYYY') }}</p>
+                                    <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
+                                        {{ moment(editedItem.sessions[index].date).format('DD-MM-YYYY') }}</p>
 
-                                     
+
                                 </v-col>
 
 
                             </v-row>
 
-                             <v-card-actions class="justify-center">
-                            <v-btn color="green" style="color:#fff" @click="addSession()">
-                                اضافه جلسه
-                            </v-btn>
-                        </v-card-actions>
+                            <v-card-actions class="justify-center">
+                                <v-btn color="green" style="color:#fff" @click="addSession()">
+                                    اضافه جلسه
+                                </v-btn>
+                            </v-card-actions>
 
 
                             <v-row>
-                             
-                             
-      
+
+
+
 
 
                             </v-row>
 
 
 
-     <v-row row wrap>
-   <v-col cols="12" md="2" style="    padding: 0px !important;">
-      
+                            <v-row row wrap>
+                                <v-col cols="12" md="2" style="    padding: 0px !important;">
+
                                 </v-col>
-                                        <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
-      <v-radio-group  row v-model="editedItem.status_id">
-                        <template v-slot:label>
-                    
-                            
-                        </template>
-                        <v-radio :value="42"  >
-                          <template v-slot:label>
-                            <div><strong class="error--text">غير مكتمله</strong></div>
-                          </template>
-                        </v-radio>
-                        <v-radio :value="43"  >
-                          <template v-slot:label>
-                            <div> <strong class="success--text">مكتمله</strong></div>
-                          </template>
-                        </v-radio>
-                      </v-radio-group>
-                                        </v-col>
-   <v-col cols="12" md="2" style="    padding: 0px !important;">
+                                <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
+                                    <v-radio-group row v-model="editedItem.status_id">
+                                        <template v-slot:label>
+
+
+                                        </template>
+                                        <v-radio :value="42">
+                                            <template v-slot:label>
+                                                <div><strong class="error--text">غير مكتمله</strong></div>
+                                            </template>
+                                        </v-radio>
+                                        <v-radio :value="43">
+                                            <template v-slot:label>
+                                                <div> <strong class="success--text">مكتمله</strong></div>
+                                            </template>
+                                        </v-radio>
+                                    </v-radio-group>
                                 </v-col>
-                         </v-row>
+                                <v-col cols="12" md="2" style="    padding: 0px !important;">
+                                </v-col>
+                            </v-row>
 
 
 
 
-<br>
-<br>
+                            <br>
+                            <br>
 
 
                             <v-row row wrap style="height: auto;">
@@ -191,7 +199,7 @@
                         <br>
 
 
-                        
+
                         <v-layout row wrap>
                             <v-flex md5>
                                 <hr>
@@ -356,28 +364,21 @@
     </div>
 </template>
 
-<style >
+<style>
+    .onl_ph_datea {
+        position: relative;
+        bottom: 37px;
+        float: left;
 
-       
- 
-       .onl_ph_datea{
-          position: relative;
-    bottom: 37px;
-    float: left;
-
-}
-    
+    }
 </style>
 
 <script>
-    //Recipe
-    // import cases from './case.vue';
-    // import billsReport from './billsReport.vue';
+    import teeth from '../../components/core/teeth.vue';
     import {
         EventBus
     } from "./event-bus.js";
     import moment from 'moment'
-   // import Recipe from './Recipe.vue';
 
     import Swal from "sweetalert2";
     import {
@@ -397,17 +398,17 @@
         },
         components: {
             DxFileUploader,
-          //  Recipe,
+            teeth,
             DxProgressBar,
         },
         data() {
             return {
                 desserts: [],
                 paymentsCount: 1,
-                 moment: moment,
+                moment: moment,
                 cats: [],
                 valid: false,
-               
+
                 RecipeInfo: {},
                 status: [{
                         id: '42',
@@ -519,15 +520,15 @@
         },
 
         methods: {
-addSession(){
-     this.editedItem.sessions.push({
+            addSession() {
+                this.editedItem.sessions.push({
 
                     note: '',
                     date: ''
 
 
                 })
-},
+            },
             addRecipe() {
 
 
@@ -663,7 +664,8 @@ addSession(){
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
-                        status_id:42,
+                        tooth_num: "",
+                        status_id: 42,
 
                         bills: [{
                             price: '',
@@ -702,7 +704,7 @@ addSession(){
 
                 }
                 if (this.editedItem.images.length > 0) {
-                    this.imageSource = 'http://127.0.0.1:8000/images/' + this.editedItem.images[0].image_url;
+                    this.imageSource = '/images/' + this.editedItem.images[0].image_url;
 
                 }
 
@@ -725,12 +727,12 @@ addSession(){
                         patient_id: "",
                         lower_right: "",
                         lower_left: "",
-                        status_id:42,
+                        status_id: 42,
                         bills: [{
                             price: '',
                             PaymentDate: ''
                         }],
-                          sessions: [{
+                        sessions: [{
                             note: '',
                             date: ''
                         }],
@@ -750,6 +752,7 @@ addSession(){
                         upper_left: "",
                         patient_id: "",
                         lower_right: "",
+                        tooth_num: "",
                         lower_left: "",
                         images: [{
                             img: '',
@@ -760,7 +763,7 @@ addSession(){
                             price: '',
                             PaymentDate: ''
                         }],
-                        status_id:42,
+                        status_id: 42,
                         notes: ""
                     }
                 };
@@ -817,11 +820,11 @@ addSession(){
                 if (this.$refs.form.validate()) {
                     this.loadSave = true;
                     // if (this.editedIndex > -1 && this.editedItem.id !== undefined) {
-  if (this.editedItem.id !== undefined) {
+                    if (this.editedItem.id !== undefined) {
 
-if(this.editedItem.bills[0].price==""){
-   this.editedItem.bills=[];
-}
+                        if (this.editedItem.bills[0].price == "") {
+                            this.editedItem.bills = [];
+                        }
                         this.axios
                             .patch("cases/" + this.editedItem.id, this.editedItem, {
                                 headers: {
@@ -854,7 +857,7 @@ if(this.editedItem.bills[0].price==""){
                             });
                     } else {
 
-                   
+
                         this.axios
                             .post("cases", this.editedItem, {
                                 headers: {
@@ -879,7 +882,12 @@ if(this.editedItem.bills[0].price==""){
                                     icon: "success",
                                     confirmButtonText: this.$t('close'),
                                 });
-                                this.$router.push({ name: 'showCases', params: { id:res.data.data.patient_id } })
+                                this.$router.push({
+                                    name: 'showCases',
+                                    params: {
+                                        id: res.data.data.patient_id
+                                    }
+                                })
 
                             })
                             .catch((err) => {
@@ -911,11 +919,19 @@ if(this.editedItem.bills[0].price==""){
         },
         computed: {
             formTitle() {
-                return this.editedIndex === -1 ? 'اضافه حاله جديده': this.$t('update');
+                return this.editedIndex === -1 ? 'اضافه حاله جديده' : this.$t('update');
 
             },
         },
         created() {
+
+            EventBus.$on("changetooth", (tooth) => {
+              
+
+                this.editedItem.tooth_num = tooth;
+
+            });
+            
             EventBus.$on("changeStatusCloseField", (from) => {
 
                 from
@@ -923,6 +939,8 @@ if(this.editedItem.bills[0].price==""){
                 this.Recipe = false;
                 this.dialog = true
             });
+
+          
 
             //     this.initialize();
             this.getCaseCategories();

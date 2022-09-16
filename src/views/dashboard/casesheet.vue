@@ -10,7 +10,7 @@
             <OwnerBooking :patientFound="patientFound=true" :patientInfo="patientInfo" v-if="booking" />
         </div>
 
-        <v-dialog v-model="casesheet" max-width="900px">
+        <v-dialog v-model="casesheet" max-width="1000px">
             <cases :editedItem="patientInfo"></cases>
         </v-dialog>
 

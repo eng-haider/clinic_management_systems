@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\patients;
+use App\Models\Patients;
 use App\Models\User;
 use App\Models\Doctors;
 
@@ -36,40 +36,14 @@ class patientsControllerAPI extends Controller
 
 
     public function patientsAccounsts(patientsRequest $request){
-        
-
-        $from = date($request->from_date);
-        $to = date($request->to_date);
 
 
         $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
-          $doctor=Doctors::where('user_id','=',$user[0]->id)
-    
-        
-        
-        ->get();
-      $patients = patients::
-    //   with(['Cases.Bills'
-    //   => function($query) {
-    //     $query->select('id','username');
-    // }))
-
-
-    with(array('Cases.Bills','Cases' => function($query) {
-        return  $query->withSum('bills', 'price');
-    }))
-    // ->with(array('Cases.Bills' => function($query) {
-    //   //  return  $query->withSum('bills', 'price');
-    // }))
-      ->whereHas('Cases', function ($query) use($from,$to) {
-      return  $query->whereBetween('created_at', [$from, $to]);
-    })
+        $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
+      $patients = patients::with(['Cases.Bills'
       
-      ->where('doctor_id','=',$doctor[0]->id)
-     
-      
-      ->orderBy('id', 'desc')->get();
- //   echo   $patients[0]->Cases[0]->Bills->sum('price');
+      ])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
+
       return new patientsCollection($patients);
     }
 

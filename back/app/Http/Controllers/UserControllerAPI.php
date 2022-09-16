@@ -59,11 +59,11 @@ class UserControllerAPI extends Controller
         }
 
         if(auth()->user()->role_id==2){
-           $response = Http::post('https://tctate.com/api/api/auth/v2/loginOwner',['user_phone' =>auth()->user()->phone, 'password' =>$request->password]);
+           $response = Http::post('https://tctate.com/api/api/auth/v2/loginOwnerSmart',['user_phone' =>auth()->user()->phone, 'password' =>$request->password]);
          
          
                $response = json_decode($response, true);
-               if($response['success']=='true')
+               if($response['success']==true)
          {
             $tctate_token=$response['data']['token'];
             $User = User::where('id','=',auth()->user()->id)->get();

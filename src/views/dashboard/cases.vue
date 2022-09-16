@@ -439,6 +439,7 @@
                     age: "",
                     sex: "",
                     phone: "",
+                    tooth_num:"",
                     systemic_conditions: "",
                     case: {
                         case_categores_id: "",
