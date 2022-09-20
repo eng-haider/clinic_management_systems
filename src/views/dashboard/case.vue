@@ -1,10 +1,7 @@
 <template>
     <div>
-
-
         <v-form ref="form" v-model="valid">
             <v-card>
-
                 <v-toolbar dark color="primary lighten-1 mb-5">
                     <v-toolbar-title>
                         <h3 style="color:#fff;font-family: 'Cairo'"> {{formTitle}}</h3>
@@ -14,18 +11,53 @@
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-toolbar>
-
                 <v-card-text>
                     <v-container>
                         <div class="patiant_status">
-
-
-
                             <v-chip class="ma-2" color="primary">
                                 اختر السن :
                             </v-chip>
-                            <teeth :tooth_num="editedItem.tooth_num" />
+                            <div v-if="editedItem.id !== undefined && editedItem.id < 87">
+                                <v-layout row wrap dense>
+                                    <v-flex xs1 md2 class="d-none d-sm-flex">
+                                    </v-flex>
+                                    <v-flex xs6 md4>
+                                        <v-text-field type="number" v-model="editedItem.upper_right" filled
+                                            label="العلوي الايمين"></v-text-field>
+                                    </v-flex>
+                                    <v-flex xs6 md4 style="    padding: 0px !important;padding-right:5px">
+                                        <v-text-field v-model="editedItem.upper_left" type="number" filled
+                                            label="العلوي الايسر"></v-text-field>
+                                    </v-flex>
+                                    <v-flex xs1 md2 class="d-none d-sm-flex">
+                                    </v-flex>
 
+                                </v-layout>
+
+
+
+                                <v-layout row wrap dense>
+                                    <v-flex xs1 md2 class="d-none d-sm-flex">
+                                    </v-flex>
+                                    <v-flex xs6 md4>
+                                        <v-text-field v-model="editedItem.lower_right" type="number" dense filled
+                                            label=" الاسفل الايمين ">
+                                        </v-text-field>
+                                    </v-flex>
+                                    <v-flex xs6 md4 style="    padding: 0px !important;padding-right:5px">
+                                        <v-text-field v-model="editedItem.lower_left" type="number" dense filled
+                                            label="الاسفل الايسر "></v-text-field>
+                                    </v-flex>
+                                    <v-flex xs1 md2 class="d-none d-sm-flex">
+                                    </v-flex>
+
+                                </v-layout>
+                            </div>
+
+                            <div v-else>
+                                <teeth :tooth_num="editedItem.tooth_num" />
+
+                            </div>
 
                             <v-row row wrap>
                                 <v-col cols="12" md="3"></v-col>
@@ -38,40 +70,7 @@
 
                             </v-row>
 
-                            <!-- <v-layout row wrap dense>
-                                <v-flex xs1 md2 class="d-none d-sm-flex">
-                                </v-flex>
-                                <v-flex xs6 md4>
-                                    <v-text-field type="number" v-model="editedItem.upper_right" filled
-                                        label="العلوي الايمين"></v-text-field>
-                                </v-flex>
-                                <v-flex xs6 md4 style="    padding: 0px !important;padding-right:5px">
-                                    <v-text-field v-model="editedItem.upper_left" type="number" filled
-                                        label="العلوي الايسر"></v-text-field>
-                                </v-flex>
-                                <v-flex xs1 md2 class="d-none d-sm-flex">
-                                </v-flex>
 
-                            </v-layout> -->
-
-
-                            <!-- 
-                            <v-layout row wrap dense>
-                                <v-flex xs1 md2 class="d-none d-sm-flex">
-                                </v-flex>
-                                <v-flex xs6 md4>
-                                    <v-text-field v-model="editedItem.lower_right" type="number" dense filled
-                                        label=" الاسفل الايمين ">
-                                    </v-text-field>
-                                </v-flex>
-                                <v-flex xs6 md4 style="    padding: 0px !important;padding-right:5px">
-                                    <v-text-field v-model="editedItem.lower_left" type="number" dense filled
-                                        label="الاسفل الايسر "></v-text-field>
-                                </v-flex>
-                                <v-flex xs1 md2 class="d-none d-sm-flex">
-                                </v-flex>
-
-                            </v-layout> -->
 
 
 
@@ -926,12 +925,12 @@
         created() {
 
             EventBus.$on("changetooth", (tooth) => {
-              
+
 
                 this.editedItem.tooth_num = tooth;
 
             });
-            
+
             EventBus.$on("changeStatusCloseField", (from) => {
 
                 from
@@ -940,7 +939,7 @@
                 this.dialog = true
             });
 
-          
+
 
             //     this.initialize();
             this.getCaseCategories();

@@ -119,7 +119,7 @@
           {
             title: this.$t("header.casesheet"),
             icon: 'fas fa-clipboard',
-            to: '/admin/casesheet',
+            to: '/',
               auth: true,
           },
 
@@ -128,7 +128,7 @@
             title: this.$t("header.showCases"),
             icon: 'fas fa-clipboard',
             auth: true,
-            to: '/admin/cases',
+            to: '/cases',
           },
 
 
@@ -136,7 +136,7 @@
             title: this.$t("header.dashbourd"),
             icon: 'fas fa-clipboard',
             auth: true,
-            to: '/admin/dashbourd',
+            to: '/dashbourd',
           },
           
       
@@ -144,7 +144,7 @@
             title:  this.$t("Drawer.Booking"),
             icon: 'far fa-clock',
              auth: true,
-            to: "/admin/requestBooking"
+            to: "/requestBooking"
           },
          
 

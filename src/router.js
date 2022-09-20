@@ -30,7 +30,7 @@ const router = new Router({
    
     
       {
-        path: '/',
+        path: '/login',
         name:'home',
         component: () => import('@/views/pages/Index'),
         children: [{
@@ -40,7 +40,7 @@ const router = new Router({
         }]
       },
       {
-        path: '/admin',
+        path: '/',
         component: () => import('@/views/dashboard/Index'),
         beforeEnter: (to, from, next) => {
           
@@ -48,7 +48,7 @@ const router = new Router({
             next()
           } else {
             next({
-              name: 'Login'
+              path: '/login',
             });
           }
         },   
@@ -59,16 +59,20 @@ const router = new Router({
           //   component: () => import('@/views/dashboard/Dashboard')
           // },
           {
-            path: 'casesheet',
+            path: '',
             name:'casesheet',
             component: () => import('@/views/dashboard/casesheet'),
             
           },
 
-
-        
           {
             path: 'case/:id',
+            name:'case',
+            component: () => import('@/views/dashboard/casex'),
+          },
+        
+          {
+            path: 'patient/:id',
             name:'showCases',
             component: () => import('@/views/dashboard/showCases'),
           },

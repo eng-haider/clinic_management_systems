@@ -13,15 +13,12 @@
         <v-dialog v-model="casesheet" max-width="900px">
             <cases :editedItem="editedItem"></cases>
         </v-dialog>
-
-
         <v-dialog v-model="Recipe" max-width="900px">
             <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategories"></Recipe>
         </v-dialog>
         <v-container id="dashboard" fluid tag="section">
-
-
-            <v-data-table :headers="headers" :items="desserts" class="elevation-1 request_table">
+            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" items-per-page="15"
+                @page-count="pageCount = $event" :items="desserts" class="elevation-1 request_table">
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.showCases") }}
@@ -29,137 +26,20 @@
 
                         <v-divider class="mx-4" inset vertical></v-divider>
                         <v-spacer></v-spacer>
-                        <!-- <v-dialog v-model="dialog" max-width="800px">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn color="primary" @click="editedIndex = -1 
-                                ;  
-                                
-                                " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
-                                    <i class="fas fa-plus" style="position: relative;left:5px"></i>
 
-
-                                    اضافه مراجع جديد
-                                </v-btn>
-                            </template>
-                            <v-form ref="form" v-model="valid">
-                                <v-card>
-
-                                    <v-toolbar dark color="primary lighten-1 mb-5">
-                                        <v-toolbar-title>
-                                            <h3 style="color:#fff;font-family: 'Cairo'"> {{formTitle}}</h3>
-                                        </v-toolbar-title>
-                                        <v-spacer />
-                                        <v-btn @click="close()" icon>
-                                            <v-icon>mdi-close</v-icon>
-                                        </v-btn>
-                                    </v-toolbar>
-
-                                    <v-card-text>
-                                        <v-container>
-
-                                            <v-row>
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.name" :rules="[rules.required]"
-                                                        :label="$t('datatable.name')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.phone" :rules="[rules.minPhon]"
-                                                        required v-mask="mask" placeholder="07XX XXX XXXX"
-                                                        style="direction: ltr"
-                                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
-                                                        :label="$t('datatable.phone')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.age" type="number"
-                                                        :label="$t('datatable.age')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-radio-group v-model="editedItem.sex" row>
-                                                        <v-radio label="ذكر " :value="1"></v-radio>
-                                                        <v-radio label="انثئ" :value="0"></v-radio>
-                                                    </v-radio-group>
-                                                </v-col>
-
-
-
-
-               
-
-
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-
-
-
-
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-                                                <v-col class="py-0" cols="12" sm="12" md="12">
-                                                    <v-textarea dense v-model="editedItem.systemic_conditions"
-                                                        label="الامراض الجهازيه" outlined>
-                                                    </v-textarea>
-                                                </v-col>
-
-                                            </v-row>
-
-
-
-
-
-
-
-
-
-                                        </v-container>
-                                    </v-card-text>
-
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
-                                        </v-btn>
-                                        <v-btn :loading="loadSave" color="blue darken-1" @click="save()" text>
-                                            {{ $t("save") }}</v-btn>
-                                    </v-card-actions>
-                                </v-card>
-                            </v-form>
-                        </v-dialog> -->
                     </v-toolbar>
 
 
-                    <v-layout row wrap  pa-5>
-                     
+                    <v-layout row wrap pa-5>
+
 
 
 
 
 
                         <v-flex xs12 md3 sm3>
-                            <v-select dense v-model="search.case_categores_id"
-                                label=" نوع الحاله " :items="CaseCategories" outlined item-text="name_ar"
-                                item-value="id"></v-select>
+                            <v-select dense v-model="search.case_categores_id" label=" نوع الحاله "
+                                :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
                         </v-flex>
 
                         <v-flex xs12 md3 sm3>
@@ -187,7 +67,7 @@
                         </v-flex>
 
                         <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2 v-if="allItem">
-                            <v-btn color="blue" style="color:#fff" @click="initialize();allItem=false">عرض</v-btn>
+                            <v-btn color="blue" style="color:#fff" @click="initialize();allItem=false">الكــل</v-btn>
                         </v-flex>
 
 
@@ -346,6 +226,17 @@
                     <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
                 </template>
             </v-data-table>
+
+            <v-layout row wrap>
+                <v-flex xs12>
+
+                    <div class="text-center pt-2">
+                        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+
+                    </div>
+                </v-flex>
+            </v-layout>
+
         </v-container>
     </div>
 </template>
@@ -387,7 +278,7 @@
 
                 ],
                 search: {
-                    case_categores_id:null,
+                    case_categores_id: null,
                     status_id: ''
                 },
 
@@ -395,6 +286,9 @@
                 booking: false,
                 cats: [],
                 patientInfo: {},
+                loadingData:true,
+                pageCount: 11,
+                page: 1,
                 allItem: false,
                 RecipeInfo: {},
                 Recipe: false,
@@ -410,7 +304,7 @@
                 loadSave: false,
                 casesheet: false,
                 CaseCategories: [
-                
+
                 ],
                 rules: {
                     minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
@@ -432,14 +326,14 @@
                 progressVisible: false,
                 progressValue: 0,
 
-               // search: null,
+                // search: null,
 
                 editedItem: {
                     name: "",
                     age: "",
                     sex: "",
                     phone: "",
-                    tooth_num:"",
+                    tooth_num: "",
                     systemic_conditions: "",
                     case: {
                         case_categores_id: "",
@@ -469,18 +363,18 @@
                 ],
                 doctors: [],
                 headers: [
-
+                {
+                        text: this.$t('datatable.name'),
+                        align: "start",
+                        value: "patient.name"
+                    },
                     {
                         text: 'نوع الحاله',
                         align: "start",
                         value: "case_categories.name_ar"
                     },
 
-                    {
-                        text: this.$t('datatable.name'),
-                        align: "start",
-                        value: "patient.name"
-                    },
+                    
 
 
                     {
@@ -507,7 +401,7 @@
         },
 
         methods: {
-             BillsSum(bills_amount) {
+            BillsSum(bills_amount) {
                 var totle_coast = 0;
 
                 for (var i = 0; i < bills_amount.length; i++) {
@@ -740,18 +634,18 @@
 
 
 
-          editItem(item) {
+            editItem(item) {
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
-             
-                 if (this.editedItem.bills.length == 0) {
+
+                if (this.editedItem.bills.length == 0) {
                     this.editedItem.bills = [{
                         price: '',
                         PaymentDate: ''
                     }]
 
-                 }
+                }
 
 
                 if (this.editedItem.images.length == 0) {
@@ -762,14 +656,14 @@
 
                     ]
 
-               }
+                }
                 if (this.editedItem.images.length > 0) {
                     this.imageSource = 'http://127.0.0.1:8000/images/' + this.editedItem.images[0].image_url;
 
                 }
 
-            this.casesheet=true;            
-        //        this.dia
+                this.casesheet = true;
+                //        this.dia
             },
             close() {
                 this.dialog = false;
@@ -825,16 +719,16 @@
 
             },
             seachs() {
-               
-
-if( this.search.case_categores_id !== null && this.search.case_categores_id==0){
-    this.search.case_categores_id='';
-}
 
 
-if(this.search.case_categores_id==null){
-   this.search.case_categores_id=''; 
-}
+                if (this.search.case_categores_id !== null && this.search.case_categores_id == 0) {
+                    this.search.case_categores_id = '';
+                }
+
+
+                if (this.search.case_categores_id == null) {
+                    this.search.case_categores_id = '';
+                }
                 Axios.get("cases/search?filter[status_id]=" + this.search.status_id +
                         "&filter[case_categores_id]=" + this.search.case_categores_id, {
                             headers: {
@@ -867,6 +761,7 @@ if(this.search.case_categores_id==null){
                     })
                     .then(res => {
                         this.loading = false;
+                        this.loadingData=false;
                         this.desserts = res.data.data;
 
 
@@ -888,24 +783,24 @@ if(this.search.case_categores_id==null){
                     })
                     .then(res => {
                         this.loading = false;
-                      //  this.CaseCategories
+                        //  this.CaseCategories
                         var CaseCategoriess = res.data;
                         this.CaseCategories.push({
-                            id:0,
-                            name_ar:'الكل',
-                            name_en:'',
-                            updated_at:'2022-02-02T12:20:30.000000Z'
+                            id: 0,
+                            name_ar: 'الكل',
+                            name_en: '',
+                            updated_at: '2022-02-02T12:20:30.000000Z'
                         })
-                        for(var i=0;i<CaseCategoriess.length;i++){
- this.CaseCategories.push({
-                            id:CaseCategoriess[i].id,
-                            name_ar:CaseCategoriess[i].name_ar,
-                            name_en:'',
-                            updated_at:CaseCategoriess[i].updated_at
-                        })
+                        for (var i = 0; i < CaseCategoriess.length; i++) {
+                            this.CaseCategories.push({
+                                id: CaseCategoriess[i].id,
+                                name_ar: CaseCategoriess[i].name_ar,
+                                name_en: '',
+                                updated_at: CaseCategoriess[i].updated_at
+                            })
                         }
-                       
-                        console.log( this.CaseCategories);
+
+                        console.log(this.CaseCategories);
 
                     })
                     .catch(() => {

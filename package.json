@@ -25,6 +25,7 @@
     "vue-i18n": "^8.26.5",
     "vue-it-bigger": "^0.2.2",
     "vue-meta": "^2.4.0",
+    "vue-mobile-detection": "^2.0.1",
     "vue-moment": "^4.1.0",
     "vue-router": "^3.5.2",
     "vue-router-user-roles": "^0.1.92",

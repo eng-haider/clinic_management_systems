@@ -1,0 +1,20 @@
+.theme--dark .request_table>div>table>tbody>tr:nth-child(even) {
+    background: #272727 !important;
+}
+
+.theme--dark .toomain{
+    color: #fff;
+    background-color: #fff;
+
+}
+.theme--dark .v-toolbar__content>:first-child{
+    color: #fff;
+}
+
+.theme--dark .v-divider--vertical.v-divider--inset{
+    color: #fff;
+}
+
+.theme--dark .v-main__wrap{
+    background-color: #000;
+}

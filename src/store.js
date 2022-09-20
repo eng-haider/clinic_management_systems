@@ -121,8 +121,8 @@ export default new Vuex.Store({
         authenticate.then(user => { Vue.prototype.$user.set(user);})
 
         commit('setRole',userData.role.name);
-        router.push("/admin/casesheet")
-    
+        router.push("/")
+        // window.location.replace("/");
       },
 
       logout({

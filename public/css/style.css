@@ -2,6 +2,15 @@ body{
     font-family: 'cairo' ;
    
 }
+
+
+    @media only screen and (max-width: 600px) {
+        .v-pagination__navigation{
+        display: none !important;
+    }
+}
+
+
 /* for autocomplement */
 .autocomplete-input{
 background-color: white !important;
