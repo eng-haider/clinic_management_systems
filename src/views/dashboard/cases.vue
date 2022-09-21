@@ -67,7 +67,7 @@
                         </v-flex>
 
                         <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2 v-if="allItem">
-                            <v-btn color="blue" style="color:#fff" @click="initialize();allItem=false">الكــل</v-btn>
+                            <v-btn color="blue" style="color:#fff;float: left;" @click="initialize();allItem=false">الكل</v-btn>
                         </v-flex>
 
 
@@ -231,7 +231,7 @@
                 <v-flex xs12>
 
                     <div class="text-center pt-2">
-                        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+                        <v-pagination @input="goTop()" v-model="page" :length="pageCount"></v-pagination>
 
                     </div>
                 </v-flex>
@@ -401,6 +401,14 @@
         },
 
         methods: {
+
+            goTop(){
+                if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                
+                    window.scrollTo(0, 0);
+
+             }
+            },
             BillsSum(bills_amount) {
                 var totle_coast = 0;
 
@@ -572,7 +580,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("patients/" + item.id, {
+                        Axios.delete("cases/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",

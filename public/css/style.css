@@ -4,10 +4,9 @@ body{
 }
 
 
-    @media only screen and (max-width: 600px) {
-        .v-pagination__navigation{
-        display: none !important;
-    }
+.v-pagination>li {
+  align-items: center;
+  display: contents !important;
 }
 
 

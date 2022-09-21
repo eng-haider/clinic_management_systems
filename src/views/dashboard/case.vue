@@ -306,48 +306,6 @@
 
                         </v-row>
 
-
-                        <!-- <v-row class="d-flex d-sm-none">
-                            <v-col class=" py-0" cols="12" sm="12" md="12">
-                                <v-btn class="ma-2 white--text" color="green" :height="70" style="color:#FFF;
-                                                        text-align: center;
-    height: 70px;
-    color: rgb(255, 255, 255);
-    position: r;
-    right: 52px;
-                                                        
-                                                        
-                                                        " @click="addRecipe()
-
-                                                        
-                                                        
-                                                        ">
-
-                                    <div style="display: block;
-    position: relative;
-    bottom: 15px;
-    text-align: center;
-    right: 6px;
-    font-size: 17px;
-">كتابه وصفه</div>
-
-                                    <div>
-                                        <v-icon style="    display: block;
-    position: relative;
-    left: 50px;
-    top: 14px;
-    font-size: 31px;
-  " dark>
-                                            fas fa-prescription fa-2x
-                                        </v-icon>
-                                    </div>
-                                </v-btn>
-                            </v-col>
-
-
-
-                        </v-row> -->
-
                     </v-container>
                 </v-card-text>
 
@@ -448,40 +406,7 @@
                 textVisible: true,
                 progressVisible: false,
                 progressValue: 0,
-                allowedFileExtensions: ['.jpg', '.jpeg', '.gif', '.png'],
-
-
-
-                // editedItem: {
-                //     name: "",
-                //     age: "",
-                //     user_id: "",
-                //     sex: "",
-                //     phone: "",
-                //     systemic_conditions: "",
-                //     case: {
-                //         case_categores_id: "",
-                //         upper_right: "",
-                //         upper_left: "",
-                //         lower_right: "",
-                //         lower_left: "",
-                //         case_categories: {
-                //             name_ar: ''
-                //         },
-                //         status_id: 1,
-                //         bills: [{
-                //             price: null,
-                //             PaymentDate: ''
-                //         }],
-                //         images: [{
-                //                 img: null,
-                //                 descrption: ''
-                //             }
-
-                //         ],
-                //         notes: ""
-                //     }
-                // },
+                allowedFileExtensions: ['.jpg', '.jpeg', '.gif', '.png'],     
                 items: [
 
                 ],

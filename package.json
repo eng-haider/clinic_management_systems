@@ -15,6 +15,7 @@
     "core-js": "^3.6.5",
     "devextreme": "21.2.4",
     "devextreme-vue": "21.2.4",
+    "mobile-device-detect": "^0.4.3",
     "slick-vuejs": "^1.0.9",
     "vue": "^2.6.11",
     "vue-axios": "^3.3.7",

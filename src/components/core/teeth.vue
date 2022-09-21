@@ -147,7 +147,7 @@
 </a>
 <a href="#">
     <g>
-    <path class="comon st25"  id="27" @click="reply_click(25)" :class="[tooth_num==27 ?  'activeClass comon st3 ' : ' comon st3']" d="M420.2,24.7c5.6-0.9,12.9-2.4,17,2.7c2.5,4.1,4.3,8.8,4.2,13.6c-0.3,1.3,0.6,3.5-1,4.1
+    <path class="comon st25"  id="27" @click="reply_click(27)" :class="[tooth_num==27 ?  'activeClass comon st3 ' : ' comon st3']" d="M420.2,24.7c5.6-0.9,12.9-2.4,17,2.7c2.5,4.1,4.3,8.8,4.2,13.6c-0.3,1.3,0.6,3.5-1,4.1
         c-8.1,3.1-17,2.3-25.4,1.2C415,39.1,412.9,29.3,420.2,24.7z"/>
     <path class="comon st26"  id="31" @click="reply_click(31)" :class="[tooth_num==31 ?  'activeClass comon st3 ' : ' comon st3']" d="M240.2,105c8.6-2.5,18-2.1,26.5,0.6c0,3.5,0,6.9,0,10.4c-2,7-5.6,14.3-12.4,17.6c-2.9,1.8-6.4,0.2-8.6-1.9
         c-2.6-2.7-4.8-6-5.5-9.7C240.1,116.3,240.3,110.7,240.2,105z"/>

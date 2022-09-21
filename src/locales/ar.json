@@ -77,7 +77,7 @@
     "about": "من نحن",
     "dashbourd":"الاحصائيات والحسابات",
     "articles":"اعمالنا",
-    "Booking":"الحجوزات",
+    "Booking":"المواعيد",
     "Gallery": "معرض الصور",
     "types_users": "انواع المستخدمين",
     "Types_organizations": "انواع المنظمات",
@@ -106,7 +106,7 @@
   "header":{
     "cases":"الحالات",
     "home":"الرئيسية",
-    "requestBooking":"الحجوزات",
+    "requestBooking":"المواعيد",
     "About_Us":"من نحن",
     "casesheet":"سجل المراجعين",
     "Blog":"أعمالنا",
