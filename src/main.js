@@ -13,9 +13,8 @@ import '@fortawesome/fontawesome-free/js/all.js'
 import VueRouterUserRoles from "vue-router-user-roles";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
-import moment from 'moment'
-import VueSocialSharing from 'vue-social-sharing'
-import VueMeta from 'vue-meta'
+
+
 import VueHtmlToPaper from 'vue-html-to-paper';
 
 const options = {
@@ -44,42 +43,39 @@ Vue.use(VueHtmlToPaper);
 
 
 
-Vue.use(VueMeta)
-Vue.use(VueSocialSharing);
-// import fancyBox from 'vue-fancybox';
 
 Vue.config.productionTip = false
-Vue.filter('formatDate', function(value) {
-  if (value) {
-    return moment(String(value)).format('MM/DD/YYYY')
-  }
-});
+// Vue.filter('formatDate', function(value) {
+//   if (value) {
+//     return moment(String(value)).format('MM/DD/YYYY')
+//   }
+// });
 
-Vue.filter('formatMon', function(value) {
-  if (value) {
-    return moment(String(value)).format('MMMM DD')
-  }
-});
+// Vue.filter('formatMon', function(value) {
+//   if (value) {
+//     return moment(String(value)).format('MMMM DD')
+//   }
+// });
  
 
 //Google Map// 
-import * as VueGoogleMaps from 'vue2-google-maps'
-Vue.use(VueGoogleMaps, {
-  load: {
-    key: 'AIzaSyBPFDMtjV0nyVdedEBT169klxYqGCvy3tI',
-    libraries: 'places',
-  },
-})
+// import * as VueGoogleMaps from 'vue2-google-maps'
+// Vue.use(VueGoogleMaps, {
+//   load: {
+//     key: 'AIzaSyBPFDMtjV0nyVdedEBT169klxYqGCvy3tI',
+//     libraries: 'places',
+//   },
+// })
 
 
 
   
 
-Vue.filter('formatMonn', function(value) {
-  if (value) {
-    return moment(String(value)).format('MMMM DD , YYYY')
-  }
-});
+// Vue.filter('formatMonn', function(value) {
+//   if (value) {
+//     return moment(String(value)).format('MMMM DD , YYYY')
+//   }
+// });
   
 Vue.mixin({
   data: function () {

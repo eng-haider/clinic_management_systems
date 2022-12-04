@@ -759,8 +759,9 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                this.close();
                                 this.initialize();
+                                this.close();
+                                
 
                                 this.$swal.fire({
                                     title: "تم تعديل ",

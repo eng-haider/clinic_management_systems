@@ -148,6 +148,16 @@
           },
          
 
+
+
+
+          {
+            title:
+            'المواعيد تجريبي',
+            icon: 'far fa-clock',
+             auth: true,
+            to: "/requestBooking_test"
+          },
         ],
         right: null,
       }

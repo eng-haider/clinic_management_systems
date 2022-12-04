@@ -209,6 +209,18 @@
 
 
                 </template>
+
+
+                <template v-slot:[`item.date`]="{ item }">
+                    {{cropdate(item.created_at)}}
+
+
+
+
+                </template>
+
+
+
                 <template v-slot:[`item.status`]="{ item }">
                     <v-chip class="ma-2" :color="item.status.status_color" outlined>
                         <v-icon left>
@@ -375,19 +387,27 @@
                     },
 
                     
+                    
 
 
                     {
                         text: this.$t('datatable.status_Description'),
                         align: "start",
-                        value: "notes"
+                        value: "sessions[0].note"
                     },
+                   
+
+                    {
+                        text: this.$t('datatable.date'),
+                        align: "start",
+                        value: "date"
+                    },
+
                     {
                         text: this.$t('datatable.status'),
                         align: "start",
                         value: "status"
                     },
-
 
 
                     {
@@ -401,7 +421,9 @@
         },
 
         methods: {
-
+            cropdate(x){
+return  x.slice(0, 10);
+            },
             goTop(){
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 

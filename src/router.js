@@ -92,6 +92,12 @@ const router = new Router({
             component: () => import('@/views/dashboard/dashbourd'),
           },
 
+          {
+            path:'requestBooking_test',
+            name:'requestBooking_test',
+            component: () => import('@/views/dashboard/requestBooking_test'),
+            
+          },
             {
               path:'requestBooking',
               name:'requestBooking',

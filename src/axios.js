@@ -21,9 +21,10 @@ axios.interceptors.request.use(
 );
 
 //Vue.prototype.$http = axios;
-axios.defaults.baseURL =  'http://apismartclinic.tctate.com/api/';
+//axios.defaults.baseURL =  'http://apismartclinic.tctate.com/api/';
+axios.defaults.baseURL =  'http://127.0.0.1:8001/api/';
 
-
+//http://127.0.0.1:8001
 axios.interceptors.response.use(
   function(response) {
     return response;

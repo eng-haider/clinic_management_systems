@@ -238,7 +238,7 @@
                         لاتوجد
                     </span>
 
-                    <v-btn v-else dense @click="$router.push('/case/'+item.id)" color="#0a304ed4"
+                    <v-btn v-else dense @click="$router.push('/patient/'+item.id)" color="#0a304ed4"
                         style="color:#fff;height:28px;font-weight:bold">الحالات</v-btn>
 
 

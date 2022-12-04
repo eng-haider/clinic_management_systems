@@ -44,34 +44,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in Cases" :key="item" v-if="BillsSumPaid(item.cases) > 0 || BillsSum(item.cases)-BillsSumPaid(item.cases) > 0">
-            <td>{{ item.name }}</td>
+          <tr v-for="item in Cases" :key="item">
+
+            <template v-if="BillsSumPaid(item.cases) > 0 || BillsSum(item.cases)-BillsSumPaid(item.cases) > 0">
+              <td>{{ item.name }}</td>
 
 
 
-            <td>
-
-
-
-
-
-              {{BillsSumPaid(item.cases)}}
+              <td>
 
 
 
 
 
-
-
-            </td>
-
-            <td>
-
-
-
-
-
-              {{BillsSum(item.cases)-BillsSumPaid(item.cases)}}
+                {{BillsSumPaid(item.cases)}}
 
 
 
@@ -79,15 +65,33 @@
 
 
 
-            </td>
+              </td>
 
-            <td>
-
-
-              {{BillsSum(item.cases)}}
+              <td>
 
 
-            </td>
+
+
+
+                {{BillsSum(item.cases)-BillsSumPaid(item.cases)}}
+
+
+
+
+
+
+
+              </td>
+
+              <td>
+
+
+                {{BillsSum(item.cases)}}
+
+
+              </td>
+            </template>
+
           </tr>
         </tbody>
       </template>
