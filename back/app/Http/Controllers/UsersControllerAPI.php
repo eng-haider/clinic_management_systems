@@ -61,6 +61,7 @@ class UsersControllerAPI extends Controller
             'result'=>new UsersResource(auth()->Users())
         ], 200);
     }
+    
     public function store(UsersRequest $request)
     {
 

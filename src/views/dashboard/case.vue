@@ -17,6 +17,22 @@
                             <v-chip class="ma-2" color="primary">
                                 اختر السن :
                             </v-chip>
+                            <v-radio-group style="    float: left;" row v-model="editedItem.status_id">
+                                <template v-slot:label>
+
+
+                                </template>
+                                <v-radio :value="42">
+                                    <template v-slot:label>
+                                        <div><strong class="error--text">غير مكتمله</strong></div>
+                                    </template>
+                                </v-radio>
+                                <v-radio :value="43">
+                                    <template v-slot:label>
+                                        <div> <strong class="success--text">مكتمله</strong></div>
+                                    </template>
+                                </v-radio>
+                            </v-radio-group>
                             <div v-if="editedItem.id !== undefined && editedItem.id < 87">
                                 <v-layout row wrap dense>
                                     <v-flex xs1 md2 class="d-none d-sm-flex">
@@ -62,6 +78,7 @@
                             <v-row row wrap>
                                 <v-col cols="12" md="3"></v-col>
                                 <v-col cols="12" md="6" sm="6">
+                                  
                                     <v-select :rules="[rules.required]" dense v-model="editedItem.case_categores_id"
                                         label=" نوع الحاله " :items="CaseCategories" outlined item-text="name_ar"
                                         item-value="id"></v-select>
@@ -75,7 +92,7 @@
 
 
                             <v-row row wrap v-for="(note, index) in editedItem.sessions" :key="note">
-                                <v-col cols="12" md="2" style="    padding: 0px !important;">
+                                <v-col cols="12" md="2">
 
 
                                     <v-chip class="ma-2" color="primary">
@@ -86,7 +103,7 @@
                                 <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
 
                                     <v-textarea v-model="editedItem.sessions[index].note" outlined name="input-7-1"
-                                        label="ملاحظات الجلسه ">
+                                        :label="(' ملاحظات الجلسه رقم '+sum(index))">>
                                     </v-textarea>
                                 </v-col>
 
@@ -111,24 +128,20 @@
                             </v-row>
 
                             <v-card-actions class="justify-center">
-                                <v-btn color="green" style="color:#fff" @click="addSession()">
+                                <v-btn small color="green" style="color:#fff" @click="addSession()">
+                                    <i class="fas fa-plus"></i>
                                     اضافه جلسه
+
                                 </v-btn>
                             </v-card-actions>
 
 
-                            <v-row>
 
-
-
-
-
-                            </v-row>
 
 
 
                             <v-row row wrap>
-                                <v-col cols="12" md="2" style="    padding: 0px !important;">
+                                <!-- <v-col cols="12" md="2" style="    padding: 0px !important;">
 
                                 </v-col>
                                 <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
@@ -150,7 +163,7 @@
                                     </v-radio-group>
                                 </v-col>
                                 <v-col cols="12" md="2" style="    padding: 0px !important;">
-                                </v-col>
+                                </v-col> -->
                             </v-row>
 
 
@@ -159,11 +172,24 @@
                             <br>
                             <br>
 
-
+                            <v-row row wrap style="height: auto;">
+                               
+                                <v-col cols="12" md="3" v-for="img in editedItem.images" :key="img" pr-2 pl-2>
+                                    <a data-fancybox="gallery" :href="Url+'/case_photo/'+img.image_url" class="">
+                              
+                                    <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url" style="width: 100%;
+    height: 100%;" />
+                                    </a>
+                                </v-col>
+                            </v-row>
                             <v-row row wrap style="height: auto;">
                                 <v-col cols="12" md="12">
 
-                                    <div class="widget-container flex-box" v-for="uu in imgCount" :key="uu"
+                                    <vue-dropzone ref="myVueDropzone" @vdropzone-success="success" id="dropzone"
+                                        :options="dropzoneOptions">
+
+                                    </vue-dropzone>
+                                    <!-- <div class="widget-container flex-box" v-for="uu in imgCount" :key="uu"
                                         style="padding-right:10px">
 
                                         <div id="dropzone-external" class="flex-box" :class="[isDropZoneActive
@@ -174,6 +200,7 @@
                                                 <span>اضغط هنا لرفع صوره الحاله</span>
                                                 <span>…or click to browse for a file instead.</span>
                                             </div>
+                                            <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
                                             <DxProgressBar id="upload-progress" :min="0" :max="100" width="30%"
                                                 :show-status="false" :visible="progressVisible"
                                                 :value="progressValue" />
@@ -185,137 +212,162 @@
                                             :visible="false" @drop-zone-enter="onDropZoneEnter"
                                             @drop-zone-leave="onDropZoneLeave" @uploaded="onUploaded"
                                             @progress="onProgress" @upload-started="onUploadStarted" />
-
+                                        </div>
                                         <v-text-field style="width:100$;padding-top:20px;" dense
                                             v-model="editedItem.images[0].descrption" label="وصف الصوره " outlined>
                                         </v-text-field>
-                                    </div>
+                                    </div> -->
 
 
                                 </v-col>
                             </v-row>
                         </div>
                         <br>
+                        <br><br>
 
 
+                        <v-card  class="cre_bill">
+                            <v-layout row wrap>
+                                <v-flex md5>
+                                    <hr>
+                                </v-flex>
+                                <v-flex md2>
+                                    <p class="se_tit_menu">
 
-                        <v-layout row wrap>
-                            <v-flex md5>
-                                <hr>
-                            </v-flex>
-                            <v-flex md2>
-                                <p class="se_tit_menu">
+                                        الفاتوره
 
-                                    الفاتوره
+                                    </p>
+                                </v-flex>
 
-                                </p>
-                            </v-flex>
+                                <v-flex md5>
+                                    <hr>
+                                </v-flex>
+                            </v-layout>
 
-                            <v-flex md5>
-                                <hr>
-                            </v-flex>
-                        </v-layout>
+                            <v-row row wrap>
+                                <v-col md="2" class="d-none d-sm-flex"></v-col>
+                                <v-col md="8">
+                                    <v-text-field suffix="IQ" dense v-model="editedItem.price" type="number"
+                                        label="مبلغ الحاله" outlined>
+                                    </v-text-field>
 
-                        <v-row row wrap>
-                            <v-col md="2" class="d-none d-sm-flex"></v-col>
-                            <v-col md="8">
-                                <v-text-field suffix="IQ" dense v-model="editedItem.price" type="number"
-                                    label="مبلغ الحاله" outlined>
-                                </v-text-field>
-
-                            </v-col>
-                            <v-col md="2" class="d-none d-sm-flex"></v-col>
-                        </v-row>
-
-
-
-
-
-                        <v-layout row wrap v-for="(item, index) in  editedItem.bills" :key="index">
-
-                            <v-col md2 class="d-none d-sm-flex"></v-col>
-                            <v-flex md="4" md4 xs6>
-                                <v-text-field suffix="IQ" dense v-model="editedItem.bills[index].price" type="number"
-                                    label="الملغ المدفوع" outlined>
-                                </v-text-field>
-
-                            </v-flex>
-
-                            <v-flex md4 xs5>
-                                <v-menu v-model="menu[editedItem.bills.indexOf(item)]" :close-on-content-click="false"
-                                    :nudge-right="40" lazy transition="scale-transition" offset-y full-width
-                                    max-width="290px" min-width="290px">
-                                    <template v-slot:activator="{ on }">
-                                        <v-text-field dense outlined v-model="editedItem.bills[index].PaymentDate"
-                                            label="Date" prepend-icon="mdi-calendar" readonly v-on="on"></v-text-field>
-                                    </template>
-                                    <v-date-picker v-model="editedItem.bills[index].PaymentDate" no-title
-                                        @input="menu[editedItem.bills.indexOf(item)] = false">
-                                    </v-date-picker>
-                                </v-menu>
+                                </v-col>
+                                <v-col md="2" class="d-none d-sm-flex"></v-col>
+                            </v-row>
 
 
 
 
-                            </v-flex>
-                            <v-flex xs1 md1>
-                                <v-btn color="red" v-if="index !== 0" @click="deletePayment(index,item.id)"
-                                    style="color:#fff">
-                                    حذف الدفعه
+
+                            <v-layout row wrap v-for="(item, index) in  editedItem.bills" :key="index">
+
+                                <v-col md2 class="d-none d-sm-flex"></v-col>
+                                <v-flex md="4" md4 xs6>
+                                    <v-text-field suffix="IQ" dense v-model="editedItem.bills[index].price"
+                                        type="number" label="الملغ المدفوع" outlined>
+                                    </v-text-field>
+
+                                </v-flex>
+
+                                <v-flex md4 xs5>
+                                    <v-menu v-model="menu[editedItem.bills.indexOf(item)]"
+                                        :close-on-content-click="false" :nudge-right="40" lazy
+                                        transition="scale-transition" offset-y full-width max-width="290px"
+                                        min-width="290px">
+                                        <template v-slot:activator="{ on }">
+                                            <v-text-field dense outlined v-model="editedItem.bills[index].PaymentDate"
+                                                label="التاريخ" prepend-icon="mdi-calendar" readonly v-on="on">
+                                            </v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="editedItem.bills[index].PaymentDate" no-title
+                                            @input="menu[editedItem.bills.indexOf(item)] = false">
+                                        </v-date-picker>
+                                    </v-menu>
+
+
+
+
+                                </v-flex>
+                                <v-flex xs1 md1>
+                                    <v-btn color="red" v-if="index !== 0" @click="deletePayment(index,item.id)"
+                                        style="color:#fff">
+                                        حذف الدفعه
+                                    </v-btn>
+                                </v-flex>
+
+                                <v-flex md1 class="d-none d-sm-flex">
+
+                                </v-flex>
+                            </v-layout>
+
+                            <v-card-actions class="justify-center">
+                                <v-btn small color="green" style="color:#fff" @click="addPayment()">
+                                    <i class="fas fa-plus"></i>
+                                    اضافه دفعه
                                 </v-btn>
-                            </v-flex>
-
-                            <v-flex md1 class="d-none d-sm-flex">
-
-                            </v-flex>
-                        </v-layout>
-
-                        <v-card-actions class="justify-center">
-                            <v-btn color="green" style="color:#fff" @click="addPayment()">
-                                اضافه دفعه
-                            </v-btn>
-                        </v-card-actions>
+                            </v-card-actions>
 
 
 
 
+                            <v-row>
+                                <v-col md="2"></v-col>
+                                <v-col md="4">
+                                    <div style="font-weight:bold"> المبلغ المدفوع :
+
+                                        <v-chip class="ma-2" color="success" outlined label>
+                                            {{sumPay()}} IQ
+                                        </v-chip>
+                                    </div>
+                                    <div style="font-weight:bold" ><span
+                                            style="    padding-left: 34px;"> المتبقي :</span>
+
+                                        <v-chip color="success" class="ma-2" outlined label>
+                                            {{editedItem.price-sumPay()}} IQ
+                                        </v-chip>
+
+
+                                    </div>
+
+                                    <br>
+
+                                </v-col>
+                                <v-col md="2"></v-col>
+
+                            </v-row>
+
+                        </v-card>
+                        <v-btn color="#2196f3" @click="print()" style="color:#fff;    float: left;
+    margin-top: 21px;
+">
+                            طبـــــاعه الفاتوره
+
+
+                            <v-icon right dark>
+                                fas fa-print
+                            </v-icon>
+                        </v-btn>
 
 
 
 
 
-
-
-                        <v-row>
-                            <v-col md="2"></v-col>
-                            <v-col md="4">
-                                <p style="font-weight:bold"> المبلغ المدفوع :
-                                    <span>{{sumPay()}}</span> <span style="font-weight:bold;color:red">IQ</span></p>
-                                <p style="font-weight:bold"> المتبقي :
-                                    {{editedItem.price-sumPay()}} <span style="font-weight:bold;color:red">IQ</span></p>
-                                <v-btn color="#2196f3" @click="print()" style="color:#fff">
-                                    طبـــــاعه الفاتوره
-
-
-                                    <v-icon right dark>
-                                        fas fa-print
-                                    </v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col md="2"></v-col>
-
-                        </v-row>
 
                     </v-container>
                 </v-card-text>
 
-                <v-card-actions>
+                <br>
+                <br>
+                <br>
+                <br>
+                <v-card-actions style="padding:30px">
                     <v-spacer></v-spacer>
                     <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
                     </v-btn>
-                    <v-btn :loading="loadSave" color="blue darken-1" @click="save()" text>
+                    <v-btn :loading="loadSave" color="blue darken-1" @click="save()" class="success">
                         {{ $t("save") }}</v-btn>
                 </v-card-actions>
+                <Fancybox></Fancybox>
             </v-card>
         </v-form>
     </div>
@@ -327,45 +379,73 @@
         bottom: 37px;
         float: left;
 
+
+        
     }
+    .theme--dark .cre_bill {
+        background-color: #252525 !important;
+    color: #fff !important;
+}
+
+.cre_bill{
+    background-color: #f6f6f6 !important;
+
+}
 </style>
 
 <script>
+
+import { Fancybox} from "@fancyapps/ui";
+    import "@fancyapps/ui/dist/fancybox.css";
+    import vue2Dropzone from 'vue2-dropzone'
+    import 'vue2-dropzone/dist/vue2Dropzone.min.css'
     import teeth from '../../components/core/teeth.vue';
     import {
         EventBus
     } from "./event-bus.js";
     import moment from 'moment'
-
     import Swal from "sweetalert2";
-    import {
-        DxFileUploader
-    } from 'devextreme-vue/file-uploader';
-    import {
-        DxProgressBar
-    } from 'devextreme-vue/progress-bar';
-
-
     import Axios from "axios";
     export default {
 
         props: {
             editedItem: Object,
+            CaseCategories: Array
 
         },
         components: {
-            DxFileUploader,
+            // DxFileUploader,
+          
             teeth,
-            DxProgressBar,
+            Fancybox,
+            vueDropzone: vue2Dropzone
+            // DxProgressBar,
         },
         data() {
             return {
+                dropzoneOptions: {
+                    url:'http://127.0.0.1:8003/api/cases/uploude_image',
+                    thumbnailWidth: 150,
+                    maxFilesize: 0.5,
+                    renameFile: function (file) {
+                        return new Date().getTime() + '_' + file.name
+                    },
+
+                    sending: function (file, xhr, formData) {
+                        formData.append("_token", "{{{ csrf_token() }}}");
+                    },
+
+                    dictDefaultMessage: "<i class='fas fa-upload'></i> اضغط هنا لرفع صور الحاله",
+                    headers: {
+                        "My-Awesome-Header": "header value"
+                    }
+                },
                 desserts: [],
                 paymentsCount: 1,
                 moment: moment,
                 cats: [],
                 valid: false,
-
+                image: [],
                 RecipeInfo: {},
                 status: [{
                         id: '42',
@@ -398,7 +478,7 @@
 
                 dialog: false,
                 loadSave: false,
-                CaseCategories: [],
+                // CaseCategories: [],
                 editedIndex: -1,
 
                 isDropZoneActive: false,
@@ -406,7 +486,7 @@
                 textVisible: true,
                 progressVisible: false,
                 progressValue: 0,
-                allowedFileExtensions: ['.jpg', '.jpeg', '.gif', '.png'],     
+                allowedFileExtensions: ['.jpg', '.jpeg', '.gif', '.png'],
                 items: [
 
                 ],
@@ -444,6 +524,11 @@
         },
 
         methods: {
+            sum(x) {
+                
+                return x + 1
+
+            },
             addSession() {
                 this.editedItem.sessions.push({
 
@@ -474,7 +559,10 @@
                     //  return 0;
                 }
                 for (let i = 0; i < this.editedItem.bills.length; i++) {
-                    sum += parseInt(this.editedItem.bills[i].price);
+                    if(this.editedItem.bills.price !==0){
+                        sum += parseInt(this.editedItem.bills[i].price);
+                    }
+                    
                 }
 
 
@@ -512,7 +600,8 @@
                                 this.initialize();
                             })
                             .catch(() => {
-                                this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
+                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                                // this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
                             });
                     }
                 });
@@ -522,15 +611,28 @@
 
             },
             addPayment() {
+
+                const date = new Date();
+
+let day = date.getDate();
+let month = date.getMonth() + 1;
+let year = date.getFullYear();
+
                 this.editedItem.bills.push({
 
-                    price: '',
-                    PaymentDate: ''
+                    price:0,
+                    PaymentDate: `${year}-${month}-${day}`
 
 
                 })
             },
 
+            success(file, response) {
+
+                this.images.push(response.data);
+
+
+            },
             //uploude photos
             onDropZoneEnter(e) {
                 if (e.dropZoneElement.id === 'dropzone-external') {
@@ -545,41 +647,43 @@
                     this.isDropZoneActive = false;
                 }
             },
-            onUploaded(e) {
-                const {
-                    file
-                } = e;
-                const fileReader = new FileReader();
-                fileReader.onload = () => {
-                    this.isDropZoneActive = false;
-                    this.imageSource = fileReader.result;
-                    this.editedItem.images = [{
-                        'img': [this.imageSource],
-                        'descrption': this.editedItem.images[0].descrption
-                    }];
+            // onUploaded(e) {
+            //     const {
+            //         file
+            //     } = e;
+            //     const fileReader = new FileReader();
+            //     fileReader.onload = () => {
+            //         this.isDropZoneActive = false;
+            //         this.imageSource = fileReader.result;
+            //         this.editedItem.images = [{
+            //             'img': [this.imageSource],
+            //             'descrption': this.editedItem.images[0].descrption
+            //         }];
 
 
-                };
-                fileReader.readAsDataURL(file);
-                this.textVisible = false;
-                this.progressVisible = false;
-                this.progressValue = 0;
-            },
-            onProgress(e) {
-                this.progressValue = (e.bytesLoaded / e.bytesTotal) * 100;
+            //     };
+            //     fileReader.readAsDataURL(file);
+            //     this.textVisible = false;
+            //     this.progressVisible = false;
+            //     this.progressValue = 0;
+            // },
+            // onProgress(e) {
+            //     this.progressValue = (e.bytesLoaded / e.bytesTotal) * 100;
 
 
-            },
-            onUploadStarted() {
-                this.imageSource = '';
-                this.progressVisible = true;
-            },
+            // },
+            // onUploadStarted() {
+            //     this.imageSource = '';
+            //     this.progressVisible = true;
+            // },
 
             editItem(item) {
+                
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
                 this.selecBill = Object.assign({}, this.editedItem);
+            
 
                 if (this.editedItem == null) {
                     this.editedItem = {
@@ -599,12 +703,7 @@
                             note: '',
                             date: ''
                         }],
-                        images: [{
-                                img: '',
-                                descrption: ''
-                            }
-
-                        ],
+                        images: [],
                         notes: ""
                     }
 
@@ -636,6 +735,29 @@
                 this.dialog = true;
             },
             close() {
+                this.editedItem = {
+                    case: {
+                        case_categores_id: "",
+                        upper_right: "",
+                        upper_left: "",
+                        patient_id: "",
+                        lower_right: "",
+                        tooth_num: "",
+                        lower_left: "",
+                        images: [{
+                            img: '',
+                            descrption: ''
+
+                        }],
+                        bills: [{
+                            price: '',
+                            PaymentDate: ''
+                        }],
+                        status_id: 42,
+                        notes: ""
+                    }
+                };
+
                 this.dialog = false;
                 EventBus.$emit("changeStatusCloseCase", false);
                 this.selecBill = {
@@ -669,28 +791,7 @@
                         notes: ""
                     }
                 };
-                this.editedItem = {
-                    case: {
-                        case_categores_id: "",
-                        upper_right: "",
-                        upper_left: "",
-                        patient_id: "",
-                        lower_right: "",
-                        tooth_num: "",
-                        lower_left: "",
-                        images: [{
-                            img: '',
-                            descrption: ''
 
-                        }],
-                        bills: [{
-                            price: '',
-                            PaymentDate: ''
-                        }],
-                        status_id: 42,
-                        notes: ""
-                    }
-                };
 
 
             },
@@ -744,11 +845,14 @@
                 if (this.$refs.form.validate()) {
                     this.loadSave = true;
                     // if (this.editedIndex > -1 && this.editedItem.id !== undefined) {
+
+                    this.editedItem.images = this.images;
                     if (this.editedItem.id !== undefined) {
 
                         if (this.editedItem.bills[0].price == "") {
                             this.editedItem.bills = [];
                         }
+
                         this.axios
                             .patch("cases/" + this.editedItem.id, this.editedItem, {
                                 headers: {
@@ -759,9 +863,12 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
+
                                 this.initialize();
+
+
                                 this.close();
-                                
+
 
                                 this.$swal.fire({
                                     title: "تم تعديل ",
@@ -782,7 +889,7 @@
                             });
                     } else {
 
-
+                        this.editedItem.images = this.images;
                         this.axios
                             .post("cases", this.editedItem, {
                                 headers: {
@@ -802,7 +909,7 @@
                                 EventBus.$emit("changeStatusCloseCase", false);
 
                                 this.$swal.fire({
-                                    title: this.$t('Added'),
+                                    title: 'تمت اضافه حاله جديده',
                                     text: "",
                                     icon: "success",
                                     confirmButtonText: this.$t('close'),
@@ -849,10 +956,12 @@
             },
         },
         created() {
-
+    //         var file = { size: 123, name: "Icon", type: "image/png" };
+    //   var url = "https://myvizo.com/img/logo_sm.png";
+    //   this.$refs.myVueDropzone.manuallyAddFile(file, url);
             EventBus.$on("changetooth", (tooth) => {
 
-
+                // alert(tooth);
                 this.editedItem.tooth_num = tooth;
 
             });
@@ -924,3 +1033,14 @@
 </style>
 
 <style>
+    .dropzone-container {
+        display: flex;
+        flex-direction: column;
+        border: 1px dashed #ccc;
+        border-radius: 15px;
+    }
+
+    .dropzone .dz-preview.dz-image-preview {
+        z-index: 1 !important;
+    }
+</style>

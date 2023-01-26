@@ -53,15 +53,22 @@ const router = new Router({
           }
         },   
         children: [
-          // {
-          //   name: 'statistics',
-          //   path: 'statistics',
-          //   component: () => import('@/views/dashboard/Dashboard')
-          // },
           {
+            name: 'statistics',
             path: '',
+            component: () => import('@/views/dashboard/Dashboard')
+          },
+          {
+            path: '/patients',
             name:'casesheet',
             component: () => import('@/views/dashboard/casesheet'),
+            
+          },
+
+          {
+            path: '/accounts',
+            name:'accounts',
+            component: () => import('@/views/dashboard/accounts'),
             
           },
 

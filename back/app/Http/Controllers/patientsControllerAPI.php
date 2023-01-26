@@ -7,6 +7,10 @@ use App\Models\User;
 use App\Models\Doctors;
 
 use App\Http\Resources\patientsResource;
+
+
+
+
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CasesControllerAPI;
 
@@ -40,9 +44,9 @@ class patientsControllerAPI extends Controller
 
         $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
         $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
-      $patients = patients::with(['Cases.Bills'
+      $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'
       
-      ])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
+      ])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->paginate();
 
       return new patientsCollection($patients);
     }
@@ -54,7 +58,7 @@ class patientsControllerAPI extends Controller
 
           $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
           $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
-        $patients = patients::with(['Case','Case.images','Case.Bills','Case.CaseCategories','user'])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
+        $patients = patients::with(['Case','Case.images','Case.Bills','Case.CaseCategories','Cases.Bills','user','Cases','Cases.CaseCategories'])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
 
         return new patientsCollection($patients);
 
@@ -123,6 +127,7 @@ class patientsControllerAPI extends Controller
     {
       ////  $this->authorize('view', $patients);
       $patients= patients::query()
+      ->with('Case')
       ->where('doctor_id','=',auth()->user()->Doctor->id)
       ->where('name', 'LIKE',  '%' .$search .'%') 
       ->orWhere('phone', 'LIKE',$search) 

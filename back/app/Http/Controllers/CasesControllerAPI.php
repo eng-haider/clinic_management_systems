@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\images;
 use App\Models\Sessions;
 
+use App\Models\Patients;
+
 use App\Models\Cases;
 use App\Models\Bills;
 use App\Models\CaseCategories;
@@ -17,6 +19,8 @@ use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 use App\Http\Controllers\UploadImageController;
 //images
+use Image;
+use finfo;
 //getCaseCategories
 class CasesControllerAPI extends Controller
 {
@@ -32,6 +36,52 @@ class CasesControllerAPI extends Controller
 
      }
 
+
+     public function getDashbourdCounts()
+     {
+        $Doctor_id=auth()->user()->Doctor->id;
+        $Casesall = Cases::whereHas('Patient', function ($query) use($Doctor_id) {
+            $query->where('doctor_id','=',$Doctor_id);
+        })
+        ->count();
+
+
+        $Casesactive = Cases::whereHas('Patient', function ($query) use($Doctor_id) {
+            $query->where('doctor_id','=',$Doctor_id);
+        })
+        ->where('status_id','=',42)
+        ->count();
+
+        $Casescompleted = Cases::whereHas('Patient', function ($query) use($Doctor_id) {
+            $query->where('doctor_id','=',$Doctor_id);
+        })
+        ->where('status_id','=',43)
+        ->count();
+
+
+
+    
+      $patients = patients::with(['Cases.Bills'
+      
+      ])->where('doctor_id','=',$Doctor_id)->orderBy('id', 'desc')->count();
+
+
+
+      return response()->json([
+        'message' => 'successfully',
+
+
+        'patients'=>$patients,
+        'Casescompleted' =>$Casescompleted,
+        'Casesall' =>$Casesall,
+        'Casesactive' =>$Casesactive,
+       
+    ], 200);
+
+      
+       
+     }
+
      public function getCaseCategoriesCounts()
      {
         $Doctor_id=auth()->user()->Doctor->id;
@@ -41,7 +91,7 @@ class CasesControllerAPI extends Controller
         })
         ->orderBy('id', 'desc')
         ->get();
-      //  CaseCategories::get();
+
       
       $Cases =CaseCategories::withCount('Case')->get();
         return new CasesCollection($Cases);
@@ -106,6 +156,8 @@ class CasesControllerAPI extends Controller
                     'price'=>$request->price,
                     'user_id'=>auth()->user()->id,
                     'notes'=>$request->notes,
+                    'tooth_num'=>$request->tooth_num,
+                  
                     'upper_right'=>$request->upper_right,
                     'upper_left'=>$request->upper_left,
                     'lower_right'=>$request->lower_right,
@@ -115,15 +167,28 @@ class CasesControllerAPI extends Controller
                 ));
 
 
-            if(count($request->images)>0 && $request->images[0]['img'] !==null){
-                $upload = new UploadImageController;
-                $path = $upload->uploadInner($request);
+            // if(count($request->images)>0 && $request->images[0]['img'] !==null){
+                if(count($request->images)>0){
+                // $upload = new UploadImageController;
+                // $path = $upload->uploadInner($request);
             
-                $Cases->images()->create(
+
+                // $Cases->images()->create(
+                // [
+                // 'image_url' =>$path[0],
+                // 'descrption'=>$request->images[0]['descrption']
+                // ]);
+
+                foreach($request->images as $image){
+                 
+                     $Cases->images()->create(
                 [
-                'image_url' =>$path[0],
-                'descrption'=>$request->images[0]['descrption']
+                'image_url' =>$image,
+                // 'descrption'=>$request->images[0]['descrption']
                 ]);
+
+
+                }
 
             }
                
@@ -193,7 +258,7 @@ class CasesControllerAPI extends Controller
         $Cases[0]->status_id=$request->status_id;
         $Cases[0]->price=$request->price;
         $Cases[0]->notes=$request->notes;
-
+        $Cases[0]->tooth_num=$request->tooth_num;
         $Cases[0]->upper_right=$request->upper_right;
         $Cases[0]->upper_left=$request->upper_left;
 
@@ -243,16 +308,23 @@ class CasesControllerAPI extends Controller
             }
 
         for($i=0;$i<count($request->bills);$i++){
+
+
+       
             if (isset($request->bills[$i]['id']))
             {
                 $bill=Bills::where('id','=',$request->bills[$i]['id'])->first();
                 $bill->update(['price' =>$request->bills[$i]['price'],'PaymentDate'=>$request->bills[$i]['PaymentDate']]);
 
-            }else{
+            }else if($request->bills[$i]['price'] !==0){
                 $Cases[0]->Bills()->Create(['price' =>$request->bills[$i]['price'],'PaymentDate'=>$request->bills[$i]['PaymentDate']]);
                    
-            }
+          
         
+        }
+
+
+
             }
          
 
@@ -307,6 +379,47 @@ class CasesControllerAPI extends Controller
         return new CasesCollection($Cases);
 
     }
+
+  
+    public function uploude_image(Request $request)
+    {
+        $file=$request->file('file');
+        $allowedfileExtension=['jpg','png','jpeg','JPG','JPEG','.gif'];
+        // $extension =$file->getClientOriginalExtension();
+
+        $filesize=$_FILES['file']['size'];
+        $temp        = explode(".", $_FILES["file"]["name"]);
+        $extension   = strtolower(end($temp));
+        $img_name = $_FILES["file"]["name"];
+        //  $img_name    ='img'.time().'.'.$extension.'';
+
+        $check=in_array($extension,$allowedfileExtension);
+        $finfo = new finfo(FILEINFO_MIME);
+
+        if($check)
+        {
+            if (in_array($finfo->file($_FILES["file"]['tmp_name']) , array('image/jpeg; charset=binary' , 'image/png; charset=binary' , 'image/gif; charset=binary'))) {
+                if($filesize>5120000) {
+                    return response()->json('file bigger than 5MB', 400); 
+                }
+                Image::make($request->file('file'))->save('case_photo/'.$img_name.'');
+               
+                return response()->json([
+                    'success' => true,
+                    'data' =>  $img_name 
+                ], 200);
+
+
+            } else {
+                return response()->json('file type not allowed', 400);
+            }
+            
+        } else {
+            return response()->json('file type not allowed', 400);
+        }
+    }
+    
+   
 //
 
     /**

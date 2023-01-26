@@ -8,11 +8,12 @@
 
         <v-dialog v-model="casesheet" max-width="900px">
       
-            <cases :editedItem="editedItem"></cases>
+            <cases :editedItem="editedItem" :CaseCategories="CaseCategories"></cases>
         </v-dialog>
 
 
         <v-dialog v-model="Recipe" max-width="900px">
+
             <Recipe :RecipeInfo="editedItem" :CaseCategories="CaseCategories"></Recipe>
         </v-dialog>
         <v-container id="dashboard" fluid tag="section">
@@ -33,7 +34,8 @@
                         <span class="d-none d-sm-flex"
                             style="font-family: 'Cairo', sans-serif;font-weight:bold;font-size:20px;text-align:center"> اسم المراجع : 
                             <span style="color:blue">
-                                {{desserts[0].patient.name}}
+                               
+                                <v-chip> {{desserts[0].patient.name}}</v-chip>
                             </span>
                             
                             </span>
@@ -77,6 +79,8 @@
                         </template>
                         <span>{{ $t("edite") }} </span>
                     </v-tooltip>
+
+
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
                             <v-icon @click="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
@@ -90,6 +94,30 @@
                 </template>
 
 
+                <template v-slot:[`item.date`]="{ item }">
+                    {{cropdate(item.created_at)}}
+
+
+
+
+                </template>
+
+                <template v-slot:[`item.bills`]="{ item }">
+                
+
+
+
+                <v-chip v-if="(sumPaybills(item.bills)==item.price)" class="ma-2" color="green" outlined>
+                    تم التسديد
+                </v-chip>
+            
+                <v-chip v-else class="ma-2" color="red" outlined>
+                   لم يتم التسديد
+                </v-chip>
+            
+            
+            
+                            </template>
                 <template v-slot:[`item.status`]="{ item }">
                     <v-chip class="ma-2" :color="item.status.status_color" outlined>
                         <v-icon left>
@@ -235,10 +263,18 @@
                         align: "start",
                         value: "price"
                     },
+                  
                     {
                         text: this.$t('datatable.status_Description'),
                         align: "start",
-                        value: "notes"
+                        value: "sessions[0].note"
+                    },
+                   
+
+                    {
+                        text: this.$t('datatable.date'),
+                        align: "start",
+                        value: "date"
                     },
 
 
@@ -251,6 +287,11 @@
 
 
 
+                    {
+                        text: 'حاله الدفع',
+                        align: "start",
+                        value: "bills"
+                    },
                     //status_name_ar
 
                     {
@@ -271,10 +312,26 @@
         },
 
         methods: {
-            // addCase(item) {
-            //     this.patientInfo = item;
-            //     this.casesheet = true;
-            // },
+            sumPaybills(bills) {
+                let sum = 0;
+       
+                for (let i = 0; i < bills.length; i++) {
+
+                        sum += parseInt(bills[i].price);
+                  
+                    
+                }
+
+
+                if (isNaN(sum)) {
+                    return 0;
+                }
+                return sum
+            },
+
+            cropdate(x){
+return  x.slice(0, 10);
+            },
             addRecipe() {
 
 
@@ -650,6 +707,7 @@ addCase(){
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
+                     
 
                     })
                     .catch(() => {

@@ -81,7 +81,9 @@ class billsControllerAPI extends Controller
     public function destroy(bills $bills)
     {
       
-       if($bills->case->Patient->user_id==auth()->user()->id)
+
+
+       if($bills->case->user_id==auth()->user()->id)
        {
         $bills->delete();
         return new billsResource($bills);

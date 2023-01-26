@@ -91,13 +91,13 @@
         
 
         profile: [
-          // {
-          //   text: this.$t('AppBar.profile'),
-          //   icon: 'mdi-account',
-          //   to: {
-          //     path: "/admin/profile",
-          //   },
-          // },
+          {
+            text: this.$t('AppBar.profile'),
+            icon: 'mdi-account',
+            to: {
+              path: "/admin/profile",
+            },
+          },
           {
             text: this.$t('AppBar.Settings'),
             icon: 'mdi-cog-outline',

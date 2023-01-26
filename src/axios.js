@@ -20,9 +20,24 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 );
 
+
+axios.interceptors.response.use((response) => {
+  return response;
+}, function (error) {
+  // Do something with response error
+  router.push("/login")
+  if (error.response.status === 402) {
+    router.push("/login")
+  }
+  return Promise.reject(error.response);
+});
+
+
+
+
 //Vue.prototype.$http = axios;
 //axios.defaults.baseURL =  'http://apismartclinic.tctate.com/api/';
-axios.defaults.baseURL =  'http://127.0.0.1:8001/api/';
+axios.defaults.baseURL =  'http://127.0.0.1:8003/api/';
 
 //http://127.0.0.1:8001
 axios.interceptors.response.use(

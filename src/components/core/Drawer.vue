@@ -116,11 +116,20 @@
       return {
         items: [
 
+        {
+            title: this.$t("header.dashbourd"),
+            icon: 'fas fa-clipboard',
+            auth: true,
+            to: '/',
+          },
+
+
+
           {
             title: this.$t("header.casesheet"),
             icon: 'fas fa-clipboard',
-            to: '/',
-              auth: true,
+            to: '/patients',
+            auth: true,
           },
 
 
@@ -133,10 +142,10 @@
 
 
  {
-            title: this.$t("header.dashbourd"),
+            title: this.$t("header.accounts"),
             icon: 'fas fa-clipboard',
             auth: true,
-            to: '/dashbourd',
+            to: '/accounts',
           },
           
       

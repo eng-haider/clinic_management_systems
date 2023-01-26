@@ -14,6 +14,13 @@
             <cases :editedItem="patientInfo"></cases>
         </v-dialog>
 
+      <div>
+        <v-dialog v-model="bill" max-width="1000px">
+            <Bill :patient="patientInfo"></Bill>
+        </v-dialog>
+      </div>
+
+        
 
         <v-dialog v-model="Recipe" max-width="900px">
             <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategories"></Recipe>
@@ -23,7 +30,8 @@
             </v-text-field> -->
 
 
-            <v-data-table :headers="headers" :loading="loadingData"  :page.sync="page"  @page-count="pageCount = $event" hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
+            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" @page-count="pageCount = $event"
+                hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.casesheet") }}
@@ -61,8 +69,10 @@
 
                                             <v-row>
                                                 <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field :reverse="true" v-model="editedItem.name" :rules="[rules.required]"
-                                                        :label="$t('datatable.name')" outlined>
+                                                    <v-text-field v-model="editedItem.name"
+                                                        style="direction: rtl;text-align: right;"
+                                                        :rules="[rules.required]" :label="$t('datatable.name')"
+                                                        outlined>
                                                     </v-text-field>
                                                 </v-col>
 
@@ -70,7 +80,7 @@
                                                 <v-col class="py-0" cols="12" sm="6" md="6">
                                                     <v-text-field v-model="editedItem.phone" :rules="[rules.minPhon]"
                                                         required v-mask="mask" placeholder="07XX XXX XXXX"
-                                                        style="direction: ltr"
+                                                        style="direction:ltr"
                                                         onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
                                                         :label="$t('datatable.phone')" outlined>
                                                     </v-text-field>
@@ -180,47 +190,44 @@
                             </v-form>
                         </v-dialog>
                     </v-toolbar>
-                    
+
 
                     <v-layout row wrap>
-                         <v-flex xs5 md3 sm3 pr-1 style="padding-right: 22px !important;">
-                <v-text-field  ref="name" v-model="search" 
-                  placeholder="اسم المراجع او رقم  الهاتف" required>
-                </v-text-field>
-              </v-flex>
+                        <v-flex xs5 md3 sm3 pr-1 style="padding-right: 22px !important;">
+                            <v-text-field ref="name" v-model="search" placeholder="اسم المراجع او رقم  الهاتف" required>
+                            </v-text-field>
+                        </v-flex>
 
-              <v-flex xs1 pa-5>
-                  <v-btn color="green" style="color:#fff" @click="seachs()">بحــث</v-btn>
-              </v-flex>
+                        <v-flex xs1 pa-5>
+                            <v-btn color="green" style="color:#fff" @click="seachs()">بحــث</v-btn>
+                        </v-flex>
 
-               <v-flex xs1 pt-5 pb-5 pr-2 v-if="allItem">
-                  <v-btn color="blue" style="color:#fff"  @click="initialize();allItem=false">رجوع</v-btn>
-              </v-flex>
+                        <v-flex xs1 pt-5 pb-5 pr-2 v-if="allItem">
+                            <v-btn color="blue" style="color:#fff" @click="initialize();allItem=false">رجوع</v-btn>
+                        </v-flex>
 
-            
+
                     </v-layout>
                 </template>
 
 
-     <template v-slot:[`item.names`]="{ item }">
+                <template v-slot:[`item.names`]="{ item }">
 
-   <span >
-                      {{item.name}}
+                    <span>
+                        {{item.name}}
                     </span>
 
-                  
+
 
                 </template>
 
 
-                     <template v-slot:[`item.phones`]="{ item }">
+                <template v-slot:[`item.phones`]="{ item }">
 
 
-                   <p
-                   style="    direction: ltr;
-    text-align: end;"
-                   > {{item.phone}}</p>
-                  
+                    <p style="    direction: ltr;
+    text-align: end;"> {{item.phone}}</p>
+
 
 
                 </template>
@@ -282,7 +289,7 @@
 
                 </template>
 
-                <template v-slot:[`item.booking`]="{ item }" >
+                <template v-slot:[`item.booking`]="{ item }">
 
 
                     <span style="display:none">{{item.id}}</span>
@@ -297,6 +304,22 @@
 
                 </template>
 
+                <template v-slot:[`item.bills`]="{ item }">
+
+
+<span style="display:none">{{item.id}}</span>
+
+<v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
+    style="color:#fff;height:28px;font-weight:bold">
+    <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
+     الحساب 
+
+
+</v-btn>
+
+</template>
+
+                
 
 
                 <template v-slot:[`item.actions`]="{ item }">
@@ -332,14 +355,10 @@
 
         </v-container>
         <div class="text-center pt-2">
-      <v-pagination
-        v-model="page"
-        @input="goTop()"
-        :length="pageCount"
-      ></v-pagination>
-     
-    </div>
-        
+            <v-pagination v-model="page" @input="goTop()" :length="pageCount"></v-pagination>
+
+        </div>
+
     </div>
 </template>
 
@@ -347,19 +366,15 @@
     //Recipe
     import cases from './case.vue';
     import billsReport from './billsReport.vue';
+    
     import {
         EventBus
     } from "./event-bus.js";
     import Recipe from './Recipe.vue';
     import OwnerBooking from './sub_components/OwnerBooking.vue'
+    import Bill from './sub_components/billsReport.vue'
     import Swal from "sweetalert2";
-    // import {
-    //     DxFileUploader
-    // } from 'devextreme-vue/file-uploader';
-    // import {
-    //     DxProgressBar
-    // } from 'devextreme-vue/progress-bar';
-
+  
     import {
         mask
     } from "vue-the-mask";
@@ -373,21 +388,25 @@
             OwnerBooking,
             cases,
             Recipe,
+            Bill
         },
         data() {
             return {
                 desserts: [
 
                 ],
+                bill:false,
                 paymentsCount: 1,
                 booking: false,
                 cats: [],
                 patientInfo: {},
-                loadingData:true,
-                allItem:false,
+                loadingData: true,
+                allItem: false,
                 RecipeInfo: {},
-                pageCount:11,
-                page:1,
+
+                pageCount: 11,
+                page: 1,
+
                 Recipe: false,
                 date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
                 menu: [],
@@ -419,9 +438,13 @@
                 imageSource: '',
                 textVisible: true,
                 progressVisible: false,
+                search: {
+                    from_date: '',
+                    to_date: ''
+                },
                 progressValue: 0,
 
-search:null,
+                
 
                 editedItem: {
                     name: "",
@@ -435,7 +458,7 @@ search:null,
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
-                         sessions: [{
+                        sessions: [{
                             note: '',
                             date: ''
                         }],
@@ -507,6 +530,11 @@ search:null,
                         value: "booking",
                         sortable: false
                     },
+                    {
+                        text: '',
+                        value: "bills",
+                        sortable: false
+                    },
                     //booking
                     //booking
                     {
@@ -520,13 +548,20 @@ search:null,
         },
 
         methods: {
-            goTop(){
+
+            goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                
+
                     window.scrollTo(0, 0);
 
-             }
-              
+                }
+
+            },
+            openbill(item){
+                item
+
+                this.patientInfo = item;
+                this.bill=true;
             },
             addCase(item) {
 
@@ -546,10 +581,10 @@ search:null,
                         price: '',
                         PaymentDate: ''
                     }],
-                     sessions: [{
-                            note: '',
-                            date: ''
-                        }],
+                    sessions: [{
+                        note: '',
+                        date: ''
+                    }],
                     images: [{
                             img: '',
                             descrption: ''
@@ -561,13 +596,13 @@ search:null,
 
 
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                
-                this.$router.push("/case/"+item.id)
 
-             } else {
-            
-                 this.casesheet = true;
-             }
+                    this.$router.push("/case/" + item.id)
+
+                } else {
+
+                    this.casesheet = true;
+                }
 
             },
             addbooking(item) {
@@ -781,7 +816,7 @@ search:null,
                             price: '',
                             PaymentDate: ''
                         }],
-                         sessions: [{
+                        sessions: [{
                             note: '',
                             date: ''
                         }],
@@ -814,7 +849,7 @@ search:null,
 
                 }
                 if (this.editedItem.case.images.length > 0) {
-                    this.imageSource = 'http://127.0.0.1:8000/images/' + this.editedItem.case.images[0].image_url;
+                    this.imageSource = this.Url + this.editedItem.case.images[0].image_url;
 
                 }
 
@@ -841,7 +876,7 @@ search:null,
                             price: '',
                             PaymentDate: ''
                         }],
-                         sessions: [{
+                        sessions: [{
                             note: '',
                             date: ''
                         }],
@@ -862,7 +897,7 @@ search:null,
                         patient_id: "",
                         lower_right: "",
                         lower_left: "",
-                         sessions: [{
+                        sessions: [{
                             note: '',
                             date: ''
                         }],
@@ -882,8 +917,8 @@ search:null,
 
 
             },
-seachs(){
-  Axios.get("patients/search/"+this.search, {
+            seachs() {
+                Axios.get("patients/search/" + this.search, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -892,8 +927,8 @@ seachs(){
                     })
                     .then(res => {
                         this.loading = false;
-                        this.search=null;
-                        this.allItem=true;
+                        this.search = null;
+                        this.allItem = true;
                         this.desserts = res.data.data;
 
 
@@ -901,7 +936,7 @@ seachs(){
                     .catch(() => {
                         this.loading = false;
                     });
-},
+            },
 
             initialize() {
                 this.loading = true;
@@ -913,7 +948,7 @@ seachs(){
                         }
                     })
                     .then(res => {
-                        this.loadingData=false;
+                        this.loadingData = false;
                         this.loading = false;
                         this.desserts = res.data.data;
 
@@ -1004,7 +1039,7 @@ seachs(){
                             this.editedIndex = -1;
                             this.close();
                             this.$swal.fire({
-                                title: this.$t('Added'),
+                                title: 'تمت اضافه مراجع جديد',
                                 text: "",
                                 icon: "success",
                                 confirmButtonText: this.$t('close'),
@@ -1080,11 +1115,11 @@ seachs(){
                                 });
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,
-                                this.initialize();
-                                 if (this.$store.state.role !== 'secretary') {
-                                     this.addCase(this.patientInfo);
-                                 }
-                                
+                                    this.initialize();
+                                if (this.$store.state.role !== 'secretary') {
+                                    this.addCase(this.patientInfo);
+                                }
+
 
 
 
@@ -1115,7 +1150,12 @@ seachs(){
             },
         },
         created() {
+            EventBus.$on("billsReportclose", (tooth) => {
 
+tooth
+this.bill = false;
+
+});
             //changeStatusCloseCase
 
             EventBus.$on("changeStatusCloseCase", (from) => {
@@ -1227,6 +1267,4 @@ seachs(){
         position: relative;
         bottom: 10px;
     }
-  
-
 </style>

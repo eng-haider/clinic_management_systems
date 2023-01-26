@@ -11,10 +11,11 @@
         </div>
 
         <v-dialog v-model="casesheet" max-width="900px">
-            <cases :editedItem="editedItem"></cases>
+            
+            <cases :editedItem="editedItem" :CaseCategories="CaseCategoriess"></cases>
         </v-dialog>
         <v-dialog v-model="Recipe" max-width="900px">
-            <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategories"></Recipe>
+            <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategoriess"></Recipe>
         </v-dialog>
         <v-container id="dashboard" fluid tag="section">
             <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" items-per-page="15"
@@ -31,12 +32,6 @@
 
 
                     <v-layout row wrap pa-5>
-
-
-
-
-
-
                         <v-flex xs12 md3 sm3>
                             <v-select dense v-model="search.case_categores_id" label=" نوع الحاله "
                                 :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
@@ -219,8 +214,25 @@
 
                 </template>
 
+                <template v-slot:[`item.bills`]="{ item }">
+                
 
 
+
+    <v-chip v-if="(sumPaybills(item.bills)==item.price)" class="ma-2" color="green" outlined>
+        تم التسديد
+    </v-chip>
+
+    <v-chip v-else class="ma-2" color="red" outlined>
+       لم يتم التسديد
+    </v-chip>
+
+
+
+                </template>
+
+
+            
                 <template v-slot:[`item.status`]="{ item }">
                     <v-chip class="ma-2" :color="item.status.status_color" outlined>
                         <v-icon left>
@@ -248,12 +260,13 @@
                     </div>
                 </v-flex>
             </v-layout>
-
+<Fancybox ></Fancybox>
         </v-container>
     </div>
 </template>
 
 <script>
+ import { Fancybox} from "@fancyapps/ui";
     //Recipe
     import cases from './case.vue';
     import billsReport from './billsReport.vue';
@@ -263,12 +276,7 @@
     import Recipe from './Recipe.vue';
     import OwnerBooking from './sub_components/OwnerBooking.vue'
     import Swal from "sweetalert2";
-    // import {
-    //     DxFileUploader
-    // } from 'devextreme-vue/file-uploader';
-    // import {
-    //     DxProgressBar
-    // } from 'devextreme-vue/progress-bar';
+
 
     import {
         mask
@@ -283,6 +291,7 @@
             OwnerBooking,
             cases,
             Recipe,
+            Fancybox
         },
         data() {
             return {
@@ -318,18 +327,7 @@
                 CaseCategories: [
 
                 ],
-                rules: {
-                    minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    required: value => !!value || "مطلوب",
-                    min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
-                    email: value => {
-                        if (value.length > 0) {
-                            const pattern =
-                                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
-                        }
-                    },
-                },
+        
                 editedIndex: -1,
 
                 isDropZoneActive: false,
@@ -409,6 +407,13 @@
                         value: "status"
                     },
 
+                    {
+                        text: 'حاله الدفع',
+                        align: "start",
+                        value: "bills"
+                    },
+
+
 
                     {
                         text: this.$t('Processes'),
@@ -421,6 +426,25 @@
         },
 
         methods: {
+
+            sumPaybills(bills) {
+                let sum = 0;
+       
+                for (let i = 0; i < bills.length; i++) {
+
+                        sum += parseInt(bills[i].price);
+                  
+                    
+                }
+
+
+                if (isNaN(sum)) {
+                    return 0;
+                }
+                return sum
+            },
+
+
             cropdate(x){
 return  x.slice(0, 10);
             },
@@ -625,40 +649,40 @@ return  x.slice(0, 10);
                     this.isDropZoneActive = false;
                 }
             },
-            onUploaded(e) {
-                const {
-                    file
-                } = e;
-                const fileReader = new FileReader();
-                fileReader.onload = () => {
-                    this.isDropZoneActive = false;
-                    this.imageSource = fileReader.result;
-                    this.editedItem.case.images = [{
-                        'img': [this.imageSource],
-                        'descrption': this.editedItem.case.images[0].descrption
-                    }];
+            // onUploaded(e) {
+            //     const {
+            //         file
+            //     } = e;
+            //     const fileReader = new FileReader();
+            //     fileReader.onload = () => {
+            //         this.isDropZoneActive = false;
+            //         this.imageSource = fileReader.result;
+            //         this.editedItem.case.images = [{
+            //             'img': [this.imageSource],
+            //             'descrption': this.editedItem.case.images[0].descrption
+            //         }];
 
-                    //      this.imageSource= '',
-                    //   this.textVisible= true,
-                    //   this.progressVisible=false,
-                    //   this.progressValue= 0
-                    //   this.imgCount=this.imgCount+1;
+            //         //      this.imageSource= '',
+            //         //   this.textVisible= true,
+            //         //   this.progressVisible=false,
+            //         //   this.progressValue= 0
+            //         //   this.imgCount=this.imgCount+1;
 
-                };
-                fileReader.readAsDataURL(file);
-                this.textVisible = false;
-                this.progressVisible = false;
-                this.progressValue = 0;
-            },
-            onProgress(e) {
-                this.progressValue = (e.bytesLoaded / e.bytesTotal) * 100;
+            //     };
+            //     fileReader.readAsDataURL(file);
+            //     this.textVisible = false;
+            //     this.progressVisible = false;
+            //     this.progressValue = 0;
+            // },
+            // onProgress(e) {
+            //     this.progressValue = (e.bytesLoaded / e.bytesTotal) * 100;
 
 
-            },
-            onUploadStarted() {
-                this.imageSource = '';
-                this.progressVisible = true;
-            },
+            // },
+            // onUploadStarted() {
+            //     this.imageSource = '';
+            //     this.progressVisible = true;
+            // },
 
 
 
@@ -668,6 +692,8 @@ return  x.slice(0, 10);
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
+
+                
 
                 if (this.editedItem.bills.length == 0) {
                     this.editedItem.bills = [{
@@ -1014,6 +1040,7 @@ return  x.slice(0, 10);
                 from
 
                 this.casesheet = false;
+                this.initialize();
                 ///  this.dialog = true
             });
             EventBus.$on("changeStatusCloseField", (from) => {

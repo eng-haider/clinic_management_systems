@@ -11,6 +11,7 @@ use App\Http\Controllers\billsControllerAPI;
 use App\Http\Controllers\CasesControllerAPI;
 use App\Http\Controllers\patientsControllerAPI;
 use App\Http\Controllers\UserControllerAPI;
+use App\Http\Controllers\PatientsAccountsControllerAPI;
 use App\Http\Controllers\UsersControllerAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -78,19 +79,31 @@ Route::name('patients.')->prefix('patients')->group(function () {
     Route::delete('/{patients}', [patientsControllerAPI::class, 'destroy'])->name('destroy');
 });
 
+
+Route::name('patientsAccounsts.')->prefix('patientsAccounsts')->group(function () {
+ 
+    Route::get('/', [PatientsAccountsControllerAPI::class, 'patientsAccounsts'])->name('patientsAccounsts');
+    Route::post('/search', [PatientsAccountsControllerAPI::class, 'search'])->name('search');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Cases endpoints
 |--------------------------------------------------------------------------
  */
 
-
+Route::post('/cases/uploude_image', [CasesControllerAPI::class, 'uploude_image'])->name('uploude_image');
 Route::name('cases.')->prefix('cases')->middleware('CheckRole:doctor')->group(function () {
     
   
+
+    
+
     //Usercases CaseCategories
     Route::get('/', [CasesControllerAPI::class, 'index'])->name('index');
+    Route::get('/getDashbourdCounts', [CasesControllerAPI::class, 'getDashbourdCounts'])->name('getDashbourdCounts');
     Route::post('/', [CasesControllerAPI::class, 'store'])->name('store');
+    // Route::post('/uploude_image', [CasesControllerAPI::class, 'uploude_image'])->name('uploude_image');
     Route::get('/search', [CasesControllerAPI::class, 'Search'])->name('Search');
     Route::get('/CaseCategories', [CasesControllerAPI::class, 'getCaseCategories'])->name('getCaseCategories');
     Route::get('/getCaseCategoriesCounts', [CasesControllerAPI::class, 'getCaseCategoriesCounts'])->name('getCaseCategoriesCounts');

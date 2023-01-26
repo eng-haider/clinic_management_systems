@@ -15,7 +15,7 @@ class Cases extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id','name','notes','price','upper_right','upper_left','lower_right','lower_left','patient_id','case_categores_id','status_id'
+        'user_id','name','notes','price','upper_right','upper_left','lower_right','lower_left','patient_id','case_categores_id','status_id','tooth_num'
     ];
 
     public function Patient()

@@ -4,15 +4,7 @@
       <v-col>
         <v-card class="mt-0 mx-auto pa-4" height="420" outlined v-if="showChar">
 
-          <DxChart id="chart" :data-source="dataSource" :title="$t('dashboard.Case_number_stats')">
-            <DxSeries argument-field="name_ar" value-field="case_count" type="bar" />
-            <DxLegend :visible="false" />
-            <DxExport :enabled="true" />
-            <DxSeriesTemplate name-field="name_ar" />
-            <DxCommonSeriesSettings :ignore-empty-points="true" argument-field="name_ar" value-field="case_count"
-              type="bar" />
-            <DxTooltip :enabled="true" />
-          </DxChart>
+       
 
 
 
@@ -105,16 +97,16 @@
 </template>
 
 <script>
-  import {
-    DxChart,
-    DxSeries
-  } from "devextreme-vue/chart";
+  // import {
+  //   DxChart,
+  //   DxSeries
+  // } from "devextreme-vue/chart";
 
   export default {
     name: "Dashboard",
     components: {
-      DxChart,
-      DxSeries
+      // DxChart,
+      // DxSeries
 
 
     },
@@ -187,6 +179,8 @@
         }
         return totle_coast;
       },
+
+      
       UserCases() {
 
         this.axios.get("patients/patientsAccounsts", {

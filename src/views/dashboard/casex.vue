@@ -175,7 +175,7 @@
                                                 <span>اضغط هنا لرفع صوره الحاله</span>
                                                 <span>…or click to browse for a file instead.</span>
                                             </div>
-                                            <DxProgressBar id="upload-progress" :min="0" :max="100" width="30%"
+                                            <!-- <DxProgressBar id="upload-progress" :min="0" :max="100" width="30%"
                                                 :show-status="false" :visible="progressVisible"
                                                 :value="progressValue" />
                                         </div>
@@ -185,14 +185,14 @@
                                             upload-url="https://js.devexpress.com/Demos/NetCore/FileUploader/Upload"
                                             :visible="false" @drop-zone-enter="onDropZoneEnter"
                                             @drop-zone-leave="onDropZoneLeave" @uploaded="onUploaded"
-                                            @progress="onProgress" @upload-started="onUploadStarted" />
+                                            @progress="onProgress" @upload-started="onUploadStarted" /> -->
 
                                         <v-text-field style="width:100$;padding-top:20px;" dense
                                             v-model="editedItem.images[0].descrption" label="وصف الصوره " outlined>
                                         </v-text-field>
                                     </div>
 
-
+                                    </div>
                                 </v-col>
                             </v-row>
                         </div>
@@ -338,12 +338,12 @@
     import moment from 'moment'
 
     import Swal from "sweetalert2";
-    import {
-        DxFileUploader
-    } from 'devextreme-vue/file-uploader';
-    import {
-        DxProgressBar
-    } from 'devextreme-vue/progress-bar';
+    // import {
+    //     DxFileUploader
+    // } from 'devextreme-vue/file-uploader';
+    // import {
+    //     DxProgressBar
+    // } from 'devextreme-vue/progress-bar';
 
 
     import Axios from "axios";
@@ -354,9 +354,9 @@
 
         // },
         components: {
-            DxFileUploader,
+            // DxFileUploader,
             teeth,
-            DxProgressBar,
+            // DxProgressBar,
         },
         data() {
             return {
