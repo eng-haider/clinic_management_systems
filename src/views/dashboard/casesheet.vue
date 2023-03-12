@@ -371,7 +371,7 @@
         EventBus
     } from "./event-bus.js";
     import Recipe from './Recipe.vue';
-    import OwnerBooking from './sub_components/OwnerBooking.vue'
+    import OwnerBooking from './sub_components/ownerBookinfDed.vue'
     import Bill from './sub_components/billsReport.vue'
     import Swal from "sweetalert2";
   
@@ -438,10 +438,7 @@
                 imageSource: '',
                 textVisible: true,
                 progressVisible: false,
-                search: {
-                    from_date: '',
-                    to_date: ''
-                },
+                search:'',
                 progressValue: 0,
 
                 
@@ -929,6 +926,7 @@
                         this.loading = false;
                         this.search = null;
                         this.allItem = true;
+                        this.desserts=[];
                         this.desserts = res.data.data;
 
 

@@ -5,6 +5,7 @@
   <v-form ref="form" v-model="valid">
 
   <v-card height="auto">
+
        <v-toolbar dark color="primary lighten-1 mb-5">
                     <v-toolbar-title>
                         <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد</h3>
@@ -35,7 +36,7 @@
 
 
     <v-row justify="center">
-       <v-col
+       <!-- <v-col
       cols="12"
       sm="6"
          xs="12"
@@ -43,7 +44,7 @@
 
   
     <v-date-picker v-model="editedItem.reservation_start_date" width="300" locale="ar-iq" ></v-date-picker>
-    </v-col>
+    </v-col> -->
 
     <v-col
       cols="12"
@@ -166,6 +167,7 @@
            
             'patientInfo':Object,
             'patientFound':Boolean,
+            'star_date':String,
             'patients':Array
 
         },
@@ -542,8 +544,26 @@
 
  if (this.$refs.form.validate()) {
 
-this.post_data.reservation_start_date=this.editedItem.reservation_start_date;
-this.post_data.reservation_end_date=this.editedItem.reservation_start_date;
+
+  let year = this.star_date.getFullYear();
+let month = this.star_date.getMonth()+1;
+let day = this.star_date.getDate();
+
+if(day < 10 ){
+    day = '0' + day.toString();
+}
+
+if(month < 10 ){
+  month = '0' + month.toString();
+}
+
+var date=`${year}-${month}-${day}`;
+
+
+
+
+this.post_data.reservation_start_date=date;
+this.post_data.reservation_end_date=date;
 this.post_data.reservation_from_time=this.editedItem.reservation_from_time;
 this.post_data.reservation_to_time=this.editedItem.reservation_to_time;
 
@@ -563,7 +583,7 @@ this.post_data.item_id=225;
 
 
 this.post_data.reservation_number=1;
-this.post_data.reservation_date=this.editedItem.reservation_start_date;
+this.post_data.reservation_date=date;
           this.$http({
               method: 'post',
               url: "https://tctate.com/api/api/reservation/owner/set",
@@ -571,14 +591,14 @@ this.post_data.reservation_date=this.editedItem.reservation_start_date;
              headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+                            Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2NzgyMTM1NTgsImV4cCI6MTY3ODg4MzE1OCwibmJmIjoxNjc4MjEzNTU4LCJqdGkiOiI1MFhvZjhqV2hzc1RlQ0gyIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.tzTHZ4_nuzLe_9woQaK5y1kmWLU2qGKOSmwUFpUW5b8"
                         }
             })
             .then(response => {
               this.BookingDetails = false;
              
               this.$swal('', "    تم  الحجز بنجاح", 'success')
-               this.$router.push({ name: 'requestBooking' })
+              //  this.$router.push({ name: 'requestBooking' })
               EventBus.$emit('GetRes', true)
               this.$refs.form.reset()
               //    this.e1 = 1;

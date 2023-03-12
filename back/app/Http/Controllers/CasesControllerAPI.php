@@ -167,17 +167,8 @@ class CasesControllerAPI extends Controller
                 ));
 
 
-            // if(count($request->images)>0 && $request->images[0]['img'] !==null){
+         
                 if(count($request->images)>0){
-                // $upload = new UploadImageController;
-                // $path = $upload->uploadInner($request);
-            
-
-                // $Cases->images()->create(
-                // [
-                // 'image_url' =>$path[0],
-                // 'descrption'=>$request->images[0]['descrption']
-                // ]);
 
                 foreach($request->images as $image){
                  
@@ -390,8 +381,8 @@ class CasesControllerAPI extends Controller
         $filesize=$_FILES['file']['size'];
         $temp        = explode(".", $_FILES["file"]["name"]);
         $extension   = strtolower(end($temp));
-        $img_name = $_FILES["file"]["name"];
-        //  $img_name    ='img'.time().'.'.$extension.'';
+        //$img_name = $_FILES["file"]["name"];
+        $img_name    ='img'.time().'.'.$extension.'';
 
         $check=in_array($extension,$allowedfileExtension);
         $finfo = new finfo(FILEINFO_MIME);

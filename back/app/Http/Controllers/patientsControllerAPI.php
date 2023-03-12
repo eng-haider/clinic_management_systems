@@ -34,7 +34,10 @@ class patientsControllerAPI extends Controller
 
         $patients = patients::all();
 
-        return new patientsCollection($patients);
+        return ['data'=>new patientsCollection($patients),
+        'case_counts'=>$patients->Cases->countt()
+    
+    ];
 
     }
 
@@ -48,7 +51,13 @@ class patientsControllerAPI extends Controller
       
       ])->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->paginate();
 
-      return new patientsCollection($patients);
+     
+
+      return ['data'=>new patientsCollection($patients),
+      'case_counts'=>$patients->Cases->countt()
+  
+  ];
+
     }
 
 
@@ -127,7 +136,7 @@ class patientsControllerAPI extends Controller
     {
       ////  $this->authorize('view', $patients);
       $patients= patients::query()
-      ->with('Case')
+      ->with(['Case','Case.images','Case.Bills','Case.CaseCategories','Cases.Bills','user','Cases','Cases.CaseCategories'])
       ->where('doctor_id','=',auth()->user()->Doctor->id)
       ->where('name', 'LIKE',  '%' .$search .'%') 
       ->orWhere('phone', 'LIKE',$search) 

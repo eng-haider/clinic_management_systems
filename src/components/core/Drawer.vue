@@ -8,30 +8,23 @@
     <!-- user info ui -->
     <v-list style="margin-top:27px" nav class="py-0">
 
-      <div style="    height: 200px;
-    width: 200px;
-    position: relative;
-    bottom: 17px;
-">
-        <img src="/dramt.png" style="width:100%;height:100%" />
-      </div>
+      <div class="app-sidebar__user active is-expanded">
+        <div class="dropdown user-pro-body text-center">
+          <div class="user-pic">
+
+            <img src="http://127.0.0.1:8005/uploads/profile/user-profile.png" class="avatar-xxl rounded-circle mb-1"
+              style="width:100px;height:100px" alt="default">
+
+          </div>
+          <div class="user-info" style="    text-align: center;">
+            <h5 class=" mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
+
+            <h5  class="mb-2  app-sidebar__user-name "> {{ $store.state.AdminInfo.name }}</h5 >
 
 
-
-
-      <div class="d-flex justify-center mb-6" style="font-size:22px;color:gary;font-weight: 700;color:#fff">
-        <div style="color:#fff">
-          Smart Clinic Platform
-
+          </div>
         </div>
-
-        <!-- <div>
-              {{getname(admin_info.user_email)}}
-            </div> -->
-
       </div>
-
-
 
 
 
@@ -48,9 +41,9 @@
 
 
 
-      <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i"     class="my-0 py-0"
-      :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
-        <v-list-item style="color:#fff !important" link  v-if="item.auth"  :to="item.to">
+      <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
+        :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
+        <v-list-item style="color:#fff !important" link v-if="item.auth" :to="item.to">
           <v-list-item-icon>
             <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
           </v-list-item-icon>
@@ -116,7 +109,7 @@
       return {
         items: [
 
-        {
+          {
             title: this.$t("header.dashbourd"),
             icon: 'fas fa-clipboard',
             auth: true,
@@ -133,7 +126,7 @@
           },
 
 
- {
+          {
             title: this.$t("header.showCases"),
             icon: 'fas fa-clipboard',
             auth: true,
@@ -141,30 +134,29 @@
           },
 
 
- {
+          {
             title: this.$t("header.accounts"),
             icon: 'fas fa-clipboard',
             auth: true,
             to: '/accounts',
           },
-          
-      
+
+
           {
-            title:  this.$t("Drawer.Booking"),
+            title: this.$t("Drawer.Booking"),
             icon: 'far fa-clock',
-             auth: true,
+            auth: true,
             to: "/requestBooking"
           },
-         
+
 
 
 
 
           {
-            title:
-            'المواعيد تجريبي',
+            title: 'المواعيد تجريبي',
             icon: 'far fa-clock',
-             auth: true,
+            auth: true,
             to: "/requestBooking_test"
           },
         ],
@@ -195,17 +187,16 @@
         this.$emit("update:expandOnHover", !val);
       }
     },
-     created() {
-   
- if (this.$store.state.role=='secretary') {
+    created() {
 
-      this.items[1].auth = false;
-       this.items[2].auth = false;
-    }
-    else{
-       this.items[1].auth = true;
+      if (this.$store.state.role == 'secretary') {
+
+        this.items[1].auth = false;
+        this.items[2].auth = false;
+      } else {
+        this.items[1].auth = true;
         this.items[2].auth = true;
-    }
+      }
 
     },
     methods: {
@@ -221,13 +212,64 @@
 
         this.items[0].title = this.$t("header.casesheet")
         this.items[1].title = this.$t("header.showCases")
-          this.items[2].title = this.$t("Drawer.dashbourd")
+        this.items[2].title = this.$t("Drawer.dashbourd")
         this.items[3].title = this.$t("Drawer.Booking")
 
-      
-      
+
+
 
       },
     },
   }
 </script>
+
+<style>
+  .profile-cover__action .user-pic {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .profile-cover__action .user-pic-right {
+    right: 0;
+    left: 0;
+    margin: 0 auto;
+    text-align: center;
+    bottom: -38%;
+  }
+
+  .user-pro-list2 .user-pic {
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+  }
+
+  .user-pro-list2 .user-pic .avatar {
+    border: 3px solid #fff;
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .user-pro-list2 .user-pic .avatar .avatar-status {
+    right: 15px;
+  }
+
+  .user-pro-list2 .user-pic-right {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
+
+
+
+
+  .v-pagination>li {
+    align-items: center;
+    display: contents !important;
+  }
+
+  .user-pic {
+    position: relative;
+  }
+</style>

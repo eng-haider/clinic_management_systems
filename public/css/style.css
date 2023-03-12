@@ -3,10 +3,50 @@ body{
    
 }
 
+.user-pic{
+  position: relative;
+  right: 40px;
+}
+.app-sidebar__user .user-pic::before {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 37%;
+  bottom: 8px;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #0dcd94;
+  cursor: pointer;
+}
+.rtl .app-sidebar__user .user-pic::before {
+  left: 37%;
+  right: inherit;
+}
 
-.v-pagination>li {
-  align-items: center;
-  display: contents !important;
+.app-sidebar__user {
+    display: flex;
+    align-items: center;
+    color: #aab3cc;
+    width: 100%;
+    padding: 25px 20px;
+    display: inline-block;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+.rtl .user-pro-list2 .user-pic {
+  left: 20px;
+  right: auto;
+}
+.rtl .user-pro-list2 .user-pic .avatar .avatar-status {
+  right: 15px;
+  left: auto;
+}
+.rtl .user-pro-list2 .user-pic-right {
+  right: 20px;
+  left: inherit;
 }
 
 

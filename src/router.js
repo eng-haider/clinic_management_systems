@@ -31,7 +31,7 @@ const router = new Router({
     
       {
         path: '/login',
-        name:'home',
+        name:'login',
         component: () => import('@/views/pages/Index'),
         children: [{
           name: 'Login',
@@ -41,12 +41,15 @@ const router = new Router({
       },
       {
         path: '/',
+        name:"admin",
         component: () => import('@/views/dashboard/Index'),
         beforeEnter: (to, from, next) => {
           
           if (localStorage.getItem('tokinn') && store.state.AdminInfo.authe==true) {
             next()
-          } else {
+          }
+          
+          else {
             next({
               path: '/login',
             });

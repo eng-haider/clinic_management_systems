@@ -54,7 +54,7 @@ Vue.config.productionTip = false
 Vue.mixin({
   data: function () {
     return {
-      Url: 'http://127.0.0.1:8003',
+      Url: 'http://127.0.0.1:8004',
       http: 'http://'
     }
   }

@@ -1,8 +1,8 @@
 <template>
   <div>
-  
 
-   
+
+
     <v-dialog v-model="dialog" max-width="900px">
 
       <v-card>
@@ -24,84 +24,45 @@
           </v-toolbar>
 
 
-          <v-layout row wrap >
+          <v-layout row wrap>
 
 
 
-<v-flex xs3>
- 
-      <v-menu
-      
+            <v-flex xs3>
+
+              <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                offset-y min-width="auto">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field v-model="search.from_date" label="من التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+                    v-on="on"></v-text-field>
+                </template>
+                <v-date-picker v-model="search.from_date" no-title scrollable>
+                  <v-spacer></v-spacer>
+
+                </v-date-picker>
+              </v-menu>
+
+            </v-flex>
 
 
-        v-model="menu"
-        :close-on-content-click="false"
-        :nudge-right="40"
-        transition="scale-transition"
-        offset-y
-        min-width="auto"
+            <v-flex xs3>
+
+              <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                offset-y min-width="auto">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field v-model="search.to_date" label="الئ التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+                    v-on="on"></v-text-field>
+                </template>
+                <v-date-picker v-model="search.to_date" no-title scrollable>
+                  <v-spacer></v-spacer>
+
+                </v-date-picker>
+              </v-menu>
+
+            </v-flex>
 
 
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-text-field
-            v-model="search.from_date"
-            label="من التاريخ"
-            prepend-icon="mdi-calendar"
-            readonly
-            v-bind="attrs"
-            v-on="on"
-          ></v-text-field>
-        </template>
-        <v-date-picker
-          v-model="search.from_date"
-          no-title
-          scrollable
-        >
-          <v-spacer></v-spacer>
-      
-        </v-date-picker>
-      </v-menu>
-  
-</v-flex>
 
-
-<v-flex xs3>
- 
-      <v-menu
-      
-
-
-        v-model="menu2"
-        :close-on-content-click="false"
-        :nudge-right="40"
-        transition="scale-transition"
-        offset-y
-        min-width="auto"
-
-
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-text-field
-            v-model="search.to_date"
-            label="الئ التاريخ"
-            prepend-icon="mdi-calendar"
-            readonly
-            v-bind="attrs"
-            v-on="on"
-          ></v-text-field>
-        </template>
-        <v-date-picker
-          v-model="search.to_date"
-          no-title
-          scrollable
-        >
-          <v-spacer></v-spacer>
-      
-        </v-date-picker>
-      </v-menu>
-
-</v-flex>
 
 
             <!-- <v-flex xs12 md3 sm3>
@@ -130,15 +91,56 @@
 
 
             <v-flex xs3 md1 sm1 pa-5>
-              <v-btn color="green" style="color:#fff" @click="initialize();is_search=true">بحــث</v-btn>
+              <v-btn color="green" style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
             </v-flex>
 
             <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2 v-if="allItem">
-              <v-btn color="blue" style="color:#fff;float: left;" @click="initialize();allItem=false">الكل</v-btn>
+              <v-btn color="blue" style="color:#fff;float: left;" @click="allItem=false;initialize()">الكل</v-btn>
             </v-flex>
 
 
           </v-layout>
+
+
+
+          <v-layout row wrap pt-4>
+            <v-flex xs12 md3 sm3 pr-2 pb-4>
+
+
+              <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.case_count">
+
+              </dash_card>
+
+            </v-flex>
+
+
+            <v-flex xs12 md3 sm3 pr-2 pb-4>
+
+              <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.all_sum"></dash_card>
+            </v-flex>
+
+            <v-flex xs12 md3 sm3 pr-2 pb-4>
+
+              <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid
+"></dash_card>
+
+
+
+
+
+            </v-flex>
+
+            <v-flex xs12 md3 sm3 pr-2 pb-4>
+
+              <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.remainingamount"></dash_card>
+            </v-flex>
+
+
+          </v-layout>
+
         </template>
 
 
@@ -265,6 +267,8 @@
 </template>
 
 <script>
+  import dash_card from '../../components/core/counts_number_card.vue';
+
   import {
     EventBus
   } from "./event-bus.js";
@@ -272,7 +276,8 @@
   export default {
     name: "Dashboard",
     components: {
-      billsReport
+      billsReport,
+      dash_card
 
 
     },
@@ -281,21 +286,33 @@
       return {
         dataSource2: [],
         patient: {},
-      
-      
-        menu:false,
-        menu2:false,
+        accounts_statistic: {
+          all_sum: '',
+          case_count: '',
+          paid: '',
+          remainingamount: ''
+
+
+
+
+
+        },
+
+
+        menu: false,
+        menu2: false,
         dialog: false,
         showChar: false,
         Cases: [],
         search: {
-                    from_date: '',
-                    to_date: ''
-                },
+          from_date: (new Date(new Date().setDate(new Date().getDate() - 30) - (new Date()).getTimezoneOffset() *
+            60000)).toISOString().substr(0, 10),
+          to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+        },
         page: 1,
         pageCount: 0,
         current_page: 1,
-        is_search:false,
+        is_search: false,
         last_page: 0,
         loadingData: true,
         headers: [{
@@ -441,52 +458,72 @@
 
       //user1_hospital1
       initialize() {
-if(this.is_search){
+        if (this.is_search == true) {
 
-        this.axios.post('/patientsAccounsts/search?page=' + this.current_page,this.search, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(res => {
-            this.loadingData = false;
+          this.axios.post('/patientsAccounsts/search?page=' + this.current_page, this.search, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(res => {
+              this.loadingData = false;
 
-            this.Cases = res.data.data;
-            this.last_page = res.data.meta.last_page;
-            this.pageCount = res.data.meta.last_page;
+              this.Cases = res.data.data;
 
 
+              this.accounts_statistic.all_sum = res.data.all_sum;
+              this.accounts_statistic.case_count = res.data.case_count;
+
+              this.accounts_statistic.paid = res.data.paid;
+              this.accounts_statistic.remainingamount = res.data.remainingamount;
 
 
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-}
-        else{
+              this.last_page = res.data.meta.last_page;
+              this.pageCount = res.data.meta.last_page;
+
+
+
+
+
+
+
+            })
+            .catch(() => {
+              this.loading = false;
+            });
+        } else {
+
           this.axios.get('/patientsAccounsts?page=' + this.current_page, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(res => {
-            this.loadingData = false;
-
-            this.Cases = res.data.data;
-            this.last_page = res.data.meta.last_page;
-            this.pageCount = res.data.meta.last_page;
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(res => {
+              this.loadingData = false;
+              this.accounts_statistic.all_sum = res.data.all_sum;
+              this.accounts_statistic.case_count = res.data.case_count;
 
 
+              this.accounts_statistic.paid = res.data.paid;
+              this.accounts_statistic.remainingamount = res.data.remainingamount;
+              this.Cases = res.data.data;
+              this.last_page = res.data.meta.last_page;
+              this.pageCount = res.data.meta.last_page;
 
 
-          })
-          .catch(() => {
-            this.loading = false;
-          });
+
+
+
+
+
+            })
+            .catch(() => {
+              this.loading = false;
+            });
         }
       },
       getCase_number_stats() {

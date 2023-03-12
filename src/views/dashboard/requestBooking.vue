@@ -170,8 +170,10 @@
     padding-right:0px !important;
   }
   }
+
 </style>
 <script>
+
   //import Echo from 'laravel-echo';
   import {
     EventBus

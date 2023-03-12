@@ -64,7 +64,10 @@ export default new Vuex.Store({
           name:'',
           email:'',
           role:'',
-          photo:''
+          photo:'',
+          clinics_info:''
+
+          
         }
       } ,
 
@@ -77,9 +80,10 @@ export default new Vuex.Store({
         state.AdminInfo.role = userData.role.name
         state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
         state.AdminInfo.token =localStorage.getItem('tokinn')
-  
+      
+        state.AdminInfo.clinics_info =userData.clinic_info
 
-        
+       
       },
 
 
@@ -113,16 +117,17 @@ export default new Vuex.Store({
           policyNumber: userData.photp,
           userPhotoUrl: userData.email,
           role:userData.role.name,
-
-          
+          clinic_info:userData.clinic_info,
+      
         });
       
         let authenticate = Promise.resolve({ role:userData.role.name});
         authenticate.then(user => { Vue.prototype.$user.set(user);})
 
         commit('setRole',userData.role.name);
-        router.push("/")
-        // window.location.replace("/");
+        router.push("/");
+     
+
       },
 
       logout({
@@ -130,11 +135,15 @@ export default new Vuex.Store({
       }) {
         commit('clearAuth')
         localStorage.clear();
+        window.location.reload();
+        
         localStorage.setItem("darkMode", this.$vuetify.theme.dark);
         this.$i18n.locale = this.$i18n.locale == "ar" ? "ar" : "en";
         localStorage.setItem("lang", this.$i18n.locale);
+       
         this.$vuetify.rtl = localStorage.getItem("lang") == "ar" ? true : false;
         axios.defaults.headers.get["Authorization"] = null;
+      
   
       },
 

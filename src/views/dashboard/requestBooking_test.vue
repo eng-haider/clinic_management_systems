@@ -1,98 +1,186 @@
 <template>
-  <DxScheduler
-    time-zone="Asia/Baghdad"
-    :data-source="dataSource"
-    :current-date="currentDate"
-    :views="views"
-    :height="900"
-    :start-day-hour="9"
-    current-view="month"
-  />
+  <div id='app' v-if="eventSettings.dataSource.length>0">
+    <div>
+      <OwnerBooking :star_date="star_date" :patientFound="patientFound=false" :patients="Patiant" v-if="owner_booking">
+      </OwnerBooking>
+    </div>
+
+    <ejs-schedule :eventRendered="oneventRendered" :currentView='currentView' height='900px' :popupOpen="onPopupOpen"
+      :created="onCreate" :eventClick='onEventClick' :actionComplete="onActionComplete" :eventSettings='eventSettings'>
+
+
+      <e-resources :save="onChange">
+        <e-resource field='DepartmentID' title='name' name='Departments' :dataSource='Patiant' textField='name'
+          idField='id' colorField='Color'>
+        </e-resource>
+
+      </e-resources>
+
+
+
+    </ejs-schedule>
+  </div>
 </template>
 <script>
+  import {
+    EventBus
+  } from './event-bus.js';
+  const axios = require('axios');
+  import OwnerBooking from './sub_components/OwnerBooking.vue'
+  import Vue from "vue";
 
-import DxScheduler from 'devextreme-vue/scheduler';
+  import {
+    SchedulePlugin,
+    Day,
+    Week,
+    WorkWeek,
+    Month,
+    Agenda
+  } from '@syncfusion/ej2-vue-schedule';
+  // import {
+  //   format
+  // } from "path";
+  Vue.use(SchedulePlugin);
+  export default Vue.extend({
+
+    data: function () {
+      return {
+        Patiant: [],
+        star_date: '',
+        currentView: 'Month',
+        owner_booking: false,
+        datax: [],
+        eventSettings: {
+          dataSource: [],
+
+        },
+        selectedDate: new Date(2022, 9, 9)
+      }
+    },
+    components: {
+
+      OwnerBooking
+
+
+    },
+    created() {
+      EventBus.$on('GetResCancel', (from) => {
+        from,
+        this.owner_booking = false
+       
+     
 
 
 
-export default {
-  components: {
-    DxScheduler,
-  },
-  data() {
-    return {
-      views: ['day', 'week', 'workWeek', 'month'],
-      currentDate: new Date(2021, 3, 29),
-      dataSource:  [
-  {
-    text: 'Website Re-Design Plan',
-    startDate: new Date('2021-04-26T16:30:00.000Z'),
-    endDate: new Date('2021-04-26T18:30:00.000Z'),
-  }, {
-    text: 'Book Flights to San Fran for Sales Trip',
-    startDate: new Date('2021-04-26T19:00:00.000Z'),
-    endDate: new Date('2021-04-26T20:00:00.000Z'),
-    allDay: true,
-  }, {
-    text: 'Install New Router in Dev Room',
-    startDate: new Date('2021-04-26T21:30:00.000Z'),
-    endDate: new Date('2021-04-26T22:30:00.000Z'),
-  }, {
-    text: 'Approve Personal Computer Upgrade Plan',
-    startDate: new Date('2021-04-27T17:00:00.000Z'),
-    endDate: new Date('2021-04-27T18:00:00.000Z'),
-  }, {
-    text: 'Final Budget Review',
-    startDate: new Date('2021-04-27T19:00:00.000Z'),
-    endDate: new Date('2021-04-27T20:35:00.000Z'),
-  }, {
-    text: 'New Brochures',
-    startDate: new Date('2021-04-27T21:30:00.000Z'),
-    endDate: new Date('2021-04-27T22:45:00.000Z'),
-  }, {
-    text: 'Install New Database',
-    startDate: new Date('2021-04-28T16:45:00.000Z'),
-    endDate: new Date('2021-04-28T18:15:00.000Z'),
-  }, {
-    text: 'Approve New Online Marketing Strategy',
-    startDate: new Date('2021-04-28T19:00:00.000Z'),
-    endDate: new Date('2021-04-28T21:00:00.000Z'),
-  }, {
-    text: 'Upgrade Personal Computers',
-    startDate: new Date('2021-04-28T22:15:00.000Z'),
-    endDate: new Date('2021-04-28T23:30:00.000Z'),
-  }, {
-    text: 'Customer Workshop',
-    startDate: new Date('2021-04-29T18:00:00.000Z'),
-    endDate: new Date('2021-04-29T19:00:00.000Z'),
-    allDay: true,
-  }, {
-    text: 'Prepare 2021 Marketing Plan',
-    startDate: new Date('2021-04-29T18:00:00.000Z'),
-    endDate: new Date('2021-04-29T20:30:00.000Z'),
-  }, {
-    text: 'Brochure Design Review',
-    startDate: new Date('2021-04-29T21:00:00.000Z'),
-    endDate: new Date('2021-04-29T22:30:00.000Z'),
-  }, {
-    text: 'Create Icons for Website',
-    startDate: new Date('2021-04-30T17:00:00.000Z'),
-    endDate: new Date('2021-04-30T18:30:00.000Z'),
-  }, {
-    text: 'Upgrade Server Hardware',
-    startDate: new Date('2021-04-30T21:30:00.000Z'),
-    endDate: new Date('2021-04-30T23:00:00.000Z'),
-  }, {
-    text: 'Submit New Website Design',
-    startDate: new Date('2021-04-30T23:30:00.000Z'),
-    endDate: new Date('2021-05-01T01:00:00.000Z'),
-  }, {
-    text: 'Launch New Website',
-    startDate: new Date('2021-04-30T19:20:00.000Z'),
-    endDate: new Date('2021-04-30T21:00:00.000Z'),
-  },
-],
-    };
-  },
-};
+      });
+
+      EventBus.$on('GetRes', (from) => {
+        from,
+
+        window.location.reload();
+     
+        // this.getPatiant();
+        // this.getData();
+
+        // this.owner_booking = false
+
+      });
+
+      this.getPatiant();
+      this.getData();
+    },
+    methods: {
+
+
+
+      oneventRendered: function (args) {
+  
+      },
+
+
+      onPopupOpen: function (args) {
+        this.star_date = args.data.StartTime;
+
+        this.owner_booking = true;
+        args
+
+      },
+
+
+      getData() {
+        axios.get(
+            "https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1", {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2NzgyMTM1NTgsImV4cCI6MTY3ODg4MzE1OCwibmJmIjoxNjc4MjEzNTU4LCJqdGkiOiI1MFhvZjhqV2hzc1RlQ0gyIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.tzTHZ4_nuzLe_9woQaK5y1kmWLU2qGKOSmwUFpUW5b8"
+              }
+            })
+          .then(res => {
+
+            this.Data = res.data.data;
+
+            for (var i = 0; i < this.Data.length; i++) {
+
+              var objs = {
+                Id: this.Data[i]['id'],
+                Subject: this.Data[i]['user'].full_name,
+
+                StartTime: this.Data[i]['reservation_end_date'] + 'T' + this.Data[i]['reservation_from_time'],
+                EndTime: this.Data[i]['reservation_start_date'] + 'T' + this.Data[i]['reservation_to_time'],
+              }
+
+              this.eventSettings.dataSource.push(objs);
+
+
+            }
+            this.$refs.eventSettings.dataSource;
+            this.$refs.eventSettings.dataSource;
+
+          })
+          .catch(() => {});
+      },
+      getPatiant() {
+        axios.get("patients/getByUserId", {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(res => {
+            this.loadingData = false;
+            this.loading = false;
+            this.Patiant = res.data.data;
+
+
+          })
+          .catch(() => {
+            this.loading = false;
+          });
+      }
+    },
+    provide: {
+
+      schedule: [Day, Week, WorkWeek, Month, Agenda]
+    }
+  });
 </script>
+<style>
+  body>div:nth-child(8) {
+    display: none !important;
+  }
+
+  .e-schedule-dialog-container {
+    display: none !important
+  }
+
+  @import '../../../node_modules/@syncfusion/ej2-base/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-buttons/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-calendars/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-dropdowns/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-inputs/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-navigations/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-popups/styles/material.css';
+  @import '../../../node_modules/@syncfusion/ej2-vue-schedule/styles/material.css';
+</style>

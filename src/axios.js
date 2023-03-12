@@ -2,7 +2,7 @@ import Vue from 'vue'
 import axios from 'axios'
 import VueAxios from "vue-axios";
 import router from './router'
-
+import store from './store'
 //Axios
 Vue.use(VueAxios, axios);
 Vue.config.silent = true
@@ -19,15 +19,19 @@ axios.interceptors.request.use(
   },
   error => Promise.reject(error)
 );
-
+// var xx=this;
 
 axios.interceptors.response.use((response) => {
   return response;
+  
 }, function (error) {
+  router
   // Do something with response error
-  router.push("/login")
-  if (error.response.status === 402) {
-    router.push("/login")
+  // router.push("/login")
+  if (error.response.status === 401) {
+ 
+     store.dispatch("logout");
+ 
   }
   return Promise.reject(error.response);
 });
@@ -37,7 +41,7 @@ axios.interceptors.response.use((response) => {
 
 //Vue.prototype.$http = axios;
 //axios.defaults.baseURL =  'http://apismartclinic.tctate.com/api/';
-axios.defaults.baseURL =  'http://127.0.0.1:8003/api/';
+axios.defaults.baseURL =  'http://127.0.0.1:8004/api/';
 
 //http://127.0.0.1:8001
 axios.interceptors.response.use(
@@ -46,7 +50,7 @@ axios.interceptors.response.use(
   },
   function(error) {
     if (error.response.status === 401 || error.response.status === 403) {
-      router.push({ name: "Login" });
+      // router.push({ name: "Login" });
     }
     return Promise.reject(error);
   }

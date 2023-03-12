@@ -43,6 +43,7 @@
 
         <v-list dense>
 
+         
           <v-list-item-group v-model="selectedItem" color="primary">
             <v-list-item v-for="(item, i) in profile" :key="i" :to="item.to">
               <v-list-item-icon>
@@ -50,6 +51,15 @@
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title v-text="item.text"></v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item  @click="logout()">
+              <v-list-item-icon>
+                <v-icon v-text="'mdi-logout'"></v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title v-text="$t('AppBar.sign_out')"></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -107,13 +117,14 @@
           },
 
 
-          {
-            text: this.$t('AppBar.sign_out'),
-            icon: 'mdi-logout',
-            to: {
-              name: "Login",
-            },
-          },
+          // {
+          //   text: this.$t('AppBar.sign_out'),
+          //   icon: 'mdi-logout',
+          //   to: { 1674864000
+
+          //     name: "Login",
+          //   },
+          // },
         ],
       }
 
@@ -125,6 +136,10 @@
     },
 
     methods: {
+      logout(){
+        this.$store.dispatch("logout");
+
+      },
         mapItem(item) {
       return {
         ...item,

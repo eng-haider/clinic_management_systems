@@ -579,6 +579,7 @@
 
 
         mounted() {
+            
             this.GetOwnerInfo();
 
 

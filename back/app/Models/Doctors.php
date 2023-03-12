@@ -18,4 +18,11 @@ class doctors extends Model
         'name'
     ];
 
+    public function Clinics()
+    {
+        return $this->belongsTo(Clinics::class);
+    }
+
+
+
 }

@@ -91,6 +91,8 @@ class UserControllerAPI extends Controller
             'token' =>$token,
             'tctate_token'=>$tctate_token,
             'result'=>auth()->user(),
+            'doc_info'=>auth()->user()->Doctor,
+            'clinic_info'=>auth()->user()->Doctor->Clinics,
             'Permissions'=>auth()->user()->Role->Permissions
         ], 200);
     }
