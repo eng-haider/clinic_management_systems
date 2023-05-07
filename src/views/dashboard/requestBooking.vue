@@ -660,7 +660,7 @@ this.getPatiants();
 
       window.Echo.channel('reserverationss')
         .listen('ReserverationAdded', (e) => {
-          alert('sds');
+     
           this.item = e.items;
         });
 

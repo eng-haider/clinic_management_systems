@@ -69,13 +69,10 @@ class CasesControllerAPI extends Controller
 
       return response()->json([
         'message' => 'successfully',
-
-
         'patients'=>$patients,
         'Casescompleted' =>$Casescompleted,
         'Casesall' =>$Casesall,
         'Casesactive' =>$Casesactive,
-       
     ], 200);
 
       
@@ -93,7 +90,12 @@ class CasesControllerAPI extends Controller
         ->get();
 
       
-      $Cases =CaseCategories::withCount('Case')->get();
+      $Cases =CaseCategories::whereHas('Case.Patient', function ($query) use($Doctor_id) {
+        $query->where('doctor_id','=',$Doctor_id);
+    })
+    -> withCount('Case')
+      
+      ->get();
         return new CasesCollection($Cases);
      }
 
@@ -108,7 +110,7 @@ class CasesControllerAPI extends Controller
         $Doctor_id=auth()->user()->Doctor->id;
       
         $Cases = QueryBuilder::for(Cases::class)
-      ->with(['Patient','CaseCategories','Bills','Status','images'])
+      ->with(['Patient','CaseCategories','Bills','Status','images','Sessions'])
       ->whereHas('Patient', function ($query) use($Doctor_id) {
             $query->where('doctor_id','=',$Doctor_id);
         })
@@ -265,24 +267,7 @@ class CasesControllerAPI extends Controller
 
 
 
-        for($i=0;$i<count($request->sessions);$i++){
-            if (isset($request->sessions[$i]['id']))
-            {
-                $sessions=Sessions::where('id','=',$request->sessions[$i]['id'])->first();
-                $sessions->update(['note' =>$request->sessions[$i]['note']]);
-
-            }else{
-                Sessions::create(
-                    [
-                    'note' =>$request->sessions[$i]['note'] ,
-                   // 'date'=>$request->sessions[$i]['date'],
-                    'case_id'=>$Cases[0]->id,
-                    ]);
-                   
-            }
-        
-            }
-
+    
 
         
         for($i=0;$i<count($request->images);$i++){

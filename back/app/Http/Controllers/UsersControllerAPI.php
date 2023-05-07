@@ -17,7 +17,7 @@ class UsersControllerAPI extends Controller
 
     public function __construct()
     {
-        $this->middleware('CheckRole:admin')->only(['destroy','update']);
+        $this->middleware('CheckRole:admin')->only(['destroy','update','getInfo']);
     }
 
     /**
@@ -92,6 +92,18 @@ class UsersControllerAPI extends Controller
      * @param  \App\Models\User  $user
      * @return \App\Http\Resources\UserResource
      */
+
+     public function getInfo()
+     {
+         return response()->json([
+             'message' => 'successfully',
+             'result'=>new UsersResource(auth()->Users())
+         ], 200);
+ 
+     }
+ 
+
+
     public function show(User $user)
     {
         $this->authorize('view', $user);

@@ -1,23 +1,16 @@
 <template>
   <div id='app' v-if="eventSettings.dataSource.length>0">
     <div>
-      <OwnerBooking :star_date="star_date" :patientFound="patientFound=false" :patients="Patiant" v-if="owner_booking">
+      <OwnerBooking :data="dataxx" :patientFound="patientFound=false" :patients="Patiant" v-if="owner_booking">
       </OwnerBooking>
     </div>
-
     <ejs-schedule :eventRendered="oneventRendered" :currentView='currentView' height='900px' :popupOpen="onPopupOpen"
       :created="onCreate" :eventClick='onEventClick' :actionComplete="onActionComplete" :eventSettings='eventSettings'>
-
-
       <e-resources :save="onChange">
         <e-resource field='DepartmentID' title='name' name='Departments' :dataSource='Patiant' textField='name'
           idField='id' colorField='Color'>
         </e-resource>
-
       </e-resources>
-
-
-
     </ejs-schedule>
   </div>
 </template>
@@ -37,16 +30,13 @@
     Month,
     Agenda
   } from '@syncfusion/ej2-vue-schedule';
-  // import {
-  //   format
-  // } from "path";
   Vue.use(SchedulePlugin);
   export default Vue.extend({
-
     data: function () {
       return {
         Patiant: [],
         star_date: '',
+        dataxx: {},
         currentView: 'Month',
         owner_booking: false,
         datax: [],
@@ -67,23 +57,16 @@
       EventBus.$on('GetResCancel', (from) => {
         from,
         this.owner_booking = false
-       
-     
+
+
 
 
 
       });
 
       EventBus.$on('GetRes', (from) => {
-        from,
-
-        window.location.reload();
-     
-        // this.getPatiant();
-        // this.getData();
-
-        // this.owner_booking = false
-
+        from
+         window.location.reload();
       });
 
       this.getPatiant();
@@ -94,15 +77,40 @@
 
 
       oneventRendered: function (args) {
-  
+
+        args
       },
 
 
       onPopupOpen: function (args) {
-        this.star_date = args.data.StartTime;
 
-        this.owner_booking = true;
-        args
+
+        if (args.type == 'DeleteAlert') {
+          axios.delete(
+              "https://tctate.com/api/api/v2/reservation/delete/" + args.data.Id, {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+                }
+              })
+            .then(res => {
+                window.location.reload();
+              res
+
+
+
+            })
+            .catch(() => {});
+        }
+
+        if ('Subject' in args.data) {
+          args
+        } else {
+          this.owner_booking = true;
+          this.dataxx = args.data;
+
+        }
 
       },
 
@@ -113,7 +121,7 @@
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2NzgyMTM1NTgsImV4cCI6MTY3ODg4MzE1OCwibmJmIjoxNjc4MjEzNTU4LCJqdGkiOiI1MFhvZjhqV2hzc1RlQ0gyIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.tzTHZ4_nuzLe_9woQaK5y1kmWLU2qGKOSmwUFpUW5b8"
+                Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
               }
             })
           .then(res => {
@@ -145,7 +153,7 @@
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
             }
           })
           .then(res => {
@@ -167,6 +175,10 @@
   });
 </script>
 <style>
+  #QuickDialog {
+    display: none;
+  }
+
   body>div:nth-child(8) {
     display: none !important;
   }

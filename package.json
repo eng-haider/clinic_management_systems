@@ -17,6 +17,7 @@
     "chart.js": "^3.9.1",
     "core-js": "^3.6.5",
     "devextreme-vue": "^22.2.4",
+    "imagemin": "^8.0.0",
     "mobile-device-detect": "^0.4.3",
     "slick-vuejs": "^1.0.9",
     "vue": "^2.6.11",

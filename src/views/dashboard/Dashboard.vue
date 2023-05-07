@@ -4,7 +4,7 @@
 
 
       <v-layout row wrap pt-4>
-        <v-flex xs12 md3 sm3 pr-2 pb-4>
+        <v-flex xs12 md3 sm6 pr-2 pb-4>
 
 
           <dash_card name="عدد المراجعين" icon="fa-solid fa-hospital-user" text_color="#53D3F8" icon_color="#035aa6"
@@ -15,13 +15,13 @@
         </v-flex>
 
 
-        <v-flex xs12 md3 sm3 pr-2 pb-4 >
+        <v-flex xs12 md3 sm6 pr-2 pb-4 >
 
-          <dash_card name="عدد الحالات" icon="fa-solid fa-hospital-user" text_color="#53D3F8" icon_color="#035aa6"
+          <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6"
             :count="DashbourdCounts.Casesall"></dash_card>
         </v-flex>
 
-        <v-flex xs12 md3 sm3 pr-2 pb-4>
+        <v-flex xs12 md3 sm6 pr-2 pb-4>
 
           <dash_card name="  اعدد الحالات المنتهيه" icon="fa-solid fa-check" text_color="#53D3F8" icon_color="#035aa6"
             :count="DashbourdCounts.Casescompleted
@@ -33,7 +33,7 @@
 
         </v-flex>
 
-        <v-flex xs12 md3 sm3 pr-2 pb-4>
+        <v-flex xs12 md3 sm6 pr-2 pb-4>
 
           <dash_card name="  عدد الحالات غير المنتهيه" icon="fas fa-layer-group" text_color="#53D3F8"
             icon_color="#035aa6" :count="DashbourdCounts.Casesactive
@@ -68,13 +68,23 @@
           </v-card>
         </v-flex>
 
-        <v-flex md-6 xs12 pt-4>
+       
+
+
+
+
+      </v-layout>
+
+
+
+      <v-layout row wrap>
+        <v-flex md-6 sm-6 xs12 pt-4>
 <v-card>
   <DxPieChart
     id="pie"
     :data-source="dataSource"
     palette="Bright"
-    title="Olympic Medals in 2008"
+    title="احصائيات عدد الحالات"
   >
     <DxSeries
       argument-field="name_ar"
@@ -105,6 +115,42 @@
         </v-flex>
 
 
+
+        <v-flex md-6 sm-6 xs12 pt-4>
+<v-card>
+  <DxPieChart
+    id="pie"
+    :data-source="accounts_statistic"
+    palette="Bright"
+    title="احصائيات المبالغ المدفوعه والمتبقيه"
+  >
+    <DxSeries
+      argument-field="name"
+      value-field="count"
+    >
+      <DxLabel
+        :visible="true"
+        :customize-text="formatLabel"
+        position="columns"
+      >
+        <DxConnector
+          :visible="true"
+          :width="0.5"
+        />
+        <DxFont :size="16"/>
+      </DxLabel>
+    </DxSeries>
+    <DxLegend
+      :column-count="4"
+      orientation="horizontal"
+      item-text-position="right"
+      horizontal-alignment="center"
+      vertical-alignment="bottom"
+    />
+    <DxExport :enabled="true"/>
+  </DxPieChart>
+</v-card>
+        </v-flex> 
 
       </v-layout>
 
@@ -144,7 +190,7 @@
   DxFont,
   DxExport,
 } from 'devextreme-vue/pie-chart';
-  import axios from "axios";
+
   export default {
     components: {
       // Doughnut,
@@ -183,6 +229,7 @@
     },
     data() {
       return {
+        accounts_statistic:[],
         dataSource2: [{
   country: 'USA',
   medals: 110,
@@ -236,15 +283,41 @@
     created() {
       this.getCase_number_stats();
       this.getDashbourdCounts();
+      this.getAccountsCounts();
       this.get_stats2();
     },
     methods: {
+      getAccountsCounts(){
+        setTimeout(() => 
+        this.axios.get('/patientsAccounsts/dash?page=' + this.current_page, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(res => {
+              this.loadingData = false;
+              this.accounts_statistic = res.data;
+     
+            
+            
+            })
+            .catch(() => {
+              this.loading = false;
+            })
+        
+        , 700);
+       
+      
+    },
+    
       formatLabel(pointInfo) {
       return `${pointInfo.valueText} (${pointInfo.percentText})`;
     },
       getCase_number_stats() {
 
-        this.axios
+        setTimeout(() => this.axios
           .get("cases/getCaseCategoriesCounts", {
             headers: {
               "Content-Type": "application/json",
@@ -258,14 +331,7 @@
 
             res
 
-            // res.data.data.forEach(element => {
-
-            //   this.chartData.labels.unshift(element.name_ar)
-            //   this.chartData.datasets[0].data.unshift(element.case_count)
-            //   this.chartData.datasets[0].backgroundColor.unshift("#" + Math.floor(Math.random() * 16777215)
-            //     .toString(7))
-            // });
-
+           
 
 
 
@@ -275,26 +341,14 @@
           })
           .finally(() => {
             this.loading4 = false;
-          });
+          }), 500);
+       
       },
       theFormat(number) {
         return number.toFixed(0);
       },
       get_stats() {
-        // axios.get("jops/get_stats", {
-        // headers: {
-        //     "Content-Type": "application/json",
-        //     Accept: "application/json",
-        //     Authorizations: "Bearer " + this.$store.state.AdminInfo.token
-        // }
-        // }).then(res => {
-        //   res
-        //     // res.data.data.forEach(element => {
-        //     //     this.chartData.labels.unshift(element.title)
-        //     //     this.chartData.datasets[0].data.unshift(element.count)
-        //     //     this.chartData.datasets[0].backgroundColor.unshift("#" + Math.floor(Math.random()*16777215).toString(16))
-        //     // });
-        // })
+    
       },
       getDashbourdCounts() {
         this.axios.get("cases/getDashbourdCounts", {
@@ -314,23 +368,7 @@
             this.loading = false;
           });
       },
-      get_stats2() {
-        axios.get("cases/getCaseCategoriesCounts", {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-          }
-        }).then(res => {
-          res
-          // res.data.data.forEach(element => {
-          //   this.chartData2.labels.unshift(element.name_ar)
-          //   this.chartData2.datasets[0].data.unshift(element.case_count)
-          //   this.chartData2.datasets[0].backgroundColor.unshift("#" + Math.floor(Math.random() * 16777215)
-          //     .toString(8))
-          // });
-        })
-      },
+     
     }
   }
 </script>

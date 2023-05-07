@@ -21,11 +21,11 @@
                             <v-row justify="center" class="mb-6">
                                 <v-card height="200" width="200" class="card_img">
                                     <v-img :src="images[0]" height="200" width="200" class="card_img"
-                                        v-if="images[0]!='ab'">
-                                        <v-btn icon="" style="padding-right: 24px;position:relative;left: 46px;"
+                                        v-if="images[0]!=='ab'">
+                                        <v-btn style="padding-right: 24px;position:relative;left: 46px;"
                                             @click="delete_img(img_id,0)">
-
-                                            <v-icon color="#fff">fas fa-window-close</v-icon>
+                                            xx
+                                            <v-icon color="red">fas fa-window-close</v-icon>
                                         </v-btn>
 
                                     </v-img>
@@ -66,19 +66,19 @@
 
                             <v-flex xs8>
                                 <v-lable>الاسم</v-lable>
-                                <v-text-field filled background-color="#eeeeee" height="40" style=""
-                                    v-model="owner.user.full_name" placeholder="الاسم" required>
+                                <v-text-field filled height="40" style="" v-model="owner.name" placeholder="الاسم"
+                                    required>
                                 </v-text-field>
 
 
+
                                 <v-lable>اسم المركز</v-lable>
-                                <v-text-field background-color="#eeeeee" height="40" style="" filled
-                                    v-model="owner.owner_barnd_name" placeholder="اسم الشركة" required
-                                    :rules="nameRules"></v-text-field>
+                                <v-text-field height="40" style="" filled v-model="owner.Clinics
+.name" placeholder="اسم الشركة" required :rules="nameRules"></v-text-field>
 
                                 <v-lable>الايميل</v-lable>
-                                <v-text-field background-color="#eeeeee" height="40" style="" filled
-                                    placeholder="الايميل" v-model="owner.owner_email" :rules="emailRules">
+                                <v-text-field height="40" style="" filled placeholder="الايميل" v-model="owner.email"
+                                    :rules="emailRules">
                                 </v-text-field>
 
 
@@ -91,7 +91,7 @@
                                 <v-btn pr-4 color="primary" style="width:50%" :loading="loading" @click="update()">
 
                                     حفظ التعديلات
-                                    <v-icon left dark>check</v-icon>
+
                                 </v-btn>
                             </v-flex>
                             <v-flex xs2>
@@ -180,11 +180,10 @@
 </template>
 
 <script>
+    import {
+        EventBus
+    } from "./event-bus.js";
     const axios = require('axios');
-    // import {
-    //     EventBus
-    // } from '../event-bus.js';
-
 
     export default {
         data() {
@@ -328,11 +327,11 @@
 
                 this.$http({
                         method: 'get',
-                        url: 'https://tctate.com/api/api/owner/v2/OwnerInfo',
-                       headers: {
+                        url: '/users/getInfo',
+                        headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
                         }
 
                     }).then(response => {
@@ -340,11 +339,12 @@
                         this.owner = response.data.data;
                         this.images = [];
 
-                        if (this.owner.user.image !== null) {
+                        if (this.owner.img_file !== null) {
 
 
-                            this.img_id = this.owner.user.image.id;
-                            this.owner.user.image !== null && this.owner.user.image !== null ? this.images[0] ="https://tctate.com/api/images/" + this.owner.user.image.image_url :
+                            this.img_id = this.owner.id;
+                            this.owner.img_file !== null && this.owner.img_file !== null ? this.images[0] =
+                                this.Url + "/users/" + this.owner.img_file :
 
                                 this
                                 .images[0] = "ab";
@@ -376,9 +376,9 @@
             update() {
 
                 if (this.images[0].includes(this.http)) {
-                    this.images[0] = "data:image/jpeg;base64";
+                    // this.images[0] = "data:image/jpeg;base64";
 
-
+                   // this.images = [];
 
                 }
 
@@ -394,33 +394,45 @@
 
                 if (this.$refs.form.validate() && !this.loading) {
 
+                    var data = {}
+                    if (this.images[0].includes(this.http)) {
 
+                         data = {
 
-                    var data = {
+                            name: this.owner.name,
+                            email: this.owner.email,
+                            clinics_name: this.owner.Clinics.name,
+                            images: [],
 
-                        full_name: this.owner.user.full_name,
-                        owner_email: this.owner.owner_email,
-                        owner_barnd_name: this.owner.owner_barnd_name,
-                        images: this.images,
+                        };
+                    } else {
+                         data = {
 
-                    };
+                            name: this.owner.name,
+                            email: this.owner.email,
+                            clinics_name: this.owner.Clinics.name,
+                            images: this.images,
+
+                        };
+
+                    }
                     this.loading = true;
                     // this.description=JSON.stringify(data);
                     this.$http({
                             method: 'post',
-                            url: "https://tctate.com/api/api/owner/v2/UpdateInfo",
+                            url: "users/UpdateInfo",
                             data: data,
-                          headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
-                        }
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                            }
                         })
                         .then(response => {
                             response
                             this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
-                        //    EventBus.$emit('changeUserInfo', true);
-
+                            EventBus.$emit('changeUserInfo', true);
+                            this.$store.dispatch("updateInfo", response.data.data);
 
                             this.GetOwnerInfo();
 
@@ -439,7 +451,7 @@
                         })
                         .catch(error => {
                             error
-                             this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
+                            this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
                             //this.verfy_Dailog = true;
 
                             if (error.response) {
@@ -496,22 +508,28 @@
                         this.img_name = 'ghjk'
 
 
-                        var url = "/owner/v2/DeleteImage/" + img_id;
+                        var url = "/users/DeleteImage";
                         axios({
-                            method: 'delete',
+                            method: 'post',
                             url: url,
                             headers: {
-
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
                             }
 
                         }).then(response => {
 
                             response,
-
+                            this.$store.dispatch("updateInfo", response.data.data);
                             this.editedItem.images[index].image_url = 'a';
-                            //not important
+
+
                             this.img_name = index;
                             this.images[index] = 'a';
+
+
+
 
                             this.GetOwnerInfo();
 
@@ -523,11 +541,12 @@
 
                         }).catch(error => {
                             error
-                            //     this.$swal('خطاء', "خطاء بالاتصال", 'error')
+                            //   this.$swal('خطاء', "خطاء بالاتصال", 'error')
                         }).finally(d => {
                             d
-                           location.reload();
-                            ///  this.update();
+
+                            //   location.reload();
+                            // this.update();
                         });
 
 
@@ -579,7 +598,7 @@
 
 
         mounted() {
-            
+
             this.GetOwnerInfo();
 
 

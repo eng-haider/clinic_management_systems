@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Http\Resources\Collections\UserCollection;
 use JWTAuth;
 use Validator;
+use App\Http\Resources\UsersResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -94,6 +95,78 @@ class UserControllerAPI extends Controller
             'doc_info'=>auth()->user()->Doctor,
             'clinic_info'=>auth()->user()->Doctor->Clinics,
             'Permissions'=>auth()->user()->Role->Permissions
+        ], 200);
+    }
+
+    public function getInfo()
+    {
+                
+        return response()->json([
+            'message' => 'successfully',
+            'data'=>new UserResource(auth()->user())
+        ], 200);
+
+    }
+
+
+    //DeleteImage
+
+    public function DeleteImage()
+    {
+      
+        $user=auth()->user();
+
+          User::where('id', $user->id)->update([
+            'img_name' =>null
+        ]);
+            
+        $user=User::find($user->id);
+        return response()->json([
+           'message' => 'successfully',
+           'data'=>new UserResource($user)
+       ], 200);
+          
+
+
+
+    }
+
+    public function UpdateInfo(UserRequest $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|between:2,100',
+            // 'email' => 'required|string|email|max:100|unique:users'
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $user=auth()->user();
+        User::where('id', $user->id)->update([
+            'name' => $request->name
+        ]);
+
+        $user->Doctor->Clinics->update([
+            'name' => $request->clinics_name
+        ]);
+
+         if(count($request->images)>0){
+          $Data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '',$request->images[0]));
+          $img_name    ='img'.time().'.jpg';
+          $destination ='users/'.$img_name;
+
+         $user= User::where('id', $user->id)->update([
+            'img_name' => $img_name
+        ]);
+            
+
+            file_put_contents( $destination , $Data);
+         }
+
+         $user=User::find($user);
+         return response()->json([
+            'message' => 'successfully',
+            'data'=>new UserResource($user)
         ], 200);
     }
     public function store(UserRequest $request)

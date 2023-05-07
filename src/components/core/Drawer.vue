@@ -12,7 +12,10 @@
         <div class="dropdown user-pro-body text-center">
           <div class="user-pic">
 
-            <img src="http://127.0.0.1:8005/uploads/profile/user-profile.png" class="avatar-xxl rounded-circle mb-1"
+            <img v-if="$store.state.AdminInfo.img_name==null"  src="https://alkafeel.net/alkafeel_helpdiskticat/uploads/profile/xuser-profile.png.pagespeed.ic.z3dbYPuxzy.webp" class="avatar-xxl rounded-circle mb-1"
+              style="width:100px;height:100px" alt="default">
+
+            <img v-else :src="Url+'/users/'+$store.state.AdminInfo.img_name" class="avatar-xxl rounded-circle mb-1"
               style="width:100px;height:100px" alt="default">
 
           </div>
@@ -25,22 +28,10 @@
           </div>
         </div>
       </div>
-
-
-
-
-
       <hr>
     </v-list>
-
-
-
     <!--Star Owner Sidbar-->
     <div>
-
-
-
-
       <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
         :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
         <v-list-item style="color:#fff !important" link v-if="item.auth" :to="item.to">
@@ -54,49 +45,9 @@
         </v-list-item>
       </v-list>
 
-
-
-
     </div>
     <!--End Owner Sidbar-->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   </v-navigation-drawer>
-
-
-
-
 </template>
 
 <script>
@@ -128,7 +79,7 @@
 
           {
             title: this.$t("header.showCases"),
-            icon: 'fas fa-clipboard',
+            icon: 'fa-light fa-tooth',
             auth: true,
             to: '/cases',
           },
@@ -136,7 +87,7 @@
 
           {
             title: this.$t("header.accounts"),
-            icon: 'fas fa-clipboard',
+            icon: 'fa-solid fa-money-bill',
             auth: true,
             to: '/accounts',
           },
@@ -144,17 +95,6 @@
 
           {
             title: this.$t("Drawer.Booking"),
-            icon: 'far fa-clock',
-            auth: true,
-            to: "/requestBooking"
-          },
-
-
-
-
-
-          {
-            title: 'المواعيد تجريبي',
             icon: 'far fa-clock',
             auth: true,
             to: "/requestBooking_test"

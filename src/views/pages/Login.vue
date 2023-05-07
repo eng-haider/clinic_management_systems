@@ -73,9 +73,10 @@
             .then((res) => {
              var xx =res.data.result;
              xx.clinic_info=res.data.clinic_info;
-              this.$store.dispatch("login",xx);
-              localStorage.setItem('tokinn', res.data.token);
+             localStorage.setItem('tokinn', res.data.token);
               localStorage.setItem('tctate_token', res.data.tctate_token);
+              this.$store.dispatch("login",xx);
+            
               this.loading = false;
               // this.$router.push("/")
             })

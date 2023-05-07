@@ -58,11 +58,11 @@
 
                             <td v-if="item.bills.length>0">{{xx(item.bills)}}</td>
 
-                            <td v-else>لايوجد</td>
+                            <td v-else>0</td>
 
 
                             <td v-if="item.bills.length>0">{{ item.price-xx(item.bills)}}</td>
-                            <td v-else>لايوجد</td>
+                            <td v-else>0</td>
 
                         </tr>
                     </tbody>
@@ -97,7 +97,7 @@
                 var x = 0
                 for (var i = 0; i < ite.length; i++) {
 
-                    x += JSON.parse(ite[0].price)
+                    x += JSON.parse(ite[i].price)
 
                 }
 

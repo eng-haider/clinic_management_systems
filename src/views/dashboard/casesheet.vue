@@ -11,7 +11,7 @@
         </div>
 
         <v-dialog v-model="casesheet" max-width="1000px">
-            <cases :editedItem="patientInfo"></cases>
+            <cases  :editedItem="patientInfo"></cases>
         </v-dialog>
 
       <div>
@@ -22,8 +22,8 @@
 
         
 
-        <v-dialog v-model="Recipe" max-width="900px">
-            <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategories"></Recipe>
+        <v-dialog v-model="Recipe" max-width="900px" v-if="CaseCategories.length>0">
+            <Recipe :RecipeInfo="RecipeInfo" ></Recipe>
         </v-dialog>
         <v-container id="dashboard" fluid tag="section">
             <!-- <v-text-field class="mt-4" label="اكتب للبحث" outlined append-icon="mdi-magnify" v-model="search">
@@ -193,7 +193,7 @@
 
 
                     <v-layout row wrap>
-                        <v-flex xs5 md3 sm3 pr-1 style="padding-right: 22px !important;">
+                        <v-flex xs8 md3 sm3 pr-1 style="padding-right: 22px !important;">
                             <v-text-field ref="name" v-model="search" placeholder="اسم المراجع او رقم  الهاتف" required>
                             </v-text-field>
                         </v-flex>
@@ -593,8 +593,8 @@
 
 
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-
-                    this.$router.push("/case/" + item.id)
+                    this.casesheet = true;
+                 //   this.$router.push("/case/" + item.id)
 
                 } else {
 
@@ -1147,7 +1147,11 @@
 
             },
         },
+        mounted(){
+this.getCaseCategories();
+        },
         created() {
+            
             EventBus.$on("billsReportclose", (tooth) => {
 
 tooth
@@ -1172,7 +1176,7 @@ this.bill = false;
             });
 
             this.initialize();
-            this.getCaseCategories();
+            
             this.getDectors();
 
         },

@@ -28,7 +28,7 @@
 
 
 
-            <v-flex xs3>
+            <v-flex xs4>
 
               <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                 offset-y min-width="auto">
@@ -45,7 +45,7 @@
             </v-flex>
 
 
-            <v-flex xs3>
+            <v-flex xs4>
 
               <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
                 offset-y min-width="auto">
@@ -65,32 +65,8 @@
 
 
 
-            <!-- <v-flex xs12 md3 sm3>
-              <v-select dense v-model="search.case_categores_id" label=" نوع الحاله " :items="CaseCategories" outlined
-                item-text="name_ar" item-value="id"></v-select>
-            </v-flex>
 
-            <v-flex xs12 md3 sm3>
-              <v-radio-group row v-model="search.status_id">
-                <template v-slot:label>
-
-
-                </template>
-                <v-radio :value="42">
-                  <template v-slot:label>
-                    <div><strong class="error--text">غير مكتمله</strong></div>
-                  </template>
-                </v-radio>
-                <v-radio :value="43">
-                  <template v-slot:label>
-                    <div> <strong class="success--text">مكتمله</strong></div>
-                  </template>
-                </v-radio>
-              </v-radio-group>
-            </v-flex> -->
-
-
-            <v-flex xs3 md1 sm1 pa-5>
+            <v-flex xs2 md1 sm1 pa-5>
               <v-btn color="green" style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
             </v-flex>
 
@@ -98,13 +74,20 @@
               <v-btn color="blue" style="color:#fff;float: left;" @click="allItem=false;initialize()">الكل</v-btn>
             </v-flex>
 
+            <!-- <v-flex md4>
+
+            </v-flex> -->
+
+            <!-- <v-flex md1>
+              <v-btn color="blue" style="color:#fff" @click="Export() ">تصــــدير</v-btn>
+            </v-flex> -->
 
           </v-layout>
 
 
 
           <v-layout row wrap pt-4>
-            <v-flex xs12 md3 sm3 pr-2 pb-4>
+            <v-flex xs12 md3 sm6 pr-2 pb-4>
 
 
               <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6"
@@ -115,13 +98,13 @@
             </v-flex>
 
 
-            <v-flex xs12 md3 sm3 pr-2 pb-4>
+            <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.all_sum"></dash_card>
             </v-flex>
 
-            <v-flex xs12 md3 sm3 pr-2 pb-4>
+            <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid
 "></dash_card>
@@ -132,7 +115,7 @@
 
             </v-flex>
 
-            <v-flex xs12 md3 sm3 pr-2 pb-4>
+            <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.remainingamount"></dash_card>
@@ -144,60 +127,17 @@
         </template>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         <template v-slot:[`item.case_num`]="{ item }">
-
-
-
-
-
-
-
           {{ item.cases.length }}
-
-
         </template>
-
-
-
-
-
-
         <template v-slot:[`item.case_sum`]="{ item }">
-
-
-
-
-
-
-
-          {{BillsSum(item.cases)-BillsSumPaid(item.cases)}}
-
-
+          {{BillsSum(item.cases)}}
         </template>
-
-
         <template v-slot:[`item.case_push`]="{ item }">
-
-
-
-
-
-
-
           <v-chip class="text-right" :color="'green'" outlined>
-            {{BillsSum(item.cases)}}
+           
+
+            {{BillsSumPaid(item.cases)}}
 
           </v-chip>
 
@@ -214,8 +154,8 @@
 
 
           <v-chip :color="'red'" outlined class="text-right">
-            {{BillsSumPaid(item.cases)}}
-
+          
+            {{BillsSum(item.cases)-BillsSumPaid(item.cases)}}
           </v-chip>
 
 
@@ -382,6 +322,41 @@
     },
 
     methods: {
+
+      Export() {
+
+        // this.axios({
+        //   url: 'patientsAccounsts/export',
+        //   method: 'GET',
+        //   responseType: 'blob',
+        // })
+        
+        
+
+        this.axios.get('/patientsAccounsts/export', {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+
+        
+        
+        .then((response) => {
+          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+          var fileLink = document.createElement('a');
+
+          fileLink.href = fileURL;
+          fileLink.setAttribute('download', 'file.xlsx');
+          document.body.appendChild(fileLink);
+
+          fileLink.click();
+        });
+
+
+
+      },
       getMoreitems() {
 
         if (this.current_page <= this.last_page) {
@@ -426,9 +401,7 @@
       },
 
       BillsSumPaid(bills_amount) {
-        //  alert(bills_amount.length)
-        console.log(bills_amount);
-        // var totle_coast = [];
+
         var x = 0
         for (var i = 0; i < bills_amount.length; i++) {
 
@@ -551,7 +524,7 @@
       },
     },
     created() {
-      this.getCase_number_stats();
+
       EventBus.$on("billsReportclose", (tooth) => {
 
         tooth

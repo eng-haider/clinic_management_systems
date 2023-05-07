@@ -12,7 +12,7 @@
     
     
                                     <div class="card_num" >
-                                        <span v-if="!loading" :color="text_color" :style="'color:'+text_color">{{count}}</span>
+                                        <span v-if="!loading" :color="text_color" :style="'font-size:25px;color:'+text_color">{{count}}</span>
                                          <v-progress-circular indeterminate :color="'color:'+text_color" v-else ></v-progress-circular>
                                     </div>
                                 </v-flex>

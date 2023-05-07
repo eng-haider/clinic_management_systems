@@ -330,7 +330,9 @@
     }
 </style>
 
+
 <script>
+alert('dd');
     import teeth from '../../components/core/teeth.vue';
     import {
         EventBus

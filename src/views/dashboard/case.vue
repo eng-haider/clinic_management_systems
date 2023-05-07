@@ -140,31 +140,7 @@
 
 
 
-                            <v-row row wrap>
-                                <!-- <v-col cols="12" md="2" style="    padding: 0px !important;">
-
-                                </v-col>
-                                <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
-                                    <v-radio-group row v-model="editedItem.status_id">
-                                        <template v-slot:label>
-
-
-                                        </template>
-                                        <v-radio :value="42">
-                                            <template v-slot:label>
-                                                <div><strong class="error--text">غير مكتمله</strong></div>
-                                            </template>
-                                        </v-radio>
-                                        <v-radio :value="43">
-                                            <template v-slot:label>
-                                                <div> <strong class="success--text">مكتمله</strong></div>
-                                            </template>
-                                        </v-radio>
-                                    </v-radio-group>
-                                </v-col>
-                                <v-col cols="12" md="2" style="    padding: 0px !important;">
-                                </v-col> -->
-                            </v-row>
+                         
 
 
 
@@ -172,14 +148,16 @@
                             <br>
                             <br>
 
-                            <v-row row wrap style="height: auto;">
+                            <v-row row wrap style="height: auto;" v-if="editedItem.images[0].img !== ''">
                                
                                 <v-col cols="12" md="3" v-for="img in editedItem.images" :key="img" pr-2 pl-2>
+                                   <div style="height:200px;width: 200px;">
                                     <a data-fancybox="gallery" :href="Url+'/case_photo/'+img.image_url" class="">
                               
-                                    <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url" style="width: 100%;
-    height: 100%;" />
-                                    </a>
+                              <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url" style="width: 100%;
+height: 100%;" />
+                              </a>
+                                   </div>
                                 </v-col>
                             </v-row>
                             <v-row row wrap style="height: auto;">
@@ -189,42 +167,14 @@
                                         :options="dropzoneOptions">
 
                                     </vue-dropzone>
-                                    <!-- <div class="widget-container flex-box" v-for="uu in imgCount" :key="uu"
-                                        style="padding-right:10px">
-
-                                        <div id="dropzone-external" class="flex-box" :class="[isDropZoneActive
-        ? 'dx-theme-accent-as-border-color dropzone-active'
-        : 'dx-theme-border-color']">
-                                            <img id="dropzone-image" :src="imageSource" v-if="imageSource" alt="">
-                                            <div id="dropzone-text" class="flex-box" v-if="textVisible">
-                                                <span>اضغط هنا لرفع صوره الحاله</span>
-                                                <span>…or click to browse for a file instead.</span>
-                                            </div>
-                                            <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
-                                            <DxProgressBar id="upload-progress" :min="0" :max="100" width="30%"
-                                                :show-status="false" :visible="progressVisible"
-                                                :value="progressValue" />
-                                        </div>
-                                        <DxFileUploader id="file-uploader" dialog-trigger="#dropzone-external"
-                                            drop-zone="#dropzone-external" :multiple="false"
-                                            :allowed-file-extensions="allowedFileExtensions" upload-mode="instantly"
-                                            upload-url="https://js.devexpress.com/Demos/NetCore/FileUploader/Upload"
-                                            :visible="false" @drop-zone-enter="onDropZoneEnter"
-                                            @drop-zone-leave="onDropZoneLeave" @uploaded="onUploaded"
-                                            @progress="onProgress" @upload-started="onUploadStarted" />
-                                        </div>
-                                        <v-text-field style="width:100$;padding-top:20px;" dense
-                                            v-model="editedItem.images[0].descrption" label="وصف الصوره " outlined>
-                                        </v-text-field>
-                                    </div> -->
-
+                               
 
                                 </v-col>
                             </v-row>
                         </div>
+                
                         <br>
-                        <br><br>
-
+                        <br>
 
                         <v-card  class="cre_bill">
                             <v-layout row wrap>
@@ -310,9 +260,9 @@
 
 
 
-                            <v-row>
-                                <v-col md="2"></v-col>
-                                <v-col md="4">
+                            <v-layout row wrap pt-5 mt-5>
+                                <v-flex md="2" xs="1"></v-flex>
+                                <v-flex md="4" xs="10">
                                     <div style="font-weight:bold"> المبلغ المدفوع :
 
                                         <v-chip class="ma-2" color="success" outlined label>
@@ -331,10 +281,10 @@
 
                                     <br>
 
-                                </v-col>
-                                <v-col md="2"></v-col>
+                                </v-flex>
+                                <v-flex md="2" xs="1"></v-flex>
 
-                            </v-row>
+                            </v-layout>
 
                         </v-card>
                         <v-btn color="#2196f3" @click="print()" style="color:#fff;    float: left;
@@ -410,7 +360,7 @@ import { Fancybox} from "@fancyapps/ui";
 
         props: {
             editedItem: Object,
-            CaseCategories: Array
+          
 
         },
         components: {
@@ -423,8 +373,9 @@ import { Fancybox} from "@fancyapps/ui";
         },
         data() {
             return {
+                UP_url:'http://apismartclinic.tctate.com/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url:'http://127.0.0.1:8003/api/cases/uploude_image',
+                    url:'http://apismartclinic.tctate.com/api/cases/uploude_image',
                     thumbnailWidth: 150,
                     maxFilesize: 0.5,
                     renameFile: function (file) {
@@ -478,7 +429,7 @@ import { Fancybox} from "@fancyapps/ui";
 
                 dialog: false,
                 loadSave: false,
-                // CaseCategories: [],
+                 CaseCategories: [],
                 editedIndex: -1,
 
                 isDropZoneActive: false,
@@ -956,6 +907,7 @@ let year = date.getFullYear();
             },
         },
         created() {
+            this.getCaseCategories();
     //         var file = { size: 123, name: "Icon", type: "image/png" };
     //   var url = "https://myvizo.com/img/logo_sm.png";
     //   this.$refs.myVueDropzone.manuallyAddFile(file, url);
@@ -977,7 +929,7 @@ let year = date.getFullYear();
 
 
             //     this.initialize();
-            this.getCaseCategories();
+        
             this.getDectors();
 
         },

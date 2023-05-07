@@ -2,41 +2,34 @@
   <div>
     <v-dialog v-model="BookingDetails" width="700" height="700" persistent>
 
-  <v-form ref="form" v-model="valid">
+      <v-form ref="form" v-model="valid">
 
-  <v-card height="auto">
+        <v-card height="auto">
 
-       <v-toolbar dark color="primary lighten-1 mb-5">
-                    <v-toolbar-title>
-                        <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد</h3>
-                    </v-toolbar-title>
-                    <v-spacer />
-                    <v-btn @click="close()" icon>
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                </v-toolbar>
+          <v-toolbar dark color="primary lighten-1 mb-5">
+            <v-toolbar-title>
+              <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد</h3>
+            </v-toolbar-title>
+            <v-spacer />
+            <v-btn @click="close()" icon>
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
 
-        <v-container grid-list-xs>
+          <v-container grid-list-xs>
             <div v-if="!patientFound">
-   
-      <v-row  justify="center">
-        <v-col>
-             <v-autocomplete
-          :items="patients"
-           outlined
-           item-text="name"
-           return-object
-           v-model="patient"
-             item-value="name"
-          label="اختار المراجع"
-        ></v-autocomplete>
-        </v-col>
-      </v-row>
-    </div>
+
+              <v-row justify="center">
+                <v-col>
+                  <v-autocomplete :items="patients" outlined item-text="name" return-object v-model="patient"
+                    item-value="name" label="اختار المراجع"></v-autocomplete>
+                </v-col>
+              </v-row>
+            </div>
 
 
-    <v-row justify="center">
-       <!-- <v-col
+            <v-row justify="center">
+              <!-- <v-col
       cols="12"
       sm="6"
          xs="12"
@@ -46,108 +39,58 @@
     <v-date-picker v-model="editedItem.reservation_start_date" width="300" locale="ar-iq" ></v-date-picker>
     </v-col> -->
 
-    <v-col
-      cols="12"
-      sm="6"
-      xs="12"
-    >
+              <v-col cols="12" sm="6" xs="12">
 
-         <v-menu
-        ref="menu1"
-        v-model="menu2"
-        :close-on-content-click="false"
-        
-        :nudge-right="40"
-        :return-value.sync="editedItem.reservation_from_time"
-        transition="scale-transition"
-        offset-y
-        max-width="290px"
-        min-width="290px"
-      >
-      {{editedItem.reservation_from_time}}
-        <template v-slot:activator="{ on, attrs }">
-          <v-text-field
-    :rules="[rules.required]"
-            v-model="editedItem.reservation_from_time"
-            label="من الساعه"
-            prepend-icon="mdi-clock-time-four-outline"
-            readonly
-            required
-            v-bind="attrs"
-            v-on="on"
-          ></v-text-field>
-        </template>
-        <v-time-picker
-          v-if="menu2"
-          v-model="editedItem.reservation_from_time"
-          full-width
-
-         
-  format="ampm"
-          @click:minute="$refs.menu1.save(editedItem.reservation_from_time)"
-        ></v-time-picker>
-      </v-menu>
+                <v-menu ref="menu1" v-model="menu2" :close-on-content-click="false" :nudge-right="40"
+                  :return-value.sync="editedItem.reservation_from_time" transition="scale-transition" offset-y
+                  max-width="290px" min-width="290px">
+                  {{editedItem.reservation_from_time}}
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field :rules="[rules.required]" v-model="editedItem.reservation_from_time" label="من الساعه"
+                      prepend-icon="mdi-clock-time-four-outline" readonly required v-bind="attrs" v-on="on">
+                    </v-text-field>
+                  </template>
+                  <v-time-picker v-if="menu2" v-model="editedItem.reservation_from_time" full-width format="ampm"
+                    @click:minute="$refs.menu1.save(editedItem.reservation_from_time)"></v-time-picker>
+                </v-menu>
 
 
 
 
 
-        <v-menu
-        ref="menu"
-       
-        :close-on-content-click="false"
-         v-model="menu3"
-        :nudge-right="40"
-        :return-value.sync="editedItem.reservation_to_time"
-        transition="scale-transition"
-        offset-y
-        max-width="290px"
-        min-width="290px"
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-text-field
-            v-model="editedItem.reservation_to_time"
-            label="الى الساعه"
-            :rules="[rules.required]"
-            prepend-icon="mdi-clock-time-four-outline"
-            readonly
-            v-bind="attrs"
-            v-on="on"
-          ></v-text-field>
-        </template>
-        <v-time-picker
-          v-if="menu3"
-          v-model="editedItem.reservation_to_time"
-          full-width
-          @click:minute="$refs.menu.save(editedItem.reservation_to_time)"
-        ></v-time-picker>
-      </v-menu>
+                <v-menu ref="menu" :close-on-content-click="false" v-model="menu3" :nudge-right="40"
+                  :return-value.sync="editedItem.reservation_to_time" transition="scale-transition" offset-y
+                  max-width="290px" min-width="290px">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field v-model="editedItem.reservation_to_time" label="الى الساعه" :rules="[rules.required]"
+                      prepend-icon="mdi-clock-time-four-outline" readonly v-bind="attrs" v-on="on"></v-text-field>
+                  </template>
+                  <v-time-picker v-if="menu3" v-model="editedItem.reservation_to_time" full-width
+                    @click:minute="$refs.menu.save(editedItem.reservation_to_time)"></v-time-picker>
+                </v-menu>
 
-    </v-col>
+              </v-col>
 
-       <v-col
-      cols="12"
-      sm="4"
-    >
-    </v-col>
-    <!-- <v-spacer></v-spacer> -->
+              <v-col cols="12" sm="4">
+              </v-col>
+              <!-- <v-spacer></v-spacer> -->
 
- </v-row>
+            </v-row>
 
-    
-    <br>
-    <br>
-    <br>
-      <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
-                    </v-btn>
-                    <v-btn :loading="loadSave" color="blue darken-1" @click="save()" text>
-                        حجز</v-btn>
-                </v-card-actions>
-        </v-container>
-</v-card>
-  </v-form>
+
+            <br>
+            <br>
+            <br>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
+              </v-btn>
+              <v-btn :loading="loadSave" color="blue darken-1" @click="save()" text>
+                حجز</v-btn>
+            </v-card-actions>
+          </v-container>
+        </v-card>
+      </v-form>
     </v-dialog>
   </div>
 </template>
@@ -162,36 +105,37 @@
   } from '../event-bus.js';
   export default {
 
-  props: {
+    props: {
 
-           
-            'patientInfo':Object,
-            'patientFound':Boolean,
-            'star_date':String,
-            'patients':Array
 
-        },
+      'patientInfo': Object,
+      'patientFound': Boolean,
+      'data': Object,
+      'patients': Array
+
+    },
 
 
     data: () => ({
       BookingDetailsInfo: {},
       model: 0,
-      patient_id:'',
+      patient_id: '',
       valid_SelectItem: false,
       time_av: false,
-         editedItem: {
-           user:{
-             phone:""
-           },
-           reservation_start_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
-           reservation_end_date:"",
-           reservation_from_time:"",
-           reservation_to_time:"",
-           },
-       picker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
-      withoutBills:false,
-       menu2: false,
-        menu3: false,
+      editedItem: {
+        user: {
+          phone: ""
+        },
+        reservation_start_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString()
+          .substr(0, 10),
+        reservation_end_date: "",
+        reservation_from_time: "",
+        reservation_to_time: "",
+      },
+      picker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      withoutBills: false,
+      menu2: false,
+      menu3: false,
       day_to_open: [{
         every_day: '',
       }],
@@ -206,18 +150,18 @@
         (v) => /^\d+$/.test(v) || 'يجب ادخال رقم هاتف صحيح',
 
       ],
-       rules: {
-                    minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    required: value => !!value || "مطلوب",
-                    min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
-                    email: value => {
-                        if (value.length > 0) {
-                            const pattern =
-                                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
-                        }
-                    },
-                },
+      rules: {
+        minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
+        required: value => !!value || "مطلوب",
+        min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
+        email: value => {
+          if (value.length > 0) {
+            const pattern =
+              /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
+          }
+        },
+      },
       ItemsReservationRequirements: [],
       pricepayment_when_receiving: '',
       possib_reserving_period: '',
@@ -225,7 +169,7 @@
       items: [],
       BookingDetails: true,
       rating: 4,
-      valid:false,
+      valid: false,
       fawater_res_Dailog: false,
       rating_dailog: false,
       reservations_number: null,
@@ -233,7 +177,7 @@
       valid_pay: true,
       date: '',
       date_to: '',
-      patient:{},
+      patient: {},
       sub_time_id: '',
       owner_itemId: '',
       img_click: '',
@@ -244,8 +188,8 @@
       images: ['ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab', 'ab'],
       img_name: '',
       miniDate: new Date().toISOString().substr(0, 10),
-      time1:null,
-      time3:null,
+      time1: null,
+      time3: null,
       dayselectid: 0,
       dayoffer: [],
       date_dialog: false,
@@ -295,7 +239,7 @@
 
       id: '',
       Owner_items: [],
-
+      item_id:'',
       reserv_date: [],
       post_data: {
 
@@ -307,13 +251,14 @@
         reservation_start_date: "",
         reservation_date: "",
         item_features: [],
-        withoutBills:0,
+        withoutBills: 0,
         reservation_end_date: "",
         reservation_from_time: "",
         reservation_to_time: "",
         reservation_number: "1",
         deliverable: false,
         phone: "",
+       
         ReservationRequirements: [],
         sub_time_id: ""
 
@@ -329,8 +274,8 @@
 
     }),
     mounted() {
-      this.getitems();
-
+      //this.getitems();
+      this.getOwnerTctateitemsById();
       this.getOwnerItems();
 
 
@@ -338,6 +283,7 @@
     },
 
     created() {
+    
       /// EventBus.$emit('getUserReservationsCount', true);
 
 
@@ -346,6 +292,28 @@
 
 
     methods: {
+      getOwnerTctateitemsById() {
+
+this.loading = true
+      this.$http({
+        method: 'get',
+        url: "https://tctate.com/api/api/v2/items/owner/get?page=1",
+        headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+            }
+
+      }).then(response => {
+
+
+        this.item_id = response.data.data[0].id;
+     
+
+     
+
+      });
+},
       pay_prev() {
         if (this.ItemFeauterAvailable) {
           this.e1 = 4
@@ -383,7 +351,7 @@
       getOwnerItems() {
 
         //var url = "/v2/items/search?filter[owner.user_id]=" + this.$cookies.get('owner_info').id;
-        var url= "https://tctate.com/api/v2/items/owner/get?page=1";
+        var url = "https://tctate.com/api/v2/items/owner/get?page=1";
         this.loading = true
         this.$http({
           method: 'get',
@@ -415,7 +383,7 @@
 
 
 
-//var url = "/v2/items/search?filter[owner.user_id]=" + this.$cookies.get('owner_info').id;
+      //var url = "/v2/items/search?filter[owner.user_id]=" + this.$cookies.get('owner_info').id;
       getitems() {
 
 
@@ -542,61 +510,59 @@
       save() {
 
 
- if (this.$refs.form.validate()) {
+        if (this.$refs.form.validate()) {
 
 
-  let year = this.star_date.getFullYear();
-let month = this.star_date.getMonth()+1;
-let day = this.star_date.getDate();
+          let year = this.data.StartTime.getFullYear();
+          let month = this.data.StartTime.getMonth() + 1;
+          let day = this.data.StartTime.getDate();
 
-if(day < 10 ){
-    day = '0' + day.toString();
-}
+          if (day < 10) {
+            day = '0' + day.toString();
+          }
 
-if(month < 10 ){
-  month = '0' + month.toString();
-}
+          if (month < 10) {
+            month = '0' + month.toString();
+          }
 
-var date=`${year}-${month}-${day}`;
-
-
-
-
-this.post_data.reservation_start_date=date;
-this.post_data.reservation_end_date=date;
-this.post_data.reservation_from_time=this.editedItem.reservation_from_time;
-this.post_data.reservation_to_time=this.editedItem.reservation_to_time;
-
-if(this.patientFound){
-this.post_data.user.phone="964"+parseInt(this.patientInfo.phone.replace(/ /g, ""));
-this.post_data.user.name=this.patientInfo.name;
-}
-
-else{
-this.post_data.user.phone="964"+parseInt(this.patient.phone.replace(/ /g, ""));
-this.post_data.user.name=this.patient.name;
-}
+          var date = `${year}-${month}-${day}`;
 
 
 
-this.post_data.item_id=225;
+         
+          this.post_data.reservation_start_date = date;
+          this.post_data.reservation_end_date = date;
+          this.post_data.reservation_from_time = this.editedItem.reservation_from_time;
+          this.post_data.reservation_to_time = this.editedItem.reservation_to_time;
+
+          if (this.patientFound) {
+            this.post_data.user.phone = "964" + parseInt(this.patientInfo.phone.replace(/ /g, ""));
+            this.post_data.user.name = this.patientInfo.name;
+          } else {
+            this.post_data.user.phone = "964" + parseInt(this.patient.phone.replace(/ /g, ""));
+            this.post_data.user.name = this.patient.name;
+          }
 
 
-this.post_data.reservation_number=1;
-this.post_data.reservation_date=date;
+
+          this.post_data.item_id = this.item_id;
+
+
+          this.post_data.reservation_number = 1;
+          this.post_data.reservation_date = date;
           this.$http({
               method: 'post',
               url: "https://tctate.com/api/api/reservation/owner/set",
               data: this.post_data,
-             headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2NzgyMTM1NTgsImV4cCI6MTY3ODg4MzE1OCwibmJmIjoxNjc4MjEzNTU4LCJqdGkiOiI1MFhvZjhqV2hzc1RlQ0gyIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.tzTHZ4_nuzLe_9woQaK5y1kmWLU2qGKOSmwUFpUW5b8"
-                        }
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+              }
             })
             .then(response => {
               this.BookingDetails = false;
-             
+
               this.$swal('', "    تم  الحجز بنجاح", 'success')
               //  this.$router.push({ name: 'requestBooking' })
               EventBus.$emit('GetRes', true)
@@ -615,23 +581,22 @@ this.post_data.reservation_date=date;
 
             })
 
-         
-            
-              .catch(error => {
-                                this.booking_dialog = false;
-                                    if (error.response) {
-                                        if(error.response.data.data=='SubscriptionsPackages Expire')
-                                        {
-                                             this.$swal('', "حزمه الاشتراك الحاليه منتهيه يرجئ شراء حزمه جديده ", 'error')
 
-                                        }
-                                       
 
-                                    }
-                                }
+            .catch(error => {
+                this.booking_dialog = false;
+                if (error.response) {
+                  if (error.response.data.data == 'SubscriptionsPackages Expire') {
+                    this.$swal('', "حزمه الاشتراك الحاليه منتهيه يرجئ شراء حزمه جديده ", 'error')
 
-                            )
-            
+                  }
+
+
+                }
+              }
+
+            )
+
             .finally(d => {
               d;
               this.booking_dialog = false;
@@ -639,17 +604,17 @@ this.post_data.reservation_date=date;
             });
 
 
-       // }
+          // }
 
 
-        // if (this.info.item_price.book_without_credit_card == 0 && this.post_data.phone.length < 11) {
-        //   //this.$swal('', "    تم  الحجز بنجاح", 'success')
-        //   this.fatwra_dialog = true;
-        //   return;
-        // }
+          // if (this.info.item_price.book_without_credit_card == 0 && this.post_data.phone.length < 11) {
+          //   //this.$swal('', "    تم  الحجز بنجاح", 'success')
+          //   this.fatwra_dialog = true;
+          //   return;
+          // }
 
 
-}
+        }
       },
 
       date_today() {
@@ -905,7 +870,7 @@ this.post_data.reservation_date=date;
 
     getDate_andTime(id) {
 
-      var url = this.urL + "/getDaysTime/" + id;
+      var url = "https://tctate.com/api/api/getDaysTime/" + id;
       axios.get(url).then(response => {
         this.day_to_open = response.data.Data;
 

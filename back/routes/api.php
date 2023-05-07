@@ -51,10 +51,16 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
  */
 Route::name('users.')->prefix('users')->middleware('api')->group(function () {
     Route::get('/', [UserControllerAPI::class, 'index'])->name('index');
-    Route::post('/', [UserControllerAPI::class, 'store'])->name('create');
+    Route::get('/getInfo', [UserControllerAPI::class, 'getInfo'])->name('getInfo');
+   // Route::post('/', [UserControllerAPI::class, 'store'])->name('create');
     Route::post('/login', [UserControllerAPI::class, 'Login'])->name('Login');
+    Route::post('/UpdateInfo', [UserControllerAPI::class, 'UpdateInfo'])->name('UpdateInfo');
+    Route::post('/DeleteImage', [UserControllerAPI::class, 'DeleteImage'])->name('DeleteImage');
+
+    
     //getByUserId
 
+    
     Route::get('/{user}', [UserControllerAPI::class, 'show'])->name('show');
     Route::patch('/{user}', [UserControllerAPI::class, 'update'])->name('update');
     Route::delete('/{user}', [UserControllerAPI::class, 'destroy'])->name('destroy');
@@ -77,12 +83,17 @@ Route::name('patients.')->prefix('patients')->group(function () {
     Route::get('/{patients}', [patientsControllerAPI::class, 'show'])->name('show');
     Route::patch('/{patients}', [patientsControllerAPI::class, 'update'])->name('update');
     Route::delete('/{patients}', [patientsControllerAPI::class, 'destroy'])->name('destroy');
+
 });
 
 
 Route::name('patientsAccounsts.')->prefix('patientsAccounsts')->group(function () {
  
     Route::get('/', [PatientsAccountsControllerAPI::class, 'patientsAccounsts'])->name('patientsAccounsts');
+
+    Route::get('/dash', [PatientsAccountsControllerAPI::class, 'patientsAccounstsdash'])->name('patientsAccounstsdash');
+
+   Route::get('/export', [PatientsAccountsControllerAPI::class, 'export'])->name('export');
     Route::post('/search', [PatientsAccountsControllerAPI::class, 'search'])->name('search');
 });
 
@@ -121,10 +132,15 @@ Route::name('cases.')->prefix('cases')->middleware('CheckRole:doctor')->group(fu
  */
 Route::name('bills.')->middleware('api')->prefix('bills')->group(function () {
     Route::get('/', [billsControllerAPI::class, 'index'])->name('index');
+   
     Route::post('/', [billsControllerAPI::class, 'store'])->name('create');
     Route::get('/{bills}', [billsControllerAPI::class, 'show'])->name('show');
     Route::patch('/{bills}', [billsControllerAPI::class, 'update'])->name('update');
     Route::delete('/{bills}', [billsControllerAPI::class, 'destroy'])->name('destroy');
+   
+
+
+    
 });
 
 /*

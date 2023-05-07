@@ -71,6 +71,23 @@ export default new Vuex.Store({
         }
       } ,
 
+   
+      UpdateUserInfo(state, userData) {
+       
+        ///state.AdminInfo.id = userData.id
+        state.AdminInfo.name = userData.name
+        //state.AdminInfo.authe=true
+        state.AdminInfo.email = userData.email
+        state.AdminInfo.photo = userData.photo
+      //  state.AdminInfo.role = userData.role.name
+        state.AdminInfo.img_name = userData.img_name
+  
+  
+        state.AdminInfo.clinics_info =userData.clinic_info
+  
+       
+      },
+
     authUser(state, userData) {
         state.AdminInfo.id = userData.id
         state.AdminInfo.name = userData.name
@@ -78,9 +95,16 @@ export default new Vuex.Store({
         state.AdminInfo.email = userData.email
         state.AdminInfo.photo = userData.photo
         state.AdminInfo.role = userData.role.name
-        state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
+        state.AdminInfo.img_name = userData.img_name
+
+
+  
+         state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
+
         state.AdminInfo.token =localStorage.getItem('tokinn')
       
+
+        //state.AdminInfo.tctate_token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2ODE0ODIxMzcsImV4cCI6MTY4MjE1MTczNywibmJmIjoxNjgxNDgyMTM3LCJqdGkiOiJtOVZMRDBlU0hHckw1b2xWIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.Sn-M-aYb5RhMYlMMy4qcOemeuITdUGEfT9mnTfUUCmU";
         state.AdminInfo.clinics_info =userData.clinic_info
 
        
@@ -103,6 +127,46 @@ export default new Vuex.Store({
     
   
     },
+
+    //updateInfo
+
+
+    
+
+
+    updateInfo({
+      commit
+    }, userData) {
+
+      
+console.log(userData)
+;    
+      commit('UpdateUserInfo', {
+
+        userId: userData.id,
+        // tctate_token:userData.tctate_token,
+        name: userData.name,
+        policyNumber: userData.photp,
+        userPhotoUrl: userData.email,
+        role:1,
+        clinic_info:userData.Clinics,
+        img_name:userData.img_file
+    
+      });
+
+     
+    
+      // let authenticate = Promise.resolve({ role:userData.role.name});
+      // authenticate.then(user => { Vue.prototype.$user.set(user);})
+
+      // commit('setRole',userData.role.name);
+      // router.push("/");
+      ///location.reload();
+   
+
+    },
+
+
     login({
         commit
       }, userData) {
@@ -118,6 +182,7 @@ export default new Vuex.Store({
           userPhotoUrl: userData.email,
           role:userData.role.name,
           clinic_info:userData.clinic_info,
+          img_name:userData.img_name
       
         });
       
@@ -126,6 +191,7 @@ export default new Vuex.Store({
 
         commit('setRole',userData.role.name);
         router.push("/");
+      //  location.reload();
      
 
       },

@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\billsRequest;
 use App\Http\Resources\Collections\billsCollection;
 
+
+
 class billsControllerAPI extends Controller
 {
     /**
@@ -15,6 +17,10 @@ class billsControllerAPI extends Controller
      *
      * @return App\Http\Resources\Collections\billsCollection
      */
+
+     
+
+
     public function index()
     {
         $this->authorize('viewAny', bills::class);
