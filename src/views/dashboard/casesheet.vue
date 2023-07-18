@@ -10,20 +10,21 @@
             <OwnerBooking :patientFound="patientFound=true" :patientInfo="patientInfo" v-if="booking" />
         </div>
 
-        <v-dialog v-model="casesheet" max-width="1000px">
-            <cases  :editedItem="patientInfo"></cases>
+        <v-dialog v-model="casesheet" max-width="1000px" v-if="CaseCategories.length>0">
+            <cases :editedItem="patientInfo" :doctors="doctors" :CaseCategories="CaseCategories" :gocase="gocase">
+            </cases>
         </v-dialog>
 
-      <div>
-        <v-dialog v-model="bill" max-width="1000px">
-            <Bill :patient="patientInfo"></Bill>
-        </v-dialog>
-      </div>
+        <div>
+            <v-dialog v-model="bill" max-width="1000px">
+                <Bill :patient="patientInfo"></Bill>
+            </v-dialog>
+        </div>
 
-        
+
 
         <v-dialog v-model="Recipe" max-width="900px" v-if="CaseCategories.length>0">
-            <Recipe :RecipeInfo="RecipeInfo" ></Recipe>
+            <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategories"></Recipe>
         </v-dialog>
         <v-container id="dashboard" fluid tag="section">
             <!-- <v-text-field class="mt-4" label="اكتب للبحث" outlined append-icon="mdi-magnify" v-model="search">
@@ -46,9 +47,9 @@
                                 
                                 " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
                                     <i class="fas fa-plus" style="position: relative;left:5px"></i>
+                                    {{ $t("patients.addnewpatients") }}
 
 
-                                    اضافه مراجع جديد
                                 </v-btn>
                             </template>
                             <v-form ref="form" v-model="valid">
@@ -96,43 +97,22 @@
 
                                                 <v-col class="py-0" cols="12" sm="6" md="6">
                                                     <v-radio-group v-model="editedItem.sex" row>
-                                                        <v-radio label="ذكر " :value="1"></v-radio>
-                                                        <v-radio label="انثئ" :value="0"></v-radio>
+                                                        <v-radio :label="$t('sex.female')" :value="1"></v-radio>
+                                                        <v-radio :label="$t('sex.male')" :value="0"></v-radio>
                                                     </v-radio-group>
                                                 </v-col>
 
+                                                <v-col class="py-0" cols="12" sm="6" md="6" v-if="doctors.length>1">
+                                                    <v-select :rules="[rules.required]" dense
+                                                        v-model="editedItem.doctors" multiple :label="$t('doctor')"
+                                                        :items="doctors" outlined item-text="name" item-value="id">
+                                                    </v-select>
 
-
-
-                                                <!-- 
-                                                <v-col class="d-none d-sm-flex py-0" cols="12" sm="2" md="2" >
-                                                    <v-btn class="ma-2 white--text" color="green" :height="70"
-                                                        style="color:#FFF" @click="addRecipe()
-                                                        
-                                                        
-                                                        ">
-
-                                                        <div style="display: block;
-    position: relative;
-    bottom: 15px;
-    text-align: center;
-    right: 6px;
-    font-size: 17px;
-">كتابه وصفه</div>
-
-                                                        <div>
-                                                            <v-icon style="    display: block;
-    position: relative;
-    left: 50px;
-    top: 14px;
-    font-size: 31px;
-  " dark>
-                                                                fas fa-prescription fa-2x
-                                                            </v-icon>
-                                                        </div>
-                                                    </v-btn>
                                                 </v-col>
- -->
+
+
+
+
 
 
 
@@ -162,7 +142,7 @@
                                             <v-row>
                                                 <v-col class="py-0" cols="12" sm="12" md="12">
                                                     <v-textarea dense v-model="editedItem.systemic_conditions"
-                                                        label="الامراض الجهازيه" outlined>
+                                                        :label="$t('patients.systemicdisease')" outlined>
                                                     </v-textarea>
                                                 </v-col>
 
@@ -183,8 +163,10 @@
                                         <v-spacer></v-spacer>
                                         <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
                                         </v-btn>
-                                        <v-btn :loading="loadSave" color="blue darken-1" @click="save()" text>
-                                            {{ $t("save") }}</v-btn>
+                                        <v-btn :loading="loadSave" style="color: #fff;" color="green darken-1" @click="save()" 
+                                        
+                                        >
+                                            التالي</v-btn>
                                     </v-card-actions>
                                 </v-card>
                             </v-form>
@@ -194,16 +176,34 @@
 
                     <v-layout row wrap>
                         <v-flex xs8 md3 sm3 pr-1 style="padding-right: 22px !important;">
-                            <v-text-field ref="name" v-model="search" placeholder="اسم المراجع او رقم  الهاتف" required>
+                            <v-text-field ref="name" v-model="search"
+                                :placeholder="$t('patients.Referencesnameorphonenumber')" required>
                             </v-text-field>
                         </v-flex>
 
+
                         <v-flex xs1 pa-5>
-                            <v-btn color="green" style="color:#fff" @click="seachs()">بحــث</v-btn>
+                            <v-btn color="green" style="color:#fff" @click="seachs()"> {{ $t("search") }}</v-btn>
                         </v-flex>
 
-                        <v-flex xs1 pt-5 pb-5 pr-2 v-if="allItem">
-                            <v-btn color="blue" style="color:#fff" @click="initialize();allItem=false">رجوع</v-btn>
+                        <v-flex xs1 pt-5 pb-5 pr-2  class="allsee">
+                            <v-btn color="blue" v-if="allItem" style="color:#fff" @click="initialize();allItem=false">{{ $t("all") }}
+                            </v-btn>
+                        </v-flex>
+
+
+                        <v-flex xs1 md4 sm4></v-flex>
+
+
+
+                        <v-flex xs11 md3 sm3 pt-5 style="float: left;" >
+                            <v-select  dense  @input="getByDocor()" 
+
+                            
+                            v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') && doctorsAll.length>2"
+                                                        v-model="searchDocorId"  :label="$t('doctor')"
+                                                        :items="doctorsAll" outlined item-text="name" item-value="id">
+                                                    </v-select>
                         </v-flex>
 
 
@@ -236,9 +236,21 @@
                     <span v-else>{{ $t("female") }}</span>
                 </template>
 
+                <template v-slot:[`item.doctor`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')">
+
+                    <span style="display: none;">{{ item }}</span>
+                    <v-chip style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
+                        <v-icon left>
+                            mdi-account-circle-outline
+                        </v-icon>{{ item.name }}
+                    </v-chip>
+
+                </template>
 
 
-                <template v-slot:[`item.cases`]="{ item }" v-if="$store.state.role !== 'secretary'">
+                <template v-slot:[`item.casesx`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('show_cases')">
 
 
                     <span v-if="item.case==null">
@@ -246,7 +258,7 @@
                     </span>
 
                     <v-btn v-else dense @click="$router.push('/patient/'+item.id)" color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">الحالات</v-btn>
+                        style="color:#fff;height:28px;font-weight:bold">{{ $t("header.cases") }}</v-btn>
 
 
 
@@ -256,15 +268,17 @@
 
 
 
-                <template v-slot:[`item.addCase`]="{ item }" v-if="$store.state.role !== 'secretary'">
+                <template v-slot:[`item.addCase`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('add_case')">
 
 
 
-                    <v-btn @click="addCase(item)" dense color="#0a304ed4"
+                    <v-btn @click="addCase(item);addCase(item);gocase=true" dense color="#0a304ed4"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="fas fa-plus" style="position: relative;left:5px"></i>
-                        اضافه حاله
 
+
+                        {{ $t("addcase") }}
 
                     </v-btn>
 
@@ -274,7 +288,8 @@
                 </template>
 
 
-                <template v-slot:[`item.Recipe`]="{ item }" v-if="$store.state.role !== 'secretary'">
+                <template v-slot:[`item.Recipe`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('show_rx')">
 
 
                     <span style="display:none">{{item.id}}</span>
@@ -282,9 +297,9 @@
                     <v-btn @click="addRecipe(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="fas fa-prescription " style="position: relative;left:5px"></i>
-                        راجيته
 
 
+                        {{ $t("rx") }}
                     </v-btn>
 
                 </template>
@@ -297,29 +312,31 @@
                     <v-btn @click="addbooking(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="far fa-clock" style="position: relative;left:5px"></i>
-                        حجز موعد
+
+
+                        {{ $t("patients.AppointmentBooking") }}
+                    </v-btn>
+
+                </template>
+
+                <template v-slot:[`item.bills`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('show_accounts')">
+
+
+                    <span style="display:none">{{item.id}}</span>
+
+                    <v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
+                        style="color:#fff;height:28px;font-weight:bold">
+                        <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
+
+                        {{ $t("patients.account") }}
 
 
                     </v-btn>
 
                 </template>
 
-                <template v-slot:[`item.bills`]="{ item }">
 
-
-<span style="display:none">{{item.id}}</span>
-
-<v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
-    style="color:#fff;height:28px;font-weight:bold">
-    <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
-     الحساب 
-
-
-</v-btn>
-
-</template>
-
-                
 
 
                 <template v-slot:[`item.actions`]="{ item }">
@@ -366,7 +383,7 @@
     //Recipe
     import cases from './case.vue';
     import billsReport from './billsReport.vue';
-    
+
     import {
         EventBus
     } from "./event-bus.js";
@@ -374,7 +391,9 @@
     import OwnerBooking from './sub_components/ownerBookinfDed.vue'
     import Bill from './sub_components/billsReport.vue'
     import Swal from "sweetalert2";
-  
+
+
+
     import {
         mask
     } from "vue-the-mask";
@@ -392,10 +411,11 @@
         },
         data() {
             return {
+                gocase: false,
                 desserts: [
 
                 ],
-                bill:false,
+                bill: false,
                 paymentsCount: 1,
                 booking: false,
                 cats: [],
@@ -403,6 +423,7 @@
                 loadingData: true,
                 allItem: false,
                 RecipeInfo: {},
+
 
                 pageCount: 11,
                 page: 1,
@@ -433,21 +454,22 @@
                     },
                 },
                 editedIndex: -1,
-
+                doctorsAll:[],
                 isDropZoneActive: false,
                 imageSource: '',
                 textVisible: true,
                 progressVisible: false,
-                search:'',
+                search: '',
                 progressValue: 0,
+                searchDocorId:'',
 
-                
 
                 editedItem: {
                     name: "",
                     age: "",
                     sex: "",
                     phone: "",
+                    doctors: "",
                     systemic_conditions: "",
                     case: {
                         case_categores_id: "",
@@ -459,6 +481,7 @@
                             note: '',
                             date: ''
                         }],
+
 
                         case_categories: {
                             name_ar: ''
@@ -502,12 +525,18 @@
                         value: "sex"
                     },
 
+                    {
+                        text: this.$t('datatable.doctor'),
+                        align: "start",
+                        value: "doctor"
+                    },
+
 
                     //status_Description
 
                     {
                         text: 'الحالات',
-                        value: "cases",
+                        value: "casesx",
                         sortable: false
                     },
                     {
@@ -546,6 +575,32 @@
 
         methods: {
 
+            getByDocor(){
+                if(this.searchDocorId==0){
+                  
+                  return this.initialize()
+               }
+                Axios.get("patients/getByDoctor/" + this.searchDocorId, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loading = false;
+                        //  this.search = null;
+                        this.allItem = true;
+                        this.desserts = [];
+                        this.desserts = res.data.data;
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
+
             goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
@@ -554,15 +609,15 @@
                 }
 
             },
-            openbill(item){
+            openbill(item) {
                 item
 
                 this.patientInfo = item;
-                this.bill=true;
+                this.bill = true;
             },
             addCase(item) {
 
-
+                //  this.patientInfo = item;
                 this.patientInfo = {
                     case_categores_id: "",
                     upper_right: "",
@@ -590,16 +645,19 @@
                     ],
                     notes: ""
                 }
-
-
-                if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    this.casesheet = true;
-                 //   this.$router.push("/case/" + item.id)
-
-                } else {
-
+                this.casesheet = true;
+                if (this.patientInfo.images.length > 0) {
                     this.casesheet = true;
                 }
+
+                // if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                //     this.casesheet = true;
+                //  //   this.$router.push("/case/" + item.id)
+
+                // } else {
+
+                //     this.casesheet = true;
+                // }
 
             },
             addbooking(item) {
@@ -689,26 +747,6 @@
 
                 })
             },
-            // uploadImageSuccess(formData, index, fileList) {
-            //   console.log('data', formData, index, fileList)
-            //   // Upload image api
-            //   // axios.post('http://your-url-upload', formData).then(response => {
-            //   //   console.log(response)
-            //   // })
-            // },
-            // beforeRemove (index, done, fileList) {
-            //   console.log('index', index, fileList)
-            //   var r = confirm("remove image")
-            //   if (r == true) {
-            //     done()
-            //   } else {
-            //      console.log('index', index, fileList)  
-            //   }
-            // },
-            // editImages (formData, index, fileList) {
-            //     alert('df');
-            //   console.log('edit data', formData, index, fileList)
-            // }
 
 
             //uploude photos
@@ -797,7 +835,15 @@
             editItem(item) {
                 this.editedIndex = this.desserts.indexOf(item);
 
+                var doc = [];
+                item.doctors.forEach((item, index) => {
+                    index
+                    doc.push(item.id)
+                })
+                item.doctors = doc;
+
                 this.editedItem = Object.assign({}, item);
+
                 this.selecBill = Object.assign({}, this.editedItem);
 
                 if (this.editedItem.case == null) {
@@ -924,9 +970,9 @@
                     })
                     .then(res => {
                         this.loading = false;
-                        this.search = null;
+                        //  this.search = null;
                         this.allItem = true;
-                        this.desserts=[];
+                        this.desserts = [];
                         this.desserts = res.data.data;
 
 
@@ -935,6 +981,38 @@
                         this.loading = false;
                     });
             },
+
+
+            getclinicDoctor() {
+                this.loading = true;
+                Axios.get("doctors/clinic", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.doctors = res.data.data;
+                        this.doctorsAll.push({
+                            id: 0,
+                            name: ' الكل'
+                        });
+                        this.doctors.forEach((item, index) => {
+                            index
+                            this.doctorsAll.push(item)
+                        })
+
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
+
 
             initialize() {
                 this.loading = true;
@@ -948,6 +1026,7 @@
                     .then(res => {
                         this.loadingData = false;
                         this.loading = false;
+                        this.search = null;
                         this.desserts = res.data.data;
 
 
@@ -970,6 +1049,7 @@
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
+
 
                     })
                     .catch(() => {
@@ -1072,7 +1152,7 @@
                                 this.loadSave = false;
                                 /// this.casesheet = true;
 
-                                this.SaveCase();
+                                //  this.SaveCase();
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
@@ -1111,10 +1191,14 @@
                                     icon: "success",
                                     confirmButtonText: this.$t('close'),
                                 });
+
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,
                                     this.initialize();
+
+
                                 if (this.$store.state.role !== 'secretary') {
+                                    this.gocase = false;
                                     this.addCase(this.patientInfo);
                                 }
 
@@ -1133,31 +1217,34 @@
 
             },
             getDectors() {
-                this.doctors.push({
-                    'id': this.$store.state.AdminInfo.id,
-                    'name': this.$store.state.AdminInfo.name
+                // this.doctors.push({
+                //     'id': this.$store.state.AdminInfo.id,
+                //     'name': this.$store.state.AdminInfo.name
 
-                })
+                // })
             }
 
         },
+
+
         computed: {
             formTitle() {
-                return this.editedIndex === -1 ? 'اضافه مراجع جديد' : this.$t('update');
+                return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
 
             },
         },
-        mounted(){
-this.getCaseCategories();
+        mounted() {
+            this.getCaseCategories();
         },
         created() {
-            
+            this.getclinicDoctor();
+            this.getCaseCategories();
             EventBus.$on("billsReportclose", (tooth) => {
 
-tooth
-this.bill = false;
+                tooth
+                this.bill = false;
 
-});
+            });
             //changeStatusCloseCase
 
             EventBus.$on("changeStatusCloseCase", (from) => {
@@ -1176,7 +1263,7 @@ this.bill = false;
             });
 
             this.initialize();
-            
+
             this.getDectors();
 
         },
@@ -1268,5 +1355,14 @@ this.bill = false;
         font-size: 27px;
         position: relative;
         bottom: 10px;
+    }
+
+
+
+
+    @media only screen and (max-width: 600px) {
+        .allsee {
+            display: none;
+        }
     }
 </style>

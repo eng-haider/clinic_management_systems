@@ -23,7 +23,7 @@
 
         <v-flex xs12 md3 sm6 pr-2 pb-4>
 
-          <dash_card name="  اعدد الحالات المنتهيه" icon="fa-solid fa-check" text_color="#53D3F8" icon_color="#035aa6"
+          <dash_card name="  عدد الحالات المنتهيه" icon="fa-solid fa-check" text_color="#53D3F8" icon_color="#035aa6"
             :count="DashbourdCounts.Casescompleted
 "></dash_card>
 
@@ -71,6 +71,17 @@
        
 
 
+        <v-flex md-6 sm-6 xs12 pt-4>
+<v-card>
+<h2 style="text-align: center;    font-family: 'Cairo' !important;" class="sssaw">مواعيد المراجعين اليوم</h2>
+
+  <v-data-table :headers="headers" disable-filtering disable-sort :loading="loadingData" :page.sync="page" @page-count="pageCount = $event"
+                hide-default-footer :items="booking" >
+                </v-data-table>
+
+
+</v-card>
+        </v-flex> 
 
 
       </v-layout>
@@ -137,7 +148,7 @@
           :visible="true"
           :width="0.5"
         />
-        <DxFont :size="16"/>
+        <DxFont :size="10"/>
       </DxLabel>
     </DxSeries>
     <DxLegend
@@ -151,6 +162,7 @@
   </DxPieChart>
 </v-card>
         </v-flex> 
+
 
       </v-layout>
 
@@ -230,32 +242,35 @@
     data() {
       return {
         accounts_statistic:[],
-        dataSource2: [{
-  country: 'USA',
-  medals: 110,
-}, {
-  country: 'China',
-  medals: 100,
-}, {
-  country: 'Russia',
-  medals: 72,
-}, {
-  country: 'Britain',
-  medals: 47,
-}, {
-  country: 'Australia',
-  medals: 46,
-}, {
-  country: 'Germany',
-  medals: 41,
-}, {
-  country: 'France',
-  medals: 40,
-}, {
-  country: 'South Korea',
-  medals: 31,
-}],
+      booking:[],
         govs: [],
+
+      
+        headers: [{
+                        text: '#id',
+                        align: "start",
+                        value: "id"
+                    },
+                    {
+                        text: 'الاسم',
+                        align: "start",
+                        value: "user.full_name"
+                    }
+                    ,
+
+                    {
+                        text: 'رقم الهاتف',
+                        align: "start",
+                        value: "user.user_phone"
+                    }
+                    ,
+                    {
+                        text: 'الاسم',
+                        align: "الوقت",
+                        value: "reservation_from_time"
+                    }
+                   
+                ],
         DashbourdCounts: [],
         data: [],
        
@@ -283,10 +298,37 @@
     created() {
       this.getCase_number_stats();
       this.getDashbourdCounts();
+      this.getBooking();
       this.getAccountsCounts();
       this.get_stats2();
     },
     methods: {
+      getBooking(){
+        var today = new Date();
+        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+      
+
+
+        this.axios.get('https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]='+date+'_'+date+'.&filter[status_id]=%20&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1', {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+              }
+            })
+            .then(res => {
+              this.loadingData = false;
+              this.booking = res.data.data;
+     
+            
+            
+            })
+            .catch(() => {
+              this.loading = false;
+            })
+
+       
+      },
       getAccountsCounts(){
         setTimeout(() => 
         this.axios.get('/patientsAccounsts/dash?page=' + this.current_page, {
@@ -380,5 +422,11 @@
   }
   #pie {
   height: 440px;
+}
+
+ 
+
+.sssaw{
+  color:#075aa6 !important
 }
 </style>

@@ -11,8 +11,8 @@
         </div>
 
         <v-dialog v-model="casesheet" max-width="900px">
-            
-            <cases :editedItem="editedItem" :CaseCategories="CaseCategoriess"></cases>
+
+            <cases :doctors="doctors" :editedItem="editedItem" :CaseCategories="CaseCategoriess"></cases>
         </v-dialog>
         <v-dialog v-model="Recipe" max-width="900px">
             <Recipe :RecipeInfo="RecipeInfo" :CaseCategories="CaseCategoriess"></Recipe>
@@ -33,6 +33,7 @@
 
                     <v-layout row wrap pa-5>
                         <v-flex xs12 md3 sm3>
+
                             <v-select dense v-model="search.case_categores_id" label=" نوع الحاله "
                                 :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
                         </v-flex>
@@ -61,9 +62,21 @@
                             <v-btn color="green" style="color:#fff" @click="seachs()">بحــث</v-btn>
                         </v-flex>
 
-                        <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2 v-if="allItem">
-                            <v-btn color="blue" style="color:#fff;float: left;" @click="initialize();allItem=false">الكل</v-btn>
+                        <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2>
+                            <v-btn color="blue" v-if="allItem" style="color:#fff;float: left;"
+                                @click="initialize();allItem=false">الكل</v-btn>
                         </v-flex>
+
+
+                        <v-flex xs1 md1 sm1></v-flex>
+                        <v-flex xs11 md3 sm3 pt-5 style="float: left;">
+                            <v-select dense @input="getByDocor()"
+                                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')  && doctorsAll.length>2"
+                                v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined
+                                item-text="name" item-value="id">
+                            </v-select>
+                        </v-flex>
+
 
 
                     </v-layout>
@@ -77,6 +90,18 @@
                     </span>
 
 
+
+                </template>
+
+                <template v-slot:[`item.doctor`]="{ item }"
+                    v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')">
+
+                    <span style="display: none;">{{ item }}</span>
+                    <v-chip style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
+                        <v-icon left>
+                            mdi-account-circle-outline
+                        </v-icon>{{ item.name }}
+                    </v-chip>
 
                 </template>
 
@@ -215,24 +240,24 @@
                 </template>
 
                 <template v-slot:[`item.bills`]="{ item }">
-                
 
 
 
-    <v-chip v-if="(sumPaybills(item.bills)==item.price)" class="ma-2" color="green" outlined>
-        تم التسديد
-    </v-chip>
 
-    <v-chip v-else class="ma-2" color="red" outlined>
-       لم يتم التسديد
-    </v-chip>
+                    <v-chip v-if="(sumPaybills(item.bills)==item.price)" class="ma-2" color="green" outlined>
+                        تم التسديد
+                    </v-chip>
+
+                    <v-chip v-else class="ma-2" color="red" outlined>
+                        لم يتم التسديد
+                    </v-chip>
 
 
 
                 </template>
 
 
-            
+
                 <template v-slot:[`item.status`]="{ item }">
                     <v-chip class="ma-2" :color="item.status.status_color" outlined>
                         <v-icon left>
@@ -260,13 +285,15 @@
                     </div>
                 </v-flex>
             </v-layout>
-<Fancybox ></Fancybox>
+            <Fancybox></Fancybox>
         </v-container>
     </div>
 </template>
 
 <script>
- import { Fancybox} from "@fancyapps/ui";
+    import {
+        Fancybox
+    } from "@fancyapps/ui";
     //Recipe
     import cases from './case.vue';
     import billsReport from './billsReport.vue';
@@ -295,6 +322,7 @@
         },
         data() {
             return {
+                CaseCategoriess: [],
                 desserts: [
 
                 ],
@@ -307,7 +335,7 @@
                 booking: false,
                 cats: [],
                 patientInfo: {},
-                loadingData:true,
+                loadingData: true,
                 pageCount: 11,
                 page: 1,
                 allItem: false,
@@ -327,7 +355,7 @@
                 CaseCategories: [
 
                 ],
-        
+
                 editedIndex: -1,
 
                 isDropZoneActive: false,
@@ -372,8 +400,8 @@
 
                 ],
                 doctors: [],
-                headers: [
-                {
+                doctorsAll: [],
+                headers: [{
                         text: this.$t('datatable.name'),
                         align: "start",
                         value: "patient.name"
@@ -384,8 +412,12 @@
                         value: "case_categories.name_ar"
                     },
 
-                    
-                    
+
+                    {
+                        text: this.$t('datatable.doctor'),
+                        align: "start",
+                        value: "doctor"
+                    },
 
 
                     {
@@ -393,7 +425,7 @@
                         align: "start",
                         value: "sessions[0].note"
                     },
-                   
+
 
                     {
                         text: this.$t('datatable.date'),
@@ -425,16 +457,48 @@
             }
         },
 
-        methods: {
 
+        methods: {
+            getclinicDoctor() {
+                this.loading = true;
+                Axios.get("doctors/clinic", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.doctors = res.data.data;
+
+
+                        this.doctorsAll.push({
+                            id: 0,
+                            name: ' الكل'
+                        });
+                        this.doctors.forEach((item, index) => {
+                            index
+                            this.doctorsAll.push(item)
+                        })
+
+
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
             sumPaybills(bills) {
                 let sum = 0;
-       
+
                 for (let i = 0; i < bills.length; i++) {
 
-                        sum += parseInt(bills[i].price);
-                  
-                    
+                    sum += parseInt(bills[i].price);
+
+
                 }
 
 
@@ -445,15 +509,15 @@
             },
 
 
-            cropdate(x){
-return  x.slice(0, 10);
+            cropdate(x) {
+                return x.slice(0, 10);
             },
-            goTop(){
+            goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                
+
                     window.scrollTo(0, 0);
 
-             }
+                }
             },
             BillsSum(bills_amount) {
                 var totle_coast = 0;
@@ -690,10 +754,16 @@ return  x.slice(0, 10);
 
             editItem(item) {
                 this.editedIndex = this.desserts.indexOf(item);
+                var doc = [];
+                item.doctors.forEach((item, index) => {
+                    index
+                    doc.push(item.id)
+                })
+                item.doctors = doc;
 
                 this.editedItem = Object.assign({}, item);
 
-                
+
 
                 if (this.editedItem.bills.length == 0) {
                     this.editedItem.bills = [{
@@ -733,6 +803,9 @@ return  x.slice(0, 10);
                         case_categores_id: "",
                         upper_right: "",
                         upper_left: "",
+                        case_categories: {
+                            name_ar: ''
+                        },
                         patient_id: "",
                         lower_right: "",
                         lower_left: "",
@@ -774,6 +847,35 @@ return  x.slice(0, 10);
 
 
             },
+
+
+            getByDocor() {
+
+                if (this.searchDocorId == 0) {
+
+                    return this.initialize()
+                }
+                Axios.get("cases/getByDoctor/" + this.searchDocorId, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loading = false;
+                        //  this.search = null;
+                        this.allItem = true;
+                        this.desserts = [];
+                        this.desserts = res.data.data;
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
+
             seachs() {
 
 
@@ -817,7 +919,7 @@ return  x.slice(0, 10);
                     })
                     .then(res => {
                         this.loading = false;
-                        this.loadingData=false;
+                        this.loadingData = false;
                         this.desserts = res.data.data;
 
 
@@ -840,19 +942,21 @@ return  x.slice(0, 10);
                     .then(res => {
                         this.loading = false;
                         //  this.CaseCategories
-                        var CaseCategoriess = res.data;
+                        this.CaseCategoriess = res.data;
+                        this.CaseCategoriess = res.data;
+
                         this.CaseCategories.push({
                             id: 0,
                             name_ar: 'الكل',
                             name_en: '',
                             updated_at: '2022-02-02T12:20:30.000000Z'
                         })
-                        for (var i = 0; i < CaseCategoriess.length; i++) {
+                        for (var i = 0; i < this.CaseCategoriess.length; i++) {
                             this.CaseCategories.push({
-                                id: CaseCategoriess[i].id,
-                                name_ar: CaseCategoriess[i].name_ar,
+                                id: this.CaseCategoriess[i].id,
+                                name_ar: this.CaseCategoriess[i].name_ar,
                                 name_en: '',
-                                updated_at: CaseCategoriess[i].updated_at
+                                updated_at: this.CaseCategoriess[i].updated_at
                             })
                         }
 
@@ -941,6 +1045,10 @@ return  x.slice(0, 10);
 
             },
 
+
+
+
+
             save() {
 
                 if (this.$refs.form.validate()) {
@@ -1017,11 +1125,11 @@ return  x.slice(0, 10);
 
             },
             getDectors() {
-                this.doctors.push({
-                    'id': this.$store.state.AdminInfo.id,
-                    'name': this.$store.state.AdminInfo.name
+                // this.doctors.push({
+                //     'id': this.$store.state.AdminInfo.id,
+                //     'name': this.$store.state.AdminInfo.name
 
-                })
+                // })
             }
 
         },
@@ -1032,8 +1140,9 @@ return  x.slice(0, 10);
             },
         },
         created() {
-
+            this.getCaseCategories();
             //changeStatusCloseCase
+            this.getclinicDoctor();
 
             EventBus.$on("changeStatusCloseCase", (from) => {
 
@@ -1052,7 +1161,7 @@ return  x.slice(0, 10);
             });
 
             this.initialize();
-            this.getCaseCategories();
+
             this.getDectors();
 
         },

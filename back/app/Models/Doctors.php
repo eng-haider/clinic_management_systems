@@ -15,12 +15,28 @@ class doctors extends Model
      * @var array
      */
     protected $fillable = [
-        'name'
+        'name','clinics_id','user_id'
     ];
 
     public function Clinics()
     {
         return $this->belongsTo(Clinics::class);
+    }
+
+    public function Cases()
+    {
+        return $this->belongsToMany(Cases::class, 'CaseDoctor');
+    }
+
+
+    public function casesx()
+    {
+        return $this->belongsToMany(Cases::class, 'CaseDoctor');
+    }
+
+    public function Patients()
+    {
+        return $this->belongsToMany(Patients::class, 'DoctorPatient');
     }
 
 

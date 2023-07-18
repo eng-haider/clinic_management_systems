@@ -18,7 +18,7 @@ class patients extends Model
         'name','age','phone','email','sex','note','systemic_conditions','user_id','doctor_id'
     ];
 
-    
+
 
     public function Case()
     {
@@ -33,5 +33,19 @@ class patients extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+
+    public function Doctors()
+    {
+        return $this->belongsToMany(Doctors::class, 'DoctorPatient');
+    }
+
+
+    public function getUserIdsAttribute()
+    {
+        return $this->Doctors;
+    }
+
+
 
 }

@@ -12,7 +12,10 @@ use App\Http\Controllers\CasesControllerAPI;
 use App\Http\Controllers\patientsControllerAPI;
 use App\Http\Controllers\UserControllerAPI;
 use App\Http\Controllers\PatientsAccountsControllerAPI;
+use App\Http\Controllers\ItemsControllerAPI;
+
 use App\Http\Controllers\UsersControllerAPI;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,15 +55,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::name('users.')->prefix('users')->middleware('api')->group(function () {
     Route::get('/', [UserControllerAPI::class, 'index'])->name('index');
     Route::get('/getInfo', [UserControllerAPI::class, 'getInfo'])->name('getInfo');
-   // Route::post('/', [UserControllerAPI::class, 'store'])->name('create');
+    Route::post('/', [UserControllerAPI::class, 'store'])->name('create');
     Route::post('/login', [UserControllerAPI::class, 'Login'])->name('Login');
     Route::post('/UpdateInfo', [UserControllerAPI::class, 'UpdateInfo'])->name('UpdateInfo');
     Route::post('/DeleteImage', [UserControllerAPI::class, 'DeleteImage'])->name('DeleteImage');
 
-    
+
     //getByUserId
 
-    
+
     Route::get('/{user}', [UserControllerAPI::class, 'show'])->name('show');
     Route::patch('/{user}', [UserControllerAPI::class, 'update'])->name('update');
     Route::delete('/{user}', [UserControllerAPI::class, 'destroy'])->name('destroy');
@@ -74,8 +77,15 @@ Route::name('users.')->prefix('users')->middleware('api')->group(function () {
 'middleware' => 'api',
  */
 
+
+
 Route::name('patients.')->prefix('patients')->group(function () {
     Route::get('/', [patientsControllerAPI::class, 'index'])->name('index');
+    Route::get('/getByDoctor/{Doctors}', [patientsControllerAPI::class, 'getByDoctor'])->name('getByDoctor');
+
+
+
+
     Route::get('search/{search}', [patientsControllerAPI::class, 'search'])->name('search');
     Route::post('/', [patientsControllerAPI::class, 'store'])->name('create');
     Route::get('getByUserId', [patientsControllerAPI::class, 'getByUserId'])->name('getByUserId');
@@ -88,7 +98,12 @@ Route::name('patients.')->prefix('patients')->group(function () {
 
 
 Route::name('patientsAccounsts.')->prefix('patientsAccounsts')->group(function () {
- 
+
+
+
+
+     Route::get('/getByDoctor/{Doctor}', [PatientsAccountsControllerAPI::class, 'getByDoctor'])->name('getByDoctor');
+
     Route::get('/', [PatientsAccountsControllerAPI::class, 'patientsAccounsts'])->name('patientsAccounsts');
 
     Route::get('/dash', [PatientsAccountsControllerAPI::class, 'patientsAccounstsdash'])->name('patientsAccounstsdash');
@@ -103,14 +118,32 @@ Route::name('patientsAccounsts.')->prefix('patientsAccounsts')->group(function (
 |--------------------------------------------------------------------------
  */
 
-Route::post('/cases/uploude_image', [CasesControllerAPI::class, 'uploude_image'])->name('uploude_image');
-Route::name('cases.')->prefix('cases')->middleware('CheckRole:doctor')->group(function () {
-    
-  
 
-    
+
+
+ Route::get('/testin', [CasesControllerAPI::class, 'testin'])->name('testin');
+ Route::get('/testinCase', [PatientsControllerAPI::class, 'testinCase'])->name('testinCase');
+
+
+
+
+Route::post('/cases/uploude_image', [CasesControllerAPI::class, 'uploude_image'])->name('uploude_image');
+Route::name('cases.')->prefix('cases')->group(function () {
+
+
+
+
 
     //Usercases CaseCategories
+
+
+    Route::get('/getByDoctor/{Doctors}', [CasesControllerAPI::class, 'getByDoctor'])->name('getByDoctor');
+
+
+
+    Route::post('/DeleteCaseDoctor', [CasesControllerAPI::class, 'DeleteCaseDoctor'])->name('DeleteCaseDoctor');
+
+
     Route::get('/', [CasesControllerAPI::class, 'index'])->name('index');
     Route::get('/getDashbourdCounts', [CasesControllerAPI::class, 'getDashbourdCounts'])->name('getDashbourdCounts');
     Route::post('/', [CasesControllerAPI::class, 'store'])->name('store');
@@ -132,15 +165,15 @@ Route::name('cases.')->prefix('cases')->middleware('CheckRole:doctor')->group(fu
  */
 Route::name('bills.')->middleware('api')->prefix('bills')->group(function () {
     Route::get('/', [billsControllerAPI::class, 'index'])->name('index');
-   
+
     Route::post('/', [billsControllerAPI::class, 'store'])->name('create');
     Route::get('/{bills}', [billsControllerAPI::class, 'show'])->name('show');
     Route::patch('/{bills}', [billsControllerAPI::class, 'update'])->name('update');
     Route::delete('/{bills}', [billsControllerAPI::class, 'destroy'])->name('destroy');
-   
 
 
-    
+
+
 });
 
 /*
@@ -156,13 +189,36 @@ Route::name('statuses.')->prefix('statuses')->group(function () {
     Route::delete('/{status}', [statusControllerAPI::class, 'destroy'])->name('destroy');
 });
 
+
+
+/*
+|--------------------------------------------------------------------------
+| Items endpoints
+|--------------------------------------------------------------------------
+ */
+Route::name('Items.')->prefix('Items')->group(function () {
+    Route::get('/', [ItemsControllerAPI::class, 'index'])->name('index');
+    Route::get('/GetByClinicId', [ItemsControllerAPI::class, 'GetByClinicId'])->name('GetByClinicId');
+    Route::post('/', [ItemsControllerAPI::class, 'store'])->name('create');
+    Route::get('/{status}', [statusControllerAPI::class, 'show'])->name('show');
+    Route::patch('/{status}', [ItemsControllerAPI::class, 'update'])->name('update');
+    Route::delete('/{id}', [ItemsControllerAPI::class, 'destroy'])->name('destroy');
+});
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | doctors endpoints
 |--------------------------------------------------------------------------
  */
 Route::name('doctors.')->prefix('doctors')->group(function () {
+
+
     Route::get('/', [doctorsControllerAPI::class, 'index'])->name('index');
+    Route::get('/clinic', [doctorsControllerAPI::class, 'clinicDoctor'])->name('clinicDoctor');
+    Route::get('/clinicDoctorInfo', [doctorsControllerAPI::class, 'clinicDoctorInfo'])->name('clinicDoctorInfo');
     Route::post('/', [doctorsControllerAPI::class, 'store'])->name('create');
     Route::get('/{doctors}', [doctorsControllerAPI::class, 'show'])->name('show');
     Route::patch('/{doctors}', [doctorsControllerAPI::class, 'update'])->name('update');
@@ -178,6 +234,8 @@ Route::name('sessions-cases.')->prefix('sessions-cases')->group(function () {
     Route::get('/', [SessionsCasesControllerAPI::class, 'index'])->name('index');
     Route::post('/', [SessionsCasesControllerAPI::class, 'store'])->name('create');
     Route::get('/{sessionsCases}', [SessionsCasesControllerAPI::class, 'show'])->name('show');
+
+
     Route::patch('/{sessionsCases}', [SessionsCasesControllerAPI::class, 'update'])->name('update');
     Route::delete('/{sessionsCases}', [SessionsCasesControllerAPI::class, 'destroy'])->name('destroy');
 });

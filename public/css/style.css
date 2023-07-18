@@ -30,6 +30,15 @@ body{
    
 }
 
+body > div:nth-child(10){
+  display:none !important;
+}
+
+
+
+.money{
+  color: green;
+}
 .user-pic{
   position: relative;
   right: 40px;
@@ -1329,6 +1338,8 @@ width:90%;
    font-family:'droid'!important;
 
  }
+
+
 .dash_part_rate_title
 {
   font-family: droid;
@@ -1338,15 +1349,17 @@ width:90%;
     color: #807575;
     font-weight: bold;
 }
-
+body > div:nth-child(15) > span{
+  display: none;
+}
 .dash_rate_card
 {
   width:100%;height:auto ;border-radius:10px
 }
 
-body > div:nth-child(9) > div{
+/* body > div:nth-child(9) > div{
   display: none !important;
-}
+} */
 .card_num span
 {
   font-weight: bold;
@@ -1357,6 +1370,22 @@ body > div:nth-child(9) > div{
 
 }
 
+#chart > svg > g.dxc-title > text{
+  
+  font-family: 'Cairo' !important;
+  fill: #075aa6 !important;
+}
+
+#pie > svg > g.dxc-title > text{
+  font-family: 'Cairo' !important;
+  fill: #075aa6 !important;
+}
+
+
+#pie > svg > g.dxc-title > text{
+  font-family: 'Cairo' !important;
+  fill: #075aa6 !important;
+}
 .card_num
 {
  
@@ -1782,6 +1811,10 @@ font-size: 14px !important;
 }
 /* sm */
 @media(min-width:768px) and (max-width:991px){
+
+  .card_num span span{
+    font-size: 40px;
+   }
   .mb_resposiv_show{
     visibility: hidden;
     height: 0px !important;
@@ -1818,7 +1851,10 @@ font-size: 14px !important;
               .theme--light.v-table thead th { font-size: 1.1em !important; }
               table.v-table tbody td{   font-size: 1em !important; }
 }  
+
 /* md */
+
+
 @media(min-width:992px) and (max-width:1199px){
   .mb_resposiv_show{
     visibility: hidden;

@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+  <router-view  class="nav_phone" />
 </template>
 
 <script>
@@ -10,8 +10,16 @@ export default {
 }
 </script>
 
-<style lang="scss">
-// @import "./assets/css/app";
+<style >
+ @import '/css/style.css?v4'; 
+
+ 
+ @media only screen and (max-width: 600px) {
+            .nav_phone{
+              margin-top: 30px !important;
+            }
+    }
+
 * {
   font-family: "Cairo", sans-serif;
 }

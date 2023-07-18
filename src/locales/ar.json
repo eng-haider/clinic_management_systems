@@ -52,12 +52,13 @@
   },
   "datatable":{
     
-    "name":"اسم المراجع",
+    "name":"الاسم",
     "message":"الرساله",
     "email":"الايميل",
     "phone":"الهاتف",
     "phone":"الهاتف",
     "sex":"الجنس",
+    "doctor":"الدكتور",
     "price":"السعر",
     "status_Description":"وصف الحالة",
 
@@ -72,6 +73,7 @@
   },
   "Drawer": {
     "statistics": "الاحصائيات",
+    "store":"المخزن",
     "casesheet":"سجل المراجعين",
     "User_management": "اداره المستخدمين",
     "users": "المستخدمين",
@@ -100,16 +102,43 @@
 
   
   ,
+
+ 
+  "addcase":" اضافه حاله",
+  "all":"الكل",
+  "search":"بحــث",
+  "sex":{
+    "male":"انثئ",
+    "female":"ذكر"
+  },
+  "doctor":"الدكتور",
   "dashboard":{
     "Case_number_stats":"احصائيات عدد الحالات"
+ 
   }
   ,
+  "rx":"راجيته",
+"patients":{
+"addnewpatients":"اضافه مراجع جديد",
+"systemicdisease":"الامراض الجهازيه ",
+"AppointmentBooking":"حجز موعد",
+"Referencesnameorphonenumber":"اسم المراجع او رقم  الهاتف",
+"account":"الحساب"
+},
 
+"store":{
+"addItem":"اضافه ماده",
+"name":"اسم الماده",
+"quantity":"الكميه",
+"required_quantity":"التنبيه عند الكميه"
+},
   "header":{
     "cases":"الحالات",
     "statistics":"الاحصائيات",
     "home":"الرئيسية",
+    "store":"المخزن",
     "accounts":"الحسابات",
+    "doctors":"دكاتره العياده",
     "requestBooking":"المواعيد",
     "About_Us":"من نحن",
     "requestBooking_test":"مواعيد المراجعين",

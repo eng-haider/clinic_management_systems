@@ -74,6 +74,19 @@
               <v-btn color="blue" style="color:#fff;float: left;" @click="allItem=false;initialize()">الكل</v-btn>
             </v-flex>
 
+            
+  <v-flex md1>
+
+            </v-flex>
+            <v-flex xs11 md2 sm2 pt-5 style="float: left;">
+                            <v-select dense @input="getByDocor()"
+                                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2"
+                                v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined
+                                item-text="name" item-value="id">
+                            </v-select>
+                        </v-flex>
+
+
             <!-- <v-flex md4>
 
             </v-flex> -->
@@ -101,12 +114,12 @@
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.all_sum"></dash_card>
+                :count="accounts_statistic.all_sum|currency"></dash_card>
             </v-flex>
 
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
-              <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid
+              <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid|currency
 "></dash_card>
 
 
@@ -118,7 +131,7 @@
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.remainingamount"></dash_card>
+                :count="accounts_statistic.remainingamount |currency"></dash_card>
             </v-flex>
 
 
@@ -131,13 +144,13 @@
           {{ item.cases.length }}
         </template>
         <template v-slot:[`item.case_sum`]="{ item }">
-          {{BillsSum(item.cases)}}
+          {{BillsSum(item.cases)| currency}}
         </template>
         <template v-slot:[`item.case_push`]="{ item }">
           <v-chip class="text-right" :color="'green'" outlined>
            
 
-            {{BillsSumPaid(item.cases)}}
+            {{BillsSumPaid(item.cases)| currency}}
 
           </v-chip>
 
@@ -155,7 +168,7 @@
 
           <v-chip :color="'red'" outlined class="text-right">
           
-            {{BillsSum(item.cases)-BillsSumPaid(item.cases)}}
+            {{(BillsSum(item.cases)-BillsSumPaid(item.cases)) | currency}}
           </v-chip>
 
 
@@ -225,6 +238,7 @@
     data() {
       return {
         dataSource2: [],
+        doctorsAll:[],
         patient: {},
         accounts_statistic: {
           all_sum: '',
@@ -252,6 +266,7 @@
         page: 1,
         pageCount: 0,
         current_page: 1,
+        searchDocorId:0,
         is_search: false,
         last_page: 0,
         loadingData: true,
@@ -322,7 +337,42 @@
     },
 
     methods: {
+      getByDocor() {
 
+if (this.searchDocorId == 0) {
+
+    return this.initialize()
+}
+this.axios.get("patientsAccounsts/getByDoctor/" + this.searchDocorId, {
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+        }
+    })
+    .then(res => {
+      this.loadingData = false;
+
+this.Cases = res.data.data;
+
+
+this.accounts_statistic.all_sum = res.data.all_sum;
+this.accounts_statistic.case_count = res.data.case_count;
+
+this.accounts_statistic.paid = res.data.paid;
+this.accounts_statistic.remainingamount = res.data.remainingamount;
+
+
+this.last_page = res.data.meta.last_page;
+this.pageCount = res.data.meta.last_page;
+
+
+
+    })
+    .catch(() => {
+        this.loading = false;
+    });
+},
       Export() {
 
         // this.axios({
@@ -499,6 +549,39 @@
             });
         }
       },
+
+      getclinicDoctor() {
+                this.loading = true;
+                this.axios.get("doctors/clinic", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.doctors = res.data.data;
+
+
+                        this.doctorsAll.push({
+                            id: 0,
+                            name: ' الكل'
+                        });
+                        this.doctors.forEach((item, index) => {
+                            index
+                            this.doctorsAll.push(item)
+                        })
+
+
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
       getCase_number_stats() {
 
         this.axios
@@ -524,7 +607,7 @@
       },
     },
     created() {
-
+this.getclinicDoctor();
       EventBus.$on("billsReportclose", (tooth) => {
 
         tooth

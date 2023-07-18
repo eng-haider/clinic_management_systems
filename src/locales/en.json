@@ -50,6 +50,7 @@
     "User_management": "User management",
     "users": "Users",
     "groups": "groups",
+    "Booking":"Appointments",
     "organizations": "organizations",
     "types_users": "types_users",
     "Gallery": "Gallery",
@@ -75,6 +76,7 @@
 
     "phone":"phone",
     "sex":"sex",
+    "doctor":"Doctor",
     "status_Description ":"status Description ",
     
     "name":"name",
@@ -91,7 +93,7 @@
     "description":"Description"
 
   },
-
+  "addcase":"Add Case",
   "AppBar": {
     "profile": "profile",
     "Settings": "Settings",
@@ -99,15 +101,49 @@
     "You_transaction_name": "You have a transaction in the name of",
     "You_have_mail_from": "You have mail from"
   },
+  "all":"All",
+  "search":"Search",
+  "sex":{
+    "male":"Male",
+    "female":"Female"
+  }
+ ,
+ "rx":"Rx",
+
+ "store":{
+  "addItem":"Add Item",
+  "name":"Name",
+  "quantity":"Quantity",
+  "required_quantity":"Required Quantity"
+  },
+
+
+  "patients":{
+    "addnewpatients":"Add New Patients",
+    "systemicdisease":"systemic disease",
+    "Referencesnameorphonenumber":"patient name or phonenumber",
+    "AppointmentBooking":"Appointment Booking",
+    "account":"Account"
+    },
+
+
+    "doctor":"Doctor",
   "header":{
     "home":"Home",
+    "doctors":"دكاتره العياده",
     "About_Us":"About Us",
     "Blog":"Blog",
+    "statistics":"statistics",
     "Gallery":"Gallery",
-    "casesheet":"casesheet",
+    "requestBooking":"Appointments",
+    "accounts":"Accounts",
+    "cases":"Cases",
+    "store":"Store",
+    "casesheet":"Casesheet",
     "showCases":"showCases",
     "profile":"profile",
-    "dashbourd":"dashbourd",
+    "dashbourd":"Dashbourd",
+    "requestBooking_test":"Appointments",
     "Contact":"Contact"
 
   }

@@ -39,16 +39,28 @@ class Cases extends Model
     }
 
 
+
+    public function Doctors()
+    {
+        return $this->belongsToMany(Doctors::class, 'CaseDoctor');
+    }
+
+
     public function Bills()
     {
         return $this->morphMany(Bills::class, 'billable');
     }
 
 
+    public function billsx()
+    {
+        return $this->morphMany(Bills::class, 'billable');
+    }
+
     public function status()
     {
         return $this->belongsTo(Status::class);
-       
+
     }
 
 
@@ -58,6 +70,6 @@ class Cases extends Model
     }
 
 
-   
+
 
 }

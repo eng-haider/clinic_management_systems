@@ -88,6 +88,9 @@ export default new Vuex.Store({
        
       },
 
+
+      
+
     authUser(state, userData) {
         state.AdminInfo.id = userData.id
         state.AdminInfo.name = userData.name
@@ -96,8 +99,9 @@ export default new Vuex.Store({
         state.AdminInfo.photo = userData.photo
         state.AdminInfo.role = userData.role.name
         state.AdminInfo.img_name = userData.img_name
+        state.AdminInfo.Permissions = userData.Permissions
 
-
+        
   
          state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
 
@@ -171,8 +175,11 @@ console.log(userData)
         commit
       }, userData) {
   
-     
       
+     var Permissions=Array();
+      for(var i=0;i<userData.Permissions.length;i++){
+        Permissions.push(userData.Permissions[i].name);
+      }
         commit('authUser', {
           token:localStorage.getItem('tokinn'),
           userId: userData.id,
@@ -182,8 +189,11 @@ console.log(userData)
           userPhotoUrl: userData.email,
           role:userData.role.name,
           clinic_info:userData.clinic_info,
-          img_name:userData.img_name
+          img_name:userData.img_name,
+          Permissions:Permissions
       
+
+    
         });
       
         let authenticate = Promise.resolve({ role:userData.role.name});

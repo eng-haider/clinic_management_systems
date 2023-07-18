@@ -10,7 +10,7 @@
 	<!-- <link rel="stylesheet" type="text/css" href="jquery.fancybox.min.css"> -->
 	
 
-	<link rel="stylesheet" href="css/style.css?v22">
+	<link rel="manifest" href="manifest.json">
 	<link rel="stylesheet" href="css/dark.css?v22">
 
 	
@@ -43,7 +43,7 @@
 	<meta property="og:site_name" content="clinic managementsystem" />
 	<meta property="og:description" content="clinic management system" />
 	<meta property="og:image" content="ttps://abnakr.org/back_end/art_img/art_img_main/img1636928749.png" />
-
+	<link rel="manifest" href="manifest.json">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 	<!-- <link rel='stylesheet' id='charity-zozo-custom-css'
 		href='https://abnakr.org/wp-content/cache/autoptimize/9/css/autoptimize_single_01391671ef23da36f14347b1dd212e12.css'
@@ -66,6 +66,20 @@
 		<script type="text/javascript">
 		  System.import("./index.js");
 		</script>
+
+		<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+	var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+	(function(){
+	var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+	s1.async=true;
+	s1.src='https://embed.tawk.to/649bf89794cf5d49dc604928/1h40k64mr';
+	s1.charset='UTF-8';
+	s1.setAttribute('crossorigin','*');
+	s0.parentNode.insertBefore(s1,s0);
+	})();
+	</script>
+	<!--End of Tawk.to Script-->
 
 		
 </head>
@@ -90,5 +104,20 @@
 	href='https://fonts.googleapis.com/css?family=Lora%3Aregular%2Citalic%2C700%2C700italic' type='text/css'
 	media='all' />
 
+	<script>
+		let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  // Prevent the default browser install prompt
+  event.preventDefault();
+  
+  // Save the event for later use
+  deferredPrompt = event;
+  
+  // Show your custom install button or message here
+  // For example, show a button with an ID 'install-button'
+  document.getElementById('install-button').style.display = 'block';
+});
+	</script>
 
 </html>

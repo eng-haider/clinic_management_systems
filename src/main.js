@@ -14,10 +14,24 @@ import VueRouterUserRoles from "vue-router-user-roles";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import VueNumber from 'vue-number-animation'
-
+import './registerServiceWorker';
 Vue.use(VueNumber)
 
 import VueHtmlToPaper from 'vue-html-to-paper';
+
+//VueCurrencyFilter
+import VueCurrencyFilter from 'vue-currency-filter'
+
+Vue.use(VueCurrencyFilter,
+  {
+    symbol : '',
+    thousandsSeparator: '.',
+    fractionCount: 0,
+    fractionSeparator: ',',
+    symbolPosition: 'front',
+    symbolSpacing: true
+  })
+
 
 const options = {
   name: '_blank',
@@ -41,7 +55,6 @@ Vue.use(VueHtmlToPaper, options);
 
 // or, using the defaults with no stylesheet
 Vue.use(VueHtmlToPaper);
-
 
 
 

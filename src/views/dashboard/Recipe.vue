@@ -36,14 +36,14 @@
 
 
                     <v-layout row wrap style="padding-top: 20px;;padding-bottom:20px">
-                  <v-flex xs3></v-flex>
+                  <v-flex xs12 md3 sm3></v-flex>
 
-               <v-flex xs3>
+               <v-flex xs6 md3 sm3>
 
-                    <p style="    text-align: center;font-size:37px;
-    font-family: 'GE_Dinar';">عيادة انفنتي </p>
+                    <p style="    text-align: center;font-size:28px;
+    font-family: 'GE_Dinar';"> {{ $store.state.AdminInfo.clinics_info.name }} </p>
                     <p
-                    style="    text-align: center;font-size:37px;
+                    style="    text-align: center;font-size:28px;
 
                     position: relative;
     bottom: 21px;
@@ -56,17 +56,17 @@
                </v-flex>
 
 
-              <v-flex xs3>
+              <v-flex xs6 md3 sm3>
                     <div class="rexipe_logo" style="    height: 114px;
         margin-bottom: 27px;
             margin-right: 10px;">
-                        <img src="/clini.png" style="height:100%" />
+                        <img :src="Url+'/users/'+$store.state.AdminInfo.img_name" style="height:100%" />
                     </div>
               </v-flex>
 
 
 
-               <v-flex xs3></v-flex>
+               <v-flex xs12 md3 sm3></v-flex>
 
             </v-layout>
 

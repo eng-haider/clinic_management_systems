@@ -47,11 +47,7 @@
                                     </v-flex>
                                     <v-flex xs1 md2 class="d-none d-sm-flex">
                                     </v-flex>
-
                                 </v-layout>
-
-
-
                                 <v-layout row wrap dense>
                                     <v-flex xs1 md2 class="d-none d-sm-flex">
                                     </v-flex>
@@ -76,14 +72,32 @@
                             </div>
 
                             <v-row row wrap>
-                                <v-col cols="12" md="3"></v-col>
+
                                 <v-col cols="12" md="6" sm="6">
-                                  
+                                    <p style="display:none;"></p>
+
                                     <v-select :rules="[rules.required]" dense v-model="editedItem.case_categores_id"
-                                        label=" نوع الحاله " :items="CaseCategories" outlined item-text="name_ar"
-                                        item-value="id"></v-select>
+                                        required label=" نوع الحاله " :items="CaseCategories" outlined
+                                        item-text="name_ar" item-value="id"></v-select>
+
+
                                 </v-col>
-                                <v-col cols="12" md="3"></v-col>
+
+
+
+                                <v-col cols="12" md="6" sm="6" v-if="doctors.length>1">
+                                    <p style="display:none;"></p>
+
+
+
+                                    <v-select :rules="[rules.requiredd]" dense required v-model="editedItem.doctors"
+                                        multiple :label="$t('doctor')" :items="doctors" outlined item-text="name"
+                                        item-value="id">
+                                    </v-select>
+
+
+                                </v-col>
+
 
                             </v-row>
 
@@ -100,7 +114,7 @@
                                     </v-chip>
 
                                 </v-col>
-                                <v-col cols="12" md="8" sm="8" style="    padding: 0px !important;">
+                                <v-col cols="12" md="12" sm="12" style="    padding: 0px !important;">
 
                                     <v-textarea v-model="editedItem.sessions[index].note" outlined name="input-7-1"
                                         :label="(' ملاحظات الجلسه رقم '+sum(index))">>
@@ -108,14 +122,9 @@
                                 </v-col>
 
                                 <v-col cols="12" md="2" v-if="editedItem.sessions[index].date==''">
-
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
                                         {{ moment(new Date()).format('DD-MM-YYYY') }}</p>
-
-
-
                                 </v-col>
-
                                 <v-col cols="12" md="2" v-else>
 
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
@@ -137,27 +146,31 @@
 
 
 
+                            <v-row row wrap v-if="editedItem.images.length >0">
+
+                                <v-col cols="12" md="4" v-for="img in editedItem.images" :key="img" pr-2 pl-2>
+                                    <div style="height:auto;width:auto">
 
 
 
-                         
+                                        <CoolLightBox :items="editedItem.images" :index="index" @close="index = null">
+                                        </CoolLightBox>
+
+                                        <div class="images-wrapper">
+                                            <div class="image" v-for="(image, imageIndex) in editedItem.images"
+                                                :key="imageIndex" @click="index = imageIndex"
+                                                :style="{ backgroundImage: 'url(' +Url+'/case_photo/'+ image.image_url + ')' }">
+                                            </div>
+                                        </div>
 
 
+                                        <!-- <a data-fancybox="gallery"  :href="Url+'/case_photo/'+img.image_url" class=""> -->
 
-
-                            <br>
-                            <br>
-
-                            <v-row row wrap style="height: auto;" v-if="editedItem.images[0].img !== ''">
-                               
-                                <v-col cols="12" md="3" v-for="img in editedItem.images" :key="img" pr-2 pl-2>
-                                   <div style="height:200px;width: 200px;">
-                                    <a data-fancybox="gallery" :href="Url+'/case_photo/'+img.image_url" class="">
-                              
-                              <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url" style="width: 100%;
+                                        <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url"
+                                            style="width: 100%;
 height: 100%;" />
-                              </a>
-                                   </div>
+                                        <!-- </a> -->
+                                    </div>
                                 </v-col>
                             </v-row>
                             <v-row row wrap style="height: auto;">
@@ -167,16 +180,16 @@ height: 100%;" />
                                         :options="dropzoneOptions">
 
                                     </vue-dropzone>
-                               
+
 
                                 </v-col>
                             </v-row>
                         </div>
-                
+
                         <br>
                         <br>
 
-                        <v-card  class="cre_bill">
+                        <v-card class="cre_bill">
                             <v-layout row wrap>
                                 <v-flex md5>
                                     <hr>
@@ -211,7 +224,7 @@ height: 100%;" />
 
                             <v-layout row wrap v-for="(item, index) in  editedItem.bills" :key="index">
 
-                                <v-col md2 class="d-none d-sm-flex"></v-col>
+                                <v-flex md2 class="d-none d-sm-flex"></v-flex>
                                 <v-flex md="4" md4 xs6>
                                     <v-text-field suffix="IQ" dense v-model="editedItem.bills[index].price"
                                         type="number" label="الملغ المدفوع" outlined>
@@ -225,32 +238,26 @@ height: 100%;" />
                                         transition="scale-transition" offset-y full-width max-width="290px"
                                         min-width="290px">
                                         <template v-slot:activator="{ on }">
-                                            <v-text-field dense outlined v-model="editedItem.bills[index].PaymentDate"
-                                                label="التاريخ" prepend-icon="mdi-calendar" readonly v-on="on">
+                                            <v-text-field dense v-bind="attrs" outlined
+                                                @blur="date = parseDate(editedItem.bills[index].PaymentDate)"
+                                                v-model="editedItem.bills[index].PaymentDate" label="التاريخ"
+                                                prepend-icon="mdi-calendar" v-on="on">
                                             </v-text-field>
                                         </template>
                                         <v-date-picker v-model="editedItem.bills[index].PaymentDate" no-title
                                             @input="menu[editedItem.bills.indexOf(item)] = false">
                                         </v-date-picker>
                                     </v-menu>
-
-
-
-
                                 </v-flex>
                                 <v-flex xs1 md1>
-                                    <v-btn color="red" v-if="index !== 0" @click="deletePayment(index,item.id)"
-                                        style="color:#fff">
-                                        حذف الدفعه
-                                    </v-btn>
+                                    <v-icon style="color:red" @click="deletePayment(index,item.id)" v-bind="attrs"
+                                        v-on="on">
+                                        mdi-delete</v-icon>
                                 </v-flex>
-
                                 <v-flex md1 class="d-none d-sm-flex">
-
                                 </v-flex>
                             </v-layout>
-
-                            <v-card-actions class="justify-center">
+                            <v-card-actions class="justify-center" v-if="editedItem.price-sumPay() !==0">
                                 <v-btn small color="green" style="color:#fff" @click="addPayment()">
                                     <i class="fas fa-plus"></i>
                                     اضافه دفعه
@@ -269,8 +276,8 @@ height: 100%;" />
                                             {{sumPay()}} IQ
                                         </v-chip>
                                     </div>
-                                    <div style="font-weight:bold" ><span
-                                            style="    padding-left: 34px;"> المتبقي :</span>
+                                    <div style="font-weight:bold"><span style="    padding-left: 34px;"> المتبقي
+                                            :</span>
 
                                         <v-chip color="success" class="ma-2" outlined label>
                                             {{editedItem.price-sumPay()}} IQ
@@ -287,7 +294,7 @@ height: 100%;" />
                             </v-layout>
 
                         </v-card>
-                        <v-btn color="#2196f3" @click="print()" style="color:#fff;    float: left;
+                        <!-- <v-btn color="#2196f3" @click="print()" style="color:#fff;    float: left;
     margin-top: 21px;
 ">
                             طبـــــاعه الفاتوره
@@ -296,7 +303,7 @@ height: 100%;" />
                             <v-icon right dark>
                                 fas fa-print
                             </v-icon>
-                        </v-btn>
+                        </v-btn> -->
 
 
 
@@ -307,6 +314,7 @@ height: 100%;" />
                 </v-card-text>
 
                 <br>
+
                 <br>
                 <br>
                 <br>
@@ -317,7 +325,7 @@ height: 100%;" />
                     <v-btn :loading="loadSave" color="blue darken-1" @click="save()" class="success">
                         {{ $t("save") }}</v-btn>
                 </v-card-actions>
-                <Fancybox></Fancybox>
+
             </v-card>
         </v-form>
     </div>
@@ -330,23 +338,28 @@ height: 100%;" />
         float: left;
 
 
-        
+
     }
+
     .theme--dark .cre_bill {
         background-color: #252525 !important;
-    color: #fff !important;
-}
+        color: #fff !important;
+    }
 
-.cre_bill{
-    background-color: #f6f6f6 !important;
+    .cre_bill {
+        background-color: #f6f6f6 !important;
 
-}
+    }
 </style>
 
 <script>
+    // import {
+    //     Fancybox
+    //   } from "@fancyapps/ui";
+    //   import "@fancyapps/ui/dist/fancybox.css";
 
-import { Fancybox} from "@fancyapps/ui";
-    import "@fancyapps/ui/dist/fancybox.css";
+
+
     import vue2Dropzone from 'vue2-dropzone'
     import 'vue2-dropzone/dist/vue2Dropzone.min.css'
     import teeth from '../../components/core/teeth.vue';
@@ -354,30 +367,37 @@ import { Fancybox} from "@fancyapps/ui";
         EventBus
     } from "./event-bus.js";
     import moment from 'moment'
-    import Swal from "sweetalert2";
+
     import Axios from "axios";
     export default {
 
         props: {
             editedItem: Object,
-          
+            CaseCategories: Array,
+            doctors: Array,
+            gocase: Boolean
+
 
         },
+
+
         components: {
             // DxFileUploader,
-          
+
             teeth,
-            Fancybox,
+            // Fancybox,
             vueDropzone: vue2Dropzone
             // DxProgressBar,
         },
         data() {
             return {
-                UP_url:'http://apismartclinic.tctate.com/api/cases/uploude_image',
+                oldDoctors: {},
+                UP_url: 'http://apismartclinic.tctate.com/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url:'http://apismartclinic.tctate.com/api/cases/uploude_image',
+                    url: 'http://apismartclinic.tctate.com/api/cases/uploude_image',
                     thumbnailWidth: 150,
-                    maxFilesize: 0.5,
+                    maxFilesize: 5.5,
+
                     renameFile: function (file) {
                         return new Date().getTime() + '_' + file.name
                     },
@@ -414,6 +434,7 @@ import { Fancybox} from "@fancyapps/ui";
                 rules: {
                     minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
                     required: value => !!value || "مطلوب",
+                    requiredd: value => !!value || "مطلوب",
                     min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
                     email: value => {
                         if (value.length > 0) {
@@ -429,7 +450,7 @@ import { Fancybox} from "@fancyapps/ui";
 
                 dialog: false,
                 loadSave: false,
-                 CaseCategories: [],
+                //  CaseCategories: [],
                 editedIndex: -1,
 
                 isDropZoneActive: false,
@@ -441,7 +462,6 @@ import { Fancybox} from "@fancyapps/ui";
                 items: [
 
                 ],
-                doctors: [],
                 headers: [{
                         text: this.$t('datatable.name'),
                         align: "start",
@@ -475,8 +495,23 @@ import { Fancybox} from "@fancyapps/ui";
         },
 
         methods: {
+            formatDate(date) {
+                if (!date) return null
+
+                const [year, month, day] = date.split('-')
+                return `${month}/${day}/${year}`
+            },
+            parseDate(date) {
+
+                if (!date) return null
+
+                const [month, day, year] = date.split('/')
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+
+
+            },
             sum(x) {
-                
+
                 return x + 1
 
             },
@@ -510,10 +545,10 @@ import { Fancybox} from "@fancyapps/ui";
                     //  return 0;
                 }
                 for (let i = 0; i < this.editedItem.bills.length; i++) {
-                    if(this.editedItem.bills.price !==0){
+                    if (this.editedItem.bills.price !== 0) {
                         sum += parseInt(this.editedItem.bills[i].price);
                     }
-                    
+
                 }
 
 
@@ -524,54 +559,39 @@ import { Fancybox} from "@fancyapps/ui";
             },
 
             deletePayment(index, id) {
-                // this.sumPay();
-
-                Swal.fire({
-                    title: this.$t('sure_process'),
-                    text: "",
-                    heightAuto: false,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: this.$t('yes'),
-                    cancelButtonText: this.$t('no'),
-                }).then(result => {
-                    if (result.value) {
-                        this.editedItem.bills.splice(index, 1);
-                        Axios.delete("bills/" + id, {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                                }
-                            })
-                            .then(() => {
-                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                this.initialize();
-                            })
-                            .catch(() => {
-                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                // this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
-                            });
-                    }
-                });
 
 
+                this.sumPay();
+                let text = "هل انت متاكد من الحذف ؟ ";
+                if (confirm(text) == true) {
+                    this.editedItem.bills.splice(index, 1);
+                    Axios.delete("bills/" + id, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                            }
+                        })
+                        .then(() => {
 
+                            this.initialize();
+                        })
+                        .catch(() => {});
+
+                }
 
             },
             addPayment() {
 
                 const date = new Date();
 
-let day = date.getDate();
-let month = date.getMonth() + 1;
-let year = date.getFullYear();
+                let day = date.getDate();
+                let month = date.getMonth() + 1;
+                let year = date.getFullYear();
 
                 this.editedItem.bills.push({
 
-                    price:0,
+                    price: 0,
                     PaymentDate: `${year}-${month}-${day}`
 
 
@@ -598,44 +618,20 @@ let year = date.getFullYear();
                     this.isDropZoneActive = false;
                 }
             },
-            // onUploaded(e) {
-            //     const {
-            //         file
-            //     } = e;
-            //     const fileReader = new FileReader();
-            //     fileReader.onload = () => {
-            //         this.isDropZoneActive = false;
-            //         this.imageSource = fileReader.result;
-            //         this.editedItem.images = [{
-            //             'img': [this.imageSource],
-            //             'descrption': this.editedItem.images[0].descrption
-            //         }];
 
-
-            //     };
-            //     fileReader.readAsDataURL(file);
-            //     this.textVisible = false;
-            //     this.progressVisible = false;
-            //     this.progressValue = 0;
-            // },
-            // onProgress(e) {
-            //     this.progressValue = (e.bytesLoaded / e.bytesTotal) * 100;
-
-
-            // },
-            // onUploadStarted() {
-            //     this.imageSource = '';
-            //     this.progressVisible = true;
-            // },
 
             editItem(item) {
-                
+
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
                 this.selecBill = Object.assign({}, this.editedItem);
-            
 
+
+
+
+
+                this.oldDoctors = this.editedItem.doctors;
                 if (this.editedItem == null) {
                     this.editedItem = {
                         case_categores_id: "",
@@ -768,26 +764,6 @@ let year = date.getFullYear();
                     });
             },
 
-            getCaseCategories() {
-
-
-                Axios.get("cases/CaseCategories", {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                        }
-                    })
-                    .then(res => {
-                        this.loading = false;
-                        this.CaseCategories = res.data;
-
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
-
-            },
 
 
 
@@ -797,10 +773,15 @@ let year = date.getFullYear();
                     this.loadSave = true;
                     // if (this.editedIndex > -1 && this.editedItem.id !== undefined) {
 
+
                     this.editedItem.images = this.images;
+
                     if (this.editedItem.id !== undefined) {
 
-                        if (this.editedItem.bills[0].price == "") {
+
+                        if (this.editedItem.bills == undefined) {
+                            this.editedItem.bills = [];
+                        } else if (this.editedItem.bills.length == 0) {
                             this.editedItem.bills = [];
                         }
 
@@ -813,7 +794,29 @@ let year = date.getFullYear();
                                 },
                             })
                             .then(() => {
+
+                                //window.location.reload()
+                                //   document.location.reload(true);  
+                                //  document.location.reload(true);  
+                                location.href = location.origin + location.pathname + location.search
                                 this.loadSave = false;
+
+
+
+                                this.axios
+                                    .patch("cases/" + this.editedItem.id, this.editedItem, {
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            Accept: "application/json",
+                                            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                                        },
+                                    })
+                                    .then(() => {
+
+
+
+
+                                    });
 
                                 this.initialize();
 
@@ -854,23 +857,37 @@ let year = date.getFullYear();
 
                                 //cases
                                 this.loadSave = false;
-                                this.initialize();
+
                                 this.editedIndex = -1;
                                 this.close();
                                 EventBus.$emit("changeStatusCloseCase", false);
-
+                                res
                                 this.$swal.fire({
                                     title: 'تمت اضافه حاله جديده',
                                     text: "",
                                     icon: "success",
                                     confirmButtonText: this.$t('close'),
                                 });
-                                this.$router.push({
-                                    name: 'showCases',
-                                    params: {
-                                        id: res.data.data.patient_id
+                                if (this.$route.name !== 'showCases') {
+
+                                    // this.initialize();
+                                    if (this.gocase) {
+                                        this.$router.push({
+                                            name: 'showCases',
+                                            params: {
+                                                id: res.data.data.patient_id
+                                            }
+                                        })
+                                    } else {
+                                        //   window.location.reload()
+                                        //  document.location.reload(true);  
+                                        location.href = location.origin + location.pathname + location.search
                                     }
-                                })
+
+                                }
+
+
+
 
                             })
                             .catch((err) => {
@@ -885,19 +902,6 @@ let year = date.getFullYear();
             },
 
 
-            getDectors() {
-                this.doctors.push({
-                    'id': this.$store.state.AdminInfo.id,
-                    'name': this.$store.state.AdminInfo.name
-
-                })
-
-                //              this.doctors.push({
-                //     'id': this.$store.state.AdminInfo.id+1,
-                //     'name': this.$store.state.AdminInfo.name
-
-                // })
-            }
 
         },
         computed: {
@@ -906,14 +910,13 @@ let year = date.getFullYear();
 
             },
         },
+        date(val) {
+            val
+            this.dateFormatted = this.formatDate(this.date)
+        },
         created() {
-            this.getCaseCategories();
-    //         var file = { size: 123, name: "Icon", type: "image/png" };
-    //   var url = "https://myvizo.com/img/logo_sm.png";
-    //   this.$refs.myVueDropzone.manuallyAddFile(file, url);
-            EventBus.$on("changetooth", (tooth) => {
 
-                // alert(tooth);
+            EventBus.$on("changetooth", (tooth) => {
                 this.editedItem.tooth_num = tooth;
 
             });
@@ -928,9 +931,6 @@ let year = date.getFullYear();
 
 
 
-            //     this.initialize();
-        
-            this.getDectors();
 
         },
 
@@ -938,6 +938,11 @@ let year = date.getFullYear();
 </script>
 
 <style>
+    body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+        overflow-y: visible !important;
+    }
+
+
     #dropzone-external {
         width: 250px;
         height: 250px;
@@ -994,5 +999,9 @@ let year = date.getFullYear();
 
     .dropzone .dz-preview.dz-image-preview {
         z-index: 1 !important;
+    }
+
+    body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+        overflow-y: visible !important;
     }
 </style>

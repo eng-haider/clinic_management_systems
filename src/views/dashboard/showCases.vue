@@ -8,7 +8,7 @@
 
         <v-dialog v-model="casesheet" max-width="900px">
       
-            <cases :editedItem="editedItem" :CaseCategories="CaseCategories"></cases>
+            <cases :doctors="doctors" :editedItem="editedItem" :CaseCategories="CaseCategories"></cases>
         </v-dialog>
 
 
@@ -32,6 +32,7 @@
                         <!-- <v-divider class="mx-4" inset vertical></v-divider> -->
                          <v-spacer></v-spacer>
                         <span class="d-none d-sm-flex"
+                        v-if="desserts.length>0"
                             style="font-family: 'Cairo', sans-serif;font-weight:bold;font-size:20px;text-align:center"> اسم المراجع : 
                             <span style="color:blue">
                                
@@ -47,7 +48,7 @@
                                 </v-btn>
                     </v-toolbar>
 
-                    <v-row class="d-flex d-sm-none" style="    padding: 25px;">
+                    <v-row   v-if="desserts.length>0" class="d-flex d-sm-none" style="    padding: 25px;">
                          <span 
                             style="font-family: 'Cairo', sans-serif;font-weight:bold;font-size:20px;text-align:center"> اسم المراجع : 
                             <span style="color:blue">
@@ -305,13 +306,34 @@
         },
 
         mounted() {
-
-
+            this.getCaseCategories();
+            this.getclinicDoctor();
             this.id = this.$route.params.id;
             this.initialize();
         },
 
         methods: {
+
+            getclinicDoctor() {
+                this.loading = true;
+                Axios.get("doctors/clinic", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.doctors = res.data.data;
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
             sumPaybills(bills) {
                 let sum = 0;
        
@@ -562,6 +584,13 @@ addCase(){
 },
             editItem(item) {
                 this.editedIndex = this.desserts.indexOf(item);
+                var doc=[];
+               item.doctors.forEach((item, index)=>{
+                index
+                doc.push(item.id)
+                    })
+              item.doctors=doc;
+
 
                 this.editedItem = Object.assign({}, item);
                // this.casesheet=true;
@@ -675,6 +704,7 @@ addCase(){
 
 
             initialize() {
+               
                 this.loading = true;
                 Axios.get("cases/patientCases/" + this.id, {
                         headers: {
@@ -705,9 +735,10 @@ addCase(){
                         }
                     })
                     .then(res => {
-                        this.loading = false;
+                       // this.loading = false;
                         this.CaseCategories = res.data;
-                     
+                       
+                    
 
                     })
                     .catch(() => {
@@ -794,11 +825,11 @@ addCase(){
 
         
             getDectors() {
-                this.doctors.push({
-                    'id': this.$store.state.AdminInfo.id,
-                    'name': this.$store.state.AdminInfo.name
+                // this.doctors.push({
+                //     'id': this.$store.state.AdminInfo.id,
+                //     'name': this.$store.state.AdminInfo.name
 
-                })
+                // })
             }
 
         },
@@ -811,26 +842,36 @@ addCase(){
         created() {
 
     
-
+            this.getCaseCategories();
+            this.getclinicDoctor();
             EventBus.$on("changeStatusCloseCase", (from) => {
 
                 from
-               
+                
+                if(this.$route.name=='showCases'){
+              //   window.location.reload()
+             // document.location.reload(true);   
+
+              location.href = location.origin + location.pathname + location.search 
+                }
+                // window.location.reload()
 
                 this.casesheet = false;
                   this.initialize();
+                  this.getclinicDoctor();
                
             });
             EventBus.$on("changeStatusCloseField", (from) => {
-
+                
                 from
 
                 this.Recipe = false;
                 this.dialog = true
+                this.getclinicDoctor();
             });
 
-            this.initialize();
-            this.getCaseCategories();
+           /// this.initialize();
+            
             this.getDectors();
 
         },

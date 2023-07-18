@@ -20,14 +20,14 @@ class PatientsAccountsControllerAPI extends Controller
 {
 
 
-  public function export() 
+  public function export()
   {
 
     $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
     $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
     $Doctor_id=$doctor[0]->id;
 
-    
+
      return (new BillsExport($Doctor_id))->download('Logs.xlsx');
 
   }
@@ -36,13 +36,13 @@ class PatientsAccountsControllerAPI extends Controller
   public function patientsAccounstsdash(patientsRequest $request){
 
 
-  
-    $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
+
+    $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->orwhere('role_id','=',5)->get();
     $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
     $Doctor_id=$doctor[0]->id;
 
-    
-    $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'  ])   
+
+    $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'  ])
     ->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
 
 
@@ -52,7 +52,7 @@ class PatientsAccountsControllerAPI extends Controller
       $query->where('doctor_id','=',$Doctor_id);
     })->with('Bills')->count();
 
-     //get cases 
+     //get cases
   $Cases=Cases
     ::whereHas('Patient', function ($query) use($Doctor_id) {
       $query->where('doctor_id','=',$Doctor_id);
@@ -60,7 +60,7 @@ class PatientsAccountsControllerAPI extends Controller
 
 
 
-    //get all_sum 
+    //get all_sum
     $all_sum=$Cases=Cases::whereHas('Patient', function ($query) use($Doctor_id) {
       $query->where('doctor_id','=',$Doctor_id);
     })->with('Bills')->get()->sum('price');
@@ -69,25 +69,25 @@ class PatientsAccountsControllerAPI extends Controller
       $query->where('doctor_id','=',$Doctor_id);
     })->with('Bills')->get();
 
-    
-     
-    //get paid 
+
+
+    //get paid
     $paid = 0;
     for ($i=0;$i<count($Cases) ;$i++)
     {
       for ($j=0;$j<count($Cases[$i]->Bills) ;$j++)
       {
-      
+
         $paid += $Cases[$i]->Bills[$j]->price;
       }
 
 
     }
-  
- 
 
-   
- 
+
+
+
+
   $obj3 = (object) [
     'name' => 'المبلغ المدفوع',
     'count' => $paid,
@@ -99,17 +99,17 @@ $obj4 = (object) [
 ];
 
 
-   
+
    $myArray = [ $obj3, $obj4];
-  
+
   return json_encode($myArray);
 
 
 
-   
 
 
-  
+
+
 
 
 
@@ -117,28 +117,144 @@ $obj4 = (object) [
 
   }
 
+     public function testin(){
+
+
+
+
+        foreach(Cases::with('Patient')->get() as $case){
+
+            CaseDoctor::create(
+
+                [
+                'doctors_id'=>$case->Patient->doctor_id,
+                'cases_id'=>$case->id,
+                ]
+            );
+        }
+
+     }
+
+
+
+     //getByDoctor
+
+
+
+     public function getByDoctor(patientsRequest $request,$Doctor){
+
+
+
+
+
+        $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->orwhere('role_id','=',5)->get();
+        $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
+        $Doctor_id=$Doctor;
+
+
+        $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'  ])
+      //  ->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')
+
+        ->whereHas('Cases.Doctors', function ($query) use($Doctor_id) {
+          $query->where('doctors.id','=',$Doctor_id);
+      })
+
+
+
+
+        ->get();
+
+
+
+      //get cases counts
+        $Cases_count=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+          $query->where('doctors.id','=',$Doctor_id);
+      })->with('Bills')->count();
+
+         //get cases
+      $Cases=Cases
+        ::whereHas('Patient', function ($query) use($Doctor_id) {
+          $query->where('doctor_id','=',$Doctor_id);
+        })->with('Bills')->get();
+
+
+
+        //get all_sum
+        $all_sum=$Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+          $query->where('doctors.id','=',$Doctor_id);
+      })->with('Bills')->get()->sum('price');
+
+        $Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+          $query->where('doctors.id','=',$Doctor_id);
+      })->with('Bills')->get();
+
+
+
+        //get paid
+        $paid = 0;
+        for ($i=0;$i<count($Cases) ;$i++)
+        {
+          for ($j=0;$j<count($Cases[$i]->Bills) ;$j++)
+          {
+
+            $paid += $Cases[$i]->Bills[$j]->price;
+          }
+
+
+        }
+
+
+
+        return[
+          'data'=>$patients,
+          'case_count'=>$Cases_count,
+          'all_sum'=>$all_sum,
+          'paid'=>$paid,
+          'remainingamount'=>$all_sum-$paid
+        ];
+
+
+
+
+
+
+
+
+      }
+
 
 
     public function patientsAccounsts(patientsRequest $request){
 
 
-       
-      $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
+
+
+
+      $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->orwhere('role_id','=',5)->get();
       $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
       $Doctor_id=$doctor[0]->id;
 
-      
-      $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'  ])   
-      ->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
+
+      $patients = patients::with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'  ])
+    //  ->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')
+
+      ->whereHas('Cases.Doctors', function ($query) use($Doctor_id) {
+        $query->where('doctors.id','=',$Doctor_id);
+    })
+
+
+
+
+      ->get();
 
 
 
     //get cases counts
-      $Cases_count=Cases ::whereHas('Patient', function ($query) use($Doctor_id) {
-        $query->where('doctor_id','=',$Doctor_id);
-      })->with('Bills')->count();
+      $Cases_count=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+        $query->where('doctors.id','=',$Doctor_id);
+    })->with('Bills')->count();
 
-       //get cases 
+       //get cases
     $Cases=Cases
       ::whereHas('Patient', function ($query) use($Doctor_id) {
         $query->where('doctor_id','=',$Doctor_id);
@@ -146,31 +262,31 @@ $obj4 = (object) [
 
 
 
-      //get all_sum 
-      $all_sum=$Cases=Cases::whereHas('Patient', function ($query) use($Doctor_id) {
-        $query->where('doctor_id','=',$Doctor_id);
-      })->with('Bills')->get()->sum('price');
+      //get all_sum
+      $all_sum=$Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+        $query->where('doctors.id','=',$Doctor_id);
+    })->with('Bills')->get()->sum('price');
 
-      $Cases=Cases::whereHas('Patient', function ($query) use($Doctor_id) {
-        $query->where('doctor_id','=',$Doctor_id);
-      })->with('Bills')->get();
+      $Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+        $query->where('doctors.id','=',$Doctor_id);
+    })->with('Bills')->get();
 
-      
-       
-      //get paid 
+
+
+      //get paid
       $paid = 0;
       for ($i=0;$i<count($Cases) ;$i++)
       {
         for ($j=0;$j<count($Cases[$i]->Bills) ;$j++)
         {
-        
+
           $paid += $Cases[$i]->Bills[$j]->price;
         }
- 
+
 
       }
-    
-   
+
+
 
       return[
         'data'=>$patients,
@@ -181,7 +297,7 @@ $obj4 = (object) [
       ];
 
 
-    
+
 
 
 
@@ -194,8 +310,8 @@ $obj4 = (object) [
 
 
 
-      
-      $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
+
+      $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->orwhere('role_id','=',5)->get();
       $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
       $Doctor_id=$doctor[0]->id;
 
@@ -204,8 +320,11 @@ $obj4 = (object) [
 
       $patients = patients::whereHas('Cases', function ($query) use($to,$from) {
         $query->whereBetween('created_at', [$from,$to]);
-       })->with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'])   
-      ->where('doctor_id','=',$doctor[0]->id)->orderBy('id', 'desc')->get();
+       })->with(['Cases.Bills','Case.CaseCategories','Cases.CaseCategories'])
+       ->whereHas('Cases.Doctors', function ($query) use($Doctor_id) {
+        $query->where('doctors.id','=',$Doctor_id);
+    })
+      ->get();
 
 
 
@@ -214,7 +333,7 @@ $obj4 = (object) [
         $query->where('doctor_id','=',$Doctor_id);
       })->whereBetween('created_at', [$request->from_date,$request->to_date])->with('Bills')->count();
 
-       //get cases 
+       //get cases
     $Cases=Cases
       ::whereHas('Patient', function ($query) use($Doctor_id) {
         $query->where('doctor_id','=',$Doctor_id);
@@ -223,7 +342,7 @@ $obj4 = (object) [
 
 
 
-      //get all_sum 
+      //get all_sum
       $all_sum=$Cases=Cases::whereHas('Patient', function ($query) use($Doctor_id) {
         $query->where('doctor_id','=',$Doctor_id);
       })->whereBetween('created_at', [$request->from_date,$request->to_date])->with('Bills')->get()->sum('price');
@@ -232,22 +351,22 @@ $obj4 = (object) [
         $query->where('doctor_id','=',$Doctor_id);
       })->whereBetween('created_at', [$request->from_date,$request->to_date])->with('Bills')->get();
 
-      
-       
-      //get paid 
+
+
+      //get paid
       $paid = 0;
       for ($i=0;$i<count($Cases) ;$i++)
       {
         for ($j=0;$j<count($Cases[$i]->Bills) ;$j++)
         {
-        
+
           $paid += $Cases[$i]->Bills[$j]->price;
         }
- 
+
 
       }
-    
-   
+
+
 
       return[
         'data'=>$patients,
@@ -258,7 +377,7 @@ $obj4 = (object) [
       ];
 
 
-    
+
 
 
     }

@@ -164,7 +164,7 @@
         localStorage.setItem("lang", this.$i18n.locale);
         this.$store.dispatch("UpdateLang", this.$i18n.locale);
         this.$vuetify.rtl = localStorage.getItem("lang") == "ar" ? true : false;
-
+        window.location.reload();
         //    moment.locale(this.$i18n.locale == "en" ? "en" : "ar-kw");
       },
       ...mapMutations({

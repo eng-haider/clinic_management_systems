@@ -19,7 +19,7 @@
                 <div class="col-md-3 col-xs-3">
 
                     <h3 style="    text-align: center;font-size:37px;
-    font-family: 'GE_Dinar';">عيادة انفنتي </h3>
+    font-family: 'GE_Dinar';"> {{ $store.state.AdminInfo.clinics_info.name }} </h3>
                     <h3
                     style="    text-align: center;font-size:37px;
     font-family: 'GE_Dinar';"
@@ -35,7 +35,7 @@
                     <div class="rexipe_logo" style="    height: 114px;
         margin-bottom: 27px;
             margin-right: 10px;">
-                        <img src="/clini.png" style="height:100%" />
+                        <img :src="Url+'/users/'+$store.state.AdminInfo.img_name" style="height:100%" />
                     </div>
                 </div>
 
@@ -110,12 +110,12 @@
 <br>
 
             <div class="titl_top_min" style="text-align:center">
-              كربلاء المقدسة - شارع الاسكان - مقابل مستشفى الشيخ الوائلي
+              كربلاء المقدسة - شارع الاسكان - مقابل القنصلية
 
             </div>
-
+           
               <div class="titl_top_min" style="text-align:center">
-            0771 999 7558
+                0773 399 5558
 
             </div>
 

@@ -66,7 +66,7 @@
 
       EventBus.$on('GetRes', (from) => {
         from
-         window.location.reload();
+      // window.location.reload();
       });
 
       this.getPatiant();
@@ -95,7 +95,7 @@
                 }
               })
             .then(res => {
-                window.location.reload();
+              //  window.location.reload();
               res
 
 
@@ -182,11 +182,19 @@
   body>div:nth-child(8) {
     display: none !important;
   }
+  body > div:nth-child(11){
+    display: none !important;
+  }
 
+  body > div:nth-child(10){
+    display: none !important;
+  }
   .e-schedule-dialog-container {
     display: none !important
   }
-
+  .e-quick-popup-wrapper.e-device{
+    top: 42px !important;
+  }
   @import '../../../node_modules/@syncfusion/ej2-base/styles/material.css';
   @import '../../../node_modules/@syncfusion/ej2-buttons/styles/material.css';
   @import '../../../node_modules/@syncfusion/ej2-calendars/styles/material.css';
@@ -195,4 +203,16 @@
   @import '../../../node_modules/@syncfusion/ej2-navigations/styles/material.css';
   @import '../../../node_modules/@syncfusion/ej2-popups/styles/material.css';
   @import '../../../node_modules/@syncfusion/ej2-vue-schedule/styles/material.css';
+
+  .e-quick-popup-wrapper{
+    height: 400px !important;;
+  }
+
+  body > div:nth-child(9){
+    display: none;
+  }
+
+  body > div:nth-child(10){
+  display:none !important;
+}
 </style>

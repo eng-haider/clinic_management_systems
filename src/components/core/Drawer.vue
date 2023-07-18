@@ -12,8 +12,9 @@
         <div class="dropdown user-pro-body text-center">
           <div class="user-pic">
 
-            <img v-if="$store.state.AdminInfo.img_name==null"  src="https://alkafeel.net/alkafeel_helpdiskticat/uploads/profile/xuser-profile.png.pagespeed.ic.z3dbYPuxzy.webp" class="avatar-xxl rounded-circle mb-1"
-              style="width:100px;height:100px" alt="default">
+            <img v-if="$store.state.AdminInfo.img_name==null"
+              src="https://alkafeel.net/alkafeel_helpdiskticat/uploads/profile/xuser-profile.png.pagespeed.ic.z3dbYPuxzy.webp"
+              class="avatar-xxl rounded-circle mb-1" style="width:100px;height:100px" alt="default">
 
             <img v-else :src="Url+'/users/'+$store.state.AdminInfo.img_name" class="avatar-xxl rounded-circle mb-1"
               style="width:100px;height:100px" alt="default">
@@ -22,7 +23,9 @@
           <div class="user-info" style="    text-align: center;">
             <h5 class=" mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
 
-            <h5  class="mb-2  app-sidebar__user-name "> {{ $store.state.AdminInfo.name }}</h5 >
+            <h5 class="mb-2  app-sidebar__user-name "> {{ $store.state.AdminInfo.name }}</h5>
+
+
 
 
           </div>
@@ -34,7 +37,8 @@
     <div>
       <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
         :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
-        <v-list-item style="color:#fff !important" link v-if="item.auth" :to="item.to">
+        <v-list-item style="color:#fff !important" link :to="item.to"
+          v-if="$store.state.AdminInfo.Permissions.includes(item.name)">
           <v-list-item-icon>
             <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
           </v-list-item-icon>
@@ -65,6 +69,7 @@
             icon: 'fas fa-clipboard',
             auth: true,
             to: '/',
+            name: 'show_dashbourd'
           },
 
 
@@ -73,7 +78,8 @@
             title: this.$t("header.casesheet"),
             icon: 'fas fa-clipboard',
             to: '/patients',
-            auth: true,
+            auth: false,
+            name: 'show_patients'
           },
 
 
@@ -82,6 +88,15 @@
             icon: 'fa-light fa-tooth',
             auth: true,
             to: '/cases',
+            name: 'show_cases'
+          },
+
+          {
+            title: this.$t("header.store"),
+            icon: 'fa-light fa-store',
+            auth: true,
+            to: '/store',
+            name: 'show_cases'
           },
 
 
@@ -90,6 +105,7 @@
             icon: 'fa-solid fa-money-bill',
             auth: true,
             to: '/accounts',
+            name: 'show_accounts'
           },
 
 
@@ -97,8 +113,23 @@
             title: this.$t("Drawer.Booking"),
             icon: 'far fa-clock',
             auth: true,
-            to: "/requestBooking_test"
+            to: "/requestBooking_test",
+            name: 'show_appointment'
+
+
           },
+
+          {
+
+
+            title: this.$t("header.doctors"),
+            icon: 'fa-solid fa-user',
+            auth: true,
+            to: '/doctors',
+            name: 'show_doctors'
+          },
+
+
         ],
         right: null,
       }

@@ -53,15 +53,15 @@
 
 
 
-                            <td>{{ item.price}}</td>
+                            <td>{{ item.price | currency}}  <span class="money">د.ع</span></td>
 
 
-                            <td v-if="item.bills.length>0">{{xx(item.bills)}}</td>
+                            <td v-if="item.bills.length>0">{{xx(item.bills) | currency}}  <span class="money">د.ع</span></td>
 
                             <td v-else>0</td>
 
 
-                            <td v-if="item.bills.length>0">{{ item.price-xx(item.bills)}}</td>
+                            <td v-if="item.bills.length>0">{{ (item.price-xx(item.bills))  | currency }}  <span class="money">د.ع</span></td>
                             <td v-else>0</td>
 
                         </tr>

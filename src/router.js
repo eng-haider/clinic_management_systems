@@ -40,6 +40,18 @@ const router = new Router({
         }]
       },
       {
+        path: '/register',
+        name:'register',
+        component: () => import('@/views/pages/register'),
+        children: [{
+          name: 'register',
+          path: '',
+          component: () => import('@/views/pages/register')
+        }]
+      },
+
+      
+      {
         path: '/',
         name:"admin",
         component: () => import('@/views/dashboard/Index'),
@@ -68,10 +80,18 @@ const router = new Router({
             
           },
 
+          
           {
             path: '/accounts',
             name:'accounts',
             component: () => import('@/views/dashboard/accounts'),
+            
+          },
+
+          {
+            path: '/doctors',
+            name:'doctors',
+            component: () => import('@/views/dashboard/doctors'),
             
           },
 
@@ -86,7 +106,11 @@ const router = new Router({
             name:'showCases',
             component: () => import('@/views/dashboard/showCases'),
           },
-
+          {
+            path: 'store',
+            name:'store',
+            component: () => import('@/views/dashboard/store'),
+          },
        
 
           {

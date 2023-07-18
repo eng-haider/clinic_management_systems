@@ -18,4 +18,8 @@ class roles extends Model
         'name'
     ];
 
+   public function Permissions()
+    {
+        return $this->belongsToMany(Permissions::class, 'Permissions_role');
+    }
 }

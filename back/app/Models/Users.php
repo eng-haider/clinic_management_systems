@@ -21,7 +21,9 @@ class Users extends Authenticatable
         'name',
         'email',
         'password',
-        'tctate_token'
+        'tctate_token',
+        'phone',
+        'clinic_id'
     ];
 
     /**
@@ -43,6 +45,13 @@ class Users extends Authenticatable
     {
         return $this->hasOne(Doctors::class);
     }
+
+     public function Role()
+    {
+
+        return $this->belongsTo(Role::class);
+    }
+
 
     protected $casts = [
         'email_verified_at' => 'datetime',

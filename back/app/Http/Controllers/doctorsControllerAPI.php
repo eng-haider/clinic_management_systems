@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\doctors;
+use App\Models\Doctors;
 use App\Http\Resources\doctorsResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\doctorsRequest;
 use App\Http\Resources\Collections\doctorsCollection;
-
+use App\Models\User;
+use App\Models\Cases;
 class doctorsControllerAPI extends Controller
 {
     /**
@@ -24,6 +25,89 @@ class doctorsControllerAPI extends Controller
         return new doctorsCollection($doctors);
 
     }
+
+
+
+    public function clinicDoctor()
+    {
+        //  $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
+        //    $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
+        // $Doctor_id=$doctor[0]->id;
+
+        $doctors=Doctors::where('clinics_id','=',auth()->user()->clinic_id)->get();
+
+        return new doctorsCollection($doctors);
+
+    }
+
+
+    public function clinicDoctorInfo()
+    {
+        $user=User::where('clinic_id','=',auth()->user()->clinic_id)->where('role_id','=',2)->get();
+        $doctor=Doctors::where('user_id','=',$user[0]->id)->get();
+        $Doctor_id=$doctor[0]->id;
+
+
+        $doctors=Doctors::where('clinics_id','=',$doctor[0]->clinics_id)->get();
+
+
+        $array = [];
+         //get all_sum
+         for ($i=0;$i<count($doctors) ;$i++)
+         {
+            $object = (object) ['info' => 0,'all_sum' => 0, 'paid' => 0];
+            $array[] = $object;
+
+
+    }
+
+
+         for ($i=0;$i<count($doctors) ;$i++)
+      {
+
+        $Doctor_id=$doctors[$i]->id;
+
+        $doc=Doctors::withcount(['cases','Patients'])->where('id','=',$Doctor_id)->get();
+        $array[$i]->info=$doc[0];
+
+
+
+
+        $array[$i]->all_sum=$Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+         $query->where('doctors.id','=',$Doctor_id);
+        })->with('Bills')->get()->sum('price');
+
+
+
+         $Cases=Cases::whereHas('Doctors', function ($query) use($Doctor_id) {
+         $query->where('doctors.id','=',$Doctor_id);
+         })->with('Bills')->get();
+
+
+
+          //get paid
+        $paid = 0;
+        for ($x=0;$x<count($Cases) ;$x++)
+        {
+            for ($j=0;$j<count($Cases[$x]->Bills) ;$j++)
+            {
+
+                $paid+= $Cases[$x]->Bills[$j]->price;
+            }
+
+
+        }
+
+//        return $paid;
+        $array[$i]->paid=$paid;
+
+    }
+
+    return  $array;
+        return new doctorsCollection($doctors);
+
+    }
+    //clinicDoctor
 
     /**
      * Store a newly created resource in storage.

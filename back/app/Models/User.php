@@ -13,9 +13,9 @@ class User extends Authenticatable implements JWTSubject
 {
 
 
-    
+
     use  Notifiable;
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -28,7 +28,9 @@ class User extends Authenticatable implements JWTSubject
         'img_name',
         'password',
         'role_id',
-        'tctate_token'
+        'tctate_token',
+        'phone',
+        'clinic_id'
     ];
 
     /**
@@ -49,7 +51,7 @@ class User extends Authenticatable implements JWTSubject
      protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -58,17 +60,25 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier() {
         return $this->getKey();
     }
-    
+
 
     public function Doctor()
     {
         return $this->hasOne(Doctors::class);
     }
-    public function role()
+
+    public function secretary()
     {
-     
+        return $this->hasOne(secretaries::class);
+    }
+    public function Role()
+    {
+
         return $this->belongsTo(Role::class);
     }
+
+
+
 
 
     /**
@@ -78,5 +88,5 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims() {
         return [];
-    }  
+    }
 }

@@ -18,24 +18,24 @@ class CheckRoles
     public function handle(Request $request, Closure $next,$role)
     {
 
-        
+
         //return $request->header();
         $role;
         $roles=[
             'admin'=>[1],
             'doctor'=>[2],
             'secretary'=>[3],
-        
+            'adminDoctor'=>[5],
         ];
 
        $rolesId=$roles[$role] ?? [];
        try {
-         
+
         if (JWTAuth::check()) {
             throw new Exception('User Not Found');
         }
 
-        // if (JWTAuth::parseToken()->authenticate()->status_id ==2) {   
+        // if (JWTAuth::parseToken()->authenticate()->status_id ==2) {
         //     return response()->json([
         //         'sucess' => false,
         //         'data' => 'Unactive User',
@@ -50,14 +50,14 @@ class CheckRoles
                 ], 400);
         }
 
-        
+
         DB::commit();
         return $next($request);
-    
+
 
             } catch (Exception $e) {
 
-                    
+
                 if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException) {
                     return response()->json([
                         'sucess' => false,
@@ -90,7 +90,7 @@ class CheckRoles
                         ], 402);
 
                     }
-                
+
                 ;
                 }
             }

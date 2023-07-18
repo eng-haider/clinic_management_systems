@@ -51,10 +51,10 @@
 }">
                             <strong style="  display: block;font-family: 'Cairo'">{{info.name}} </strong>
                             <strong style="  display: block;font-family: 'Cairo'">{{info.id}} </strong>
-                              <strong style="  display: block;font-family: 'Cairo'">{{info.case.case_categories.name_ar}} </strong>
+                              <!-- <strong style="  display: block;font-family: 'Cairo'">{{info.case.case_categories.name_ar}} </strong>
                          <strong style="  display: block;font-family: 'Cairo'">{{info.user.name}} </strong>
                         <strong style="  display: block;font-family: 'Cairo';direction: rtl;"> {{info.case.price}}  د.ع</strong>
-                       
+                        -->
 
 
                            
@@ -104,12 +104,11 @@
                 </thead>
               
                 <tbody>
-                    <tr style="text-align: right;" v-for="item in info.case.bills" :key="item.id">
+                    <!-- <tr style="text-align: right;" v-for="item in info.case.bills" :key="item.id">
  <td style="text-align: right;" >{{item.PaymentDate}}</td>
      <td style="text-align: right;    direction: rtl;" > {{item.price}}  د.ع</td>
                        
-                        <!-- <td>{{item.id}}</td> -->
-                    
+                      
             
                     </tr>
 
@@ -127,7 +126,7 @@
 
 
 
-                    </tr>
+                    </tr> -->
 
                 </tbody>
             </table>
