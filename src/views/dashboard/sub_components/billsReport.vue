@@ -62,7 +62,7 @@
 
 
                             <td v-if="item.bills.length>0">{{ (item.price-xx(item.bills))  | currency }}  <span class="money">د.ع</span></td>
-                            <td v-else>0</td>
+                            <td v-else>{{ item.price | currency}} <span class="money">د.ع</span></td>
 
                         </tr>
                     </tbody>

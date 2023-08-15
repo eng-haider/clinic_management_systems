@@ -68,7 +68,7 @@
 		</script>
 
 		<!--Start of Tawk.to Script-->
-<script type="text/javascript">
+<!-- <script type="text/javascript">
 	var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 	(function(){
 	var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
@@ -78,14 +78,24 @@
 	s1.setAttribute('crossorigin','*');
 	s0.parentNode.insertBefore(s1,s0);
 	})();
-	</script>
+	</script> -->
 	<!--End of Tawk.to Script-->
 
 		
 </head>
 
 <body style="background-color: #ffff !important;">
+
+
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<div id="loading-screen">
+		
+
+		<img class="centerImg a" src="logo.png" style="height: 275px; width: 275px;" class=" rounded-pill">
+
+
+	  </div>
+
 	<!-- <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script> -->
 
 	<div id="app">
@@ -105,19 +115,79 @@
 	media='all' />
 
 	<script>
-		let deferredPrompt;
 
-window.addEventListener('beforeinstallprompt', (event) => {
+window.addEventListener('load', function() {
+  const loadingScreen = document.getElementById('loading-screen');
+  loadingScreen.style.display = 'none';
+});
+
+
+		  if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+		window.addEventListener('beforeinstallprompt', (event) => {
   // Prevent the default browser install prompt
   event.preventDefault();
+  
+  // Customize the install prompt (optional)
+  // ...
   
   // Save the event for later use
   deferredPrompt = event;
   
   // Show your custom install button or message here
-  // For example, show a button with an ID 'install-button'
-  document.getElementById('install-button').style.display = 'block';
+  // ...
 });
 	</script>
 
+
+<style>
+
+.centerImg {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        
+        .a {
+            
+            animation: pulse 1s linear infinite;
+            position: absolute;
+            margin: auto;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        @-webkit-keyframes "pulse" {
+        0% {
+         -webkit-transform: scale(1.1);
+         transform: scale(1.1);
+        }
+        50% {
+        -webkit-transform: scale(0.8);
+        transform: scale(0.8);
+        }
+        100% {
+         -webkit-transform: scale(1);
+        transform: scale(1);
+        }
+        }
+
+	#loading-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff; /* optional background color */
+    z-index: 9999; /* Make sure it's on top of everything else */
+  }
+</style>
 </html>

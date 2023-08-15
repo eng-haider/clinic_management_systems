@@ -78,7 +78,6 @@
                         </v-flex>
 
 
-
                     </v-layout>
                 </template>
 
@@ -94,14 +93,16 @@
                 </template>
 
                 <template v-slot:[`item.doctor`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')">
+                   >
 
+                    <div   v-if="item.doctors.length>0">
                     <span style="display: none;">{{ item }}</span>
                     <v-chip style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
                         <v-icon left>
                             mdi-account-circle-outline
                         </v-icon>{{ item.name }}
                     </v-chip>
+                    </div>
 
                 </template>
 
@@ -371,7 +372,7 @@
                     age: "",
                     sex: "",
                     phone: "",
-                    tooth_num: "",
+                    tooth_num: [],
                     systemic_conditions: "",
                     case: {
                         case_categores_id: "",
@@ -379,6 +380,7 @@
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
+                        tooth_num: [],
                         case_categories: {
                             name_ar: ''
                         },

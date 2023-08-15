@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Resources;
-use App\Models\Permissions;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
@@ -15,19 +15,15 @@ class UserResource extends JsonResource
     public function toArray($request)
     {
         return
-        ['id'=>$this->id,
-        'name'=>$this->name,
-        'phone'=>$this->phone,
-        'email'=>$this->email,
-         'Doctor'=>$this->Doctor,
-         'Clinics'=>$this->Doctor->Clinics,
-         'img_file'=>$this->img_name,
-         'Permissions'=>Permissions::get()
+         [
+           'id'=>$this->id,
+           'address'=>new AddressResource($this->address),
+           'full_name'=>$this->full_name,
+           'user_email '=>$this->user_email,
+           'status'=>$this->status,
+           'user_phone'=>$this->user_phone,
+           'image'=>$this->image
 
-
-
-    ];
-
-
+         ];
     }
 }

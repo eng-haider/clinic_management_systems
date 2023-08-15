@@ -14,27 +14,113 @@
                 hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
                 <template v-slot:top>
                     <v-toolbar flat>
-                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.doctors") }}
+                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> دكاتره العياده
                         </v-toolbar-title>
 
                         <v-divider class="mx-4" inset vertical></v-divider>
                         <v-spacer></v-spacer>
-                   
+                        <v-dialog v-model="dialog" max-width="800px">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn color="primary" @click="editedIndex = -1 
+                                ;  
+                                
+                                " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
+                                    <i class="fas fa-plus" style="position: relative;left:5px"></i>
+                                   اضافه حساب جديد
+                                </v-btn>
+                            </template>
+                            <v-form ref="form" v-model="valid">
+                                <v-card>
+
+                                    <v-toolbar dark color="primary lighten-1 mb-5">
+                                        <v-toolbar-title>
+                                            <h3 style="color:#fff;font-family: 'Cairo'"> {{formTitle}}</h3>
+                                        </v-toolbar-title>
+                                        <v-spacer />
+                                        <v-btn @click="close()" icon>
+                                            <v-icon>mdi-close</v-icon>
+                                        </v-btn>
+                                    </v-toolbar>
+
+                                    <v-card-text>
+                                        <v-container>
+
+                                            <v-row>
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-text-field v-model="editedItem.name"
+                                                        style="direction: rtl;text-align: right;"
+                                                        :rules="[rules.required]" :label="$t('datatable.name')"
+                                                        outlined>
+                                                    </v-text-field>
+                                                </v-col>
+
+
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-text-field v-model="editedItem.phone"
+                                                    :rules="phoneRules"
+                                                        required  placeholder="07XX XXX XXXX"
+                                                        style="direction:ltr"
+                                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                                                        :label="$t('datatable.phone')" outlined>
+                                                    </v-text-field>
+                                                </v-col>
+
+
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-text-field v-model="editedItem.password" 
+                                                        required 
+                                                        type="password"
+                                                        style="direction:ltr"
+                                                        :rules="passwordRules"
+                                                        label="الباسورد" outlined>
+                                                    </v-text-field>
+                                                </v-col>
+
+
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-radio-group v-model="editedItem.role" row>
+                                                        <v-radio label="سكرتير" :value="3"></v-radio>
+                                                        <v-radio label="دكاتره" :value="2"></v-radio>
+                                                    </v-radio-group>
+                                                </v-col>
+
+                               
+                                            </v-row>
+                                            <v-row>
+                                            </v-row>
+                                            <v-row>
+                                
+                                            </v-row>
+
+                                        </v-container>
+                                    </v-card-text>
+
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
+                                        </v-btn>
+                                        <v-btn :loading="loadSave" style="color: #fff;" color="green darken-1"
+                                            @click="save()">
+                                            حفظ</v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-form>
+                        </v-dialog>
                     </v-toolbar>
 
 
-                    
+
                 </template>
 
 
                 <template v-slot:[`item.names`]="{ item }">
 
-                   
 
-                    <v-chip style="margin:2px" color="primary" >
+
+                    <v-chip style="margin:2px" color="primary">
                         <v-icon left>
                             mdi-account-circle-outline
-                        </v-icon>   {{item.info.name}}
+                        </v-icon> {{item.info.name}}
                     </v-chip>
 
                 </template>
@@ -45,13 +131,13 @@
                     {{ item.info.patients_count }}
 
 
-</template>
+                </template>
 
 
                 <template v-slot:[`item.all`]="{ item }">
 
-<div style="color:blue;font-weight: bold;">
-    {{ item.all_sum | currency }} <span class="money">د.ع</span> </div>
+                    <div style="color:blue;font-weight: bold;">
+                        {{ item.all_sum | currency }} <span class="money">د.ع</span> </div>
 
 
 
@@ -62,26 +148,26 @@
                 <template v-slot:[`item.paids`]="{ item }">
 
 
-<div style="color:green;font-weight: bold;">
-    {{ item.paid | currency }} <span style="color: #000;">د.ع</span> </div>
+                    <div style="color:green;font-weight: bold;">
+                        {{ item.paid | currency }} <span style="color: #000;">د.ع</span> </div>
 
 
 
                 </template>
-              
+
 
                 <template v-slot:[`item.rem`]="{ item }">
 
 
-<div style="color:red;font-weight: bold;">
-    {{ (item.all_sum-item.paid ) | currency }} <span style="color: #000;">د.ع</span> </div>
+                    <div style="color:red;font-weight: bold;">
+                        {{ (item.all_sum-item.paid ) | currency }} <span style="color: #000;">د.ع</span> </div>
 
 
 
                 </template>
 
 
-                
+
 
 
 
@@ -128,7 +214,7 @@
 
 <script>
     //Recipe
-  
+
     import Swal from "sweetalert2";
 
 
@@ -142,7 +228,7 @@
             mask,
         },
         components: {
-        
+
         },
         data() {
             return {
@@ -150,6 +236,16 @@
                 desserts: [
 
                 ],
+
+                editedItem: {
+                    name: "",
+
+                    password: "",
+                    phone: "",
+                    role:""
+                    
+                },
+
                 bill: false,
                 paymentsCount: 1,
                 booking: false,
@@ -176,7 +272,21 @@
                 loadSave: false,
                 casesheet: false,
                 CaseCategories: [],
-                rules: {
+               
+                    
+                    phoneRules: [
+          (v) => !!v || 'يجب ادخال رقم الهاتف',
+          (v) => v.length > 10 && v.length < 12 || 'يجب ادخال رقم هاتف صحيح',
+          (v) => /^\d+$/.test(v) || 'يجب ادخال رقم هاتف صحيح',
+  
+        ],
+                    passwordRules: [
+          v => !!v || 'يجب ادخال الباسورد',
+          (v) => v.length >= 6 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
+        //   (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
+        ],
+
+        rules: {
                     minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
                     required: value => !!value || "مطلوب",
                     min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
@@ -189,52 +299,14 @@
                     },
                 },
                 editedIndex: -1,
-                doctorsAll:[],
+                doctorsAll: [],
                 isDropZoneActive: false,
                 imageSource: '',
                 textVisible: true,
                 progressVisible: false,
                 search: '',
                 progressValue: 0,
-                searchDocorId:'',
-
-
-                editedItem: {
-                    name: "",
-                    age: "",
-                    sex: "",
-                    phone: "",
-                    doctors: "",
-                    systemic_conditions: "",
-                    case: {
-                        case_categores_id: "",
-                        upper_right: "",
-                        upper_left: "",
-                        lower_right: "",
-                        lower_left: "",
-                        sessions: [{
-                            note: '',
-                            date: ''
-                        }],
-
-
-                        case_categories: {
-                            name_ar: ''
-                        },
-                        status_id: 42,
-                        bills: [{
-                            price: '',
-                            PaymentDate: ''
-                        }],
-                        images: [{
-                                img: '',
-                                descrption: ''
-                            }
-
-                        ],
-                        notes: ""
-                    }
-                },
+                searchDocorId: '',
                 items: [
 
                 ],
@@ -243,8 +315,8 @@
                         text: this.$t('datatable.name'),
                         align: "start",
                         value: "names"
-                    }, 
-                    
+                    },
+
                     // {
                     //     text: this.$t('datatable.phone'),
                     //     align: "start",
@@ -252,38 +324,38 @@
                     // },
 
                     {
-                        text:'عدد المراجعين',
+                        text: 'عدد المراجعين',
                         align: "start",
                         value: "patients_count"
                     },
-                    
+
 
                     {
-                        text:'عدد الحالات',
+                        text: 'عدد الحالات',
                         align: "start",
                         value: "info.cases_count"
                     },
 
                     {
-                        text:'مبالغ الحالات',
+                        text: 'مبالغ الحالات',
                         align: "start",
                         value: "all"
                     },
 
 
                     {
-                        text:'المبالغ الدفوعه',
+                        text: 'المبالغ الدفوعه',
                         align: "start",
                         value: "paids"
                     },
                     {
-                        text:'المبالغ المتبقيه',
+                        text: 'المبالغ المتبقيه',
                         align: "start",
                         value: "rem"
                     },
 
-                  
-                    
+
+
 
                     // {
                     //     text: this.$t('Processes'),
@@ -296,8 +368,64 @@
         },
 
         methods: {
+            save() {
 
-           
+if (this.$refs.form.validate()) {
+    this.loadSave = true;
+   
+    var data = {
+  
+  name: this.editedItem.name,
+ password: this.editedItem.password,
+ role: this.editedItem.role,
+ phone: "964" + parseInt(this.editedItem.phone),
+
+
+ 
+};
+        this.axios
+            .post("users/adddoctors", data, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                },
+            })
+            .then((res) => {
+                res
+
+                this.$swal.fire({
+                    title: this.$t('Added'),
+                    text: "",
+                    icon: "success",
+                    confirmButtonText: this.$t('close'),
+                });
+
+                this.patientInfo = res.data.data;
+                this.dialog = false,
+                    this.initialize();
+
+
+                if (this.$store.state.role !== 'secretary') {
+                    this.gocase = false;
+                    this.addCase(this.patientInfo);
+                }
+
+
+
+
+            })
+            .catch((err) => {
+                err
+
+                this.loadSave = false;
+
+            });
+    
+}
+
+},
+
             goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
@@ -306,7 +434,7 @@
                 }
 
             },
-          
+
 
             deletePayment(index, id) {
 
@@ -345,7 +473,7 @@
 
 
             },
-           
+
 
             deleteItem(item) {
 
@@ -379,7 +507,7 @@
                 });
             },
 
-       
+
 
 
 
@@ -511,7 +639,7 @@
 
 
             },
-          
+
 
             initialize() {
                 this.loading = true;
@@ -559,90 +687,8 @@
 
 
 
-           
-
-            save() {
-
-                if (this.$refs.form.validate()) {
-                    this.loadSave = true;
-                    if (this.editedIndex > -1) {
-
-                        this.axios
-                            .patch("patients/" + this.editedItem.id, this.editedItem, {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                                },
-                            })
-                            .then(() => {
-                                this.loadSave = false;
-                                /// this.casesheet = true;
-
-                                //  this.SaveCase();
-                                this.initialize();
-                                this.close();
-                                this.$swal.fire({
-                                    title: "تم تعديل ",
-                                    text: "",
-                                    icon: "success",
-                                    confirmButtonText: "اغلاق",
-                                });
-                            })
-                            .catch(() => {
-                                this.loadSave = false;
-
-                                this.$swal.fire({
-                                    title: "تاكد من ملى المعلومات",
-                                    text: "",
-                                    icon: "error",
-                                    confirmButtonText: "اغلاق",
-                                });
-                            });
-                    } else {
-
-                        this.axios
-                            .post("patients", this.editedItem, {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                                },
-                            })
-                            .then((res) => {
-                                res
-
-                                this.$swal.fire({
-                                    title: this.$t('Added'),
-                                    text: "",
-                                    icon: "success",
-                                    confirmButtonText: this.$t('close'),
-                                });
-
-                                this.patientInfo = res.data.data;
-                                this.dialog = false,
-                                    this.initialize();
 
 
-                                if (this.$store.state.role !== 'secretary') {
-                                    this.gocase = false;
-                                    this.addCase(this.patientInfo);
-                                }
-
-
-
-
-                            })
-                            .catch((err) => {
-                                err
-
-                                this.loadSave = false;
-
-                            });
-                    }
-                }
-
-            },
            
 
         },
@@ -650,7 +696,7 @@
 
         computed: {
             formTitle() {
-                return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
+                return this.editedIndex === -1 ? 'اضافه دكتور' : this.$t('update');
 
             },
         },

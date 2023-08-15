@@ -208,6 +208,7 @@
       // Doughnut,
       dash_card,
       DxChart,
+      
       DxSeries,
       DxPieChart,
    
@@ -244,6 +245,7 @@
         accounts_statistic:[],
       booking:[],
         govs: [],
+        dataSource:[],
 
       
         headers: [{
@@ -300,7 +302,7 @@
       this.getDashbourdCounts();
       this.getBooking();
       this.getAccountsCounts();
-      this.get_stats2();
+   
     },
     methods: {
       getBooking(){
@@ -349,7 +351,7 @@
               this.loading = false;
             })
         
-        , 700);
+        , 200);
        
       
     },
@@ -369,9 +371,9 @@
           })
           .then((res) => {
             this.dataSource = res.data.data;
-            this.showChar = true
+           /// this.showChar = true
 
-            res
+          ///  res
 
            
 

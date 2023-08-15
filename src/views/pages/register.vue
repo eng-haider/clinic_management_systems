@@ -26,10 +26,10 @@
   
   
             <div>
-              <div style="color:#504a4a;font-size:18px;font-weight:bold">ادخل معلوماتك لانشاء حساب جديد في منصة  العياده الذكية
+           <div style="color:#504a4a;font-size:18px;font-weight:bold">ادخل معلوماتك لانشاء حساب جديد في منصة  العياده الذكية مجانا
   
   
-              </div>
+              </div> 
   
   
               <div style="color:#504a4a;font-size:13px;">او قم بتجسيل الدخول اذا كنت تمتللك حساب
@@ -38,6 +38,8 @@
                   تسجيل الدخول
   
                 </router-link>
+
+
   
   
               </div>
@@ -101,6 +103,11 @@
   
   
                         placeholder="الباسورد" required :rules="passwordRules"></v-text-field>
+
+                        <v-btn class="reg_owner_btn" @click="submitـsignup()" color="#0a304e" 
+                    style="color:#fff;font-weight:bold;font-size:19px;" >
+                    دخول</v-btn>
+
                     </v-flex>
   
                     <!-- <v-flex xs12 md10 sm10>
@@ -115,14 +122,18 @@
                         placeholder="اعاده كتابه الباسورد" required :rules="passwordConfirmationRules"></v-text-field>
                     </v-flex> -->
                   
-  
+               
   
                   
-                    <v-flex xs3 md12 sm12>
-                      <br>
-                      <v-btn :loading="loading" class="btn btn-primary btn-block" color="red" @click.prevent="submitـsignup()"
-                        style=";color:#fff;width:80%;background-color: #434350;">
-                        تسجيل</v-btn>
+                    <v-flex xs12 md12 sm12>
+<!--                     
+                      <v-btn large :loading="loading" class="btn btn-primary btn-block" color="red" @click="submitـsignup()"
+                        style=";color:#fff;background-color: #434350;">
+                        
+                        تسجيل</v-btn> -->
+
+    
+
   
                     </v-flex>
   
@@ -149,7 +160,7 @@
         <v-flex xs12 class="hidden-md-and-down" md5 sm5>
         <v-layout column  style="height:100%;background-color: #3dbfef !important;">
 
-          <div style="height: 100%;
+          <div class="fff" style="height: 100%;
     padding-top: 45px;
 
     position: fixed;
@@ -181,7 +192,7 @@
             <div
               class="cvc"
                 style="padding-top: 15px;width: 100%;text-align:center;font-weight:bold;font-size:30px;padding-right:15px;color:#fff">
-                منصه العياده الذكيه </div>
+                منصة العياده الذكيه </div>
               <v-row>
                 <div class="cvc"
                   style="width: 100%;text-align:center;color:#000;font-size:20px;font-weight:bold;padding-top:10px;text-align: center;">
@@ -205,7 +216,7 @@
               <v-flex xs8>
 
 
-                <v-img src="https://demo.tctate.com/assets/3899624.png" style="with:100%;height:100%"></v-img>
+                <v-img class="cvc" src="https://demo.tctate.com/assets/3899624.png" style="with:100%;height:100%"></v-img>
 
 
 
@@ -230,6 +241,13 @@
   </template>
   
   <style scoped>
+ @media(max-width:767px){
+   .fff{
+    position: relative !important;
+    color:red
+   }
+}
+
     .v-content {
       padding: 0px 0px 0px 0px !important;
     }
@@ -290,11 +308,11 @@
         loading: false,
         nameRules: [
           v => !!v || 'يجب ادخال الاسم',
-          v => (v && v.length > 4) || 'يجب ان لايقل عن ٣ احرف',
+         // v => (v && v.length > 4) || 'يجب ان لايقل عن ٣ احرف',
         ],
         centerRules: [
           v => !!v || 'يجب ادخال اسم المركز',
-          v => (v && v.length > 4) || 'يجب ان لايقل عن ٣ احرف',
+       //   v => (v && v.length > 4) || 'يجب ان لايقل عن ٣ احرف',
         ],
   
   
@@ -321,8 +339,8 @@
   
         passwordRules: [
           v => !!v || 'يجب ادخال الباسورد',
-          (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
-          (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
+          (v) => v.length >= 6 || 'يجب ان لايقل الباسورد عن ٦ احرف او ارقام',
+      //    (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
         ],
         passwordConfirmationRules: [
           v => !!v || 'يجب ادخال الباسورد',
@@ -392,7 +410,7 @@
              xx.clinic_info=res.data.clinic_info;
              localStorage.setItem('tokinn', res.data.token);
               localStorage.setItem('tctate_token', res.data.tctate_token);
-              this.$store.dispatch("login",xx);
+              this.$store.dispatch("login",res.data);
             
               this.loading = false;
               // this.$router.push("/")

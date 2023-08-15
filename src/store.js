@@ -100,9 +100,10 @@ export default new Vuex.Store({
         state.AdminInfo.role = userData.role.name
         state.AdminInfo.img_name = userData.img_name
         state.AdminInfo.Permissions = userData.Permissions
+        state.AdminInfo.dir = userData.dir
 
         
-  
+       
          state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
 
         state.AdminInfo.token =localStorage.getItem('tokinn')
@@ -152,7 +153,7 @@ console.log(userData)
         name: userData.name,
         policyNumber: userData.photp,
         userPhotoUrl: userData.email,
-        role:1,
+        //role:1,
         clinic_info:userData.Clinics,
         img_name:userData.img_file
     
@@ -173,23 +174,27 @@ console.log(userData)
 
     login({
         commit
-      }, userData) {
-  
+      }, rt) {
+  var userData=rt.result;
       
      var Permissions=Array();
       for(var i=0;i<userData.Permissions.length;i++){
         Permissions.push(userData.Permissions[i].name);
       }
+   
+      //alert(userData.img_name);
         commit('authUser', {
           token:localStorage.getItem('tokinn'),
           userId: userData.id,
           tctate_token:userData.tctate_token,
           name: userData.name,
+          
+
           policyNumber: userData.photp,
           userPhotoUrl: userData.email,
           role:userData.role.name,
           clinic_info:userData.clinic_info,
-          img_name:userData.img_name,
+          img_name:userData.img_file,
           Permissions:Permissions
       
 
@@ -200,7 +205,19 @@ console.log(userData)
         authenticate.then(user => { Vue.prototype.$user.set(user);})
 
         commit('setRole',userData.role.name);
-        router.push("/");
+        if(Permissions.includes('show_accounts')==false){
+          router.push("/patients");
+        }
+
+     
+        else    if(rt.dir=='login'){
+          router.push("/");
+        }
+        else{
+          router.push("/patients");
+          
+        }
+       
       //  location.reload();
      
 

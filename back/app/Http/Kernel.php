@@ -11,13 +11,12 @@ class Kernel extends HttpKernel
      *
      * These middleware are run during every request to your application.
      *
-     * @var array<int, class-string|string>
+     * @var array
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
         \Fruitcake\Cors\HandleCors::class,
-        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \App\Http\Middleware\CheckForMaintenanceMode::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
@@ -26,7 +25,7 @@ class Kernel extends HttpKernel
     /**
      * The application's route middleware groups.
      *
-     * @var array<string, array<int, class-string|string>>
+     * @var array
      */
     protected $middlewareGroups = [
         'web' => [
@@ -40,9 +39,40 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'throttle:api',
+            'throttle:160,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+
+        'jwt.auth.admin' => [
+            \App\Http\Middleware\JwtAdminMiddleware::class,
+        ],
+
+        'jwt.auth.client' => [
+            \App\Http\Middleware\JwtClientMiddleware::class,
+        ],
+
+        'jwt.auth.owner' => [
+            \App\Http\Middleware\JwtOwnerMiddleware::class,
+        ],
+
+        'OwnerSubscriptionsPackagesMiddleware' => [
+            \App\Http\Middleware\OwnerSubscriptionsPackagesMiddleware::class,
+        ],
+
+        // 'CheckRole' => [
+        //     \App\Http\Middleware\CheckRoleMiddleware::class,
+        // ],
+        
+        'jwt.auth.operations' => [
+            \App\Http\Middleware\JwtOpertionsMiddleware::class,
+        ],
+
+        'jwt.auth.delivery' => [
+            \App\Http\Middleware\JwtDeliveryMiddleware::class,
+        ],
+
+        'jwt.auth.driver' => [
+            \App\Http\Middleware\JwtDriverMiddleware::class,
         ],
     ];
 
@@ -51,18 +81,19 @@ class Kernel extends HttpKernel
      *
      * These middleware may be assigned to groups or used individually.
      *
-     * @var array<string, class-string|string>
+     * @var array
      */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'CheckRole' =>  \App\Http\Middleware\CheckRole::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'CheckRole' =>  \App\Http\Middleware\CheckRoles::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
     ];
 }

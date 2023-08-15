@@ -151,7 +151,7 @@
             <div
               class="cvc"
                 style="padding-top: 15px;width: 100%;text-align:center;font-weight:bold;font-size:30px;padding-right:15px;color:#fff">
-                منصه العياده الذكيه </div>
+                منصة العياده الذكيه </div>
               <v-row>
                 <div class="cvc"
                   style="width: 100%;text-align:center;color:#000;font-size:20px;font-weight:bold;padding-top:10px;text-align: center;">
@@ -175,7 +175,7 @@
               <v-flex xs8>
 
 
-                <v-img src="https://demo.tctate.com/assets/3899624.png" style="with:100%;height:100%"></v-img>
+                <v-img class="cvc" src="https://demo.tctate.com/assets/3899624.png" style="with:100%;height:100%"></v-img>
 
 
 
@@ -364,12 +364,20 @@ scrollToTop() {
          xx.clinic_info=res.data.clinic_info;
          localStorage.setItem('tokinn', res.data.token);
           localStorage.setItem('tctate_token', res.data.tctate_token);
-          this.$store.dispatch("login",xx);
+          this.$store.dispatch("login",res.data);
         
           this.loading = false;
           // this.$router.push("/")
         })
           .catch(error => {
+
+            this.$swal({
+              title: "رقم المستخدم او كلمة المرور غير صحيح",
+              text: "",
+              icon: "error",
+              confirmButtonText: "اغلاق",
+            });
+
             if (error.response) {
               
              this.error_msg=[];

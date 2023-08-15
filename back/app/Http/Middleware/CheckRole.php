@@ -19,14 +19,13 @@ class CheckRole
     public function handle($request, Closure $next,String $role)
     {
 
-        
         //return $request->header();
         $role;
         $roles=[
-            'admin'=>[1],
-            'doctor'=>[2],
-            'secretary'=>[3],
-        
+            'admin'=>[3],
+            'owner'=>[2],
+            'client'=>[1],
+            'operation'=>[4]
         ];
 
        $rolesId=$roles[$role] ?? [];
@@ -36,12 +35,12 @@ class CheckRole
             throw new Exception('User Not Found');
         }
 
-        // if (JWTAuth::parseToken()->authenticate()->status_id ==2) {   
-        //     return response()->json([
-        //         'sucess' => false,
-        //         'data' => 'Unactive User',
-        //     ], 401);
-        // }
+        if (JWTAuth::parseToken()->authenticate()->status_id ==2) {   
+            return response()->json([
+                'sucess' => false,
+                'data' => 'Unactive User',
+            ], 401);
+        }
 
         if(!in_array(JWTAuth::parseToken()->authenticate()->role->id,$rolesId))
         {

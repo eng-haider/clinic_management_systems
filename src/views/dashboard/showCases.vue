@@ -228,6 +228,7 @@
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
+                        tooth_num:[],
                         case_categories: {
                             name_ar: ''
                         },
@@ -527,6 +528,7 @@ addCase(){
                         upper_right: "",
                         upper_left: "",
                         patient_id:this.id,
+                        tooth_num:[],
                         lower_right: "",
                         lower_left: "",
                         case_categories: {
@@ -556,6 +558,7 @@ addCase(){
                         upper_left: "",
                         patient_id:this.id,
                         lower_right: "",
+                        tooth_num:[],
                         lower_left: "",
                          sessions: [{
                             note: '',
@@ -777,7 +780,7 @@ addCase(){
                         })
                         .catch(() => {
                             this.loadSave = false;
-
+                            alert('ds')
                             this.$swal.fire({
                                 title: "تاكد من ملى المعلومات",
                                 text: "",

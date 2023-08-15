@@ -102,7 +102,7 @@
                                                     </v-radio-group>
                                                 </v-col>
 
-                                                <v-col class="py-0" cols="12" sm="6" md="6" v-if="doctors.length>1">
+                                                <v-col class="py-0" cols="12" sm="6" md="6"  v-if="doctorsAll.length>2">
                                                     <v-select :rules="[rules.required]" dense
                                                         v-model="editedItem.doctors" multiple :label="$t('doctor')"
                                                         :items="doctors" outlined item-text="name" item-value="id">
@@ -237,14 +237,17 @@
                 </template>
 
                 <template v-slot:[`item.doctor`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')">
+                  >
 
+                
+                  <div   v-if="item.doctors.length>1">
                     <span style="display: none;">{{ item }}</span>
-                    <v-chip style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
+                    <v-chip  style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
                         <v-icon left>
                             mdi-account-circle-outline
                         </v-icon>{{ item.name }}
                     </v-chip>
+                  </div>
 
                 </template>
 
@@ -525,11 +528,11 @@
                         value: "sex"
                     },
 
-                    {
-                        text: this.$t('datatable.doctor'),
-                        align: "start",
-                        value: "doctor"
-                    },
+                    // {
+                    //     text: this.$t('datatable.doctor'),
+                    //     align: "start",
+                    //     value: "doctor"
+                    // },
 
 
                     //status_Description
@@ -621,6 +624,7 @@
                 this.patientInfo = {
                     case_categores_id: "",
                     upper_right: "",
+                    tooth_num: [],
                     upper_left: "",
                     patient_id: item.id,
                     lower_right: "",

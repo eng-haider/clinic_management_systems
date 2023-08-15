@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,4 +13,23 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+
+Route::get('/asiahawala', function(){
+    return view('asiahawala');
+});
+
+
+Route::get('/zaincashpay', function(){
+    return view('zaincashpay');
+});
+
+
+Route::get('/st', function(){
+    return "ggggggggggggggg";
+});
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
 });

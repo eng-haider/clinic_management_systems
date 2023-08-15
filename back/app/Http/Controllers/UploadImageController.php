@@ -13,12 +13,12 @@ class UploadImageController extends Controller
 
     public function uploadInnerReq($request){
 
-        $this->Create_name($request->images[0]['img']);
+        $this->Create_name($request->images);
 
 
         if(count($this->name)>0)
         {
-           if($this->UploadAtt($request->images[0]['img']) == true){
+           if($this->UploadAtt($request->images) == true){
                return   $this->name;
               }
 
@@ -30,12 +30,12 @@ class UploadImageController extends Controller
 
      public function uploadInner(Request $request){
 
-         $this->Create_name($request->images[0]['img']);
+         $this->Create_name($request->images);
 
 
          if(count($this->name)>0)
          {
-            if($this->UploadAtt($request->images[0]['img']) == true){
+            if($this->UploadAtt($request->images) == true){
                 return   $this->name;
                }
 

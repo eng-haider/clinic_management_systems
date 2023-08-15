@@ -279,7 +279,7 @@
     },
 
     created() {
-      alert('s')
+ 
       this.getOwnerTctateitemsById();
       /// EventBus.$emit('getUserReservationsCount', true);
 
@@ -413,7 +413,7 @@
 
 //https://tctate.com/api/api/v2/items/owner/get?page=1
 getOwnerTctateitemsById() {
-alert('heeloo')
+
   this.loading = true
         this.$http({
           method: 'get',

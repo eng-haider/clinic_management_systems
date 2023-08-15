@@ -7,7 +7,7 @@
     <ejs-schedule :eventRendered="oneventRendered" :currentView='currentView' height='900px' :popupOpen="onPopupOpen"
       :created="onCreate" :eventClick='onEventClick' :actionComplete="onActionComplete" :eventSettings='eventSettings'>
       <e-resources :save="onChange">
-        <e-resource field='DepartmentID' title='name' name='Departments' :dataSource='Patiant' textField='name'
+        <e-resource field='DepartmentID' title='date' name='Departments' :dataSource='Patiant' textField='name'
           idField='id' colorField='Color'>
         </e-resource>
       </e-resources>
@@ -66,7 +66,7 @@
 
       EventBus.$on('GetRes', (from) => {
         from
-      // window.location.reload();
+       window.location.reload();
       });
 
       this.getPatiant();
@@ -95,7 +95,7 @@
                 }
               })
             .then(res => {
-              //  window.location.reload();
+                window.location.reload();
               res
 
 

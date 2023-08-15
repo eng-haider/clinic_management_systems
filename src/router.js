@@ -63,7 +63,7 @@ const router = new Router({
           
           else {
             next({
-              path: '/login',
+              path: '/register',
             });
           }
         },   

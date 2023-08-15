@@ -15,9 +15,7 @@ export default {
 
  
  @media only screen and (max-width: 600px) {
-            .nav_phone{
-              margin-top: 30px !important;
-            }
+        
     }
 
 * {

@@ -8,7 +8,9 @@
 
           <v-toolbar dark color="primary lighten-1 mb-5">
             <v-toolbar-title>
-              <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد</h3>
+              <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد
+             
+              </h3>
             </v-toolbar-title>
             <v-spacer />
             <v-btn @click="close()" icon>
@@ -18,7 +20,7 @@
 
           <v-container grid-list-xs>
             <div v-if="!patientFound">
-
+           
               <v-row justify="center">
                 <v-col>
                   <v-autocomplete :items="patients" outlined item-text="name" return-object v-model="patient"

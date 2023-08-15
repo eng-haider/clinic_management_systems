@@ -90,7 +90,18 @@ authenticate.then(user => {
     vuetify,
     i18n,
     axios,
-    store
+    store,
+    data: {
+      isLoading: true, // Initially show the loading spinner
+    },
+    mounted() {
+      // Simulate some asynchronous data loading (e.g., fetching from an API)
+      // Replace this with your actual data loading process
+      setTimeout(() => {
+        // Once the data is loaded and the Vue.js application is ready
+        this.isLoading = false; // Hide the loading spinner and show the Vue.js content
+      }, 2000); // Simulating a 2-second loading time, adjust as needed
+    },
   }).$mount('#app')
   
 

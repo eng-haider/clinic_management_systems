@@ -131,7 +131,7 @@
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
               <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.remainingamount |currency"></dash_card>
+                :count="accounts_statistic.remainingamount"></dash_card>
             </v-flex>
 
 

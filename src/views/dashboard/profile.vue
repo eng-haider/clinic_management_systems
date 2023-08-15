@@ -88,7 +88,7 @@
                                     <v-btn @click="password_Dailog=true" color="red" style="color:#fff" width="200px">
                                         تغير الباسورد</v-btn>
                                 </p> -->
-                                <v-btn pr-4 color="primary" style="width:50%" :loading="loading" @click="update()">
+                                <v-btn pr-4 color="primary" style="width:50%" :loading="loading" @click="update(),update()">
 
                                     حفظ التعديلات
 
@@ -337,6 +337,8 @@
                     }).then(response => {
 
                         this.owner = response.data.data;
+                        this.$store.dispatch("updateInfo", this.owner );
+
                         this.images = [];
 
                         if (this.owner.img_file !== null) {
@@ -375,20 +377,19 @@
 
             update() {
 
-                if (this.images[0].includes(this.http)) {
-                    // this.images[0] = "data:image/jpeg;base64";
-
-                   // this.images = [];
-
-                }
 
 
+                // if (this.images[0] == "ab") {
 
-                if (this.images[0] == "ab") {
+                //     this.images = []
 
-                    this.images = []
+                // }
+                // else  if (this.images[0].includes(this.https)) {
+                //     // this.images[0] = "data:image/jpeg;base64";
 
-                }
+                //    // this.images = [];
+
+                // }
 
 
 
@@ -424,20 +425,25 @@
                             data: data,
                             headers: {
                                 "Content-Type": "application/json",
-                                Accept: "application/json",
-                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
                             }
                         })
                         .then(response => {
                             response
-                            this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
+                          //  this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
                             EventBus.$emit('changeUserInfo', true);
-                            this.$store.dispatch("updateInfo", response.data.data);
+                            // this.$store.dispatch("updateInfo", response.data.data);
+                            // this.$store.dispatch("updateInfo", response.data.data);
+
+                            // this.$store.dispatch("updateInfo", response.data.data);
+
+                            // this.$store.dispatch("updateInfo", response.data.data);
 
                             this.GetOwnerInfo();
 
-
-
+                            // window.location.reload()
+                            // window.location.reload()
                             // this.signup_user_id = response.data.id;
 
                             // this.dialog = false;
@@ -505,7 +511,7 @@
 
 
                         this.images[0] = 'ab';
-                        this.img_name = 'ghjk'
+                        this.img_name = ' '
 
 
                         var url = "/users/DeleteImage";
@@ -546,7 +552,7 @@
                             d
 
                             //   location.reload();
-                            // this.update();
+                            //\ this.update();
                         });
 
 

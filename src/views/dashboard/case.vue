@@ -67,7 +67,7 @@
                             </div>
 
                             <div v-else>
-                                <teeth :tooth_num="editedItem.tooth_num" />
+                                <teeth :tooth_num="editedItem.tooth_num"  :id="editedItem.id" />
 
                             </div>
 
@@ -273,14 +273,14 @@ height: 100%;" />
                                     <div style="font-weight:bold"> المبلغ المدفوع :
 
                                         <v-chip class="ma-2" color="success" outlined label>
-                                            {{sumPay()}} IQ
+                                            {{sumPay()|currency}} IQ
                                         </v-chip>
                                     </div>
                                     <div style="font-weight:bold"><span style="    padding-left: 34px;"> المتبقي
                                             :</span>
 
                                         <v-chip color="success" class="ma-2" outlined label>
-                                            {{editedItem.price-sumPay()}} IQ
+                                            {{editedItem.price-sumPay()|currency}} IQ
                                         </v-chip>
 
 
@@ -639,7 +639,7 @@ height: 100%;" />
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
-                        tooth_num: "",
+                        tooth_num: [],
                         status_id: 42,
 
                         bills: [{
@@ -689,7 +689,7 @@ height: 100%;" />
                         upper_left: "",
                         patient_id: "",
                         lower_right: "",
-                        tooth_num: "",
+                        tooth_num: [],
                         lower_left: "",
                         images: [{
                             img: '',
@@ -818,10 +818,10 @@ height: 100%;" />
 
                                     });
 
-                                this.initialize();
+                               // this.initialize();
 
 
-                                this.close();
+                               // this.close();
 
 
                                 this.$swal.fire({
@@ -917,7 +917,7 @@ height: 100%;" />
         created() {
 
             EventBus.$on("changetooth", (tooth) => {
-                this.editedItem.tooth_num = tooth;
+                this.editedItem.tooth_num=tooth;
 
             });
 

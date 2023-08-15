@@ -652,7 +652,7 @@ alert('dd');
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
-                        tooth_num: "",
+                        tooth_num: [],
                         status_id: 42,
 
                         bills: [{
@@ -741,7 +741,7 @@ alert('dd');
                         upper_left: "",
                         patient_id: "",
                         lower_right: "",
-                        tooth_num: "",
+                        tooth_num: [],
                         lower_left: "",
                         images: [{
                             img: '',
