@@ -73,8 +73,9 @@
     "Case_number_stats":"Case number stats"
   },
   "datatable":{
-
+    "address":"address",
     "phone":"phone",
+    "birth_date":"Birth Date",
     "sex":"sex",
     "doctor":"Doctor",
     "status_Description ":"status Description ",
@@ -91,7 +92,7 @@
     "status":"Status",
     "dashbourd":"dashbourd",
     "description":"Description"
-
+,    "touth_num":"tooth number"
   },
   "addcase":"Add Case",
   "AppBar": {
@@ -130,6 +131,8 @@
     "doctor":"Doctor",
   "header":{
     "home":"Home",
+    "reports":"تصيدير تقرير",
+    "birthDay":"اعياد ميلاد المراجعين",
     "doctors":"دكاتره العياده",
     "About_Us":"About Us",
     "Blog":"Blog",

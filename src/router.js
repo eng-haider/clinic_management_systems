@@ -107,6 +107,19 @@ const router = new Router({
             component: () => import('@/views/dashboard/showCases'),
           },
           {
+            path: 'recipes',
+            name:'recipes',
+            component: () => import('@/views/dashboard/recipes'),
+          },
+          
+          {
+            path: 'Conjugations',
+            name:'Conjugations',
+            component: () => import('@/views/dashboard/Conjugations'),
+          },
+
+          
+          {
             path: 'store',
             name:'store',
             component: () => import('@/views/dashboard/store'),
@@ -123,7 +136,7 @@ const router = new Router({
           {
             path: 'dashbourd',
             name:'dashbourd',
-            component: () => import('@/views/dashboard/dashbourd'),
+            component: () => import('@/views/dashboard/Dashboard'),
           },
 
           {
@@ -132,18 +145,36 @@ const router = new Router({
             component: () => import('@/views/dashboard/requestBooking_test'),
             
           },
-            {
-              path:'requestBooking',
-              name:'requestBooking',
-              component: () => import('@/views/dashboard/requestBooking'),
-              
-            },
+           
             {
               path:'profile',
               name:'profile',
               component: () => import('@/views/dashboard/profile'),
               
             },
+            {
+              path:'BirthDay',
+              name:'birthday',
+              component: () => import('@/views/dashboard/BirthDay'),
+              
+            },
+            {
+              path:'reports',
+              name:'reports',
+              component: () => import('@/views/dashboard/reports'),
+              
+            },
+
+            {
+              path:'waitinglist',
+              name:'show_waitinglist',
+              component: () => import('@/views/dashboard/waitinglist'),
+              
+            },
+
+            
+            
+            //BirthDay
   
 
             //profile

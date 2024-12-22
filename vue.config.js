@@ -1,11 +1,18 @@
 // vue.config.js
 
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 
 
 module.exports = {
-
+  // devServer: {
+  //   port: 8081, // Replace 8081 with the desired port number
+  // },
+  css: {
+    extract: true,
+    sourceMap: false,
+  },
   chainWebpack: (config) => {
     config
       .plugin('html')
@@ -17,6 +24,7 @@ module.exports = {
   
   configureWebpack: {
     plugins: [
+      // new BundleAnalyzerPlugin() ,
       new VuetifyLoaderPlugin({
         /**
          * This function will be called for every tag used in each vue component

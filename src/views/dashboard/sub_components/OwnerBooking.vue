@@ -9,7 +9,7 @@
           <v-toolbar dark color="primary lighten-1 mb-5">
             <v-toolbar-title>
               <h3 style="color:#fff;font-family: 'Cairo'"> حجز موعد
-             
+
               </h3>
             </v-toolbar-title>
             <v-spacer />
@@ -20,10 +20,10 @@
 
           <v-container grid-list-xs>
             <div v-if="!patientFound">
-           
+
               <v-row justify="center">
                 <v-col>
-                  <v-autocomplete :items="patients" outlined item-text="name" return-object v-model="patient"
+                  <v-autocomplete :items="patients" outlined item-text="name" return-object v-model="patientInfo"
                     item-value="name" label="اختار المراجع"></v-autocomplete>
                 </v-col>
               </v-row>
@@ -31,15 +31,11 @@
 
 
             <v-row justify="center">
-              <!-- <v-col
-      cols="12"
-      sm="6"
-         xs="12"
-    >
+              <v-col cols="12" sm="6" xs="12">
 
-  
-    <v-date-picker v-model="editedItem.reservation_start_date" width="300" locale="ar-iq" ></v-date-picker>
-    </v-col> -->
+
+                <v-date-picker v-model="editedItem.reservation_start_date" width="300" locale="ar-iq"></v-date-picker>
+              </v-col>
 
               <v-col cols="12" sm="6" xs="12">
 
@@ -100,7 +96,7 @@
 
 <script>
   const axios = require('axios');
-  import moment from 'moment/src/moment'
+
 
   import {
     EventBus
@@ -241,7 +237,7 @@
 
       id: '',
       Owner_items: [],
-      item_id:'',
+      item_id: '',
       reserv_date: [],
       post_data: {
 
@@ -260,7 +256,7 @@
         reservation_number: "1",
         deliverable: false,
         phone: "",
-       
+
         ReservationRequirements: [],
         sub_time_id: ""
 
@@ -285,7 +281,7 @@
     },
 
     created() {
-    
+
       /// EventBus.$emit('getUserReservationsCount', true);
 
 
@@ -296,26 +292,26 @@
     methods: {
       getOwnerTctateitemsById() {
 
-this.loading = true
-      this.$http({
-        method: 'get',
-        url: "https://tctate.com/api/api/v2/items/owner/get?page=1",
-        headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
-            }
+        this.loading = true
+        this.$http({
+          method: 'get',
+          url: "https://tctate.com/api/api/v2/items/owner/get?page=1",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+          }
 
-      }).then(response => {
+        }).then(response => {
 
 
-        this.item_id = response.data.data[0].id;
-     
+          this.item_id = response.data.data[0].id;
 
-     
 
-      });
-},
+
+
+        });
+      },
       pay_prev() {
         if (this.ItemFeauterAvailable) {
           this.e1 = 4
@@ -509,120 +505,107 @@ this.loading = true
         }
 
       },
-      save() {
+      methods: {
+        async save() {
+              if (this.$refs.form.validate()) {
 
 
-        if (this.$refs.form.validate()) {
+            this.loadSave = true; // Show loading indicator
 
+            try {
+              let year = this.editedItem.reservation_from_time.getFullYear();
+              let month = this.editedItem.reservation_from_time.getMonth() + 1;
+              let day = this.editedItem.reservation_from_time.getDate();
 
-          let year = this.data.StartTime.getFullYear();
-          let month = this.data.StartTime.getMonth() + 1;
-          let day = this.data.StartTime.getDate();
-
-          if (day < 10) {
-            day = '0' + day.toString();
-          }
-
-          if (month < 10) {
-            month = '0' + month.toString();
-          }
-
-          var date = `${year}-${month}-${day}`;
-
-
-
-         
-          this.post_data.reservation_start_date = date;
-          this.post_data.reservation_end_date = date;
-          this.post_data.reservation_from_time = this.editedItem.reservation_from_time;
-          this.post_data.reservation_to_time = this.editedItem.reservation_to_time;
-
-          if (this.patientFound) {
-            this.post_data.user.phone = "964" + parseInt(this.patientInfo.phone.replace(/ /g, ""));
-            this.post_data.user.name = this.patientInfo.name;
-          } else {
-            this.post_data.user.phone = "964" + parseInt(this.patient.phone.replace(/ /g, ""));
-            this.post_data.user.name = this.patient.name;
-          }
-
-
-
-          this.post_data.item_id = this.item_id;
-
-
-          this.post_data.reservation_number = 1;
-          this.post_data.reservation_date = date;
-          this.$http({
-              method: 'post',
-              url: "https://tctate.com/api/api/reservation/owner/set",
-              data: this.post_data,
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+              if (day < 10) {
+                day = '0' + day.toString();
               }
-            })
-            .then(response => {
-              this.BookingDetails = false;
 
-              this.$swal('', "    تم  الحجز بنجاح", 'success')
-              //  this.$router.push({ name: 'requestBooking' })
-              EventBus.$emit('GetRes', true)
-              this.$refs.form.reset()
-              //    this.e1 = 1;
-              if ("payId" in response.data) {
-                this.fatwra_num = response.data.data.payId;
-                this.$refs.form_fa.reset()
+              if (month < 10) {
+                month = '0' + month.toString();
+              }
+
+              var date = `${year}-${month}-${day}`;
+
+              // Prepare data to be sent to the API
+              const reservationData = {
+                reservation_start_date: date,
+                reservation_end_date: date,
+                reservation_from_time: this.editedItem.reservation_from_time,
+                reservation_to_time: this.editedItem.reservation_to_time,
+                item_id: this.item_id,
+                reservation_number: 1,
+                reservation_date: date,
+              };
+
+              if (this.patientFound) {
+                reservationData.user = {
+                  phone: "964" + parseInt(this.patientInfo.phone.replace(/ /g, "")),
+                  name: this.patientInfo.name,
+                };
+              } else {
+                reservationData.user = {
+                  phone: "964" + parseInt(this.patient.phone.replace(/ /g, "")),
+                  name: this.patient.name,
+                };
+              }
+
+              // Call your API endpoint to save the reservation
+              const response = await axios.post('https://tctate.com/api/api/reservation/owner/set', reservationData, {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token,
+                },
+              });
+
+              EventBus.$emit('GetResCancel', true)
+              // Add to local reservations
+              this.reservations.push({
+                name: reservationData.user.name,
+                details: 'New Reservation',
+                start: `${this.editedItem.reservation_date} ${this.editedItem.reservation_from_time}`,
+                startTime: this.editedItem.reservation_from_time,
+                color: "green",
+              });
+
+              // Handle success
+              this.BookingDetails = false;
+              this.$swal.fire({
+                    position: "top-end",
+  icon: "success",
+  title: "تم الحجز بنجاح",
+  showConfirmButton: false,
+  timer: 1500
+              });
+
+              EventBus.$emit('GetRes', true);
+
+              this.resetForm();
+
+              if (response.data && response.data.payId) {
+                this.fatwra_num = response.data.payId;
+                this.$refs.form_fa.reset();
                 this.fawater_res_Dailog = true;
               }
-              // this.rating_dailog = true;
 
-
-
-              //bookink item succesful
-
-            })
-
-
-
-            .catch(error => {
-                this.booking_dialog = false;
-                if (error.response) {
-                  if (error.response.data.data == 'SubscriptionsPackages Expire') {
-                    this.$swal('', "حزمه الاشتراك الحاليه منتهيه يرجئ شراء حزمه جديده ", 'error')
-
-                  }
-
-
+            } catch (error) {
+              // Handle error
+              this.BookingDetails = false;
+              if (error.response) {
+                if (error.response.data.data === 'SubscriptionsPackages Expire') {
+                  this.$swal('', "حزمة الاشتراك الحالية منتهية يرجى شراء حزمة جديدة", 'error');
                 }
               }
-
-            )
-
-            .finally(d => {
-              d;
-              this.booking_dialog = false;
-              this.loading = false;
-            });
-
-
-          // }
-
-
-          // if (this.info.item_price.book_without_credit_card == 0 && this.post_data.phone.length < 11) {
-          //   //this.$swal('', "    تم  الحجز بنجاح", 'success')
-          //   this.fatwra_dialog = true;
-          //   return;
-          // }
-
-
-        }
+            } finally {
+              this.loadSave = false; // Hide loading indicator
+            }
+          }
+        },
       },
-
       date_today() {
         var x = new Date();
-        return moment(String(x)).format('YYYY-MM-DD');
-
+        return x.toISOString().split('T')[0]; // Formats the date as 'YYYY-MM-DD'
       },
       ava_sub(subs_time) {
         for (var i = 0; i < subs_time.length; i++) {

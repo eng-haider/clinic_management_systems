@@ -80,26 +80,28 @@
                     </g>
                 </a>
                 <a href="#">
-                <g>
-                    <path @click="reply_click(11)"
-                        :class="[tooth_num.includes(11)==true ?  'activeClass comon st3 ' : ' comon st3']" id="11"
-                        d="M224.1,14.8c4-1.2,7.9,1.4,9.8,4.8c5.2,7.1,3.6,16.3,3.9,24.5c-0.1,2.9,0.5,7.2-3.1,8.2
+                    <g>
+                        <path @click="reply_click(11)"
+                            :class="[tooth_num.includes(11)==true ?  'activeClass comon st3 ' : ' comon st3']" id="11"
+                            d="M224.1,14.8c4-1.2,7.9,1.4,9.8,4.8c5.2,7.1,3.6,16.3,3.9,24.5c-0.1,2.9,0.5,7.2-3.1,8.2
         c-4,0.7-8.2,1.4-12.3,0.7c-3.7-0.5-7.5-0.1-10.9-1.9c-0.8-4.6-0.1-9.4-0.4-14.1C210.9,28,215.4,18.2,224.1,14.8z" />
-                    <path @click="reply_click(21)"
-                        :class="[tooth_num.includes(21)==true?  'activeClass comon st3 ' : ' comon st4']" id="21" d="M250,14.7c3.3-0.9,6.5,1,8.8,3c5.5,4.7,8,12.1,8,19.3c-0.1,4.4,0.1,8.8-0.1,13.2c-2,2.8-6.1,2.1-9.1,2.5
+                        <path @click="reply_click(21)"
+                            :class="[tooth_num.includes(21)==true?  'activeClass comon st3 ' : ' comon st4']" id="21" d="M250,14.7c3.3-0.9,6.5,1,8.8,3c5.5,4.7,8,12.1,8,19.3c-0.1,4.4,0.1,8.8-0.1,13.2c-2,2.8-6.1,2.1-9.1,2.5
         c-5,0.8-10.2,0.5-15.1-0.7c-2.8-1.6-2.3-5.3-2.4-8c0.3-7.7-1.3-16.2,3.1-23.2C244.9,18.2,246.9,15.4,250,14.7z" />
-                    <path @click="reply_click(43)"
-                        :class="[tooth_num.includes(43)==true ?  'activeClass comon st5 ' : ' comon st5']" id="43" d="M163.9,102.6c2.9-0.8,5.4,1.5,7.6,3.2c3.1,2.7,6.1,5.6,8.2,9.2c-0.1,6.1-0.3,12.8-4.5,17.7c-2.2,3-6.3,4-9.7,3
+                        <path @click="reply_click(43)"
+                            :class="[tooth_num.includes(43)==true ?  'activeClass comon st5 ' : ' comon st5']" id="43"
+                            d="M163.9,102.6c2.9-0.8,5.4,1.5,7.6,3.2c3.1,2.7,6.1,5.6,8.2,9.2c-0.1,6.1-0.3,12.8-4.5,17.7c-2.2,3-6.3,4-9.7,3
         c-5.8-2-10.5-6.8-12.3-12.6c0-4.3-1.2-9.1,1.4-12.9C156.7,106.7,160,103.8,163.9,102.6z" />
-                    <path @click="reply_click(42)"
-                        :class="[tooth_num.includes(42)==true ?  'activeClass comon st5 ' : ' comon st6']" id="42"
-                        d="M192.5,104.1c4.7-0.4,9.5-0.3,14.1,0.8c1.3,0,1.9,0.7,1.8,1.9c0.2,6.8,0.3,13.8-2.2,20.3
+                        <path @click="reply_click(42)"
+                            :class="[tooth_num.includes(42)==true ?  'activeClass comon st5 ' : ' comon st6']" id="42"
+                            d="M192.5,104.1c4.7-0.4,9.5-0.3,14.1,0.8c1.3,0,1.9,0.7,1.8,1.9c0.2,6.8,0.3,13.8-2.2,20.3
         c-1,3.4-4.6,5.1-7.7,6.2c-5.1,0.9-10.3-1.9-13.4-5.9c-4.1-5.8-2.8-13.2-2.9-19.8C184.4,104.4,189,104.8,192.5,104.1z" />
-                    <path @click="reply_click(41)"
-                        :class="[tooth_num.includes(41)==true ?  'activeClass comon st7 ' : ' comon st7']" id="41" d="M211.2,105.7c8.5-2.8,17.9-3.1,26.6-0.7c0,5.7,0.2,11.4-0.1,17c-1.1,5.3-4.8,10.6-10.1,12.4
+                        <path @click="reply_click(41)"
+                            :class="[tooth_num.includes(41)==true ?  'activeClass comon st7 ' : ' comon st7']" id="41"
+                            d="M211.2,105.7c8.5-2.8,17.9-3.1,26.6-0.7c0,5.7,0.2,11.4-0.1,17c-1.1,5.3-4.8,10.6-10.1,12.4
         c-3.1,0.4-5.9-1.6-8.1-3.5c-3.4-3.3-5.8-7.4-7.3-11.9C210.5,114.8,211.4,110.1,211.2,105.7z" />
-                </g>
-</a>
+                    </g>
+                </a>
                 <a href="#">
                     <g>
                         <path class="comon st8" @click="reply_click(23)"
@@ -364,58 +366,38 @@
                 <rect x="91.7" y="61.4" width="0.9" height="34.7" />
                 <rect x="33.3" y="61.1" width="0.9" height="34.7" />
                 <rect x="63.1" y="60.8" width="0.9" height="34.7" />
-                <text transform="matrix(1 0 0 1 22.3 73.9892)" class="st39 st40">18</text>
-                <text transform="matrix(1 0 0 1 55.4868 73.9892)" class="st39 st40">17</text>
-                <text transform="matrix(1 0 0 1 84.0802 73.9892)" class="st39 st40">16</text>
-                <text transform="matrix(1 0 0 1 114.6549 75)" class="st39 st40">15</text>
-                <text transform="matrix(1 0 0 1 144.7977 75)" class="st39 st40">14</text>
-                <text transform="matrix(1 0 0 1 169.5968 74.9999)" class="st39 st40">13</text>
-                <text transform="matrix(1 0 0 1 198.8225 74.9999)" class="st39 st40">12</text>
-                <text transform="matrix(1 0 0 1 229.3609 74.9999)" class="st39 st40">11</text>
-                <text transform="matrix(1 0 0 1 256.9392 75)" class="st39 st40">21</text>
-                <text transform="matrix(1 0 0 1 286.082 75)" class="st39 st40">22</text>
-                <text transform="matrix(1 0 0 1 316.4399 73.0106)" class="st39 st40">23</text>
-                <text transform="matrix(1 0 0 1 343.2068 73.0106)" class="st39 st40">24</text>
-
-                <text transform="matrix(1 0 0 1 373.6457 73.0106)" class="st39 st40">25</text>
-
-
-                <text transform="matrix(1 0 0 1 403.5746 73.0106)" class="st39 st40">26</text>
-
-                <text transform="matrix(1 0 0 1 433.4513 73.0106)" class="st39 st40">27</text>
-                <text transform="matrix(1 0 0 1 464.0921 73.0106)" class="st39 st40">28</text>
-
-                <text transform="matrix(1 0 0 1 22.3 93.4785)" class="st39 st40">48</text>
-                <text transform="matrix(1 0 0 1 55.4868 93.4785)" class="st39 st40">47</text>
-                <text transform="matrix(1 0 0 1 84.0802 93.8741)" class="st39 st40">46</text>
-                <text transform="matrix(1 0 0 1 114.6549 94.4892)" class="st39 st40">45</text>
-                <text transform="matrix(1 0 0 1 144.7977 95.0126)" class="st39 st40">44</text>
-                <text transform="matrix(1 0 0 1 169.5968 94.4892)" class="st39 st40">43</text>
-                <text transform="matrix(1 0 0 1 198.8225 94.4891)" class="st39 st40">42</text>
-
-
-                <text transform="matrix(1 0 0 1 229.3609 94.489)" class="st39 st40">41</text>
-
-
-                <text transform="matrix(1 0 0 1 256.9392 94.4892)" class="st39 st40">31</text>
-                <text transform="matrix(1 0 0 1 316.4399 94.4892)" class="st39 st40">32</text>
-
-                <text transform="matrix(1 0 0 1 286.082 95.0127)" class="st39 st40">33</text>
-
-
-                <text transform="matrix(1 0 0 1 343.2068 95.0127)" class="st39 st40">34</text>
-
-
-                <text transform="matrix(1 0 0 1 373.6457 95.5)" class="st39 st40">35</text>
-
-
-
-                <text transform="matrix(1 0 0 1 403.5746 95.4998)" class="st39 st40">36</text>
-
-
-                <text transform="matrix(1 0 0 1 433.4513 95.4999)" class="st39 st40">37</text>
-
-                <text transform="matrix(1 0 0 1 464.0921 95.4999)" class="st39 st40">38</text>
+                <text transform="matrix(1 0 0 1 22.3 73.9892)" :class="['st39', 'st40', textClass]">18</text>
+                <text transform="matrix(1 0 0 1 55.4868 73.9892)" :class="['st39', 'st40', textClass]">17</text>
+                <text transform="matrix(1 0 0 1 84.0802 73.9892)" :class="['st39', 'st40', textClass]">16</text>
+                <text transform="matrix(1 0 0 1 114.6549 75)" :class="['st39', 'st40', textClass]">15</text>
+                <text transform="matrix(1 0 0 1 144.7977 75)" :class="['st39', 'st40', textClass]">14</text>
+                <text transform="matrix(1 0 0 1 169.5968 74.9999)" :class="['st39', 'st40', textClass]">13</text>
+                <text transform="matrix(1 0 0 1 198.8225 74.9999)" :class="['st39', 'st40', textClass]">12</text>
+                <text transform="matrix(1 0 0 1 229.3609 74.9999)" :class="['st39', 'st40', textClass]">11</text>
+                <text transform="matrix(1 0 0 1 256.9392 75)" :class="['st39', 'st40', textClass]">21</text>
+                <text transform="matrix(1 0 0 1 286.082 75)" :class="['st39', 'st40', textClass]">22</text>
+                <text transform="matrix(1 0 0 1 316.4399 73.0106)" :class="['st39', 'st40', textClass]">23</text>
+                <text transform="matrix(1 0 0 1 343.2068 73.0106)" :class="['st39', 'st40', textClass]">24</text>
+                <text transform="matrix(1 0 0 1 373.6457 73.0106)" :class="['st39', 'st40', textClass]">25</text>
+                <text transform="matrix(1 0 0 1 403.5746 73.0106)" :class="['st39', 'st40', textClass]">26</text>
+                <text transform="matrix(1 0 0 1 433.4513 73.0106)" :class="['st39', 'st40', textClass]">27</text>
+                <text transform="matrix(1 0 0 1 464.0921 73.0106)" :class="['st39', 'st40', textClass]">28</text>
+                <text transform="matrix(1 0 0 1 22.3 93.4785)" :class="['st39', 'st40', textClass]">48</text>
+                <text transform="matrix(1 0 0 1 55.4868 93.4785)" :class="['st39', 'st40', textClass]">47</text>
+                <text transform="matrix(1 0 0 1 84.0802 93.8741)" :class="['st39', 'st40', textClass]">46</text>
+                <text transform="matrix(1 0 0 1 114.6549 94.4892)" :class="['st39', 'st40', textClass]">45</text>
+                <text transform="matrix(1 0 0 1 144.7977 95.0126)" :class="['st39', 'st40', textClass]">44</text>
+                <text transform="matrix(1 0 0 1 169.5968 94.4892)" :class="['st39', 'st40', textClass]">43</text>
+                <text transform="matrix(1 0 0 1 198.8225 94.4891)" :class="['st39', 'st40', textClass]">42</text>
+                <text transform="matrix(1 0 0 1 229.3609 94.489)" :class="['st39', 'st40', textClass]">41</text>
+                <text transform="matrix(1 0 0 1 256.9392 94.4892)" :class="['st39', 'st40', textClass]">31</text>
+                <text transform="matrix(1 0 0 1 316.4399 94.4892)" :class="['st39', 'st40', textClass]">32</text>
+                <text transform="matrix(1 0 0 1 286.082 95.0127)" :class="['st39', 'st40', textClass]">33</text>
+                <text transform="matrix(1 0 0 1 343.2068 95.0127)"   :class="['st39', 'st40', textClass]">34</text>
+                <text transform="matrix(1 0 0 1 373.6457 95.5)"  :class="['st39', 'st40', textClass]" >35</text>
+                <text transform="matrix(1 0 0 1 403.5746 95.4998)" :class="['st39', 'st40', textClass]">36</text>
+                <text transform="matrix(1 0 0 1 433.4513 95.4999)" :class="['st39', 'st40', textClass]">37</text>
+                <text transform="matrix(1 0 0 1 464.0921 95.4999)" :class="['st39', 'st40', textClass]">38</text>
             </svg>
 
         </div>
@@ -450,6 +432,15 @@
     .activeClass {
         fill: aqua;
     }
+
+
+.text-light-mode {
+fill: #000;
+}
+
+.text-dark-mode {
+    fill: #fff; /* White for dark mode */
+}
 </style>
 
 <script>
@@ -464,8 +455,17 @@
         data() {
             return {
                 active: '',
+
             }
         },
+
+        computed: {
+    // Computed property to return the correct class based on the current theme
+    textClass() {
+      
+      return this.$vuetify.theme.dark ? 'text-dark-mode' : 'text-light-mode';
+    },
+  },
         methods: {
             reply_click(id) {
 
@@ -500,8 +500,8 @@
                     this.tooth_num
 
                     if (this.tooth_num.includes(id)) {
-                        
-                        var carIndex = this.tooth_num.indexOf(id); //get  "car" index
+
+                        carIndex = this.tooth_num.indexOf(id); //get  "car" index
                         //remove car from the colors array
                         this.tooth_num.splice(carIndex, 1); //
                     } else {

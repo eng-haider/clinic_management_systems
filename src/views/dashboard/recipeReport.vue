@@ -1,188 +1,159 @@
 <template>
-    <div style="direction: rtl;font-family: 'Cairo';    background-color: #fff;">
-
-        <div style="width:100%">
-            <img src="/rx_header.jpeg" style="width:100%" />
-        </div>
-
-
-        <div class="container" style="    margin-top: 44px;">
-
-
+    <div id="printSection" class="rx-report">
+      <!-- Header Image -->
+      <div class="header-image">
+        <img src="/rx_header.jpeg" alt="Header Image" />
+      </div>
+  
+      <!-- Clinic Info -->
+    <v-container>
 
 
-            <div class="row">
-
-                <div class="col-md-3 col-xs-3"></div>
-
-
-                <div class="col-md-3 col-xs-3">
-
-                    <h3 style="    text-align: center;font-size:37px;
-    font-family: 'GE_Dinar';"> {{ $store.state.AdminInfo.clinics_info.name }} </h3>
-                    <h3
-                    style="    text-align: center;font-size:37px;
-    font-family: 'GE_Dinar';"
-                    >لطب الاسنان</h3>
-
-
-
-                </div>
+        <v-layout row wrap class="patient-details">
+            <v-flex xs3>
+                <strong>الاسم:</strong> {{ RecipeInfo.case.patient_id.name }}
+            </v-flex>
+            <v-flex xs3>
+                <strong>العمر:</strong> {{ RecipeInfo.age }}
+            </v-flex>
+            <v-flex xs3>
+                <strong>الجنس:</strong>
+                <span>{{ RecipeInfo.sex === 1 ? 'ذكر' : 'انثى' }}</span>
+            </v-flex>
+            <v-flex xs3>
+                <strong>الحالة:</strong> {{ RecipeInfo.case.case_categories.name_ar }}
+            </v-flex>
 
 
-
-                <div class="col-md-3 col-xs-3">
-                    <div class="rexipe_logo" style="    height: 114px;
-        margin-bottom: 27px;
-            margin-right: 10px;">
-                        <img :src="Url+'/users/'+$store.state.AdminInfo.img_name" style="height:100%" />
-                    </div>
-                </div>
-
-
-
-                <div class="col-md-3 col-xs-3"></div>
-
-
-            </div>
-
-            <br>
-            <br>
-            <div class="row" style="text-align: right;">
-
-
-                <div class="col-md-4 col-xs-6 titl_top_min" >
-                    الاسم : {{RecipeInfo.name}}
-                </div>
-
-                <div class="col-md-2 col-xs-6 titl_top_min">
-                    العمر : {{RecipeInfo.age}}
-                </div>
-
-
-
-                <div class="col-md-3 col-xs-6 titl_top_min">
-                    الجنس : <span v-if="RecipeInfo.sex==1">ذكر</span> <span v-if="RecipeInfo.sex==0">انثئ</span>
-                </div>
-
-                <div class="col-md-3 col-xs-6 titl_top_min">
-                    الحاله : {{RecipeInfo.case.case_categories.name_ar}}
-                </div>
-
-
-            </div>
-            <div class="row" style="text-align: right;">
-
-                <div class="col-md-12 col-xs-12">
-
-
-                    <div style="
-              height: 750px;
-    margin-top: 30px;
-    border-radius: 12px;
-    padding: 29px;
-    font-size: 22px;
-    border: 2px solid rgb(8, 119, 169);
+            <v-flex xs12 class="notes-section" pt-4>
     
-    ">
-                        {{RecipeInfo.rx}}
-                    </div>
-                </div>
+    {{ RecipeInfo.notes }}
 
-            </div>
-            <br>
-            <br>
-            <div class="row" style="text-align: right;">
-
-                <div class="col-md-12 col-xs-12 titl_top_min">
-                    توقيع الدكتور :
-                </div>
-                <!-- <div class="col-md-12 col-xs-12">
-
-
-                    {{RecipeInfo.user.name}}
-                </div> -->
-
-            </div>
-
-
-<br>
-<br>
-
-            <div class="titl_top_min" style="text-align:center">
-              كربلاء المقدسة - شارع الاسكان - مقابل القنصلية
-
-            </div>
-           
-              <div class="titl_top_min" style="text-align:center">
-                0773 399 5558
-
-            </div>
-
-
-
-
-
-
+</v-flex>
+        </v-layout>
+     
+  
+  
+        <!-- Doctor Signature -->
+        <div class="row text-right">
+          <div class="col-md-12">
+            <strong>توقيع الدكتور:</strong>
+          </div>
         </div>
+  
+        <!-- Footer -->
+        <div class="footer text-center">
+        <div>{{ $store.state.AdminInfo.clinics_info.address }}</div>
+          <div>{{ $store.state.AdminInfo.phone }}</div>
+        </div>
+        
+    </v-container>
+        <!-- <div class="row">
+          <div class="col-md-3"></div>
+          <div class="col-md-6 text-center">
+            <h3 class="clinic-name">{{ $store.state.AdminInfo.clinics_info.name }}</h3>
+            <h3 class="clinic-specialty">لطب الاسنان</h3>
+          </div>
+          <div class="col-md-3"></div>
+        </div> -->
+  
+        <!-- Patient Details -->
 
     </div>
-</template>
+  </template>
+  
+  <style scoped>
 
-<style>
+  
+  /* General Styles */
+  .rx-report {
+    direction: rtl;
+    font-family: "Cairo", sans-serif;
+    background-color: #fff;
+  }
+  
+  .header-image img {
+    width: 100%;
+  }
+  
+  .clinic-name,
+  .clinic-specialty {
+    font-family: "GE_Dinar", sans-serif;
+    font-size: 37px;
+  }
+  
+  .patient-details {
+    margin-top: 20px;
+    font-size: 18px;
+    font-family: "GE_Dinar", sans-serif;
+  }
+  
 
-.titl_top_min
-{
-    font-family: 'GE_Dinar';
-    font-size: 24px;
+  
+  .notes-section {
+  min-height: 400px;
+  margin-top: 30px;
+  padding: 1cm; /* Add padding to prevent text from sticking to the border */
+  margin-left: auto; /* Center align if necessary */
+  margin-right: auto; /* Center align if necessary */
+  border: 1px solid #0877a9;
+
+  font-size: 22px;
+  font-family: "GE_Dinar", sans-serif;
+  width: calc(100% - 2cm); /* Ensure it stays within printable area */
+  box-sizing: border-box; /* Includes padding and border in the width */
 }
-    .rexipe_logo {
-        height: 114px;
-        margin-bottom: 27px;
-        margin-right: 71px;
+
+@media print {
+  .notes-section {
+    width: calc(100% - 2cm); /* Adjust for print to avoid cut-off */
+    margin: auto; /* Center align for print */
+  }
+}
+
+  .footer {
+    margin-top: 40px;
+    font-size: 18px;
+    font-family: "GE_Dinar", sans-serif;
+  }
+  
+  @media print {
+    body {
+      direction: rtl;
+      font-family: "Cairo", sans-serif;
+      background-color: #fff;
     }
-
-    .parent {
-        position: relative;
-        float: left;
-        width: 91.5%;
-        min-width: 825px;
-        height: 120px;
-        text-align: left;
-        z-index: 1;
-        border: solid 1px #19365D;
-
-        background-repeat: repeat-x;
-        margin-left: 3.7%;
-        margin-right: 3.7%;
-        padding-left: 0.5%;
-        padding-right: 0.5%;
+  
+    .container {
+      width: 21cm;
+      height: 29.7cm;
+      margin: auto;
+      padding: 1cm;
+      box-sizing: border-box;
     }
-
-    .link {
-        position: absolute;
-        width: 100%;
-        bottom: 0;
-        text-align: center;
+  
+    .header-image img {
+      max-width: 100%;
+      height: auto;
     }
-</style>
-<script>
-    // recipeReport
-    export default {
-        inheritAttrs: false,
-
-        props: {
-            RecipeInfo: Object,
-        },
-        components: {
-
-        },
-        methods: {
-            print() {
-
-                this.$htmlToPaper('printMex');
-            },
-
-        }
-    }
-</script>
+  }
+  </style>
+  
+  <script>
+  export default {
+    name: "RecipeReport",
+    props: {
+      RecipeInfo: {
+        type: Object,
+        required: true,
+      },
+    },
+    methods: {
+      // Optional: Method for printing the report
+      print() {
+        this.$htmlToPaper("printSection");
+      },
+    },
+  };
+  </script>
+  

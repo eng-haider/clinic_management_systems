@@ -4,32 +4,49 @@
   <v-navigation-drawer id="core-navigation-drawer" v-model="drawer"
     :dark="barColor !== 'rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)'" :expand-on-hover="expandOnHover"
     :right="$vuetify.rtl" mobile-break-point="960" app width="260" mini-variant-width="85" v-bind="$attrs"
-    :color="barColor" :class="barColor">
+    :color="barColor" :class="barColor" >
     <!-- user info ui -->
     <v-list style="margin-top:27px" nav class="py-0">
 
       <div class="app-sidebar__user active is-expanded">
         <div class="dropdown user-pro-body text-center">
-          <div class="user-pic">
+  <div class="user-pic" style="position: relative; display: inline-block;">
+    <img 
+      v-if="$store.state.AdminInfo.img_name == null"
+      src="profile.png"
+      class="avatar-xxl rounded-circle mb-1"
+      style="width:100px;height:100px"
+      alt="default"
+    />
+    <img 
+      v-else 
+      :src="Url + '/users/' + $store.state.AdminInfo.img_name"
+      class="avatar-xxl rounded-circle mb-1"
+      style="width:100px;height:100px"
+      alt="default"
+    />
+    <!-- Green point for online status -->
+    <div
+      
+      style="
+        position: absolute;
+        bottom:13px;
+        right: 5px;
+        width: 15px;
+        height: 15px;
+        background-color: green;
+        border-radius: 50%;
+        border: 2px solid white;
+      "
+      title="Online"
+    ></div>
+  </div>
+  <div class="user-info" style="text-align: center;">
+    <h5 class="mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
+    <h5 class="mb-2 app-sidebar__user-name">{{ $store.state.AdminInfo.name }}</h5>
+  </div>
+</div>
 
-            <img v-if="$store.state.AdminInfo.img_name==null"
-              src="https://alkafeel.net/alkafeel_helpdiskticat/uploads/profile/xuser-profile.png.pagespeed.ic.z3dbYPuxzy.webp"
-              class="avatar-xxl rounded-circle mb-1" style="width:100px;height:100px" alt="default">
-
-            <img v-else :src="Url+'/users/'+$store.state.AdminInfo.img_name" class="avatar-xxl rounded-circle mb-1"
-              style="width:100px;height:100px" alt="default">
-
-          </div>
-          <div class="user-info" style="    text-align: center;">
-            <h5 class=" mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
-
-            <h5 class="mb-2  app-sidebar__user-name "> {{ $store.state.AdminInfo.name }}</h5>
-
-
-
-
-          </div>
-        </div>
       </div>
       <hr>
     </v-list>
@@ -66,7 +83,7 @@
 
           {
             title: this.$t("header.dashbourd"),
-            icon: 'fas fa-clipboard',
+            icon: 'fa-solid fa-chart-line',
             auth: true,
             to: '/',
             name: 'show_dashbourd'
@@ -83,6 +100,8 @@
           },
 
 
+
+
           {
             title: this.$t("header.showCases"),
             icon: 'fa-light fa-tooth',
@@ -91,6 +110,7 @@
             name: 'show_cases'
           },
 
+
           {
             title: this.$t("header.store"),
             icon: 'fa-light fa-store',
@@ -98,6 +118,17 @@
             to: '/store',
             name: 'show_cases'
           },
+
+          {
+            title: this.$t("header.Conjugations"),
+            icon: 'fa-solid fa-microscope',
+            auth: true,
+            to: '/Conjugations',
+            name: 'show_Conjugations'
+          },
+
+
+
 
 
           {
@@ -110,14 +141,34 @@
 
 
           {
+            title: this.$t("header.reports"),
+            icon: 'fa-solid fa-file-export',
+            auth: true,
+            to: '/reports',
+            name: 'export_reports'
+          },
+
+
+          {
             title: this.$t("Drawer.Booking"),
-            icon: 'far fa-clock',
+            icon: 'fa-solid fa-calendar',
             auth: true,
             to: "/requestBooking_test",
             name: 'show_appointment'
 
 
           },
+
+          {
+            title: this.$t("Drawer.recipes"),
+            icon: 'fa-solid fa-prescription',
+            auth: true,
+            to: "/recipes",
+            name: 'show_recipes'
+
+
+          },
+          //recipes
 
           {
 
@@ -129,6 +180,28 @@
             name: 'show_doctors'
           },
 
+          {
+
+
+            title: this.$t("header.birthDay"),
+            icon: 'fa-sharp fa-solid fa-user',
+            auth: true,
+            to: '/BirthDay',
+            name: 'show_doctors'
+          },
+
+          {
+
+
+title: this.$t("header.waitinglist"),
+icon: 'far fa-clock',
+auth: true,
+to: '/waitinglist',
+name: 'show_waitinglist'
+},
+
+          //waitinglist
+          //BirthDay
 
         ],
         right: null,
@@ -163,7 +236,7 @@
       if (this.$store.state.role == 'secretary') {
 
         this.items[1].auth = false;
-        this.items[2].auth = false;
+        // this.items[2].auth = false;
       } else {
         this.items[1].auth = true;
         this.items[2].auth = true;
@@ -185,8 +258,9 @@
         this.items[1].title = this.$t("header.showCases")
         this.items[2].title = this.$t("Drawer.dashbourd")
         this.items[3].title = this.$t("Drawer.Booking")
-
-
+        this.items[4].title = this.$t("Drawer.reports")
+        this.items[5].title = this.$t("Drawer.birtBookinghDay")
+        this.items[6].title = this.$t("Drawer.waitinglist")
 
 
       },

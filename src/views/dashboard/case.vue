@@ -67,7 +67,7 @@
                             </div>
 
                             <div v-else>
-                                <teeth :tooth_num="editedItem.tooth_num"  :id="editedItem.id" />
+                                <teeth :tooth_num="editedItem.tooth_num" :id="editedItem.id" />
 
                             </div>
 
@@ -84,7 +84,7 @@
                                 </v-col>
 
 
-
+                                <!-- 
                                 <v-col cols="12" md="6" sm="6" v-if="doctors.length>1">
                                     <p style="display:none;"></p>
 
@@ -96,12 +96,182 @@
                                     </v-select>
 
 
-                                </v-col>
+                                </v-col> -->
 
 
                             </v-row>
 
 
+
+                            <div v-if="editedItem.case_categores_id==3">
+
+                                <h2 style="    padding: 19px;" pa-4>Access Opening</h2>
+                                <v-layout row wrap>
+                                    <v-flex xs12>
+                                        <v-simple-table style="direction: ltr !important;">
+                                            <template v-slot:default>
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            Canel
+                                                        </th>
+
+                                                        <th>
+                                                            Working length
+                                                        </th>
+
+                                                        <th>
+                                                            Refreence point
+                                                        </th>
+
+                                                        <th>
+                                                            File Used
+                                                        </th>
+
+
+                                                        <th>
+
+                                                        </th>
+                                                    </tr>
+
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(row, rowIndex) in editedItem.root_stuffing.access_opening"
+                                                        :key="rowIndex">
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" dense outlined v-model="row[0]">
+                                                            </v-text-field>
+                                                        </td>
+
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" dense outlined v-model="row[1]">
+                                                            </v-text-field>
+                                                        </td>
+
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" outlined dense v-model="row[2]">
+                                                            </v-text-field>
+                                                        </td>
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" outlined dense v-model="row[3]">
+                                                            </v-text-field>
+                                                        </td>
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-icon style="color:red" @click="deleterow(rowIndex)"
+                                                                v-bind="attrs" v-on="on">
+                                                                mdi-delete</v-icon>
+                                                        </td>
+                                                    </tr>
+
+
+                                                </tbody>
+                                            </template>
+                                        </v-simple-table>
+                                    </v-flex>
+                                    <v-card-actions class="justify-center">
+                                        <v-btn small color="green" style="color:#fff" @click="addRow()">
+                                            <i class="fas fa-plus"></i>
+                                            Add Canel
+
+                                        </v-btn>
+                                    </v-card-actions>
+
+                                </v-layout>
+                                <br>
+                                <br>
+
+                            </div>
+
+
+
+
+
+                            <div v-if="editedItem.case_categores_id==3">
+                                <h2 style="    padding: 19px;" pa-4>oburation</h2>
+                                <v-layout row wrap>
+                                    <v-flex xs12>
+                                        <v-simple-table style="direction: ltr !important;">
+                                            <template v-slot:default>
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            Canel
+                                                        </th>
+
+                                                        <th>
+                                                            Last file size
+                                                        </th>
+
+                                                        <th>
+                                                            Irrigation & duration
+                                                        </th>
+
+                                                        <th>
+                                                            Gutta percha size
+                                                        </th>
+
+
+                                                        <th>
+
+                                                        </th>
+                                                    </tr>
+
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(row, rowIndex) in editedItem.root_stuffing.oburation"
+                                                        :key="rowIndex">
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" dense outlined v-model="row[0]">
+                                                            </v-text-field>
+                                                        </td>
+
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" dense outlined v-model="row[1]">
+                                                            </v-text-field>
+                                                        </td>
+
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" outlined dense v-model="row[2]">
+                                                            </v-text-field>
+                                                        </td>
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-text-field label="" outlined dense v-model="row[3]">
+                                                            </v-text-field>
+                                                        </td>
+
+                                                        <td style="    padding: 0px;">
+                                                            <v-icon style="color:red"
+                                                                @click="deletoburationerow(rowIndex)" v-bind="attrs"
+                                                                v-on="on">
+                                                                mdi-delete</v-icon>
+                                                        </td>
+                                                    </tr>
+
+
+                                                </tbody>
+                                            </template>
+                                        </v-simple-table>
+                                    </v-flex>
+                                    <v-card-actions class="justify-center">
+                                        <v-btn small color="green" style="color:#fff" @click="addoburationRow()">
+                                            <i class="fas fa-plus"></i>
+                                            Add Canel
+
+
+                                        </v-btn>
+                                    </v-card-actions>
+
+                                </v-layout>
+
+
+                            </div>
 
 
 
@@ -123,12 +293,14 @@
 
                                 <v-col cols="12" md="2" v-if="editedItem.sessions[index].date==''">
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
-                                        {{ moment(new Date()).format('DD-MM-YYYY') }}</p>
+                                        {{ new Date().toLocaleDateString('en-GB').replace(/\//g, '-') }}</p>
                                 </v-col>
                                 <v-col cols="12" md="2" v-else>
 
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
-                                        {{ moment(editedItem.sessions[index].date).format('DD-MM-YYYY') }}</p>
+                                        {{ new Date(editedItem.sessions[index].date).toLocaleDateString('en-GB').replace(/\//g, '-') }}
+                                    </p>
+
 
 
                                 </v-col>
@@ -148,7 +320,7 @@
 
                             <v-row row wrap v-if="editedItem.images.length >0">
 
-                                <v-col cols="12" md="4" v-for="img in editedItem.images" :key="img" pr-2 pl-2>
+                                <v-col cols="12" md="4" v-for="(img, index) in  editedItem.images" :key="img" pr-2 pl-2>
                                     <div style="height:auto;width:auto">
 
 
@@ -166,9 +338,18 @@
 
                                         <!-- <a data-fancybox="gallery"  :href="Url+'/case_photo/'+img.image_url" class=""> -->
 
-                                        <img v-if="img.image_url !== undefined" :src="Url+'/case_photo/'+img.image_url"
-                                            style="width: 100%;
-height: 100%;" />
+                                        <div style="position: relative; width: 100%; height: 100%;">
+                                            <img v-if="img.image_url !== undefined"
+                                                :src="Url + '/case_photo/' + img.image_url"
+                                                style="width: 100%; height: 100%;" />
+
+                                            <!-- Delete icon positioned in the top-right corner of the image -->
+                                            <span v-if="img.image_url !== undefined" @click="deleteImage(index,img.id)"
+                                                style="position: absolute; top: 5px; right: 5px; cursor: pointer;">
+                                                <i class="fas fa-trash" style="font-size: 1.5em; color: red;"></i>
+                                            </span>
+                                        </div>
+
                                         <!-- </a> -->
                                     </div>
                                 </v-col>
@@ -257,7 +438,8 @@ height: 100%;" />
                                 <v-flex md1 class="d-none d-sm-flex">
                                 </v-flex>
                             </v-layout>
-                            <v-card-actions class="justify-center" v-if="editedItem.price-sumPay() !==0">
+                            <v-card-actions class="justify-center"
+                                v-if="editedItem.price-sumPay() !==0 && editedItem.price-sumPay() >0">
                                 <v-btn small color="green" style="color:#fff" @click="addPayment()">
                                     <i class="fas fa-plus"></i>
                                     اضافه دفعه
@@ -353,20 +535,13 @@ height: 100%;" />
 </style>
 
 <script>
-    // import {
-    //     Fancybox
-    //   } from "@fancyapps/ui";
-    //   import "@fancyapps/ui/dist/fancybox.css";
-
-
-
     import vue2Dropzone from 'vue2-dropzone'
     import 'vue2-dropzone/dist/vue2Dropzone.min.css'
     import teeth from '../../components/core/teeth.vue';
     import {
         EventBus
     } from "./event-bus.js";
-    import moment from 'moment'
+
 
     import Axios from "axios";
     export default {
@@ -392,9 +567,10 @@ height: 100%;" />
         data() {
             return {
                 oldDoctors: {},
-                UP_url: 'http://apismartclinic.tctate.com/api/cases/uploude_image',
+                recipes: [],
+                UP_url: 'https://tctate.com/SmartClinicAPI/public/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url: 'http://apismartclinic.tctate.com/api/cases/uploude_image',
+                    url: 'https://tctate.com/SmartClinicAPI/public/api/cases/uploude_image',
                     thumbnailWidth: 150,
                     maxFilesize: 5.5,
 
@@ -412,8 +588,11 @@ height: 100%;" />
                     }
                 },
                 desserts: [],
+                tableData: [
+                    ["", " ", "", ""]
+                ],
                 paymentsCount: 1,
-                moment: moment,
+
                 cats: [],
                 valid: false,
                 image: [],
@@ -447,7 +626,8 @@ height: 100%;" />
                 imgCount: 1,
                 images: [],
                 selecBill: {},
-
+                disabled: false,
+                timeout: null,
                 dialog: false,
                 loadSave: false,
                 //  CaseCategories: [],
@@ -495,6 +675,109 @@ height: 100%;" />
         },
 
         methods: {
+            deleteImage(index, id) {
+
+
+                let text = "هل انت متاكد من الحذف ؟ ";
+                if (confirm(text) == true) {
+
+
+                    this.editedItem.images.splice(index, 1);
+                    Axios.delete("/cases/delete_image/" + id, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                            }
+                        })
+
+
+
+                        .then(() => {
+                            // this.$swal.fire({
+                            //         title: "تم الحذف ",
+                            //         text: "",
+                            //         icon: "success",
+                            //         confirmButtonText: "اغلاق",
+                            //     });
+                            //      this.initialize();
+
+                        })
+                        .catch(() => {});
+
+
+                }
+
+            },
+            getrecipes() {
+
+                Axios.get("getrecipes", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.recipes = res.data;
+                    })
+            },
+
+
+            addRow() {
+                // Check if `root_stuffing` is a JSON string and parse it if necessary
+                // Check if `root_stuffing` is a string and attempt to parse it
+                if (typeof this.editedItem.root_stuffing === 'string') {
+                    try {
+                        this.editedItem.root_stuffing = JSON.parse(this.editedItem.root_stuffing);
+                    } catch (error) {
+                        console.error("Failed to parse root_stuffing:", error);
+                        // If parsing fails, initialize it as an object
+                        this.editedItem.root_stuffing = {};
+                    }
+                }
+
+                // Check that `root_stuffing` is an object after parsing or initialization
+                if (!this.editedItem.root_stuffing || typeof this.editedItem.root_stuffing !== 'object') {
+                    this.editedItem.root_stuffing = {};
+                }
+
+                // Ensure `access_opening` is an array in `root_stuffing`
+                if (!Array.isArray(this.editedItem.root_stuffing.access_opening)) {
+                    this.editedItem.root_stuffing.access_opening = [
+                        [null, null, null, null]
+                    ];
+                }
+
+                // Ensure `oburation` is an array in `root_stuffing`
+                if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
+                    this.editedItem.root_stuffing.oburation = [
+                        [null, null, null, null]
+                    ];
+                }
+
+
+
+                // Now add the new row to `oburation`
+                const newRow = ['', '', '', ''];
+
+                this.editedItem.root_stuffing.access_opening.push(newRow);
+            },
+
+
+            deleterow(index) {
+                this.editedItem.root_stuffing.access_opening.splice(index, 1);
+            },
+
+            addoburationRow() {
+                const newRow = Array('', '', '', '');
+                this.editedItem.root_stuffing.oburation.push(newRow);
+            },
+            deletoburationerow(index) {
+                this.editedItem.root_stuffing.oburation.splice(index, 1);
+            },
+
+
             formatDate(date) {
                 if (!date) return null
 
@@ -621,11 +904,13 @@ height: 100%;" />
 
 
             editItem(item) {
-
+                console.log(item)
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
                 this.selecBill = Object.assign({}, this.editedItem);
+
+
 
 
 
@@ -639,6 +924,7 @@ height: 100%;" />
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
+                        doctors: [],
                         tooth_num: [],
                         status_id: 42,
 
@@ -679,15 +965,25 @@ height: 100%;" />
                 }
 
 
+
+
+
+
+
+
+
+
                 this.dialog = true;
             },
             close() {
+
                 this.editedItem = {
                     case: {
                         case_categores_id: "",
                         upper_right: "",
                         upper_left: "",
                         patient_id: "",
+                        doctors: [],
                         lower_right: "",
                         tooth_num: [],
                         lower_left: "",
@@ -718,6 +1014,7 @@ height: 100%;" />
                         upper_right: "",
                         upper_left: "",
                         patient_id: "",
+                        doctors: [],
                         lower_right: "",
                         lower_left: "",
                         status_id: 42,
@@ -769,7 +1066,7 @@ height: 100%;" />
 
             save() {
 
-                if (this.$refs.form.validate()) {
+                if (this.$refs.form.validate() && this.loadSave == false) {
                     this.loadSave = true;
                     // if (this.editedIndex > -1 && this.editedItem.id !== undefined) {
 
@@ -795,41 +1092,22 @@ height: 100%;" />
                             })
                             .then(() => {
 
-                                //window.location.reload()
-                                //   document.location.reload(true);  
-                                //  document.location.reload(true);  
-                                location.href = location.origin + location.pathname + location.search
+
                                 this.loadSave = false;
 
 
 
-                                this.axios
-                                    .patch("cases/" + this.editedItem.id, this.editedItem, {
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            Accept: "application/json",
-                                            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                                        },
-                                    })
-                                    .then(() => {
-
-
-
-
-                                    });
-
-                               // this.initialize();
-
-
-                               // this.close();
-
 
                                 this.$swal.fire({
-                                    title: "تم تعديل ",
-                                    text: "",
+                                    position: "top-end",
                                     icon: "success",
-                                    confirmButtonText: "اغلاق",
+                                    title: "تم تعديل ",
+                                    showConfirmButton: false,
+                                    timer: 1500
                                 });
+                                
+                                
+                                this.close();
                             })
                             .catch(() => {
                                 this.loadSave = false;
@@ -862,12 +1140,15 @@ height: 100%;" />
                                 this.close();
                                 EventBus.$emit("changeStatusCloseCase", false);
                                 res
+
                                 this.$swal.fire({
-                                    title: 'تمت اضافه حاله جديده',
-                                    text: "",
+                                    position: "top-end",
                                     icon: "success",
-                                    confirmButtonText: this.$t('close'),
+                                    title: 'تمت اضافه حاله جديده',
+                                    showConfirmButton: false,
+                                    timer: 1500
                                 });
+
                                 if (this.$route.name !== 'showCases') {
 
                                     // this.initialize();
@@ -881,7 +1162,7 @@ height: 100%;" />
                                     } else {
                                         //   window.location.reload()
                                         //  document.location.reload(true);  
-                                        location.href = location.origin + location.pathname + location.search
+                                        //   location.href = location.origin + location.pathname + location.search
                                     }
 
                                 }
@@ -915,9 +1196,9 @@ height: 100%;" />
             this.dateFormatted = this.formatDate(this.date)
         },
         created() {
-
+            this.getrecipes()
             EventBus.$on("changetooth", (tooth) => {
-                this.editedItem.tooth_num=tooth;
+                this.editedItem.tooth_num = tooth;
 
             });
 

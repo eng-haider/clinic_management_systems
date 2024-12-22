@@ -94,16 +94,18 @@
                                 <v-col cols="12" md="2" v-if="editedItem.sessions[index].date==''">
 
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
-                                        {{ moment(new Date()).format('DD-MM-YYYY') }}</p>
+                                    </p>
 
-
+                                        {{ new Date().toLocaleDateString('en-GB').replace(/\//g, '-') }}
 
                                 </v-col>
 
                                 <v-col cols="12" md="2" v-else>
 
                                     <p :class="$vuetify.breakpoint.xs ? 'onl_ph_datea' : ''">
-                                        {{ moment(editedItem.sessions[index].date).format('DD-MM-YYYY') }}</p>
+  {{ new Date(editedItem.sessions[index].date).toLocaleDateString('en-GB').replace(/\//g, '-') }}
+</p>
+
 
 
                                 </v-col>
@@ -332,12 +334,11 @@
 
 
 <script>
-alert('dd');
+
     import teeth from '../../components/core/teeth.vue';
     import {
         EventBus
     } from "./event-bus.js";
-    import moment from 'moment'
 
     import Swal from "sweetalert2";
     // import {
@@ -393,7 +394,7 @@ alert('dd');
                     
                 },
                 paymentsCount: 1,
-                moment: moment,
+             
                 cats: [],
                 valid: false,
 
@@ -572,7 +573,15 @@ alert('dd');
                                 }
                             })
                             .then(() => {
-                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                              
+                                         
+                                this.$swal.fire({
+                    position: "top-end",
+  icon: "success",
+  title:this.$t('Successfully'),
+  showConfirmButton: false,
+  timer: 1500
+              });
                                 this.initialize();
                             })
                             .catch(() => {
@@ -640,6 +649,7 @@ alert('dd');
             },
 
             editItem(item) {
+                
                 this.editedIndex = this.desserts.indexOf(item);
 
                 this.editedItem = Object.assign({}, item);
@@ -829,12 +839,15 @@ alert('dd');
                                 this.close();
                                 this.initialize();
 
+                              
+
                                 this.$swal.fire({
-                                    title: "تم تعديل ",
-                                    text: "",
-                                    icon: "success",
-                                    confirmButtonText: "اغلاق",
-                                });
+                    position: "top-end",
+  icon: "success",
+  title: "تم تعديل ",
+  showConfirmButton: false,
+  timer: 1500
+              });
                             })
                             .catch(() => {
                                 this.loadSave = false;

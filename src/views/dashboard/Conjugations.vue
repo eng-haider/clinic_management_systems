@@ -6,7 +6,7 @@
         <div>
             <br>
             <v-toolbar flat>
-                <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.store") }}
+                <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.Conjugations") }}
                 </v-toolbar-title>
 
                 <v-divider class="mx-4" inset vertical></v-divider>
@@ -52,17 +52,64 @@
 
                                         <v-col class="py-0" cols="12" sm="6" md="6">
                                             <v-text-field v-model="editedItem.quantity"
+                                            type="number"
                                                 style="direction: rtl;text-align: right;" :rules="[rules.required]"
                                                 :label="$t('store.quantity')" outlined>
                                             </v-text-field>
                                         </v-col>
 
                                         <v-col class="py-0" cols="12" sm="6" md="6">
-                                            <v-text-field v-model="editedItem.required_quantity"
+                                            <v-text-field v-model="editedItem.price"
                                                 style="direction: rtl;text-align: right;" :rules="[rules.required]"
-                                                :label="$t('store.required_quantity')" outlined>
+                                                :label="$t('datatable.price')" type="number" outlined>
                                             </v-text-field>
                                         </v-col>
+
+
+
+                                        <v-col class="py-0" cols="12" sm="6" md="6">
+
+                                            <v-menu
+        v-model="menu2"
+        :close-on-content-click="false"
+        :nudge-right="40"
+        transition="scale-transition"
+        offset-y
+        min-width="auto"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+          v-model="editedItem.date"
+            label="Picker without buttons"
+            prepend-icon="mdi-calendar"
+            readonly
+            v-bind="attrs"
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-date-picker
+        v-model="editedItem.date"
+          @input="menu2 = false"
+        ></v-date-picker>
+      </v-menu>
+
+                                            <!-- <v-text-field v-model="editedItem.date"
+                                                style="direction: rtl;text-align: right;" :rules="[rules.required]"
+                                                :label="$t('datatable.date')" type="number" outlined>
+                                            </v-text-field> -->
+                                        </v-col>
+
+
+                                        <v-col cols="12" md="6" sm="6">
+                                    <p style="display:none;"></p>
+
+                                    <v-select :rules="[rules.required]" dense v-model="editedItem.conjugations_categories_id"
+                                        required label=" النوع " :items="ConjugationsCategories" outlined
+                                        item-text="name" item-value="id"></v-select>
+
+
+                                </v-col>
+
 
 
                                     </v-row>
@@ -87,60 +134,50 @@
         </div>
 
         <v-container id="dashboard" fluid tag="section">
-            <!-- <v-text-field class="mt-4" label="اكتب للبحث" outlined append-icon="mdi-magnify" v-model="search">
-            </v-text-field> -->
-
-            <v-layout row wrap pt-4>
-                <v-flex xs12 md3 sm3 v-for="item in items" :key="item" pl-3 pt-3>
-
-                    <v-card class="mx-auto" max-width="344" outlined :class="getClass(item)">
-                        <v-list-item three-line>
-                            <v-list-item-content>
-                                <div class="text-h5 mb-4">
-                                    {{ item.name }}
-
-                                    <v-icon style="float:left" @click="editItem(item)" v-bind="attrs" v-on="on">
-                                        mdi-pencil</v-icon>
+         
+            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" @page-count="pageCount = $event"
+                hide-default-footer :items="items" class="elevation-1 request_table" items-per-page="15">
+                <template v-slot:top>
+                    <v-toolbar flat>
+                     
+                        <v-divider class="mx-4" inset vertical></v-divider>
+                        <v-spacer></v-spacer>
+                        
+                    </v-toolbar>
 
 
-                                    <v-icon style="float:left" @click="deleteItem(item)" v-bind="attrs" v-on="on">
-                                        mdi-delete</v-icon>
-
-                                </div>
+                </template>
 
 
-                                <p class="fgh text-h5 mb-1 " style=" font-family:Cairo !important;">
-                                    المتوفره : {{ item.quantity }}
-                                </p>
+                <template v-slot:[`item.names`]="{ item }">
+
+                    <span>
+                        {{item.name}}
+                    </span>
 
 
 
-                                <p class="fgh text-h5 mb-1 " style="font-family:Cairo !important;">
-                                    التنبيه عند الكميه : {{ item.required_quantity }}
-                                </p>
-
-
-
-                            </v-list-item-content>
-
-
-                        </v-list-item>
-
-                        <v-card-actions>
-                            <v-btn outlined rounded text
-                                @click="item.quantity=item.quantity+1,update(item,item.quantity)">
-                                +1
-                            </v-btn>
-
-                            <v-btn outlined rounded text
-                                @click="item.quantity=item.quantity-1,update(item,item.quantity)">
-                                -1
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-
-                </v-flex>
-            </v-layout>
+                </template>
+                <template v-slot:[`item.actions`]="{ item }">
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon class="ml-5" @click="editItem(item)" v-if="!item.isDeleted" v-bind="attrs"
+                                v-on="on">mdi-pencil</v-icon>
+                        </template>
+                        <span>{{ $t("edite") }} </span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon @click="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
+                                mdi-delete</v-icon>
+                        </template>
+                        <span>{{$t('Delete')}}</span>
+                    </v-tooltip>
+                </template>
+                <template v-slot:no-data>
+                    <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
+                </template>
+            </v-data-table>
 
 
         </v-container>
@@ -167,10 +204,39 @@
         data() {
             return {
                 loading: false,
+                menu2: false,
                 false: false,
+                ConjugationsCategories:[],
                 dialog: false,
                 items: [],
                 loadSave: false,
+                headers: [{
+                        text: this.$t('datatable.name'),
+                        align: "start",
+                        value: "names"
+                    }, 
+
+                    {
+                        text: this.$t('datatable.price'),
+                        align: "start",
+                        value: "price"
+                    }, 
+
+
+                    {
+                        text: 'الكمية',
+                        align: "start",
+                        value: "price"
+                    }, 
+
+
+
+                    {
+                        text: this.$t('Processes'),
+                        value: "actions",
+                        sortable: false
+                    }
+                ],
                 rules: {
                     minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
                     required: value => !!value || "مطلوب",
@@ -188,7 +254,10 @@
                 editedItem: {
                     name: "",
                     quantity: "",
-                    required_quantity: ""
+                    required_quantity: "",
+                    price:"",
+                    date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+                    conjugations_categories_id:""
 
                 },
 
@@ -204,14 +273,13 @@
                 this.editedItem = Object.assign({}, item);
 
 
+             
 
-
-                this.editedIndex = this.desserts.indexOf(item);
 
                 this.dialog = true;
             },
             deleteItem(item) {
-
+          
                 Swal.fire({
                     title: this.$t('sure_process'),
                     text: "",
@@ -223,7 +291,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("Items/" + item.id, {
+                        Axios.delete("Conjugations/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -267,7 +335,7 @@
                     if (this.editedIndex > -1) {
 
                         this.axios
-                            .patch("Items/" + this.editedItem.id, this.editedItem, {
+                            .patch("Conjugations/" + this.editedItem.id, this.editedItem, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -298,7 +366,7 @@
                     } else {
 
                         this.axios
-                            .post("Items", this.editedItem, {
+                            .post("Conjugations", this.editedItem, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -336,9 +404,34 @@
 
             },
 
+
+            //ConjugationsCategories
+
+            getConjugationsCategories() {
+                this.loading = true;
+                Axios.get("Conjugations/ConjugationsCategories", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+
+                        this.loading = false;
+                        this.ConjugationsCategories = res.data.data;
+
+
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
+
+
             initialize() {
                 this.loading = true;
-                Axios.get("Items/GetByClinicId", {
+                Axios.get("Conjugations/GetByClinicId", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -360,6 +453,16 @@
             close() {
 
                 this.dialog = false;
+                this.editedItem={
+                    name: "",
+                    quantity: "",
+                    required_quantity: "",
+                    price:"",
+                    date:"",
+                    conjugations_categories_id:""
+
+
+                }
 
             },
 
@@ -381,6 +484,7 @@
 
         },
         created() {
+            this.getConjugationsCategories()
             this.initialize();
 
         },

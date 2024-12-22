@@ -84,11 +84,21 @@
 
 
 
-                                <!-- <p>
+
+
+                                <v-lable>عنوان العيادة</v-lable>
+                                <v-text-field height="40" style="" filled placeholder="عنوان العيادة" v-model="owner.Clinics.address"
+                                    :rules="emailRules">
+                                </v-text-field>
+
+
+
+                                <p>
                                     <v-btn @click="password_Dailog=true" color="red" style="color:#fff" width="200px">
                                         تغير الباسورد</v-btn>
-                                </p> -->
-                                <v-btn pr-4 color="primary" style="width:50%" :loading="loading" @click="update(),update()">
+                                </p>
+                                <v-btn pr-4 color="primary" style="width:50%" :loading="loading"
+                                    @click="update(),update()">
 
                                     حفظ التعديلات
 
@@ -108,7 +118,7 @@
         <!-- <avatar-picker v-model="showAvatarPicker" :current-avatar="form.avatar" @selected="selectAvatar">
         </avatar-picker> -->
 
-        <v-dialog v-model="password_Dailog" max-width="450px" height="600px" persistent>
+        <v-dialog v-model="password_Dailog" max-width="550px" height="600px" persistent>
             <v-card pr-5>
                 <v-form v-model="password_form" ref="password_form">
                     <v-container>
@@ -127,8 +137,9 @@
                             <v-lable>الباسورد السابق</v-lable>
                             <v-text-field filled v-model="password.old_password" height="50" style=""
                                 :type="show1 ? 'text' : 'password'"
-                                :append-icon="show1 ? 'visibility' : 'visibility_off'" @click:append="show1 = !show1"
-                                placeholder="الباسورد السابق" required :rules="oldpasswordRules"></v-text-field>
+                                :append-icon="show1 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
+                                @click:append="show1 = !show1" placeholder="الباسورد السابق" required
+                                :rules="oldpasswordRules"></v-text-field>
                         </v-flex>
 
 
@@ -136,17 +147,18 @@
                             <v-lable>الباسورد الجديد</v-lable>
                             <v-text-field filled v-model="password.new_password" height="50" style=""
                                 :type="show2 ? 'text' : 'password'"
-                                :append-icon="show2 ? 'visibility' : 'visibility_off'" @click:append="show2 = !show2"
-                                placeholder="الباسورد الجديد" required :rules="newpasswordRules"></v-text-field>
+                                :append-icon="show2 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
+                                @click:append="show2 = !show2" placeholder="الباسورد الجديد" required
+                                :rules="newpasswordRules"></v-text-field>
                         </v-flex>
 
                         <v-flex xs12 md12 sm12>
                             <v-lable>اعاده كتابه الباسورد</v-lable>
                             <v-text-field filled v-model="password.password_confirmation"
                                 :type="show3 ? 'text' : 'password'"
-                                :append-icon="show3 ? 'visibility' : 'visibility_off'" @click:append="show3 = !show3"
-                                height="50" style="" placeholder="اعاده كتابه الباسورد" required
-                                :rules="passwordConfirmationRules"></v-text-field>
+                                :append-icon="show3 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
+                                @click:append="show3 = !show3" height="50" style="" placeholder="اعاده كتابه الباسورد"
+                                required :rules="passwordConfirmationRules"></v-text-field>
                         </v-flex>
 
                         <v-row justify="center">
@@ -169,6 +181,9 @@
                             </v-flex>
 
                         </v-row>
+
+                        <br>
+                        <br>
                     </v-container>
 
                 </v-form>
@@ -194,7 +209,7 @@
                 oldpasswordRules: [
                     v => !!v || 'يجب ادخال الباسورد',
                     (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
-                    (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
+                    // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
                 ],
 
 
@@ -202,13 +217,13 @@
                 newpasswordRules: [
                     v => !!v || 'يجب ادخال الباسورد',
                     (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
-                    (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
+                    // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
                 ],
 
                 passwordConfirmationRules: [
                     v => !!v || 'يجب ادخال الباسورد',
                     (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
-                    (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام',
+                    // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام',
 
                 ],
 
@@ -280,16 +295,82 @@
 
                     this.$http({
                             method: 'post',
-                            url: "/owner/v2/UpdatePassword",
+                            url: "https://tctate.com/api/api/owner/v2/UpdatePassword",
                             data: data,
                             headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+                            },
+                        })
+                        .then(response => {
+                            response
+                            this.password_Dailog = false;
+                            // this.$swal('', "تم تغير الباسورد بنجاح ", 'success')
 
-                            }
+
+
+
+
+
+
+                            //change password of smart clinic
+                            this.$http({
+                            method: 'post',
+                            url: "/users/UpdatePassword",
+                            data: data,
+                            headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                        },
                         })
                         .then(response => {
                             response
                             this.password_Dailog = false;
                             this.$swal('', "تم تغير الباسورد بنجاح ", 'success')
+
+
+
+
+
+
+
+
+
+                            
+
+                        })
+                        .catch(error => {
+                            if (error.response) {
+
+                                this.error_msg = [];
+                                if (error.response.data.data.password ==
+                                    "The password confirmation does not match.") {
+                                    // this.scrollToTop();
+                                    this.error_msg.push('الباسوردان غير متاطبقان');
+
+                                }
+
+                                if (error.response.data.data ==
+                                    "old password false") {
+                                    //  this.scrollToTop();
+                                    this.error_msg.push('الباسورد السابق غير صحيح');
+
+                                }
+
+                            }
+
+
+                        }).finally(() => {
+
+                            this.loading = false;
+                        });
+
+
+
+
+
+
 
 
 
@@ -337,7 +418,7 @@
                     }).then(response => {
 
                         this.owner = response.data.data;
-                        this.$store.dispatch("updateInfo", this.owner );
+                        this.$store.dispatch("updateInfo", this.owner);
 
                         this.images = [];
 
@@ -398,25 +479,28 @@
                     var data = {}
                     if (this.images[0].includes(this.http)) {
 
-                         data = {
+                        data = {
 
                             name: this.owner.name,
                             email: this.owner.email,
                             clinics_name: this.owner.Clinics.name,
+                            clinics_address: this.owner.Clinics.address,
                             images: [],
 
                         };
                     } else {
-                         data = {
+                        data = {
 
                             name: this.owner.name,
                             email: this.owner.email,
                             clinics_name: this.owner.Clinics.name,
+                            clinics_address: this.owner.Clinics.address,
                             images: this.images,
 
                         };
 
                     }
+                    
                     this.loading = true;
                     // this.description=JSON.stringify(data);
                     this.$http({
@@ -425,13 +509,13 @@
                             data: data,
                             headers: {
                                 "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
                             }
                         })
                         .then(response => {
                             response
-                          //  this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
+                            //  this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
                             EventBus.$emit('changeUserInfo', true);
                             // this.$store.dispatch("updateInfo", response.data.data);
                             // this.$store.dispatch("updateInfo", response.data.data);

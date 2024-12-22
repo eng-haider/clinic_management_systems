@@ -10,9 +10,242 @@
       </v-card>
     </v-dialog>
 
-    <v-container id="dashboard" fluid tag="section">
-      <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" items-per-page="15"
-        @page-count="pageCount = $event" :items="Cases" class="elevation-1 request_table">
+    <v-container id="dashboard" fluid >
+
+
+      <v-data-table v-if="!is_Conjugations" :headers="headers" :loading="loadingData" :page.sync="page"
+        items-per-page="15" @page-count="pageCount = $event" :items="Cases" class="elevation-1 request_table">
+        <template v-slot:top>
+          <v-toolbar flat>
+            <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.accounts") }}
+            </v-toolbar-title>
+
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <v-spacer></v-spacer>
+
+          </v-toolbar>
+
+          <v-container id="dashboard" fluid >
+          <v-layout row wrap>
+
+
+
+            <v-flex xs12 pt-2 pl-3 sm3 md3>
+
+              <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                offset-y min-width="auto">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field dense outlined v-model="search.from_date" label="من التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+                    v-on="on"></v-text-field>
+                </template>
+                <v-date-picker v-model="search.from_date" no-title scrollable>
+                  <v-spacer></v-spacer>
+
+                </v-date-picker>
+              </v-menu>
+
+            </v-flex>
+
+
+            <v-flex xs12 pt-2 pl-3 sm3 md3>
+
+              <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                offset-y min-width="auto">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field dense outlined v-model="search.to_date" label="الئ التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+                    v-on="on"></v-text-field>
+                </template>
+                <v-date-picker v-model="search.to_date" no-title scrollable>
+                  <v-spacer></v-spacer>
+
+                </v-date-picker>
+              </v-menu>
+
+            </v-flex>
+
+
+
+
+
+
+          
+
+            <v-flex xs12 md3 sm3 pt-2 style="float: left;" pl-3   v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2">
+              <v-select dense
+                v-model="search.DocorId" :label="$t('doctor')" :items="doctorsAll" outlined item-text="name"
+                item-value="id">
+              </v-select>
+            </v-flex>
+
+
+
+            <v-flex xs2 md1 sm1 pt-2>
+              <v-btn color="green" dense style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
+            </v-flex>
+
+
+            <v-flex xs3 md1 sm1 pt-2 pr-4   v-if="allItem">
+              <v-btn color="blue" style="color:#fff;" @click="allItem=false;is_search=false;initialize()">الكل</v-btn>
+            </v-flex>
+
+
+          
+
+
+            <!-- <v-flex md4>
+
+            </v-flex> -->
+
+            <!-- <v-flex md1>
+              <v-btn color="blue" style="color:#fff" @click="Export() ">تصــــدير</v-btn>
+            </v-flex> -->
+
+          </v-layout>
+
+          </v-container>
+          <v-layout row wrap pt-4 pb-4 >
+            <!-- <v-flex xs12 md3 sm6 pr-2 pb-4>
+
+
+              <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.case_count">
+
+              </dash_card>
+
+            </v-flex> -->
+
+
+            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+
+              <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.all_sum|currency"></dash_card>
+            </v-flex>
+
+            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+
+              <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid|currency
+"></dash_card>
+
+
+
+
+
+            </v-flex>
+
+            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+
+              <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.remainingamount|currency"></dash_card>
+            </v-flex>
+            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
+
+              <dash_card name="الصرفيات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.Conjugationsprice|currency"></dash_card>
+            </v-flex>
+
+
+
+
+          </v-layout>
+
+          <v-tabs>
+            <v-tab @click="is_Conjugations=false">دفعات  الحالات </v-tab>
+
+            
+            <v-tab @click="is_Conjugations=true">حسابات الصرفيات</v-tab>
+
+          </v-tabs>
+        </template>
+
+<!-- 
+        <template v-slot:[`item.case_num`]="{ item }">
+          {{ item.cases.length }}
+        </template> -->
+   
+
+        
+
+        <template v-slot:[`item.case_push`]="{ item }">
+          <v-chip class="text-right" :color="'green'" outlined>
+          
+            {{BillsSumPaid(item.billable)| currency}}
+
+          </v-chip>
+
+
+        </template>
+        <template v-slot:[`item.price`]="{ item }">
+          <!-- <v-chip class="text-right" :color="'green'" outlined> -->
+
+{{ item.billable.price | currency}}
+            <!-- {{BillsSumPaid(item)| currency}} -->
+
+          <!-- </v-chip> -->
+
+
+        </template>
+
+
+        <template v-slot:[`item.case_sum`]="{ item }">
+          {{item.price| currency}}
+        </template>
+
+
+        <template v-slot:[`item.case_rem`]="{ item }">
+
+
+
+          
+
+
+
+          <v-chip :color="'red'" outlined class="text-right">
+
+            {{(item.billable.price-BillsSumPaid(item.billable)) | currency}}
+          </v-chip>
+
+
+
+        </template>
+
+
+
+
+
+
+
+        <!-- <template v-slot:[`item.actions`]="{ item }">
+
+
+
+
+
+
+          <v-btn dence color="blue" outlined @click="editItem(item)">التفاصيل
+            <i class="fa-solid fa-circle-info"></i>
+
+          </v-btn>
+        </template> -->
+
+      </v-data-table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <v-data-table v-if="is_Conjugations" :headers="headers_Conjugations" :loading="loadingData" :page.sync="page"
+        items-per-page="15" @page-count="pageCount = $event" :items="Conjugations" class="elevation-1 request_table">
         <template v-slot:top>
           <v-toolbar flat>
             <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.accounts") }}
@@ -74,17 +307,17 @@
               <v-btn color="blue" style="color:#fff;float: left;" @click="allItem=false;initialize()">الكل</v-btn>
             </v-flex>
 
-            
-  <v-flex md1>
+
+            <v-flex md1>
 
             </v-flex>
             <v-flex xs11 md2 sm2 pt-5 style="float: left;">
-                            <v-select dense @input="getByDocor()"
-                                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2"
-                                v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined
-                                item-text="name" item-value="id">
-                            </v-select>
-                        </v-flex>
+              <v-select dense @input="getByDocor()"
+                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2"
+                v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined item-text="name"
+                item-value="id">
+              </v-select>
+            </v-flex>
 
 
             <!-- <v-flex md4>
@@ -99,8 +332,8 @@
 
 
 
-          <v-layout row wrap pt-4>
-            <v-flex xs12 md3 sm6 pr-2 pb-4>
+          <v-layout row wrap pt-4 mb-4 style="margin-bottom: 20px ;">
+            <!-- <v-flex xs12 md3 sm6 pr-2 pb-4>
 
 
               <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6"
@@ -108,14 +341,10 @@
 
               </dash_card>
 
-            </v-flex>
+            </v-flex> -->
 
 
-            <v-flex xs12 md3 sm6 pr-2 pb-4>
-
-              <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.all_sum|currency"></dash_card>
-            </v-flex>
+           
 
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
@@ -130,71 +359,34 @@
 
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
-              <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+              <dash_card name="الديون" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.remainingamount"></dash_card>
             </v-flex>
+            <v-flex xs12 md3 sm6 pr-2 pb-4>
+
+              <dash_card name="الصرفيات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+                :count="accounts_statistic.Conjugationsprice"></dash_card>
+            </v-flex>
+
+
+
 
 
           </v-layout>
 
-        </template>
+          <v-tabs>
+            <v-tab @click="is_Conjugations=false">حسابات المارجعين</v-tab>
+            <v-tab @click="is_Conjugations=true">حسابات الصرفيات</v-tab>
 
+          </v-tabs>
 
-        <template v-slot:[`item.case_num`]="{ item }">
-          {{ item.cases.length }}
-        </template>
-        <template v-slot:[`item.case_sum`]="{ item }">
-          {{BillsSum(item.cases)| currency}}
-        </template>
-        <template v-slot:[`item.case_push`]="{ item }">
-          <v-chip class="text-right" :color="'green'" outlined>
-           
-
-            {{BillsSumPaid(item.cases)| currency}}
-
-          </v-chip>
-
-
-        </template>
-
-
-        <template v-slot:[`item.case_rem`]="{ item }">
-
-
-
-
-
-
-
-          <v-chip :color="'red'" outlined class="text-right">
-          
-            {{(BillsSum(item.cases)-BillsSumPaid(item.cases)) | currency}}
-          </v-chip>
-
-
-
-        </template>
-
-
-
-
-
-
-
-        <template v-slot:[`item.actions`]="{ item }">
-
-
-
-
-
-
-          <v-btn dence color="blue" outlined @click="editItem(item)">التفاصيل
-            <i class="fa-solid fa-circle-info"></i>
-
-          </v-btn>
         </template>
 
       </v-data-table>
+
+
+
+
 
       <v-layout row wrap>
         <v-flex xs12>
@@ -238,14 +430,17 @@
     data() {
       return {
         dataSource2: [],
-        doctorsAll:[],
+        is_Conjugations: false,
+        Conjugations: [],
+        doctorsAll: [],
+
         patient: {},
         accounts_statistic: {
           all_sum: '',
           case_count: '',
           paid: '',
-          remainingamount: ''
-
+          remainingamount: '',
+          Conjugationsprice: ''
 
 
 
@@ -259,45 +454,90 @@
         showChar: false,
         Cases: [],
         search: {
+          DocorId:0,
           from_date: (new Date(new Date().setDate(new Date().getDate() - 30) - (new Date()).getTimezoneOffset() *
             60000)).toISOString().substr(0, 10),
+            
           to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
         },
         page: 1,
         pageCount: 0,
         current_page: 1,
-        searchDocorId:0,
+        searchDocorId: 0,
         is_search: false,
         last_page: 0,
         loadingData: true,
-        headers: [{
+
+        headers_Conjugations: [{
             text: this.$t('datatable.name'),
             align: "start",
             value: "name"
           },
 
-
-
-
-
-
-
-
-
           {
-            text: ' عدد الحالات',
-            value: "case_num",
-            sortable: false
+            text: this.$t('datatable.price'),
+            align: "start",
+            value: "price"
           },
 
 
           {
-            text: ' مجموع مبلغ الحالات',
+            text: 'الكمية',
+            align: "start",
+            value: "price"
+          },
+
+
+
+
+
+
+
+
+          {
+            text: 'التاريخ',
+            value: "date",
+            sortable: false
+          }
+        ],
+
+        
+
+
+        headers: [{
+            text: this.$t('datatable.name'),
+            align: "start",
+            value: "billable.patient.name"
+          },
+
+
+
+
+
+
+          
+
+
+
+          {
+            text: 'نوع الحالة',
+            value: "billable.case_categories.name_ar",
+            sortable: false
+          },
+
+   
+
+          {
+            text: '  مبلغ الدفعة',
             value: "case_sum",
             sortable: false
           },
 
-
+          {
+            text: '  مبلغ الحالة',
+            value: "price",
+            sortable: false
+          },
           {
             text: ' المدفوع',
             value: "case_push",
@@ -314,11 +554,11 @@
 
 
 
-          {
-            text: this.$t('Processes'),
-            value: "actions",
-            sortable: false
-          }
+          // {
+          //   text: this.$t('Processes'),
+          //   value: "actions",
+          //   sortable: false
+          // }
         ],
         dataSource: [
 
@@ -339,40 +579,44 @@
     methods: {
       getByDocor() {
 
-if (this.searchDocorId == 0) {
+        if (this.searchDocorId == 0) {
 
-    return this.initialize()
-}
-this.axios.get("patientsAccounsts/getByDoctor/" + this.searchDocorId, {
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          return this.initialize()
         }
-    })
-    .then(res => {
-      this.loadingData = false;
+        this.axios.get("patientsAccounsts/getByDoctor/" + this.searchDocorId, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(res => {
+            this.loadingData = false;
 
-this.Cases = res.data.data;
-
-
-this.accounts_statistic.all_sum = res.data.all_sum;
-this.accounts_statistic.case_count = res.data.case_count;
-
-this.accounts_statistic.paid = res.data.paid;
-this.accounts_statistic.remainingamount = res.data.remainingamount;
-
-
-this.last_page = res.data.meta.last_page;
-this.pageCount = res.data.meta.last_page;
+            this.Cases = res.data.data;
+            this.Conjugations = res.data.Conjugations;
 
 
 
-    })
-    .catch(() => {
-        this.loading = false;
-    });
-},
+            this.accounts_statistic.all_sum = res.data.all_sum;
+            this.accounts_statistic.case_count = res.data.case_count;
+
+            this.accounts_statistic.paid = res.data.paid;
+            this.accounts_statistic.remainingamount = res.data.remainingamount;
+
+            this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+
+
+            this.last_page = res.data.meta.last_page;
+            this.pageCount = res.data.meta.last_page;
+
+
+
+          })
+          .catch(() => {
+            this.loading = false;
+          });
+      },
       Export() {
 
         // this.axios({
@@ -380,29 +624,29 @@ this.pageCount = res.data.meta.last_page;
         //   method: 'GET',
         //   responseType: 'blob',
         // })
-        
-        
+
+
 
         this.axios.get('/patientsAccounsts/export', {
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                Authorization: "Bearer " + this.$store.state.AdminInfo.token
-              }
-            })
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
 
-        
-        
-        .then((response) => {
-          var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-          var fileLink = document.createElement('a');
 
-          fileLink.href = fileURL;
-          fileLink.setAttribute('download', 'file.xlsx');
-          document.body.appendChild(fileLink);
 
-          fileLink.click();
-        });
+          .then((response) => {
+            var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            var fileLink = document.createElement('a');
+
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'file.xlsx');
+            document.body.appendChild(fileLink);
+
+            fileLink.click();
+          });
 
 
 
@@ -450,17 +694,19 @@ this.pageCount = res.data.meta.last_page;
 
       },
 
-      BillsSumPaid(bills_amount) {
+      BillsSumPaid(cases) {
 
         var x = 0
-        for (var i = 0; i < bills_amount.length; i++) {
+       
+        
 
           //   x+=bills_amount[i].price
-          for (var j = 0; j < bills_amount[i].bills.length; j++) {
-            x += bills_amount[i].bills[j].price
+          for (var j = 0; j < cases.bills.length; j++) {
+          
+            x += cases.bills[j].price
           }
 
-        }
+        
 
         return x;
         //return this.caseBillsSum(totle_coast);
@@ -482,7 +728,7 @@ this.pageCount = res.data.meta.last_page;
       //user1_hospital1
       initialize() {
         if (this.is_search == true) {
-
+this.allItem=true;
           this.axios.post('/patientsAccounsts/search?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
@@ -495,6 +741,9 @@ this.pageCount = res.data.meta.last_page;
 
               this.Cases = res.data.data;
 
+              this.Conjugations = res.data.Conjugations;
+
+
 
               this.accounts_statistic.all_sum = res.data.all_sum;
               this.accounts_statistic.case_count = res.data.case_count;
@@ -502,6 +751,7 @@ this.pageCount = res.data.meta.last_page;
               this.accounts_statistic.paid = res.data.paid;
               this.accounts_statistic.remainingamount = res.data.remainingamount;
 
+              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
 
               this.last_page = res.data.meta.last_page;
               this.pageCount = res.data.meta.last_page;
@@ -529,11 +779,15 @@ this.pageCount = res.data.meta.last_page;
               this.loadingData = false;
               this.accounts_statistic.all_sum = res.data.all_sum;
               this.accounts_statistic.case_count = res.data.case_count;
+              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
 
 
               this.accounts_statistic.paid = res.data.paid;
               this.accounts_statistic.remainingamount = res.data.remainingamount;
               this.Cases = res.data.data;
+              this.Conjugations = res.data.Conjugations;
+
+
               this.last_page = res.data.meta.last_page;
               this.pageCount = res.data.meta.last_page;
 
@@ -551,37 +805,37 @@ this.pageCount = res.data.meta.last_page;
       },
 
       getclinicDoctor() {
-                this.loading = true;
-                this.axios.get("doctors/clinic", {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                        }
-                    })
-                    .then(res => {
-                        this.loadingData = false;
-                        this.loading = false;
-                        this.doctors = res.data.data;
+        this.loading = true;
+        this.axios.get("doctors/clinic", {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(res => {
+            this.loadingData = false;
+            this.loading = false;
+            this.doctors = res.data.data;
 
 
-                        this.doctorsAll.push({
-                            id: 0,
-                            name: ' الكل'
-                        });
-                        this.doctors.forEach((item, index) => {
-                            index
-                            this.doctorsAll.push(item)
-                        })
+            this.doctorsAll.push({
+              id: 0,
+              name: ' الكل'
+            });
+            this.doctors.forEach((item, index) => {
+              index
+              this.doctorsAll.push(item)
+            })
 
 
 
 
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
-            },
+          })
+          .catch(() => {
+            this.loading = false;
+          });
+      },
       getCase_number_stats() {
 
         this.axios
@@ -607,7 +861,7 @@ this.pageCount = res.data.meta.last_page;
       },
     },
     created() {
-this.getclinicDoctor();
+      this.getclinicDoctor();
       EventBus.$on("billsReportclose", (tooth) => {
 
         tooth

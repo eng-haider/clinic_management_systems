@@ -30,7 +30,7 @@ axios.interceptors.response.use((response) => {
   // router.push("/login")
   if (error.response.status === 401 || error.response.status === 403 || error.response.status === 500) {
     store
-     /// store.dispatch("logout");
+    //  store.dispatch("logout");
  
   }
   return Promise.reject(error.response);
@@ -40,18 +40,18 @@ axios.interceptors.response.use((response) => {
 
 
 //Vue.prototype.$http = axios;
-axios.defaults.baseURL =  'https://apismartclinic.tctate.com/api/';
-//axios.defaults.baseURL =  'http://127.0.0.1:8000/api/';
+axios.defaults.baseURL =  'http://127.0.0.1:8000/api/';
+ //axios.defaults.baseURL =  'http://127.0.0.1:8003/api/';
 
 //http://127.0.0.1:8001
-// axios.interceptors.response.use(
-//   function(response) {
-//     return response;
-//   },
-//   function(error) {
-//     if (error.response.status === 401 || error.response.status === 403) {
-//       // router.push({ name: "Login" });
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+axios.interceptors.response.use(
+  function(response) {
+    return response;
+  },
+  function(error) {
+    if (error.response.status === 401 || error.response.status === 403) {
+      // router.push({ name: "Login" });
+    }
+    // return Promise.reject(error);
+  }
+);

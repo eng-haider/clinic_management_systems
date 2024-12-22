@@ -49,7 +49,7 @@
 
 
                 <v-flex xs12 md8 sm8>
-                  <v-lable>رقم الهاتف</v-lable>
+                  <!-- <v-lable>رقم الهاتف</v-lable> -->
                   <v-text-field filled v-model="user.phone" placeholder="رقم الهاتف" data-vv-name="name" height="50"
                     type="number" :rules="phoneRules" required></v-text-field>
 
@@ -59,7 +59,7 @@
 
 
                 <v-flex xs12 md8 sm8>
-                  <v-lable>كلمة المرور</v-lable>
+                  <!-- <v-lable>كلمة المرور</v-lable> -->
                   <v-text-field filled v-model="user.password" 
                     placeholder="كلمة المرور" height="50" 
                     
@@ -446,5 +446,11 @@ display: none;
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+
+
+p{
+  text-align: right;
 }
 </style>

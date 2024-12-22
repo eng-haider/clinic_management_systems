@@ -1,285 +1,255 @@
 <template>
     <div>
+      <div ref="printSection" class="print-section" style="display: none;">
+        <recipeReport :RecipeInfo="RecipeInfo" />
+      </div>
 
-        <div id="printMex" style="display:none">
-            <recipeReport :RecipeInfo="RecipeInfo"></recipeReport>
-        </div>
-
+  
+      <v-form ref="form" v-model="valid">
         <v-card>
-            <template v-slot:activator="{ on, attrs }">
-                <v-btn color="red lighten-2" dark v-bind="attrs" v-on="on">
-                    Click Me
-                </v-btn>
-            </template>
-            <!-- 
-            <v-card-title class="text-h5 grey lighten-2" style="font-family: 'Cairo' !important;    height: 55px;">
-                كتابه الوصفه الطبيه
-            </v-card-title> -->
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn color="red lighten-2" dark v-bind="attrs" v-on="on">
+              Click Me
+            </v-btn>
+          </template>
+  
+          <v-toolbar dark color="primary lighten-1 mb-5">
+            <v-toolbar-title>
+              <h3 style="color:#fff;font-family: 'Cairo'"> كتابه الوصفه الطبيه</h3>
+            </v-toolbar-title>
+            <v-spacer />
+            <v-btn @click="close" icon>
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+  
+          <v-container>
+            <v-card flat>
+              <div style="width:100%; height: 110px;">
+                <img src="/rx_header.jpeg" style="width:100%;height:100%" />
+              </div>
+  
+              <v-layout row wrap style="padding: 20px 0;">
+                <v-flex xs12 md3></v-flex>
+                <v-flex xs6 md3>
+                  <p class="text-center" style="font-size:28px;font-family: 'GE_Dinar';">
+                    {{ $store.state.AdminInfo.clinics_info.name }}
+                  </p>
+                  <p class="text-center" style="font-size:28px;font-family: 'GE_Dinar'; position:relative; bottom:21px;">
+                    لطب الاسنان
+                  </p>
+                </v-flex>
+                <v-flex xs6 md3>
+                  <div class="rexipe_logo">
+                    <img :src="`${Url}/users/${$store.state.AdminInfo.img_name}`" style="height:100%" />
+                  </div>
+                </v-flex>
+                <v-flex xs12 md3></v-flex>
+              </v-layout>
+  
+              <v-layout row wrap>
+                <v-flex xs12 md3 mr-4>
+                  <div>الاسم :</div>
+                  <v-select
+                    dense
+                    :rules="[rules.required]"
+                    v-model="RecipeInfo.case.patient_id"
+                    :label="$t('datatable.name')"
+                    @change="getItem(RecipeInfo.case.patient_id)"
+                    :items="patients"
+                    outlined
+                    return-object
+                    item-text="name"
+                    item-value="id"
+                  />
+                </v-flex>
+  
+                <v-flex xs12 md3 mr-4>
+                  <div>الجنس :</div>
+                  <v-select
+                    dense
+                  
+                    v-model="RecipeInfo.sex"
+                    :items="sexs"
+                    outlined
+                    item-text="name"
+                    item-value="id"
+                  />
+                </v-flex>
+  
+                <v-flex xs12 md2 mr-4>
+                  <div>العمر :</div>
+                  <v-text-field
+                    dense
+                    v-model="RecipeInfo.age"
+                    outlined
+                    :rules="[rules.required]"
+                    required
+                  />
+                </v-flex>
+  
+                <v-flex xs12 md3 mr-4>
+                  <div>الحاله :</div>
+                  <v-select
+                    dense
+                    :rules="[rules.required]"
+                    v-model="RecipeInfo.case.case_categories"
+                    :items="CaseCategories"
+                    outlined
+                    return-object
+                    item-text="name_ar"
+                    item-value="id"
+                  />
+                </v-flex>
+              </v-layout>
+  
+              <v-layout row wrap>
+                <v-flex xs12>
+                  <v-textarea
+                    outlined
+                    v-model="RecipeInfo.notes"
+                    label="الوصفه"
+                  />
+                </v-flex>
+              </v-layout>
+            </v-card>
 
-
-            <v-toolbar dark color="primary lighten-1 mb-5">
-                <v-toolbar-title>
-                    <h3 style="color:#fff;font-family: 'Cairo'"> كتابه الوصفه الطبيه</h3>
-                </v-toolbar-title>
-                <v-spacer />
-                <v-btn @click="close()" icon>
-                    <v-icon>mdi-close</v-icon>
-                </v-btn>
-            </v-toolbar>
-            <v-container>
-                <v-card flat style="
-                    position: relative;
-    bottom: 32px;">
-                    <div style="width:100%;    height: 110px;">
-                        <img src="/rx_header.jpeg" style="width:100%;height:100%" />
-                    </div>
-
-
-                    <v-layout row wrap style="padding-top: 20px;;padding-bottom:20px">
-                  <v-flex xs12 md3 sm3></v-flex>
-
-               <v-flex xs6 md3 sm3>
-
-                    <p style="    text-align: center;font-size:28px;
-    font-family: 'GE_Dinar';"> {{ $store.state.AdminInfo.clinics_info.name }} </p>
-                    <p
-                    style="    text-align: center;font-size:28px;
-
-                    position: relative;
-    bottom: 21px;
-
-    font-family: 'GE_Dinar';"
-                    >لطب الاسنان</p>
-
-
-
-               </v-flex>
-
-
-              <v-flex xs6 md3 sm3>
-                    <div class="rexipe_logo" style="    height: 114px;
-        margin-bottom: 27px;
-            margin-right: 10px;">
-                        <img :src="Url+'/users/'+$store.state.AdminInfo.img_name" style="height:100%" />
-                    </div>
-              </v-flex>
-
-
-
-               <v-flex xs12 md3 sm3></v-flex>
-
-            </v-layout>
-
-                    <!-- <v-layout row wrap>
-                        <v-flex xs5 style="padding-top: 19px;">
-                            <h3 style="    text-align: center;
-    font-family: 'Cairo';">عيادة انفنتي لطب الاسنان</h3>
-                            <p style="    text-align: center;padding-top: 5px;
-    font-family: 'Cairo';">كربﻻء المقدسة - شارع الإسكان - مقابل مستشفى الشيخ الوائلي</p>
-
-                        </v-flex>
-                        <v-flex xs4></v-flex>
-                        <v-flex xs3>
-                            <div class="rexipe_logo">
-                                <img src="/logo.png" style="height:100%" />
-                            </div>
-                        </v-flex>
-
-                    </v-layout> -->
-
-                    <v-layout row wrap>
-
-                        <!-- <v-flex xs1>الاسم :</v-flex> -->
-                        <v-flex xs12 md3 sm3 mr-4>
-                            <div>الاسم :</div>
-                            <v-text-field dense v-model="RecipeInfo.name" outlined>
-                            </v-text-field>
-                        </v-flex>
-
-
-
-
-
-                        <v-flex xs12 md3 sm3 mr-4>
-                            الجنس :
-
-
-                            <v-select dense v-model="RecipeInfo.sex" return-object :items="sexs" outlined
-                                item-text="name" item-value="id"></v-select>
-                        </v-flex>
-
-
-
-
-
-
-                        <v-flex xs12 md2 sm2 mr-4>
-                            العمر :
-
-                            <v-text-field dense v-model="RecipeInfo.age" outlined>
-                            </v-text-field>
-                        </v-flex>
-
-
-                        <v-flex xs12 md3 sm3 mr-4>
-                            الحاله :
-
-                            <v-select dense v-model="RecipeInfo.case.case_categories" return-object
-                                :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
-                        </v-flex>
-
-
-
-
-                    </v-layout>
-
-                    <v-layout row wrap>
-                        <v-flex xs12>
-                            <v-textarea outlined v-model="RecipeInfo.rx" name="input-7-4" label="الوصفه" value="">
-                            </v-textarea>
-                        </v-flex>
-                    </v-layout>
-
-
-                    <!-- <v-layout row wrap>
-                        <v-flex xs2>توقيع الدكتور :</v-flex>
-                        <v-flex x4 md2 sm2>
-
-                            <v-text-field dense v-model="RecipeInfo.user.name" outlined>
-                            </v-text-field>
-                        </v-flex>
-                    </v-layout> -->
-
-
-                </v-card>
-            </v-container>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <!-- <v-btn
-            color="primary"
-            
-            @click="dialog = false"
-          >
-            طبـــــاعه
-          </v-btn> -->
-
-                <v-btn color="#2196f3" @click="print()" style="color:#fff"> طبـــــاعه
-
-
-                    <v-icon right dark>
-                        fas fa-print
-                    </v-icon>
-                </v-btn>
-            </v-card-actions>
+  
+          </v-container>
+  
+          <v-divider></v-divider>
+  
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="#2196f3" @click="print" style="color:#fff">
+              طبـــــاعه
+              <v-icon right dark>fas fa-print</v-icon>
+            </v-btn>
+          </v-card-actions>
         </v-card>
-
+      </v-form>
     </div>
-</template>
-
-<style>
-    .rexipe_logo {
-        height: 114px;
-        margin-bottom: 27px;
-        margin-right: 71px;
-    }
-
-    .parent {
-        position: relative;
-        float: left;
-        width: 91.5%;
-        min-width: 825px;
-        height: 120px;
-        text-align: left;
-        z-index: 1;
-        border: solid 1px #19365D;
-
-        background-repeat: repeat-x;
-        margin-left: 3.7%;
-        margin-right: 3.7%;
-        padding-left: 0.5%;
-        padding-right: 0.5%;
-    }
-
-    .link {
-        position: absolute;
-        width: 100%;
-        bottom: 0;
-        text-align: center;
-    }
-</style>
-<script>
-    import recipeReport from './recipeReport.vue';
-    import {
-        EventBus
-    } from "./event-bus.js";
-
-    export default {
-        data() {
-            return {
-
-
-                sexs: [{
-                        id: 1,
-                        name: 'ذكر'
-                    },
-                    {
-                        id: 0,
-                        name: 'انثئ'
-                    }
-
-                ]
+  </template>
+  
+  <script>
+  import recipeReport from "./recipeReport.vue";
+  import { EventBus } from "./event-bus.js";
+  
+  export default {
+    data() {
+      return {
+        valid: false,
+        rules: {
+          required: (value) => !!value || "مطلوب",
+          minPhon: (v) => v.length === 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
+          email: (value) => {
+            if (value && value.length > 0) {
+              const pattern =
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+              return pattern.test(value) || "يجب ان يكون ايميل صحيح";
             }
+          },
         },
-        inheritAttrs: false,
-//patientInfo
-        props: {
-            RecipeInfo: Object,
-            CaseCategories: Array
-        },
-        components: {
-            recipeReport
-        },
-        methods: {
-            close() {
+        sexs: [
+          { id: 1, name: "ذكر" },
+          { id: 0, name: "انثئ" },
+        ],
+      };
+    },
+    props: {
+      RecipeInfo: Object,
+      CaseCategories: Array,
+      recipes: Array,
+      patients: Array,
+    },
+    components: {
+      recipeReport,
+    },
+    methods: {
+        printContent() {
+      const printContent = this.$refs.printSection;
+      const originalContent = document.body.innerHTML;
 
-                this.RecipeInfo = {
-                    name: "",
-                    age: "",
-                    sex: "",
-                    phone: "",
-                    systemic_conditions: "",
-                    case: {
-                        case_categores_id: "",
-                        upper_right: "",
-                        upper_left: "",
-                        lower_right: "",
-                        lower_left: "",
-                        status_id: 1,
-                        bills: [{
-                            price: '',
-                            PaymentDate: ''
-                        }],
-                        images: [{
-                                img: '',
-                                descrption: ''
-                            }
+      // Temporarily replace the body content with print content
+      document.body.innerHTML = printContent.innerHTML;
+      window.print();
 
-                        ],
-                        notes: ""
-                    }
-                }
-                //  this.RecipeInfo = {},
-                EventBus.$emit("changeStatusCloseField", false);
+      // Restore original content
+      document.body.innerHTML = originalContent;
+      window.location.reload(); // Reload the page to restore event bindings
+    },
+      getItem(id) {
+        const patient = this.patients.find((p) => p.id === id);
+        if (patient) {
+          this.RecipeInfo = {
+            case: {
+              patient_id: patient.id,
+              case_categories: patient.case_categores_id,
             },
-            print() {
-
-
-                this.$htmlToPaper('printMex');
-            },
-
+            sex: patient.sex,
+            age: patient.age,
+            notes: "",
+          };
         }
-    }
-</script>
+      },
+      close() {
+        this.RecipeInfo = {
+          case: {
+            patient_id: "",
+            case_categories: "",
+          },
+          sex: "",
+          age: "",
+          notes: "",
+        };
+        EventBus.$emit("changeStatusCloseField", false);
+      },
+      print() {
+        if (this.$refs.form.validate()) {
+          const send = {
+            case_categores_id: this.RecipeInfo.case.case_categories.id,
+            notes: this.RecipeInfo.notes,
+            patient_id: this.RecipeInfo.case.patient_id.id,
+          };
+  
+          this.axios
+            .post("recipes", send, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${this.$store.state.AdminInfo.token}`,
+              },
+            })
+            .then(() => {
+              
+              this.$swal.fire({
+                    position: "top-end",
+  icon: "success",
+  title: this.$t("Added"),
+  showConfirmButton: false,
+  timer: 1500
+              });
+              
+                this.printContent()
+        
+              this.close();
+            })
+            .catch((err) => {
+              console.error(err);
+            });
+          
+        
+        }
+      },
+    },
+  };
+  </script>
+  
+  <style>
+  .rexipe_logo {
+    height: 114px;
+    margin-bottom: 27px;
+    margin-right: 71px;
+  }
+  </style>
+  

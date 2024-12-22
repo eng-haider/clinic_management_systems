@@ -8,12 +8,12 @@
 	<link rel="icon" href="<%= BASE_URL %>logo.ico">
 	<title><%= htmlWebpackPlugin.options.title %></title>
 	<!-- <link rel="stylesheet" type="text/css" href="jquery.fancybox.min.css"> -->
-	
+
 
 	<link rel="manifest" href="manifest.json">
-	<link rel="stylesheet" href="css/dark.css?v22">
-
 	
+
+
 	<!-- <link rel="preconnect" href="css/style.css"> -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,7 @@
 
 	<link rel="alternate" type="application/rss+xml" title="clinic_management_system" href="" />
 	<!-- <link rel="alternate" type="application/rss+xml" title="موسسة أبناء كربلاء للخير والرحمة"
-		href="comments/feed/index.html" /> --> 
+		href="comments/feed/index.html" /> -->
 	<meta property="og:title" content="Home" />
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content="" />
@@ -45,9 +45,6 @@
 	<meta property="og:image" content="ttps://abnakr.org/back_end/art_img/art_img_main/img1636928749.png" />
 	<link rel="manifest" href="manifest.json">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-	<!-- <link rel='stylesheet' id='charity-zozo-custom-css'
-		href='https://abnakr.org/wp-content/cache/autoptimize/9/css/autoptimize_single_01391671ef23da36f14347b1dd212e12.css'
-		type='text/css' media='all' /> -->
 	<link rel='stylesheet' id='google-fonts-css'
 		href='https://fonts.googleapis.com/css?family=Hind%3A300%2C400%2C500%2C600%2C700%7CRaleway%3A100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900%2C100italic%2C200italic%2C300italic%2C400italic%2C500italic%2C600italic%2C700italic%2C800italic%2C900italic%26subset%3Dlatin%2Clatin-ext'
 		type='text/css' media='all' />
@@ -57,31 +54,17 @@
 
 
 
-		<link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/21.2.4/css/dx.common.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/21.2.4/css/dx.common.css" />
 		<link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/21.2.4/css/dx.light.css" />
-	
-		<!-- <script src="https://unpkg.com/core-js@2.4.1/client/shim.min.js"></script>
-		<script src="https://unpkg.com/systemjs@0.21.3/dist/system.js"></script> -->
-		<script type="text/javascript" src="config.js"></script>
-		<script type="text/javascript">
-		  System.import("./index.js");
-		</script>
+	 -->
+	<script type="text/javascript" src="config.js"></script>
+	<script type="text/javascript">
+		System.import("./index.js");
+	</script>
 
-		<!--Start of Tawk.to Script-->
-<!-- <script type="text/javascript">
-	var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-	(function(){
-	var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-	s1.async=true;
-	s1.src='https://embed.tawk.to/649bf89794cf5d49dc604928/1h40k64mr';
-	s1.charset='UTF-8';
-	s1.setAttribute('crossorigin','*');
-	s0.parentNode.insertBefore(s1,s0);
-	})();
-	</script> -->
-	<!--End of Tawk.to Script-->
 
-		
+
+
 </head>
 
 <body style="background-color: #ffff !important;">
@@ -89,12 +72,12 @@
 
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 	<div id="loading-screen">
-		
+
 
 		<img class="centerImg a" src="logo.png" style="height: 275px; width: 275px;" class=" rounded-pill">
 
 
-	  </div>
+	</div>
 
 	<!-- <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script> -->
 
@@ -114,80 +97,63 @@
 	href='https://fonts.googleapis.com/css?family=Lora%3Aregular%2Citalic%2C700%2C700italic' type='text/css'
 	media='all' />
 
-	<script>
-
-window.addEventListener('load', function() {
-  const loadingScreen = document.getElementById('loading-screen');
-  loadingScreen.style.display = 'none';
-});
-
-
-		  if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
-		window.addEventListener('beforeinstallprompt', (event) => {
-  // Prevent the default browser install prompt
-  event.preventDefault();
-  
-  // Customize the install prompt (optional)
-  // ...
-  
-  // Save the event for later use
-  deferredPrompt = event;
-  
-  // Show your custom install button or message here
-  // ...
-});
-	</script>
+<script>
+	window.addEventListener('load', function () {
+		const loadingScreen = document.getElementById('loading-screen');
+		loadingScreen.style.display = 'none';
+	});
+</script>
 
 
 <style>
+	.centerImg {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
 
-.centerImg {
-          display: block;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        
-        .a {
-            
-            animation: pulse 1s linear infinite;
-            position: absolute;
-            margin: auto;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-        
-        @-webkit-keyframes "pulse" {
-        0% {
-         -webkit-transform: scale(1.1);
-         transform: scale(1.1);
-        }
-        50% {
-        -webkit-transform: scale(0.8);
-        transform: scale(0.8);
-        }
-        100% {
-         -webkit-transform: scale(1);
-        transform: scale(1);
-        }
-        }
+	.a {
+
+		animation: pulse 1s linear infinite;
+		position: absolute;
+		margin: auto;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+
+	@-webkit-keyframes "pulse" {
+		0% {
+			-webkit-transform: scale(1.1);
+			transform: scale(1.1);
+		}
+
+		50% {
+			-webkit-transform: scale(0.8);
+			transform: scale(0.8);
+		}
+
+		100% {
+			-webkit-transform: scale(1);
+			transform: scale(1);
+		}
+	}
 
 	#loading-screen {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #ffffff; /* optional background color */
-    z-index: 9999; /* Make sure it's on top of everything else */
-  }
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: #ffffff;
+		/* optional background color */
+		z-index: 9999;
+		/* Make sure it's on top of everything else */
+	}
 </style>
+
 </html>

@@ -2,267 +2,55 @@
 
     <div>
 
-        <div id="printMe" style="display:none">
-            <billsReport :info="selecBill"></billsReport>
-        </div>
-
-        <div>
-            <OwnerBooking :patientFound="patientFound=true" :patientInfo="patientInfo" v-if="booking" />
-        </div>
-
-        <v-dialog v-model="casesheet" max-width="1000px" v-if="CaseCategories.length>0">
-            <cases :editedItem="patientInfo" :doctors="doctors" :CaseCategories="CaseCategories" :gocase="gocase">
-            </cases>
-        </v-dialog>
-
-        <div>
-            <v-dialog v-model="bill" max-width="1000px">
-                <Bill :patient="patientInfo"></Bill>
-            </v-dialog>
-        </div>
 
 
-
-        <v-dialog v-model="Recipe" max-width="900px" v-if="CaseCategories.length>0">
-            <Recipe :patients="desserts" :RecipeInfo="RecipeInfo" :recipes="recipes" :CaseCategories="CaseCategories">
-            </Recipe>
-        </v-dialog>
         <v-container id="dashboard" fluid tag="section">
-
-
-            <v-data-table :headers="headers" :loading="loadingData"
-            disable-pagination
-             :page.sync="page" @page-count="pageCount = $event"
+            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" @page-count="pageCount = $event"
                 hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
-                <template v-slot:top
-                
-                
-                
-                
-                
-                
-                >
+                <template v-slot:top>
                     <v-toolbar flat>
-                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.casesheet") }}
+                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.birthDay") }}
                         </v-toolbar-title>
 
                         <v-divider class="mx-4" inset vertical></v-divider>
                         <v-spacer></v-spacer>
-                        <v-dialog v-model="dialog" max-width="800px">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn color="primary" @click="editedIndex = -1 
-                                ;  
-                                
-                                " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
-                                    <i class="fas fa-plus" style="position: relative;left:5px"></i>
-                                    {{ $t("patients.addnewpatients") }}
 
-
-                                </v-btn>
-                            </template>
-                            <v-form ref="form" v-model="valid">
-                                <v-card>
-
-                                    <v-toolbar dark color="primary lighten-1 mb-5">
-                                        <v-toolbar-title>
-                                            <h3 style="color:#fff;font-family: 'Cairo'"> {{formTitle}}</h3>
-                                        </v-toolbar-title>
-                                        <v-spacer />
-                                        <v-btn @click="close()" icon>
-                                            <v-icon>mdi-close</v-icon>
-                                        </v-btn>
-                                    </v-toolbar>
-
-                                    <v-card-text>
-                                        <v-container>
-
-                                            <v-row>
-
-                                                
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.name"
-                                                        style="direction: rtl;text-align: right;"
-                                                        :rules="[rules.required]" :label="$t('datatable.name')"
-                                                        outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.phone" 
-                                                        v-mask="mask" placeholder="07XX XXX XXXX" style="direction:ltr"
-                                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
-                                                        :label="$t('datatable.phone')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.birth_date" type="date"
-                                                        :label="$t('datatable.birth_date')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" v-if="editedIndex > -1" cols="12" sm="6" md="6">
-                                                    <v-text-field :disabled="true" v-model="editedItem.age"
-                                                        type="number" :label="$t('datatable.age')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-radio-group v-model="editedItem.sex" row>
-                                                        <v-radio :label="$t('sex.female')" :value="1"></v-radio>
-                                                        <v-radio :label="$t('sex.male')" :value="0"></v-radio>
-                                                    </v-radio-group>
-                                                </v-col>
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.address"
-                                                        style="direction: rtl;text-align: right;"
-                                                        :label="$t('datatable.address')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6"   v-if="$store.state.role=='secretary'  && doctorsAll.length>2">
-                                                    <v-select :rules="[rules.required]" dense
-                                                        v-model="editedItem.doctors" multiple :label="$t('doctor')"
-                                                        :items="doctors" outlined item-text="name" item-value="id">
-                                                    </v-select>
-
-                                                </v-col>
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-
-
-
-
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-                                                <v-col class="py-0" cols="12" sm="12" md="12">
-                                                    <v-textarea dense v-model="editedItem.systemic_conditions"
-                                                        :label="$t('patients.systemicdisease')" outlined>
-                                                    </v-textarea>
-                                                </v-col>
-
-                                            </v-row>
-
-
-                                            <v-row>
-                                          <v-col class="py-0" cols="12" sm="6" md="6">
-                                            <v-switch
-                                            v-model="editedItem.is_scheduled_today"
-                                            :label="$t(' اضافة الئ  تسلسل اليوم ؟')"
-                                            color="primary"
-                                            inset
-                                            ></v-switch>
-                                        </v-col>
-                                            </v-row>
-
-                                        </v-container>
-                                    </v-card-text>
-
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
-                                        </v-btn>
-                                        <v-btn :loading="loadSave" style="color: #fff;" color="green darken-1"
-                                            @click="save()">
-                                            التالي</v-btn>
-                                    </v-card-actions>
-                                </v-card>
-                            </v-form>
-                        </v-dialog>
                     </v-toolbar>
 
 
-                    <v-layout row wrap>
-                        <v-flex xs8 md3 sm3 pr-1 style="padding-right: 22px !important;">
-                            <v-text-field ref="name" v-model="search"  @keyup.enter="seachs"
-                                :placeholder="$t('patients.Referencesnameorphonenumber')" required>
-                            </v-text-field>
-                        </v-flex>
 
-
-                        <v-flex xs1 pa-5>
-                            <v-btn color="green"  style="color:#fff" @click="seachs()"> {{ $t("search") }}</v-btn>
-                        </v-flex>
-
-                        <v-flex xs1 pt-5 pb-5 pr-2 class="allsee">
-                            <v-btn color="blue" v-if="allItem" style="color:#fff" @click="initialize();allItem=false;isSearching=false">
-                                {{ $t("all") }}
-                            </v-btn>
-                        </v-flex>
-
-
-                        <v-flex xs1 md4 sm4></v-flex>
-
-
-
-                        <v-flex xs11 md3 sm3 pt-5 style="float: left;">
-                            <v-select dense @input="page=1;current_page=1;pageCount=0;getByDocor()"
-                                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') && doctorsAll.length>2"
-                                v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined
-                                item-text="name" item-value="id">
-                            </v-select>
-                        </v-flex>
-
-
-                    </v-layout>
                 </template>
 
 
                 <template v-slot:[`item.names`]="{ item }">
 
-                    <span @click="editItem(item)">
-            {{item.name}}
-        </span>
+                    <span>
+                        {{item.name}}
+                    </span>
+
 
 
                 </template>
 
 
                 <template v-slot:[`item.phones`]="{ item }">
-        <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone}}</p>
-    </template>
 
-    <template v-slot:[`item.age`]="{ item }">
-        <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.age}}</p>
-    </template>
 
-                <!-- <template v-slot:[`item.sex`]="{ item }">
+                    <p style="    direction: ltr;
+    text-align: end;"> {{item.phone}}</p>
+
+
+
+                </template>
+                <template v-slot:[`item.sex`]="{ item }">
                     <span v-if="item.sex==1">{{ $t("male") }}</span>
                     <span v-else>{{ $t("female") }}</span>
-                </template> -->
+                </template>
 
-
-               
                 <template v-slot:[`item.doctor`]="{ item }">
 
 
-                    <div v-if="item.doctors_count>1">
+                    <div v-if="item.doctors.length>1">
                         <span style="display: none;">{{ item }}</span>
                         <v-chip style="margin:2px" color="primary" v-for="item in  item.doctors" :key="item">
                             <v-icon left>
@@ -274,154 +62,62 @@
                 </template>
 
 
-                <template v-slot:[`item.casesx`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_cases')">
-
-
-                    <span v-if="item.cases_count==0">
-                        لاتوجد
-                    </span>
-
-                    <v-btn v-else dense @click="$router.push('/patient/'+item.id)" color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">{{ $t("header.cases") }}</v-btn>
 
 
 
 
-                </template>
 
 
 
 
-                <template v-slot:[`item.addCase`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('add_case')">
 
 
 
-                    <v-btn @click="addCase(item);addCase(item);gocase=true" dense color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">
-                        <i class="fas fa-plus" style="position: relative;left:5px"></i>
-
-
-                        {{ $t("addcase") }}
-
-                    </v-btn>
+                <template v-slot:[`item.actions`]="{ item }">
 
 
 
 
-                </template>
 
 
-                <template v-slot:[`item.Recipe`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_rx')">
 
+                    <v-btn color="green" style="color: #fff" :href="`https://wa.me/${convertPhoneNumber(item.phone)}?text=${encodeURIComponent(`عيد ميلاد سعيد من عيادة ${$store.state.AdminInfo.clinics_info.name}
 
-                    <span style="display:none">{{item.id}}</span>
+نتمنى لك عيد ميلاد مليء بالسعادة والصحة الجيدة. نحن في عيادة ${$store.state.AdminInfo.clinics_info.name} نود أن نعبّر لك عن خالص تمنياتنا بعيد ميلاد سعيد ومميز. شكراً لك على ثقتك بنا ونتطلع إلى استمرار تقديم أفضل الرعاية الصحية لك.
 
-                    <v-btn @click="addRecipe(item)" dense color="#3b6a75"
-                        style="color:#fff;height:28px;font-weight:bold">
-                        <i class="fas fa-prescription " style="position: relative;left:5px"></i>
-
-
-                        {{ $t("rx") }}
+استمتع بيومك الخاص، ونتمنى لك عاماً قادماً مليئاً بالنجاحات والأوقات السعيدة.`)}`" target="_blank">
+                        <v-icon @click.stop="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
+                            mdi-f5a3
+                        </v-icon>
+                        ارســــال تهنئة
                     </v-btn>
 
                 </template>
-
-                <template v-slot:[`item.booking`]="{ item }">
-
-
-                    <span style="display:none">{{item.id}}</span>
-
-                    <v-btn @click="addbooking(item)" dense color="#3b6a75"
-                        style="color:#fff;height:28px;font-weight:bold">
-                        <i class="far fa-clock" style="position: relative;left:5px"></i>
-
-
-                        {{ $t("patients.AppointmentBooking") }}
-                    </v-btn>
-
-                </template>
-
-                <template v-slot:[`item.bills`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_accounts')">
-
-
-                    <span style="display:none">{{item.id}}</span>
-                    
-                   
-
-                    <v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
-                        style="color:#fff;height:28px;font-weight:bold">
-                        <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
-
-                        {{ $t("patients.account") }} 
-
-
-                    </v-btn>
-
-                </template>
-
-
-
-
-            
-
-
-                  <!-- Custom Actions Column Slot -->
-  <template v-slot:[`item.actions`]="{ item }">
-    <v-tooltip bottom>
-      <template v-slot:activator="{  }">
-        <v-icon
-          class="ml-5"
-          @click="editItem(item)" 
-          v-if="!item.isDeleted"
-          v-bind="attrs"
-       
-        >
-          mdi-pencil
-        </v-icon>
-      </template>
-      <span>Edit</span>
-    </v-tooltip>
-
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <v-icon
-          @click="deleteItem(item)"
-          v-if="!item.isDeleted"
-          v-bind="attrs"
-      
-        >
-          mdi-delete
-        </v-icon>
-      </template>
-      <span>Delete</span>
-    </v-tooltip>
-  </template>
-
-
                 <template v-slot:no-data>
                     <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
                 </template>
             </v-data-table>
 
         </v-container>
-        <v-pagination class="pagination" total-visible="20" v-model="page" color="#c7000b"
-      style="position: relative; top: 20px;" circle="" :length="pageCount">
-    </v-pagination>
+        <div class="text-center pt-2">
+            <v-pagination v-model="page" @input="goTop()" :length="pageCount"></v-pagination>
+
+        </div>
 
     </div>
 </template>
 
 <script>
-  
+    //Recipe
+    // import cases from './case.vue';
+    // import billsReport from './billsReport.vue';
 
     import {
         EventBus
     } from "./event-bus.js";
-  
+    // import Recipe from './Recipe.vue';
+    // import OwnerBooking from './sub_components/ownerBookinfDed.vue'
+    // import Bill from './sub_components/billsReport.vue'
     import Swal from "sweetalert2";
 
 
@@ -434,29 +130,20 @@
         directives: {
             mask,
         },
-
         components: {
-       billsReport:() => import("./billsReport.vue"),
-       OwnerBooking: () => import("./sub_components/ownerBookinfDed.vue"),
-       cases: () => import("./case.vue"),
-       Recipe: () => import("./Recipe.vue"),
-       Bill: () => import("./sub_components/billsReport.vue")
-
-      
-    },
-
+            // billsReport,
+            // OwnerBooking,
+            // cases,
+            // Recipe,
+            // Bill
+        },
         data() {
             return {
                 gocase: false,
-                isSearching: false, 
                 desserts: [
 
                 ],
                 bill: false,
-                page: 1,
-        pageCount: 0,
-        current_page: 1,
-        last_page: 0,
                 paymentsCount: 1,
                 booking: false,
                 cats: [],
@@ -465,6 +152,9 @@
                 allItem: false,
                 RecipeInfo: {},
 
+
+                pageCount: 11,
+                page: 1,
 
                 Recipe: false,
                 date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
@@ -481,7 +171,6 @@
                 CaseCategories: [],
                 rules: {
                     minPhon: (v) => (v.length == 13 || v.length == 0) || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    
                     required: value => !!value || "مطلوب",
                     min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
                     email: value => {
@@ -502,7 +191,7 @@
                 search: '',
                 progressValue: 0,
                 searchDocorId: '',
-                isSearchingDoctor:false,
+
 
                 editedItem: {
                     name: "",
@@ -511,7 +200,6 @@
                     sex: "",
                     address: "",
                     phone: "",
-                    is_scheduled_today: false, // Default to "No"
                     doctors: "",
                     systemic_conditions: "",
                     case: {
@@ -562,11 +250,11 @@
                         align: "start",
                         value: "age"
                     },
-                    // {
-                    //     text: this.$t('datatable.sex'),
-                    //     align: "start",
-                    //     value: "sex"
-                    // },
+                    {
+                        text: this.$t('datatable.sex'),
+                        align: "start",
+                        value: "sex"
+                    },
 
                     // {
                     //     text: this.$t('datatable.doctor'),
@@ -577,37 +265,11 @@
 
                     //status_Description
 
-                    {
-                        text: 'الحالات',
-                        value: "casesx",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "addCase",
-                        sortable: false
-                    },
-                    //Recipe
 
-                    {
-                        text: '',
-                        value: "Recipe",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "booking",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "bills",
-                        sortable: false
-                    },
                     //booking
                     //booking
                     {
-                        text: this.$t('Processes'),
+                        text: '',
                         value: "actions",
                         sortable: false
                     }
@@ -617,53 +279,20 @@
         },
 
         methods: {
-            getMoreitems() {
 
-if (this.current_page <= this.last_page) {
+            convertPhoneNumber(phone) {
 
-    if (this.isSearchingDoctor) {
-        this.current_page = this.page;
-        this.getByDocor();
-    }
-    else if(this.isSearching) {
-        this.current_page = this.page;
-        this.initialize();
-    }
-    
-    else {
-        this.current_page = this.page;
-        this.initialize();
-    }
+                if (phone !== null) {
+                    // Remove spaces
+                    phone = phone.replace(/\s+/g, '');
 
-}
-},
-            reset(){
-                this.editedItem = {
-                    case: {
-                        case_categores_id: "",
-                        upper_right: "",
-                        upper_left: "",
-                        is_scheduled_today: false, // Default to "No"
-                        patient_id: "",
-                        lower_right: "",
-                        lower_left: "",
-                        sessions: [{
-                            note: '',
-                            date: ''
-                        }],
-                        images: [{
-                            images: '',
-                            descrption: ''
-
-                        }],
-                        bills: [{
-                            price: '',
-                            PaymentDate: ''
-                        }],
-                        status_id: 42,
-                        notes: ""
+                    // Check if the phone number starts with '0' and replace it with '+964'
+                    if (phone.startsWith('0')) {
+                        phone = '+964' + phone.substring(1);
                     }
-                };
+
+                    return phone;
+                }
             },
             getrecipes() {
 
@@ -687,13 +316,7 @@ if (this.current_page <= this.last_page) {
             },
             getByDocor() {
 
-                this.isSearchingDoctor = true; // Set the flag to true when search is active
-                if (this.searchDocorId == 0) {
-                    this.isSearchingDoctor = false;
-                    return this.initialize()
-                }
-                Axios.get("patients/getByDoctor/"+this.searchDocorId+ 
-                '?page=' + this.current_page, {
+                Axios.get("patients/getPatientsBirthDay", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -702,17 +325,12 @@ if (this.current_page <= this.last_page) {
                     })
                     .then(res => {
                         this.loading = false;
-                   
-                        // this.allItem = true;
-                    
+                        //  this.search = null;
+                        this.allItem = true;
+                        this.desserts = [];
+                        this.desserts = res.data.data;
 
-                        
-                   
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
-          
 
-                        this.desserts = res.data.data; // Paginated data
                     })
                     .catch(() => {
                         this.loading = false;
@@ -788,7 +406,6 @@ if (this.current_page <= this.last_page) {
 
             },
             addbooking(item) {
-              
                 this.patientInfo = item;
                 this.booking = true;
             },
@@ -853,16 +470,7 @@ if (this.current_page <= this.last_page) {
                                 }
                             })
                             .then(() => {
-                            
-                                Swal.fire({
-  position: "top-end",
-  icon: "success",
-  title: this.$t('done'),
-  showConfirmButton: false,
-  timer: 1500
-});
-
-
+                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
                                 this.initialize();
                             })
                             .catch(() => {
@@ -915,15 +523,7 @@ if (this.current_page <= this.last_page) {
                                 }
                             })
                             .then(() => {
-                             
-                                this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: this.$t('Successfully'),
-  showConfirmButton: false,
-  timer: 1500
-              });
-
+                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
                                 this.initialize();
                             })
                             .catch(() => {
@@ -997,7 +597,6 @@ if (this.current_page <= this.last_page) {
                     this.editedItem.case = {
                         case_categores_id: "",
                         upper_right: "",
-                        is_scheduled_today: false, // Default to "No"
                         upper_left: "",
                         lower_right: "",
                         lower_left: "",
@@ -1088,7 +687,6 @@ if (this.current_page <= this.last_page) {
                     case: {
                         case_categores_id: "",
                         upper_right: "",
-                        is_scheduled_today: false, // Default to "No"
                         upper_left: "",
                         patient_id: "",
                         lower_right: "",
@@ -1114,33 +712,7 @@ if (this.current_page <= this.last_page) {
 
             },
             seachs() {
-        this.isSearching = true; // Set the flag to true when search is active
-        Axios.get("patients/searchv2/" + this.search, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                }
-            })
-            .then(res => {
-                
-                this.loading = false;
-                this.allItem = true;
-                this.desserts = res.data.data; // Search results
-                this.last_page = res.data.meta.last_page;
-                this.pageCount = res.data.meta.last_page;
-            })
-            .catch(() => {
-                this.loading = false;
-            });
-    },
-    
-
-            getclinicDoctor() {
-               
-                this.loading = true;
-                if(this.$store.state.role=='secretary'){
-                    Axios.get("doctors/secretary", {
+                Axios.get("patients/search/" + this.search, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -1148,27 +720,22 @@ if (this.current_page <= this.last_page) {
                         }
                     })
                     .then(res => {
-                        this.loadingData = false;
                         this.loading = false;
-                        this.doctors = res.data.data;
-                        this.doctorsAll.push({
-                            id: 0,
-                            name: ' الكل'
-                        });
-                        this.doctors.forEach((item, index) => {
-                            index
-                            this.doctorsAll.push(item)
-                        })
-
+                        //  this.search = null;
+                        this.allItem = true;
+                        this.desserts = [];
+                        this.desserts = res.data.data;
 
 
                     })
                     .catch(() => {
                         this.loading = false;
                     });
-                }
-               
-               else{
+            },
+
+
+            getclinicDoctor() {
+                this.loading = true;
                 Axios.get("doctors/clinic", {
                         headers: {
                             "Content-Type": "application/json",
@@ -1195,38 +762,30 @@ if (this.current_page <= this.last_page) {
                     .catch(() => {
                         this.loading = false;
                     });
-               }
             },
 
 
-            initialize(page = 1) {
-                page
-        if (this.isSearching) return; // Prevent initialize from running if a search is active
-        if (this.isSearchingDoctor) return; // Prevent initialize from running if a search is active
+            initialize() {
+                this.loading = true;
+                Axios.get("patients/getPatientsBirthDay", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.search = null;
+                        this.desserts = res.data.data;
 
 
-        
-        this.loading = true;
-        Axios.get(`patients/getByUserIdv2?page=${this.current_page}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                }
-            })
-            .then(res => {
-                this.loading = false;
-                this.loadingData = false;
-                this.search = null;
-
-                this.last_page = res.data.meta.last_page;
-                this.pageCount = res.data.meta.last_page;
-                this.desserts = res.data.data; // Paginated data
-            })
-            .catch(() => {
-                this.loading = false;
-            });
-    },
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                    });
+            },
 
             getCaseCategories() {
 
@@ -1275,7 +834,7 @@ if (this.current_page <= this.last_page) {
                                 title: "تم تعديل ",
                                 text: "",
                                 icon: "success",
-                            
+                                confirmButtonText: "اغلاق",
                             });
                         })
                         .catch(() => {
@@ -1308,18 +867,12 @@ if (this.current_page <= this.last_page) {
                             this.initialize();
                             this.editedIndex = -1;
                             this.close();
-
-    
-
-
-this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
- title: 'تمت اضافه مراجع جديد',
-  showConfirmButton: false,
-  timer: 1500
-              });
-
+                            this.$swal.fire({
+                                title: 'تمت اضافه مراجع جديد',
+                                text: "",
+                                icon: "success",
+                                confirmButtonText: this.$t('close'),
+                            });
                         })
                         .catch((err) => {
                             err
@@ -1336,15 +889,8 @@ this.$swal.fire({
 
                 if (this.$refs.form.validate()) {
                     this.loadSave = true;
-
-
-                    if(this.doctorsAll.length==2 && this.$store.state.role=='secretary'){
-                        this.editedItem.doctors=[this.doctorsAll[1].id];
-                    }
-
-
                     if (this.editedIndex > -1) {
-                        
+
                         this.axios
                             .patch("patients/" + this.editedItem.id, this.editedItem, {
                                 headers: {
@@ -1355,21 +901,17 @@ this.$swal.fire({
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                this.loadSave = false;
+                                /// this.casesheet = true;
+
+                                //  this.SaveCase();
                                 this.initialize();
                                 this.close();
-                              
-
-
                                 this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: "تم تعديل ",
-  showConfirmButton: false,
-  timer: 1500
-              });
-
-
+                                    title: "تم تعديل ",
+                                    text: "",
+                                    icon: "success",
+                                    confirmButtonText: "اغلاق",
+                                });
                             })
                             .catch(() => {
                                 this.loadSave = false;
@@ -1393,28 +935,22 @@ this.$swal.fire({
                             })
                             .then((res) => {
                                 res
-                                this.loadSave = false;
-                                this.reset();
-                    
+
+                                this.$swal.fire({
+                                    title: this.$t('Added'),
+                                    text: "",
+                                    icon: "success",
+                                    confirmButtonText: this.$t('close'),
+                                });
+
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,
                                     this.initialize();
 
+
                                 if (this.$store.state.role !== 'secretary') {
                                     this.gocase = false;
                                     this.addCase(this.patientInfo);
-                                }else{
-                                  
-
-
-                                this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: this.$t('Added'),
-  showConfirmButton: false,
-  timer: 1500
-              });
-
                                 }
 
 
@@ -1431,53 +967,43 @@ this.$swal.fire({
                 }
 
             },
+            getDectors() {
+                // this.doctors.push({
+                //     'id': this.$store.state.AdminInfo.id,
+                //     'name': this.$store.state.AdminInfo.name
 
+                // })
+            }
 
         },
 
-        watch: {
 
-selected: 'search by sub_cat_id',
-
-},
         computed: {
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
 
-            }
-
-            ,selected: function () {
-        return this.getMoreitems();
-      }
+            },
         },
         mounted() {
             this.getCaseCategories();
         },
         created() {
-            this.initialize();
             this.getrecipes();
             this.getclinicDoctor();
             this.getCaseCategories();
-
-
-
-EventBus.$on("GetResCancel", (tooth) => {
-    tooth
-                this.booking = false;
-                this.booking = false;
-            });
-
             EventBus.$on("billsReportclose", (tooth) => {
+
                 tooth
                 this.bill = false;
+
             });
-            //changeStatusCloseCase  GetResCancel
+            //changeStatusCloseCase
 
             EventBus.$on("changeStatusCloseCase", (from) => {
+
                 from
+
                 this.casesheet = false;
-                console.log('1')
-;                this.initialize();
                 ///  this.dialog = true
             });
             EventBus.$on("changeStatusCloseField", (from) => {
@@ -1488,16 +1014,61 @@ EventBus.$on("GetResCancel", (tooth) => {
                 //  this.dialog = true
             });
 
+            this.initialize();
 
-
-
+            // this.getDectors();
 
         },
 
     }
 </script>
 
+<style>
+    /* #dropzone-external {
+        width: 250px;
+        height: 250px;
+        background-color: rgba(183, 183, 183, 0.1);
+        border-width: 2px;
+        border-style: dashed;
+        padding: 10px;
+    }
 
+    #dropzone-external>* {
+        pointer-events: none;
+    }
+
+    #dropzone-external.dropzone-active {
+        border-style: solid;
+    }
+
+    .widget-container>span {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 16px;
+    }
+
+    #dropzone-image {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    #dropzone-text>span {
+        font-weight: 100;
+        opacity: 0.5;
+    }
+
+    #upload-progress {
+        display: flex;
+        margin-top: 10px;
+    }
+
+    .flex-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    } */
+</style>
 
 <style>
     #my-strictly-unique-vue-upload-multiple-image {

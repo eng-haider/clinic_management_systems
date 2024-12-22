@@ -35,7 +35,7 @@
   "add_pic":"اضافه الصور المرفقة",
   "message":"الرسالة",
   "yes":"نعم",
-  "home":"الرئيسية",
+  "home":"الاحصائيات",
   "close": "الغاء",
   "arbic": "عربي",
   "en": "الانكليزي",
@@ -51,28 +51,30 @@
     "You_have_mail_from": "لديك بريد من"
   },
   "datatable":{
-    
     "name":"الاسم",
+    "address":"العنوان",
     "message":"الرساله",
+    "birth_date":"المواليد",
     "email":"الايميل",
-    "phone":"الهاتف",
     "phone":"الهاتف",
     "sex":"الجنس",
     "doctor":"الدكتور",
     "price":"السعر",
     "status_Description":"وصف الحالة",
-
     "age":"العمر",
     "date":"التاريخ",
-  
     "title":"العنوان",
     "data_create":"تاريخ الاضافه",
     "status":"الحاله",
-    "description":"الوصف"
+    "description":"الوصف",
+    "touth_num":"رقم السن"
 
   },
+  
   "Drawer": {
+    "birthDay":"اعياد ميلاد المراجعين",
     "statistics": "الاحصائيات",
+    "recipes":"الراجيته",
     "store":"المخزن",
     "casesheet":"سجل المراجعين",
     "User_management": "اداره المستخدمين",
@@ -104,7 +106,7 @@
   ,
 
  
-  "addcase":" اضافه حاله",
+  "addcase":"اضافة حالة",
   "all":"الكل",
   "search":"بحــث",
   "sex":{
@@ -117,7 +119,7 @@
  
   }
   ,
-  "rx":"راجيته",
+  "rx":"راجيتة",
 "patients":{
 "addnewpatients":"اضافه مراجع جديد",
 "systemicdisease":"الامراض الجهازيه ",
@@ -126,6 +128,7 @@
 "account":"الحساب"
 },
 
+
 "store":{
 "addItem":"اضافه ماده",
 "name":"اسم الماده",
@@ -133,9 +136,18 @@
 "required_quantity":"التنبيه عند الكميه"
 },
   "header":{
+
+   
     "cases":"الحالات",
+    "reports":"تصيدير تقرير",
+    "waitinglist":"قائمة الانتظار",
+    "show_waitinglist":"قائمة الانتظار",
+    "recipes":"الراجيته",
+    "birthDay":"اعياد ميلاد المراجعين",
+    "birthday":"اعياد ميلاد المراجعين",
+    "Conjugations":" صرفيات العياده",
     "statistics":"الاحصائيات",
-    "home":"الرئيسية",
+    "home":"الاحصائيات",
     "store":"المخزن",
     "accounts":"الحسابات",
     "doctors":"دكاتره العياده",
@@ -144,10 +156,12 @@
     "requestBooking_test":"مواعيد المراجعين",
     "casesheet":"سجل المراجعين",
     "Blog":"أعمالنا",
-    "dashbourd":"الرئيسيه",
+    "dashbourd":"الاحصائيات",
     "profile":"الاعدادت",
     "Gallery":"معرض الصور",
     "showCases":"الحالات",
     "Contact":"اتصل بنا"
   }
 }
+
+

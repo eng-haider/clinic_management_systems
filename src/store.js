@@ -4,6 +4,7 @@ import axios from 'axios'
 import VueAxios from "vue-axios";
 import router from './router'
 import createPersistedState from 'vuex-persistedstate'
+// import { use } from 'vue/types/umd.js';
 Vue.use(Vuex)
 Vue.use(VueAxios, axios);
 
@@ -96,12 +97,15 @@ export default new Vuex.Store({
         state.AdminInfo.name = userData.name
         state.AdminInfo.authe=true
         state.AdminInfo.email = userData.email
+        state.AdminInfo.phone = userData.phone
         state.AdminInfo.photo = userData.photo
         state.AdminInfo.role = userData.role.name
         state.AdminInfo.img_name = userData.img_name
         state.AdminInfo.Permissions = userData.Permissions
         state.AdminInfo.dir = userData.dir
 
+        state.AdminInfo.send_msg=userData.send_msg
+        
         
        
          state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
@@ -142,10 +146,6 @@ export default new Vuex.Store({
     updateInfo({
       commit
     }, userData) {
-
-      
-console.log(userData)
-;    
       commit('UpdateUserInfo', {
 
         userId: userData.id,
@@ -153,9 +153,12 @@ console.log(userData)
         name: userData.name,
         policyNumber: userData.photp,
         userPhotoUrl: userData.email,
+        phone: userData.phone,
         //role:1,
         clinic_info:userData.Clinics,
-        img_name:userData.img_file
+        img_name:userData.img_file,
+
+send_msg:userData.send_msg
     
       });
 
@@ -181,20 +184,21 @@ console.log(userData)
       for(var i=0;i<userData.Permissions.length;i++){
         Permissions.push(userData.Permissions[i].name);
       }
-   
+    
+      
       //alert(userData.img_name);
         commit('authUser', {
           token:localStorage.getItem('tokinn'),
           userId: userData.id,
           tctate_token:userData.tctate_token,
           name: userData.name,
-          
-
+          send_msg:userData.send_msg,
           policyNumber: userData.photp,
           userPhotoUrl: userData.email,
           role:userData.role.name,
           clinic_info:userData.clinic_info,
           img_name:userData.img_file,
+          phone:userData.phone,
           Permissions:Permissions
       
 

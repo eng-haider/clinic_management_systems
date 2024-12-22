@@ -11,7 +11,11 @@ export default {
 </script>
 
 <style >
- @import '/css/style.css?v4'; 
+
+.card_num{
+  font-size: 27px !important;
+}
+
 
  
  @media only screen and (max-width: 600px) {
