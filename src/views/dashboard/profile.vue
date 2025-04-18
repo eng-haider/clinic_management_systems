@@ -65,19 +65,17 @@
                             </v-flex>
 
                             <v-flex xs8>
-                                <v-lable>الاسم</v-lable>
-                                <v-text-field filled height="40" style="" v-model="owner.name" placeholder="الاسم"
-                                    required>
+                                <v-lable>{{ $t("name") }}</v-lable>
+                                <v-text-field filled height="40" style="" v-model="owner.name" :placeholder="$t('name')" required>
                                 </v-text-field>
 
 
 
-                                <v-lable>اسم المركز</v-lable>
-                                <v-text-field height="40" style="" filled v-model="owner.Clinics
-.name" placeholder="اسم الشركة" required :rules="nameRules"></v-text-field>
+                                <v-lable>{{ $t("clinic_name") }}</v-lable>
+                                <v-text-field height="40" style="" filled v-model="owner.Clinics.name" :placeholder="$t('clinic_name')" required :rules="nameRules"></v-text-field>
 
-                                <v-lable>الايميل</v-lable>
-                                <v-text-field height="40" style="" filled placeholder="الايميل" v-model="owner.email"
+                                <v-lable>{{ $t("email") }}</v-lable>
+                                <v-text-field height="40" style="" filled :placeholder="$t('email')" v-model="owner.email"
                                     :rules="emailRules">
                                 </v-text-field>
 
@@ -86,8 +84,8 @@
 
 
 
-                                <v-lable>عنوان العيادة</v-lable>
-                                <v-text-field height="40" style="" filled placeholder="عنوان العيادة" v-model="owner.Clinics.address"
+                                <v-lable>{{ $t("clinic_address") }}</v-lable>
+                                <v-text-field height="40" style="" filled :placeholder="$t('clinic_address')" v-model="owner.Clinics.address"
                                     :rules="emailRules">
                                 </v-text-field>
 
@@ -95,12 +93,12 @@
 
                                 <p>
                                     <v-btn @click="password_Dailog=true" color="red" style="color:#fff" width="200px">
-                                        تغير الباسورد</v-btn>
+                                        {{ $t("change_password") }}</v-btn>
                                 </p>
                                 <v-btn pr-4 color="primary" style="width:50%" :loading="loading"
                                     @click="update(),update()">
 
-                                    حفظ التعديلات
+                                    {{ $t("save_changes") }}
 
                                 </v-btn>
                             </v-flex>
@@ -134,37 +132,37 @@
 
                         </v-flex>
                         <v-flex xs12 md12 sm12>
-                            <v-lable>الباسورد السابق</v-lable>
+                            <v-lable>{{ $t("old_password") }}</v-lable>
                             <v-text-field filled v-model="password.old_password" height="50" style=""
                                 :type="show1 ? 'text' : 'password'"
                                 :append-icon="show1 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
-                                @click:append="show1 = !show1" placeholder="الباسورد السابق" required
+                                @click:append="show1 = !show1" :placeholder="$t('old_password')" required
                                 :rules="oldpasswordRules"></v-text-field>
                         </v-flex>
 
 
                         <v-flex xs12 md12 sm12>
-                            <v-lable>الباسورد الجديد</v-lable>
+                            <v-lable>{{ $t("new_password") }}</v-lable>
                             <v-text-field filled v-model="password.new_password" height="50" style=""
                                 :type="show2 ? 'text' : 'password'"
                                 :append-icon="show2 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
-                                @click:append="show2 = !show2" placeholder="الباسورد الجديد" required
+                                @click:append="show2 = !show2" :placeholder="$t('new_password')" required
                                 :rules="newpasswordRules"></v-text-field>
                         </v-flex>
 
                         <v-flex xs12 md12 sm12>
-                            <v-lable>اعاده كتابه الباسورد</v-lable>
+                            <v-lable>{{ $t("confirm_password") }}</v-lable>
                             <v-text-field filled v-model="password.password_confirmation"
                                 :type="show3 ? 'text' : 'password'"
                                 :append-icon="show3 ? 'fa-sharp fa-solid fa-eye' : 'fa-regular fa-eye-slash'"
-                                @click:append="show3 = !show3" height="50" style="" placeholder="اعاده كتابه الباسورد"
+                                @click:append="show3 = !show3" height="50" style="" :placeholder="$t('confirm_password')"
                                 required :rules="passwordConfirmationRules"></v-text-field>
                         </v-flex>
 
                         <v-row justify="center">
                             <v-flex xs4 pl-3>
                                 <v-btn color="success" @click="change_password()" style=";color:#fff;width:100%">
-                                    تغير
+                                    {{ $t("change_password") }}
                                 </v-btn>
 
 
@@ -174,7 +172,7 @@
                             <v-flex xs4>
 
                                 <v-btn color="red" @click="password_Dailog=false" style=";color:#fff;width:100%">
-                                    خروج
+                                    {{ $t("back") }}
                                 </v-btn>
 
 
@@ -207,22 +205,22 @@
                 error_msg: [],
 
                 oldpasswordRules: [
-                    v => !!v || 'يجب ادخال الباسورد',
-                    (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
+                    v => !!v || this.$t('password_required'),
+                    (v) => v.length >= 8 || this.$t('password_min_length'),
                     // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
                 ],
 
 
 
                 newpasswordRules: [
-                    v => !!v || 'يجب ادخال الباسورد',
-                    (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
+                    v => !!v || this.$t('password_required'),
+                    (v) => v.length >= 8 || this.$t('password_min_length'),
                     // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
                 ],
 
                 passwordConfirmationRules: [
-                    v => !!v || 'يجب ادخال الباسورد',
-                    (v) => v.length >= 8 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
+                    v => !!v || this.$t('password_required'),
+                    (v) => v.length >= 8 || this.$t('password_min_length'),
                     // (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام',
 
                 ],
@@ -260,7 +258,7 @@
                 },
 
                 nameRules: [
-                    (v) => !!v || 'يجب ادخال الاسم',
+                    (v) => !!v || this.$t('name_required'),
 
                 ],
                 emailRules: [
@@ -268,7 +266,7 @@
 
 
                     // (v) => ( /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,5})+$/.test(v)) ||
-                    // 'ألايميل غير صحيح',
+                    // '��لايميل غير صحيح',
 
 
                 ],
@@ -327,7 +325,7 @@
                         .then(response => {
                             response
                             this.password_Dailog = false;
-                            this.$swal('', "تم تغير الباسورد بنجاح ", 'success')
+                            this.$swal('', this.$t('password_changed_successfully'), 'success')
 
 
 
@@ -347,14 +345,14 @@
                                 if (error.response.data.data.password ==
                                     "The password confirmation does not match.") {
                                     // this.scrollToTop();
-                                    this.error_msg.push('الباسوردان غير متاطبقان');
+                                    this.error_msg.push(this.$t('passwords_do_not_match'));
 
                                 }
 
                                 if (error.response.data.data ==
                                     "old password false") {
                                     //  this.scrollToTop();
-                                    this.error_msg.push('الباسورد السابق غير صحيح');
+                                    this.error_msg.push(this.$t('incorrect_old_password'));
 
                                 }
 
@@ -382,14 +380,14 @@
                                 if (error.response.data.data.password ==
                                     "The password confirmation does not match.") {
                                     // this.scrollToTop();
-                                    this.error_msg.push('الباسوردان غير متاطبقان');
+                                    this.error_msg.push(this.$t('passwords_do_not_match'));
 
                                 }
 
                                 if (error.response.data.data ==
                                     "old password false") {
                                     //  this.scrollToTop();
-                                    this.error_msg.push('الباسورد السابق غير صحيح');
+                                    this.error_msg.push(this.$t('incorrect_old_password'));
 
                                 }
 
@@ -477,7 +475,7 @@
                 if (this.$refs.form.validate() && !this.loading) {
 
                     var data = {}
-                    if (this.images[0].includes(this.http)) {
+                    if (this.images[0].includes(this.http)  || this.images[0]=='ab') {
 
                         data = {
 
@@ -541,15 +539,15 @@
                         })
                         .catch(error => {
                             error
-                            this.$swal('', "   تم تعديل الملعومات بنجاح  ", 'success')
+                            this.$swal('', this.$t('update_successful'), 'success')
                             //this.verfy_Dailog = true;
 
                             if (error.response) {
                                 if (error.response.data.data.owner_email ==
                                     "The owner email has already been taken.") {
-                                    this.$swal('', " الايميل مستخدم", 'error')
+                                    this.$swal('', this.$t('email_taken'), 'error')
                                 } else {
-                                    this.$swal('', "  لم تم اضافة تاجر ", 'error')
+                                    this.$swal('', this.$t('update_failed'), 'error')
                                 }
 
                             }
@@ -581,13 +579,13 @@
 
 
                 Swal.fire({
-                    title: "هل انت متاكد من الحذف ؟",
+                    title: this.$t('sure_process'),
 
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
+                    confirmButtonText: this.$t('yes')
 
                 }).then((result) => {
                     if (result.value) {
@@ -624,7 +622,7 @@
                             this.GetOwnerInfo();
 
                             Swal.fire(
-                                'تم الحذف بنجاح',
+                                this.$t('delete_successful'),
                                 '',
                                 'success'
                             )

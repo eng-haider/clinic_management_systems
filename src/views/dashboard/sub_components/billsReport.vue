@@ -43,6 +43,9 @@
                             <th class="text-right">
                                 المتبقي
                             </th>
+                            <th class="text-right">
+                                التاريخ
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,6 +66,8 @@
 
                             <td v-if="item.bills.length>0">{{ (item.price-xx(item.bills))  | currency }}  <span class="money">د.ع</span></td>
                             <td v-else>{{ item.price | currency}} <span class="money">د.ع</span></td>
+
+                            <td>{{ cropdate(item.created_at) }}</td>
 
                         </tr>
                     </tbody>
@@ -87,6 +92,9 @@
         },
 
         methods: {
+            cropdate(x) {
+                return x.slice(0, 10);
+            },
             close(){
                 EventBus.$emit("billsReportclose", false);
             },

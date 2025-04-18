@@ -32,7 +32,16 @@
                   locale="ar-iq"
                 />
               </v-col>
-              <v-col cols="12" sm="6">
+
+
+             
+
+              <v-col cols="12" sm="6" xs="12"   v-if="owner_item.possib_reserving_period !==null">
+              <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
+
+              </v-col>
+
+              <v-col cols="12" sm="6"  v-else>
                 <v-menu 
                   ref="menu1" 
                   v-model="menu2" 
@@ -102,8 +111,12 @@
                 />
                 </div>
               </v-col>
+
+        
             </v-row>
 
+            <br>
+            <br>
             <v-card-actions>
               <v-spacer />
               <v-btn color="red darken-1" text @click="close">اغلاق</v-btn>
@@ -125,6 +138,7 @@ export default {
     patientFound: Boolean,
     start_date: String,
     patients: Array,
+    doctors:Array
   },
   data() {
     return {
@@ -144,6 +158,7 @@ export default {
       valid: false,
       menu2: false,
       menu3: false,
+      owner_item:'',
       send_msg: false,
       editedItem: {
         reservation_start_date: this.getCurrentDate(),
@@ -187,7 +202,38 @@ export default {
     }
   },
   },
+  mounted() {
+    
+    this.getOwnerTctateitemsById();
+  },
   methods: {
+    addtime(item){
+        let time = this.editedItem.reservation_from_time; // Example: "12:30"
+let [hours, minutes] = time.split(":").map(Number);
+
+let date = new Date();
+date.setHours(hours);
+date.setMinutes(minutes + item); // Add 60 minutes
+
+return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
+      },
+    getOwnerTctateitemsById() {
+        this.loading = true
+        this.$http({
+          method: 'get',
+          url: "https://tctate.com/api/api/v2/items/owner/get?page=1",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
+          }
+
+        }).then(response => {
+          this.item_id = response.data.data[0].id;
+          this.owner_item = response.data.data[0];
+        });
+      },
+
     updateAppointmentMessage() {
     const fromTime = this.convertToArabicAmPm(this.editedItem.reservation_from_time);
     const toTime = this.convertToArabicAmPm(this.editedItem.reservation_to_time);
@@ -208,17 +254,27 @@ export default {
       EventBus.$emit('GetResCancel', true);
     },
 
-   
+  
+
     save() {
       if (this.$refs.form.validate()) {
         this.loadSave = true;
         this.prepareReservationData();
         
+
+        if(this.doctors.length>1){
+     
+     this.tokx=this.patientInfo.doctors[0].user.tctate_token;
+    }else{
+     this.tokx=this.$store.state.AdminInfo.tctate_token;
+    }
+
+
         this.$http.post("https://tctate.com/api/api/reservation/owner/setv2", this.post_data, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.$store.state.AdminInfo.tctate_token}`,
+            Authorization: `Bearer ${this.tokx}`,
           },
         }).then(response => {
           response
@@ -256,7 +312,8 @@ export default {
         reservation_start_date: this.editedItem.reservation_start_date,
         reservation_end_date: this.editedItem.reservation_start_date,
         reservation_from_time: this.editedItem.reservation_from_time,
-        reservation_to_time: this.editedItem.reservation_to_time,
+        
+        reservation_to_time:this.owner_item.possib_reserving_period ==null?this.editedItem.reservation_to_time:this.addtime(this.owner_item.possib_reserving_period),
         appointmentMessage: this.editedItem.appointmentMessage,
         user: {
           phone: `964${this.patientFound && this.patientInfo.phone ? this.patientInfo.phone.replace(/ /g, "") : (this.patient.phone ? this.patient.phone.replace(/ /g, "") : "")}`,

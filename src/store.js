@@ -103,22 +103,23 @@ export default new Vuex.Store({
         state.AdminInfo.img_name = userData.img_name
         state.AdminInfo.Permissions = userData.Permissions
         state.AdminInfo.dir = userData.dir
-
         state.AdminInfo.send_msg=userData.send_msg
-        
-        
-       
-         state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
-
+        state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
         state.AdminInfo.token =localStorage.getItem('tokinn')
-      
-
-        //state.AdminInfo.tctate_token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdGN0YXRlLmNvbVwvYXBpXC9hcGlcL2F1dGhcL3YyXC9sb2dpbk93bmVyU21hcnQiLCJpYXQiOjE2ODE0ODIxMzcsImV4cCI6MTY4MjE1MTczNywibmJmIjoxNjgxNDgyMTM3LCJqdGkiOiJtOVZMRDBlU0hHckw1b2xWIiwic3ViIjozODksInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.Sn-M-aYb5RhMYlMMy4qcOemeuITdUGEfT9mnTfUUCmU";
         state.AdminInfo.clinics_info =userData.clinic_info
 
        
       },
 
+      updatePermissions(state, permissions) {
+        var Permissions=Array();
+        for(var i=0;i<permissions.data.length;i++){
+          Permissions.push(permissions.data[i].name);
+        }
+      
+
+        state.AdminInfo.Permissions = Permissions;
+      },
 
   
     
@@ -148,28 +149,20 @@ export default new Vuex.Store({
     }, userData) {
       commit('UpdateUserInfo', {
 
+        
         userId: userData.id,
-        // tctate_token:userData.tctate_token,
         name: userData.name,
         policyNumber: userData.photp,
         userPhotoUrl: userData.email,
         phone: userData.phone,
-        //role:1,
         clinic_info:userData.Clinics,
         img_name:userData.img_file,
-
-send_msg:userData.send_msg
+        send_msg:userData.send_msg
     
       });
 
      
     
-      // let authenticate = Promise.resolve({ role:userData.role.name});
-      // authenticate.then(user => { Vue.prototype.$user.set(user);})
-
-      // commit('setRole',userData.role.name);
-      // router.push("/");
-      ///location.reload();
    
 
     },

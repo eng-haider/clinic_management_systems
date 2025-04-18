@@ -4,7 +4,7 @@
             <v-card :elevation="hover ? 24 : 6" class="mx-auto">
                 <v-layout row warp pr-3 style="height:124px;width:100%;font-family:'cairo_semi'">
                     <v-flex xs8 pt-3>
-                        <v-card-title class="card_dash" style="padding-bottom1% !important;font-size:18px !important;">
+                        <v-card-title class="card_dash" style="padding-bottom:1px !important;font-size:18px ;">
                             <span>{{name}} </span>
                         </v-card-title>
 
@@ -57,3 +57,19 @@
 
     }
 </script>
+
+<style>
+.dashbourd_card_icon{
+    font-size: 30px !important;
+}
+
+@media only screen and (max-width: 600px) {
+    .dashbourd_card_icon {
+        font-size: 30px !important;
+    }
+
+    .card_dash{
+        font-size: 15px !important 
+    }
+}
+</style>

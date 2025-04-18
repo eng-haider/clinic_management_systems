@@ -77,12 +77,12 @@
                                                 </v-col>
 
 
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                <!-- <v-col class="py-0" cols="12" sm="6" md="6">
                                                     <v-radio-group v-model="editedItem.role" row>
                                                         <v-radio label="سكرتير" :value="3"></v-radio>
                                                         <v-radio label="دكاتره" :value="2"></v-radio>
                                                     </v-radio-group>
-                                                </v-col>
+                                                </v-col> -->
 
                                
                                             </v-row>
@@ -215,7 +215,7 @@
 <script>
     //Recipe
 
-    import Swal from "sweetalert2";
+    // import Swal from "sweetalert2";
 
 
 
@@ -242,7 +242,7 @@
 
                     password: "",
                     phone: "",
-                    role:""
+                    
                     
                 },
 
@@ -377,7 +377,7 @@ if (this.$refs.form.validate()) {
   
   name: this.editedItem.name,
  password: this.editedItem.password,
- role: this.editedItem.role,
+//  role: this.editedItem.role,
  phone: "964" + parseInt(this.editedItem.phone),
 
 
@@ -406,10 +406,10 @@ if (this.$refs.form.validate()) {
                     this.initialize();
 
 
-                if (this.$store.state.role !== 'secretary') {
-                    this.gocase = false;
-                    this.addCase(this.patientInfo);
-                }
+                // if (this.$store.state.role !== 'secretary') {
+                //     this.gocase = false;
+                //     this.addCase(this.patientInfo);
+                // }
 
 
 
@@ -436,76 +436,8 @@ if (this.$refs.form.validate()) {
             },
 
 
-            deletePayment(index, id) {
+        
 
-
-                Swal.fire({
-                    title: this.$t('sure_process'),
-                    text: "",
-                    heightAuto: false,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: this.$t('yes'),
-                    cancelButtonText: this.$t('no'),
-                }).then(result => {
-                    if (result.value) {
-                        this.editedItem.case.bills.splice(index, 1);
-                        Axios.delete("bills/" + id, {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                                }
-                            })
-                            .then(() => {
-                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                this.initialize();
-                            })
-                            .catch(() => {
-                                this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
-                            });
-                    }
-                });
-
-
-
-
-            },
-
-
-            deleteItem(item) {
-
-
-                Swal.fire({
-                    title: this.$t('sure_process'),
-                    text: "",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: this.$t('yes'),
-                    cancelButtonText: this.$t('no'),
-                }).then(result => {
-                    if (result.value) {
-                        Axios.delete("patients/" + item.id, {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                                }
-                            })
-                            .then(() => {
-                                this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                this.initialize();
-                            })
-                            .catch(() => {
-                                this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
-                            });
-                    }
-                });
-            },
 
 
 
@@ -663,27 +595,7 @@ if (this.$refs.form.validate()) {
                     });
             },
 
-            getCaseCategories() {
-
-
-                Axios.get("cases/CaseCategories", {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                        }
-                    })
-                    .then(res => {
-                        this.loading = false;
-                        this.CaseCategories = res.data;
-
-
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
-
-            },
+            
 
 
 

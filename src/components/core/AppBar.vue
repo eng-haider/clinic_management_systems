@@ -1,5 +1,7 @@
 <template>
   <div>
+
+    
     <v-app-bar app color="#0a304e" dark absolute height="50" style="width: auto" elevation="1">
       <v-btn fab small text @click="
         $vuetify.breakpoint.mdAndDown
@@ -54,6 +56,15 @@
               </v-list-item-content>
             </v-list-item>
 
+            <v-list-item v-if="linkedAccounts.length > 0" @click="switchAccount()">
+              <v-list-item-icon>
+                <v-icon>mdi-account-switch</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>{{ $t('AppBar.switch_account') }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
             <v-list-item  @click="logout()">
               <v-list-item-icon>
                 <v-icon v-text="'mdi-logout'"></v-icon>
@@ -69,6 +80,12 @@
 
 
     </v-app-bar>
+
+
+
+
+
+    
   </div>
 </template>
 
@@ -84,6 +101,7 @@
     mapState,
     mapMutations
   } from "vuex";
+  import Axios from "axios";
 
   
   export default {
@@ -126,6 +144,7 @@
           //   },
           // },
         ],
+        linkedAccounts: [],
       }
 
 
@@ -136,6 +155,39 @@
     },
 
     methods: {
+      async fetchLinkedAccounts() {
+        try {
+          const response = await Axios.get("/users/getLinkedAccounts", {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${this.$store.state.AdminInfo.token}`,
+            },
+          });
+          this.linkedAccounts = response.data.accounts;
+        } catch (error) {
+          console.error('Error fetching linked accounts:', error);
+        }
+      },
+      async switchAccount() {
+        try {
+          const response = await Axios.post("/users/switchAccount", {}, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${this.$store.state.AdminInfo.token}`,
+            },
+          });
+          const { token, tctate_token, result } = response.data;
+          result.clinic_info = response.data.clinic_info;
+          localStorage.setItem('tokinn', token);
+          localStorage.setItem('tctate_token', tctate_token);
+          this.$store.dispatch("login", response.data);
+          window.location.reload();
+        } catch (error) {
+          console.error('Error switching account:', error);
+        }
+      },
       logout(){
         this.$store.dispatch("logout");
 
@@ -173,6 +225,8 @@
 
 
     },
-
+    created() {
+      this.fetchLinkedAccounts();
+    },
   }
 </script>

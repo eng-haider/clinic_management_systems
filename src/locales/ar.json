@@ -2,8 +2,11 @@
 
   "lang":"English",
   "address":"العنوان",
+  "appointment":"الموعد",
+  "send_reminder_message": "إرسال رسالة تذكير",
   "Board_Directors":"أعضاء مجلس الادارة",
   "phone":"رقم الهاتف",
+
   "update":"تعديل",
   "Delete": "حذف",
   "flow_me":"تابعنا على وسائل التواصل",
@@ -11,7 +14,9 @@
   "save":"حفط",
   "art":"اعمالنا",
   "male":"ذكر",
+  "export_as_image":"تصيدير كصورة",
   "female":"انثئ",
+  
   "exist":"خروج",
   "You_donate_via_bank_account":"يمكنك التبرع عن طريق الحساب المصرفي ",
   "bank":"في مصرف بغداد",
@@ -36,7 +41,7 @@
   "message":"الرسالة",
   "yes":"نعم",
   "home":"الاحصائيات",
-  "close": "الغاء",
+  "close": "إغلاق",
   "arbic": "عربي",
   "en": "الانكليزي",
   "latest_work":"اخر أعمالنا",
@@ -46,6 +51,7 @@
   "AppBar": {
     "profile": "ملفي",
     "Settings": "اعدادات",
+    "switch_account":"تبديل الحساب",
     "sign_out": "تسجيل الخروج",
     "You_transaction_name": "لديك معاملة بأسم",
     "You_have_mail_from": "لديك بريد من"
@@ -72,7 +78,7 @@
   },
   
   "Drawer": {
-    "birthDay":"اعياد ميلاد المراجعين",
+    "Birthday":"اعياد ميلاد المراجعين",
     "statistics": "الاحصائيات",
     "recipes":"الراجيته",
     "store":"المخزن",
@@ -123,21 +129,34 @@
 "patients":{
 "addnewpatients":"اضافه مراجع جديد",
 "systemicdisease":"الامراض الجهازيه ",
+"add_to_today_sequence":"اضافه إلى قائمة الانتضار",
 "AppointmentBooking":"حجز موعد",
 "Referencesnameorphonenumber":"اسم المراجع او رقم  الهاتف",
 "account":"الحساب"
 },
 
 
+"ConjugationsCategories":{
+  "name":"الاسم",
+
+"price":"السعر",
+"date":"التاريخ",
+"quantity":"الكميه"
+
+}
+
+,
 "store":{
 "addItem":"اضافه ماده",
+"addCate":"اضافة قسم",
+"nameCate":"اسم القسم",
 "name":"اسم الماده",
 "quantity":"الكميه",
 "required_quantity":"التنبيه عند الكميه"
 },
   "header":{
 
-   
+    "conjugationsCategories":"اقسام الصرفيات",
     "cases":"الحالات",
     "reports":"تصيدير تقرير",
     "waitinglist":"قائمة الانتظار",
@@ -161,7 +180,59 @@
     "Gallery":"معرض الصور",
     "showCases":"الحالات",
     "Contact":"اتصل بنا"
-  }
-}
+  },
 
+  "back": "رجوع",
+  "patient_name": "اسم المراجع",
+  "paid": "تم التسديد",
+  "not_paid": "لم يتم التسديد",
+  "completed": "مكتمله",
+  "not_completed": "غير مكتمله",
+
+  "clinic_name": "اسم المركز",
+
+  "clinic_address": "عنوان العيادة",
+  "change_password": "تغير الباسورد",
+  "save_changes": "حفظ التعديلات",
+  "old_password": "الباسورد السابق",
+  "new_password": "الباسورد الجديد",
+  "confirm_password": "اعاده كتابه الباسورد",
+  "password_required": "يجب ادخال الباسورد",
+  "password_min_length": "يجب ان لايقل الباسورد عن ٨ احرف او ارقام",
+  "name_required": "يجب ادخال الاسم",
+  "required": "مطلوب",
+  "phone_length": "رقم الهاتف يجب ان يتكون من 11 رقم",
+  "invalid_email": "يجب ان يكون ايميل صحيح",
+  "write_prescription": "كتابة الوصفة الطبية",
+  "gender": "الجنس",
+  "age": "العمر",
+  "case": "الحالة",
+  "prescription": "الوصفة",
+  "print": "طباعة",
+  "add_new_note": "إضافة ملاحظة جديدة",
+  "cancel": "إلغاء",
+  "book_appointment": "حجز موعد",
+  "appointment_details": "تفاصيل الموعد",
+  "whatsapp_chat": "دردشة واتساب",
+  "delete_appointment": "حذف الموعد",
+  "select_patient": "اختر المريض",
+  "from_time": "من الوقت",
+  "to_time": "إلى الوقت",
+  "to_date": "إلى التاريخ",
+  "from_date": "من التاريخ",
+
+  "book": "حجز",
+  "field_required": "هذا الحقل مطلوب",
+  "enter_valid_phone_number": "أدخل رقم هاتف صالح",
+  "type": "نوع",
+  "status": "الحالة",
+  "payment_status": "الدفع",
+  "cancel_search": "إلغاء البحث",
+  "no_cases": "لا توجد حالات",
+  "add_case": "إضافة حالة",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "note":"الملاحظات",
+  "Reloading": "إعادة تحميل"
+}
 

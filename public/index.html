@@ -1,159 +1,102 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="en">
 
 <head>
-	<meta charset="utf-8">
+	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width,initial-scale=1.0">
-	<link rel="icon" href="<%= BASE_URL %>logo.ico">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title><%= htmlWebpackPlugin.options.title %></title>
-	<!-- <link rel="stylesheet" type="text/css" href="jquery.fancybox.min.css"> -->
-
-
+	<link rel="icon" href="<%= BASE_URL %>logo4.ico">
 	<link rel="manifest" href="manifest.json">
-	
-
-
-	<!-- <link rel="preconnect" href="css/style.css"> -->
+	<!-- Google Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap" rel="stylesheet">
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
 
-
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
-
-	<meta charset="UTF-8">
-	<link rel="profile" href="https://gmpg.org/xfn/11">
-	<link rel="pingback" href="xmlrpc.html">
-
-	<link media="all" href="/wp-content/cache/autoptimize/9/css/autoptimize_b5dd9c473e78d8508489f6cfb1f9ba2f.css"
-		rel="stylesheet" />
-
-	<meta name='robots' content='max-image-preview:large' />
-
-
-	<link rel="alternate" type="application/rss+xml" title="clinic_management_system" href="" />
-	<!-- <link rel="alternate" type="application/rss+xml" title="موسسة أبناء كربلاء للخير والرحمة"
-		href="comments/feed/index.html" /> -->
+	<!-- Fancybox -->
+	
+	<!-- Custom CSS -->
+	
+	<!-- Open Graph Meta Tags -->
+	<meta name="robots" content="max-image-preview:large" />
 	<meta property="og:title" content="Home" />
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content="" />
-	<meta property="og:site_name" content="clinic managementsystem" />
+	<meta property="og:site_name" content="clinic management system" />
 	<meta property="og:description" content="clinic management system" />
-	<meta property="og:image" content="ttps://abnakr.org/back_end/art_img/art_img_main/img1636928749.png" />
-	<link rel="manifest" href="manifest.json">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-	<link rel='stylesheet' id='google-fonts-css'
-		href='https://fonts.googleapis.com/css?family=Hind%3A300%2C400%2C500%2C600%2C700%7CRaleway%3A100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900%2C100italic%2C200italic%2C300italic%2C400italic%2C500italic%2C600italic%2C700italic%2C800italic%2C900italic%26subset%3Dlatin%2Clatin-ext'
-		type='text/css' media='all' />
-	<link rel='stylesheet' id='redux-google-fonts-zozo_options-css'
-		href='https://fonts.googleapis.com/css?family=Source+Sans+Pro%3A200%2C300%2C400%2C600%2C700%2C900%2C200italic%2C300italic%2C400italic%2C600italic%2C700italic%2C900italic%7CLora%3A400%2C500%2C600%2C700%2C400italic%2C500italic%2C600italic%2C700italic'
-		type='text/css' media='all' />
+	<meta property="og:image" content="/logo4.png" />
 
-
-
-	<!-- <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/21.2.4/css/dx.common.css" />
-		<link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/21.2.4/css/dx.light.css" />
-	 -->
+	<!-- Scripts -->
 	<script type="text/javascript" src="config.js"></script>
 	<script type="text/javascript">
 		System.import("./index.js");
 	</script>
-
-
-
-
 </head>
 
-<body style="background-color: #ffff !important;">
+<body style="background-color: #fff !important;">
 
-
-	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<!-- Loading Screen -->
 	<div id="loading-screen">
-
-
-		<img class="centerImg a" src="logo.png" style="height: 275px; width: 275px;" class=" rounded-pill">
-
-
+		<img class="centerImg a" src="logov2.png" alt="Loading..." style="height: 275px; width: 275px;" />
 	</div>
 
-	<!-- <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script> -->
-
+	<!-- App Root -->
 	<div id="app">
-		<v-app id="inspire">
-		</v-app>
+		<v-app id="inspire"></v-app>
 	</div>
-	<!-- built files will be auto injected -->
+
+	<!-- Hide Loading Screen on Load -->
+	<script>
+		window.addEventListener('load', () => {
+			document.getElementById('loading-screen').style.display = 'none';
+		});
+	</script>
+
+	<!-- Styles -->
+	<style>
+		.centerImg {
+			display: block;
+			margin: 0 auto;
+		}
+
+		.a {
+			animation: pulse 1s linear infinite;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+		}
+
+		@keyframes pulse {
+			0% {
+				transform: scale(1.1);
+			}
+
+			50% {
+				transform: scale(0.8);
+			}
+
+			100% {
+				transform: scale(1);
+			}
+		}
+
+		#loading-screen {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: #ffffff;
+			z-index: 9999;
+		}
+	</style>
+
 </body>
-
-
-<script type="text/html" id="wpb-modifications"></script>
-<link href="https://fonts.googleapis.com/css?family=Roboto:400%7COpen+Sans:300%7CSource+Sans+Pro:400%2C900"
-	rel="stylesheet" property="stylesheet" media="all" type="text/css">
-
-<link rel='stylesheet' id='vc_google_fonts_loraregularitalic700700italic-css'
-	href='https://fonts.googleapis.com/css?family=Lora%3Aregular%2Citalic%2C700%2C700italic' type='text/css'
-	media='all' />
-
-<script>
-	window.addEventListener('load', function () {
-		const loadingScreen = document.getElementById('loading-screen');
-		loadingScreen.style.display = 'none';
-	});
-</script>
-
-
-<style>
-	.centerImg {
-		display: block;
-		margin-left: auto;
-		margin-right: auto;
-	}
-
-	.a {
-
-		animation: pulse 1s linear infinite;
-		position: absolute;
-		margin: auto;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-	}
-
-	@-webkit-keyframes "pulse" {
-		0% {
-			-webkit-transform: scale(1.1);
-			transform: scale(1.1);
-		}
-
-		50% {
-			-webkit-transform: scale(0.8);
-			transform: scale(0.8);
-		}
-
-		100% {
-			-webkit-transform: scale(1);
-			transform: scale(1);
-		}
-	}
-
-	#loading-screen {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-color: #ffffff;
-		/* optional background color */
-		z-index: 9999;
-		/* Make sure it's on top of everything else */
-	}
-</style>
 
 </html>

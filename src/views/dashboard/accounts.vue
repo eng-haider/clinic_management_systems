@@ -115,13 +115,13 @@
             </v-flex> -->
 
 
-            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
 
               <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.all_sum|currency"></dash_card>
             </v-flex>
 
-            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
 
               <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid|currency
 "></dash_card>
@@ -132,14 +132,16 @@
 
             </v-flex>
 
-            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
 
               <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.remainingamount|currency"></dash_card>
             </v-flex>
-            <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
+            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
 
-              <dash_card name="الصرفيات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
+
+              
+              <dash_card  name="الصرفيات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
                 :count="accounts_statistic.Conjugationsprice|currency"></dash_card>
             </v-flex>
 

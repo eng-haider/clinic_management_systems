@@ -110,6 +110,10 @@
 
                                 </v-col>
 
+                                <v-col cols="12" md="6" sm="6">
+                                    <v-switch v-model="editedItem.is_paid" :label="editedItem.is_paid ? $t('paid') : $t('not_paid')" color="green" inset></v-switch>
+                                </v-col>
+
 
 
                                     </v-row>
@@ -158,6 +162,11 @@
 
 
                 </template>
+
+                <template v-slot:[`item.is_paid`]="{ item }">
+                    <v-switch v-model="item.is_paid" :label="item.is_paid ? $t('paid') : $t('not_paid')" color="green" inset @change="updateIsPaid(item)"></v-switch>
+                </template>
+
                 <template v-slot:[`item.actions`]="{ item }">
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
@@ -257,7 +266,8 @@
                     required_quantity: "",
                     price:"",
                     date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
-                    conjugations_categories_id:""
+                    conjugations_categories_id:"",
+                    is_paid: 1 // Default value is 1 (paid)
 
                 },
 
@@ -459,17 +469,30 @@
                     required_quantity: "",
                     price:"",
                     date:"",
-                    conjugations_categories_id:""
+                    conjugations_categories_id:"",
+                    is_paid: 1 // Default value is 1 (paid)
 
 
                 }
 
             },
 
-
-
-
-
+            updateIsPaid(item) {
+                Axios.patch(`Conjugations/${item.id}`, { is_paid: item.is_paid }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                    }
+                })
+                .then(() => {
+                    this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                    this.initialize();
+                })
+                .catch(() => {
+                    this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
+                });
+            },
 
         },
 

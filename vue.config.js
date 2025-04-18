@@ -5,14 +5,30 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 
 
+
 module.exports = {
-  // devServer: {
-  //   port: 8081, // Replace 8081 with the desired port number
-  // },
+  productionSourceMap: false,
+  parallel: true,
+  devServer: {
+    hot: false,
+    liveReload: true,
+  },
+
   css: {
     extract: true,
     sourceMap: false,
   },
+  configureWebpack: {
+    optimization: {
+      splitChunks: {
+        chunks: 'all'
+      }
+    }
+  },
+  // devServer: {
+  //   port: 8081, // Replace 8081 with the desired port number
+  // },
+
   chainWebpack: (config) => {
     config
       .plugin('html')
@@ -25,6 +41,7 @@ module.exports = {
   configureWebpack: {
     plugins: [
       // new BundleAnalyzerPlugin() ,
+      
       new VuetifyLoaderPlugin({
         /**
          * This function will be called for every tag used in each vue component

@@ -119,13 +119,22 @@
             name: 'show_cases'
           },
 
+          // {
+          //   title: this.$t("header.Conjugations"),
+          //   icon: 'fa-solid fa-microscope',
+          //   auth: true,
+          //   to: '/Conjugations',
+          //   name: 'show_Conjugations'
+          // },
+
           {
             title: this.$t("header.Conjugations"),
-            icon: 'fa-solid fa-microscope',
+            icon: 'fa-sharp fa-solid fa-layer-group',
             auth: true,
-            to: '/Conjugations',
-            name: 'show_Conjugations'
+            to: '/ConjugationsCategories',
+            name: 'show_conjugations_categories'
           },
+
 
 
 

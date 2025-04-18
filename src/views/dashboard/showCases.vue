@@ -24,14 +24,14 @@
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;">
 
                             <v-btn color="green" style="color:#fff;font-weight:bold" @click="$router.go(-1)"> <i
-                                    class="fas fa-arrow-right"></i> رجــوع </v-btn>
+                                    class="fas fa-arrow-right"></i> {{ $t("back") }} </v-btn>
                         </v-toolbar-title>
 
                         <!-- <v-divider class="mx-4" inset vertical></v-divider> -->
                         <v-spacer></v-spacer>
                         <span class="d-none d-sm-flex" v-if="desserts.length>0"
                             style="font-family: 'Cairo', sans-serif;font-weight:bold;font-size:20px;text-align:center">
-                            اسم المراجع :
+                            {{ $t("patient_name") }} :
                             <span style="color:blue">
 
                                 <v-chip> {{desserts[0].patient.name}}</v-chip>
@@ -49,7 +49,7 @@
                     <v-row v-if="desserts.length>0" class="d-flex d-sm-none" style="    padding: 25px;">
                         <span
                             style="font-family: 'Cairo', sans-serif;font-weight:bold;font-size:20px;text-align:center">
-                            اسم المراجع :
+                            {{ $t("patient_name") }} :
                             <span style="color:blue">
                                 {{desserts[0].patient.name}}
                             </span>
@@ -69,7 +69,7 @@
                             <v-icon class="ml-5" @click="editItem(item)" v-if="!item.isDeleted" v-bind="attrs"
                                 v-on="on">mdi-pencil</v-icon>
                         </template>
-                        <span>{{ $t("edite") }} </span>
+                        <span>{{ $t("edit") }} </span>
                     </v-tooltip>
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
@@ -85,11 +85,11 @@
                 <template v-slot:[`item.bills`]="{ item }">
 
                     <v-chip v-if="(item.is_paid==1)" class="ma-2" color="green" outlined>
-                        تم التسديد
+                        {{ $t("paid") }}
                     </v-chip>
 
                     <v-chip v-else class="ma-2" color="red" outlined>
-                        لم يتم التسديد
+                        {{ $t("not_paid") }}
                     </v-chip>
 
 <!--                     
@@ -115,7 +115,7 @@
 
                     <v-switch
     :input-value="item.status.id === 43"
-    :label="item.status.id === 43 ? 'مكتمله' : 'غير مكتمله'"
+    :label="item.status.id === 43 ? $t('completed') : $t('not_completed')"
     @change="() => toggleStatus(item)"
     color="green"
     inset
@@ -240,23 +240,46 @@ export default {
         "name_en": "",
         "created_at": "2023-08-05T14:15:28.000000Z",
         "updated_at": "2023-08-05T14:15:28.000000Z"
-    }, {
+    }, 
+    {
         "id":10,
         "name_ar": "تقويم",
         "name_en": "",
         "created_at": "2023-08-05T14:15:28.000000Z",
         "updated_at": "2023-08-05T14:15:28.000000Z"
     }
+
+    , 
+    {
+        "id":11,
+        "name_ar": "تنظيف الاسنان",
+        "name_en": "",
+        "created_at": "2023-08-05T14:15:28.000000Z",
+        "updated_at": "2023-08-05T14:15:28.000000Z"
+    }
+
+
+    , 
+    {
+        "id":12,
+        "name_ar": "تبيض الاسنان باليزر",
+        "name_en": "",
+        "created_at": "2023-08-05T14:15:28.000000Z",
+        "updated_at": "2023-08-05T14:15:28.000000Z"
+    }
+
+
+   
 ],
             rules: {
-                minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                required: value => !!value || "مطلوب",
-                min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
+                minPhon: (v) => v.length == 13 || this.$t('phone_length'),
+                required: value => !!value || this.$t('required'),
+                min: (v) => v.length >= 6 || this.$t('password_min_length'),
                 email: value => {
                     if (value.length > 0) {
                         const pattern =
                             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                        return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
+                        return pattern.test(value) || this.$t('invalid_email');
                     }
                 },
             },
@@ -301,13 +324,13 @@ export default {
             items: [],
             doctors: [],
             headers: [
-                { text: 'نوع الحاله', align: "start", value: "case_categories.name_ar" },
+                { text: this.$t('case_type'), align: "start", value: "case_categories.name_ar" },
                 { text: this.$t('datatable.touth_num'), align: "start", value: "tooth_num" },
                 { text: this.$t('datatable.price'), align: "start", value: "price" },
                 { text: this.$t('datatable.status_Description'), align: "start", value: "sessions[0].note" },
                 { text: this.$t('datatable.date'), align: "start", value: "date" },
                 { text: this.$t('datatable.status'), align: "start", value: "status" },
-                { text: 'حاله الدفع', align: "start", value: "bills" },
+                { text: this.$t('payment_status'), align: "start", value: "bills" },
                 { text: this.$t('Processes'), value: "actions", sortable: false }
             ],
             right: null
@@ -597,7 +620,7 @@ Swal.fire({
 
 
             if (this.editedItem.images.length > 0) {
-                this.imageSource = 'https://tctate.com/SmartClinicAPI/public/images/' + this.editedItem.images[0].image_url;
+                this.imageSource = 'https://apismartclinicv2.tctate.com/public/images/' + this.editedItem.images[0].image_url;
             }
 
 

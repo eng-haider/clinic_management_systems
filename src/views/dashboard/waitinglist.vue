@@ -228,14 +228,22 @@
                         text: this.$t('datatable.name'),
                         align: "start",
                         value: "names"
-                    }, {
+                    }, 
+                    {
                         text: this.$t('datatable.phone'),
                         align: "start",
                         value: "phones"
                     },
 
+                    {
+                        text: this.$t('datatable.doctor'),
+                        align: "start",
+                        value: "owner_names"
+                    },
 
 
+
+                    
 
                     {
                         text: 'تاريخ التسجيل',
@@ -446,6 +454,7 @@
                             id: item.id,
                             names: item.name || "Unknown",
                             phones: item.phone || "Unknown",
+                            owner_names:"Unknown",
                             date: item.scheduled_at.split(" ")[0], // Extract date
                             created_at: item.scheduled_at, // Use existing created_at
                         }));
@@ -454,7 +463,7 @@
                         const reservationsData = reservationsRes.data.data.map((item) => {
                             // Convert reservation_end_date and reservation_from_time to created_at format
                             const createdAt = new Date(
-                                    `${item.reservation_end_date}T${item.reservation_from_time}.000Z`)
+                                    `${item.reservation_start_date}T${item.reservation_from_time}.000Z`)
                                 .toISOString();
 
                             return {
@@ -462,6 +471,7 @@
                                 names: item.user ? item.user.full_name : "Unknown",
                                 phones: item.user ? item.user.user_phone : "Unknown",
                                 date: item.reservation_start_date,
+                                owner_names: item.owner_name?item.owner_name:"Unknown",
                                 created_at: createdAt, // Newly formatted created_at
                             };
                         });
@@ -474,6 +484,81 @@
                     });
             },
 
+            async getclinicDoctor() {
+
+                if(this.$store.state.role=='secretary'){
+                this.loading = true;
+                try {
+                    const response = await Axios.get("doctors/secretary", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    });
+                    this.loadingData = false;
+                    this.loading = false;
+                    this.doctors = response.data.data;
+                    this.fetchReservations();
+                } catch (error) {
+                    this.loading = false;
+                }
+
+            }else{
+                this.fetchReservations();
+            }
+            },
+            async fetchReservations() {
+                try {
+                    const today = new Date();
+                    const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+                    let allReservations = [];
+
+                    if (this.doctors.length > 1 && this.$store.state.role === 'secretary') {
+                        for (let doctor of this.doctors) {
+                            const response = await Axios.get(
+                                `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
+                                {
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        Accept: "application/json",
+                                        Authorization: "Bearer " + doctor.user.tctate_token,
+                                    }
+                                }
+                            );
+                            const reservations = response.data.data.map(reservation => ({
+                                id: reservation.id,
+                                names: reservation.user ? reservation.user.full_name : "Unknown",
+                                phones: reservation.user ? reservation.user.user_phone : "Unknown",
+                                date: reservation.reservation_start_date,
+                                created_at: new Date(`${reservation.reservation_start_date}T${reservation.reservation_from_time}.000Z`).toISOString(),
+                            }));
+                            allReservations = allReservations.concat(reservations);
+                        }
+                    } else {
+                        const response = await Axios.get(
+                            `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Accept: "application/json",
+                                    Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token,
+                                }
+                            }
+                        );
+                        allReservations = response.data.data.map(reservation => ({
+                            id: reservation.id,
+                            names: reservation.user ? reservation.user.full_name : "Unknown",
+                            phones: reservation.user ? reservation.user.user_phone : "Unknown",
+                            date: reservation.reservation_start_date,
+                            created_at: new Date(`${reservation.reservation_start_date}T${reservation.reservation_from_time}.000Z`).toISOString(),
+                        }));
+                    }
+                    this.desserts = allReservations;
+                } catch (error) {
+                    console.error('Error fetching reservations:', error);
+                }
+            },
 
             getCaseCategories() {
 
@@ -525,6 +610,7 @@
         },
         created() {
             this.initialize();
+            this.getclinicDoctor();
             // this.getrecipes();
             // this.getclinicDoctor();
             // this.getCaseCategories();

@@ -26,25 +26,27 @@
 
 
 
-                        <v-flex xs12 md2 sm2 pr-4>
 
-                            <v-select dense v-model="search.case_categores_id" label=" النوع  " clearable
+
+                        <v-flex xs12 md1 sm2 pr-4>
+
+                            <v-select dense v-model="search.case_categores_id" :label="$t('type')" clearable
                                 :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
                         </v-flex>
 
 
-                        <v-flex xs12 md2 sm2 pr-4>
+                        <v-flex xs12 md1 sm2 pr-4>
 
-                            <v-select dense v-model="search.status_id" label=" الحالة  " clearable :items="status"
+                            <v-select dense v-model="search.status_id" :label="$t('status')" clearable :items="status"
                                 outlined item-text="name" item-value="id"></v-select>
                         </v-flex>
 
 
 
-                        <v-flex xs12 md2 sm2 pr-4>
+                        <v-flex xs12 md1 sm2 pr-4>
 
-                            <v-select dense v-model="search.is_paid" label="حالة الدفع " clearable :items="paid"
-                                outlined item-text="name" item-value="id"></v-select>
+                            <v-select dense v-model="search.is_paid" :label="$t('payment_status')" clearable
+                                :items="paid" outlined item-text="name" item-value="id"></v-select>
                         </v-flex>
 
 
@@ -55,7 +57,7 @@
                             <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40"
                                 transition="scale-transition" offset-y min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field dense outlined v-model="search.from_date" label="من التاريخ"
+                                    <v-text-field dense outlined v-model="search.from_date" :label="$t('from_date')"
                                         v-bind="attrs" v-on="on"></v-text-field>
                                 </template>
                                 <v-date-picker v-model="search.from_date" no-title scrollable>
@@ -73,7 +75,7 @@
                             <v-menu v-model="menu3" :close-on-content-click="false" :nudge-right="40"
                                 transition="scale-transition" offset-y min-width="auto">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-text-field dense outlined v-model="search.to_date" label="الى التاريخ"
+                                    <v-text-field dense outlined v-model="search.to_date" :label="$t('to_date')"
                                         v-bind="attrs" v-on="on"></v-text-field>
                                 </template>
                                 <v-date-picker v-model="search.to_date" no-title scrollable>
@@ -84,6 +86,11 @@
 
                         </v-flex>
 
+                        <v-flex xs12 md2 sm2 pr-4>
+                            <v-text-field v-model="search.note" dense style="direction: rtl;text-align: right;"
+                                :label="$t('note')" outlined>
+                            </v-text-field>
+                        </v-flex>
 
 
                         <v-flex xs11 md2 sm2 pr-4
@@ -95,13 +102,14 @@
 
                         <v-flex xs3 md1 sm1 pr-4>
                             <v-btn color="green" style="color:#fff"
-                                @click="page=1;current_page=1;pageCount=0;seachs();">بحــث</v-btn>
+                                @click="page=1;current_page=1;pageCount=0;seachs();">{{ $t("search") }}</v-btn>
                         </v-flex>
 
 
 
                         <v-flex xs3 md1 sm1 pr-4>
-                            <v-btn color="blue" v-if="allItem" style="color:#fff;" @click="searchCansle()">الغاء البحث
+                            <v-btn color="blue" v-if="allItem" style="color:#fff;" @click="searchCansle()">
+                                {{ $t("cancel_search") }}
                             </v-btn>
                         </v-flex>
 
@@ -165,11 +173,11 @@
 
 
                     <span v-if="item.case==null">
-                        لاتوجد
+                        {{ $t("no_cases") }}
                     </span>
 
                     <v-btn v-else dense @click="$router.push('/admin/case/'+item.id)" color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">الحالات</v-btn>
+                        style="color:#fff;height:28px;font-weight:bold">{{ $t("cases") }}</v-btn>
 
 
 
@@ -186,7 +194,7 @@
                     <v-btn @click="addCase(item)" dense color="#0a304ed4"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="fas fa-plus" style="position: relative;left:5px"></i>
-                        اضافه حاله
+                        {{ $t("add_case") }}
 
 
                     </v-btn>
@@ -205,7 +213,7 @@
                     <v-btn @click="addRecipe(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="fas fa-prescription " style="position: relative;left:5px"></i>
-                        راجيته
+                        {{ $t("prescription") }}
 
 
                     </v-btn>
@@ -220,7 +228,7 @@
                     <v-btn @click="addbooking(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="far fa-clock" style="position: relative;left:5px"></i>
-                        حجز موعد
+                        {{ $t("book_appointment") }}
 
 
                     </v-btn>
@@ -255,14 +263,14 @@
                             <v-icon class="ml-5" @click="editItem(item)" v-if="!item.isDeleted" v-bind="attrs"
                                 v-on="on">mdi-pencil</v-icon>
                         </template>
-                        <span>{{ $t("edite") }} </span>
+                        <span>{{ $t("edit") }} </span>
                     </v-tooltip>
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
                             <v-icon @click="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
                                 mdi-delete</v-icon>
                         </template>
-                        <span>{{$t('Delete')}}</span>
+                        <span>{{$t('delete')}}</span>
                     </v-tooltip>
 
 
@@ -285,11 +293,11 @@
                      
                     </v-chip> -->
                     <v-chip v-if="(item.is_paid==1)" class="ma-2" color="green" outlined>
-                        تم التسديد
+                        {{ $t("paid") }}
                     </v-chip>
 
                     <v-chip v-else class="ma-2" color="red" outlined>
-                        لم يتم التسديد
+                        {{ $t("not_paid") }}
                     </v-chip>
 
 
@@ -311,8 +319,8 @@
 
                 <template v-slot:[`item.status`]="{ item }">
                     <v-switch :input-value="item.status.id === 43"
-                        :label="item.status.id === 43 ? 'مكتمله' : 'غير مكتمله'" @change="() => toggleStatus(item)"
-                        color="green" inset></v-switch>
+                        :label="item.status.id === 43 ? $t('completed') : $t('not_completed')"
+                        @change="() => toggleStatus(item)" color="green" inset></v-switch>
                 </template>
                 <template v-slot:no-data>
                     <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
@@ -396,6 +404,7 @@
                     doctors: '',
                     from_date: "",
                     to_date: "",
+                    note: ""
                 },
 
                 paymentsCount: 1,
@@ -488,7 +497,7 @@
                         value: "patient.name"
                     },
                     {
-                        text: 'نوع الحاله',
+                        text: this.$t('case_type'),
                         align: "start",
                         value: "case_categories.name_ar"
                     },
@@ -526,7 +535,7 @@
                     },
 
                     {
-                        text: 'حاله الدفع',
+                        text: this.$t('payment_status'),
                         align: "start",
                         value: "bills"
                     },
@@ -634,7 +643,7 @@
 
                         this.doctorsAll.push({
                             id: 0,
-                            name: ' الكل'
+                            name: this.$t('all')
                         });
                         this.doctors.forEach((item, index) => {
                             index
@@ -784,14 +793,14 @@
                                 }
                             })
                             .then(() => {
-                               
+
                                 this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: this.$t('Successfully'),
-  showConfirmButton: false,
-  timer: 1500
-              });
+                                    position: "top-end",
+                                    icon: "success",
+                                    title: this.$t('Successfully'),
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
                                 this.initialize();
                             })
                             .catch(() => {
@@ -845,14 +854,14 @@
                                 }
                             })
                             .then(() => {
-                                
+
                                 this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: this.$t('Successfully'),
-  showConfirmButton: false,
-  timer: 1500
-              });
+                                    position: "top-end",
+                                    icon: "success",
+                                    title: this.$t('Successfully'),
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
 
                                 this.initialize();
                             })
@@ -903,7 +912,7 @@
 
                 }
                 if (this.editedItem.images.length > 0) {
-                    this.imageSource = 'https://tctate.com/SmartClinicAPI/public/images/' + this.editedItem.images[0]
+                    this.imageSource = 'https://apismartclinicv2.tctate.com/public/images/' + this.editedItem.images[0]
                         .image_url;
 
                 }
@@ -1061,18 +1070,28 @@
                     this.search.doctors = '';
                 }
 
+
+
+                if (this.search.note == null) {
+                    this.search.note = '';
+                }
+
+
                 if (this.search.doctors == 0) {
                     this.search.doctors = this.doctorsIdsAll;
                 }
 
 
+
                 Axios.get("cases/searchv3?filter[status_id]=" + this.search.status_id +
                         "&filter[case_categores_id]=" + this.search.case_categores_id +
+                        "&filter[sessions.note]=" + this.search.note +
                         '&filter[is_paid]=' + this
                         .search.is_paid + '&doctors=' + this
                         .search.doctors +
                         "&from_date=" + this.search.from_date +
                         "&to_date=" + this.search.to_date +
+
                         '&page=' + this.current_page, {
                             headers: {
                                 "Content-Type": "application/json",
@@ -1148,7 +1167,7 @@
 
                         this.CaseCategories.push({
                             id: 0,
-                            name_ar: 'الكل',
+                            name_ar: this.$t('all'),
                             name_en: '',
                             updated_at: '2022-02-02T12:20:30.000000Z'
                         })
@@ -1192,20 +1211,20 @@
                             this.initialize();
 
                             this.$swal.fire({
-                                title: "تم تعديل ",
+                                title: this.$t('updated'),
                                 text: "",
                                 icon: "success",
-                            
+
                             });
                         })
                         .catch(() => {
                             this.loadSave = false;
 
                             this.$swal.fire({
-                                title: "تاكد من ملى المعلومات",
+                                title: this.$t('fill_information'),
                                 text: "",
                                 icon: "error",
-                                confirmButtonText: "اغلاق",
+                                confirmButtonText: this.$t('close'),
                             });
                         });
                 } else {
@@ -1232,7 +1251,7 @@
                                 title: this.$t('Added'),
                                 text: "",
                                 icon: "success",
-                                
+
                             });
                         })
                         .catch((err) => {
@@ -1272,20 +1291,20 @@
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
-                                    title: "تم تعديل ",
+                                    title: this.$t('updated'),
                                     text: "",
                                     icon: "success",
-                                    confirmButtonText: "اغلاق",
+                                    confirmButtonText: this.$t('close'),
                                 });
                             })
                             .catch(() => {
                                 this.loadSave = false;
 
                                 this.$swal.fire({
-                                    title: "تاكد من ملى المعلومات",
+                                    title: this.$t('fill_information'),
                                     text: "",
                                     icon: "error",
-                                    confirmButtonText: "اغلاق",
+                                    confirmButtonText: this.$t('close'),
                                 });
                             });
                     } else {
@@ -1305,7 +1324,7 @@
                                     title: this.$t('Added'),
                                     text: "",
                                     icon: "success",
-                              
+
                                 });
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,

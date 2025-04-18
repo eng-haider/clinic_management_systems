@@ -391,8 +391,8 @@
                 <text transform="matrix(1 0 0 1 198.8225 94.4891)" :class="['st39', 'st40', textClass]">42</text>
                 <text transform="matrix(1 0 0 1 229.3609 94.489)" :class="['st39', 'st40', textClass]">41</text>
                 <text transform="matrix(1 0 0 1 256.9392 94.4892)" :class="['st39', 'st40', textClass]">31</text>
-                <text transform="matrix(1 0 0 1 316.4399 94.4892)" :class="['st39', 'st40', textClass]">32</text>
-                <text transform="matrix(1 0 0 1 286.082 95.0127)" :class="['st39', 'st40', textClass]">33</text>
+                <text transform="matrix(1 0 0 1 316.4399 94.4892)" :class="['st39', 'st40', textClass]">33</text>
+                <text transform="matrix(1 0 0 1 286.082 95.0127)" :class="['st39', 'st40', textClass]">32</text>
                 <text transform="matrix(1 0 0 1 343.2068 95.0127)"   :class="['st39', 'st40', textClass]">34</text>
                 <text transform="matrix(1 0 0 1 373.6457 95.5)"  :class="['st39', 'st40', textClass]" >35</text>
                 <text transform="matrix(1 0 0 1 403.5746 95.4998)" :class="['st39', 'st40', textClass]">36</text>

@@ -1,20 +1,20 @@
 <template>
   <v-container id="dashboard" fluid tag="section">
     <v-layout row wrap pt-4 style="padding-top: 20px !important;">
-      <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
-        <dash_card name="عدد المراجعين" icon="fa-solid fa-hospital-user" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.patients" />
+      <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+        <dash_card name=" المراجعين" icon="fa-solid fa-hospital-user" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.patients" />
       </v-flex>
 
-      <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
-        <dash_card name="عدد الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casesall" />
+      <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+        <dash_card name=" الحالات" icon="fa-light fa-tooth" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casesall" />
       </v-flex>
 
-      <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
-        <dash_card name="عدد الحالات المنتهيه" icon="fa-solid fa-check" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casescompleted" />
+      <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+        <dash_card name="  المنتهيه" icon="fa-solid fa-check" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casescompleted" />
       </v-flex>
 
-      <v-flex xs12 md3 sm6 pr-2 pb-4 pt-4>
-        <dash_card name="عدد الحالات غير المنتهيه" icon="fas fa-layer-group" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casesactive" />
+      <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+        <dash_card name="  غير المنتهيه" icon="fas fa-layer-group" text_color="#53D3F8" icon_color="#035aa6" :count="DashbourdCounts.Casesactive" />
       </v-flex>
     </v-layout>
 

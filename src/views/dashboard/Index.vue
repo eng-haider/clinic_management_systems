@@ -6,6 +6,7 @@
     <dashboard-core-drawer :expand-on-hover.sync="expandOnHover" />
     <dashboard-core-view />
 
+    
   </v-app>
 </template>
 <!-- <style>

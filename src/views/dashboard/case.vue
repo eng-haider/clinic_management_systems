@@ -207,7 +207,8 @@
                                                         </th>
 
                                                         <th>
-                                                            Irrigation & duration
+                                                            
+                                                            Sealer Type & duration
                                                         </th>
 
                                                         <th>
@@ -568,9 +569,9 @@
             return {
                 oldDoctors: {},
                 recipes: [],
-                UP_url: 'https://tctate.com/SmartClinicAPI/public/api/cases/uploude_image',
+                UP_url: 'https://apismartclinicv2.tctate.com/public/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url: 'https://tctate.com/SmartClinicAPI/public/api/cases/uploude_image',
+                    url: 'https://apismartclinicv2.tctate.com/api/cases/uploude_image',
                     thumbnailWidth: 150,
                     maxFilesize: 5.5,
 
@@ -1153,12 +1154,13 @@
 
                                     // this.initialize();
                                     if (this.gocase) {
-                                        this.$router.push({
-                                            name: 'showCases',
-                                            params: {
-                                                id: res.data.data.patient_id
-                                            }
-                                        })
+                                        this.$router.push('/patient/' + res.data.data.patient_id);
+                                        // this.$router.push({
+                                        //     name: 'showCases',
+                                        //     params: {
+                                        //         id: res.data.data.patient_id
+                                        //     }
+                                        // })
                                     } else {
                                         //   window.location.reload()
                                         //  document.location.reload(true);  
