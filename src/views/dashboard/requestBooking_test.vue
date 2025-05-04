@@ -221,9 +221,9 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-04-01", // Focus on December by default
-        startDate: "2025-04-01", // Start of December
-        endDate: "2025-05-30", // End of December,
+        focus: "2025-05-01", // Focus on December by default
+        startDate: "2025-05-01", // Start of December
+        endDate: "2025-06-30", // End of December,
 
         valid: true,
 
