@@ -95,20 +95,34 @@
                     @click:minute="$refs.menu2.save(editedItem.reservation_to_time)" 
                   />
                 </v-menu>
-                <div v-if="$store.state.AdminInfo.send_msg ==1">
-                <v-checkbox 
-                  v-model="send_msg" 
-                      :disabled="!editedItem.reservation_from_time || !editedItem.reservation_to_time"
-                  style="    text-align: right;"
-                  label="ارســـال رسالة تذكير بلموعد للمراجع على الوتساب"
-                />
+                <div >
+                  <v-switch
+                    :disabled="!editedItem.reservation_from_time || !editedItem.reservation_to_time"
+                    v-model="send_msg"
+                   
+                    @change="() => handleSendMsg(item)"
+                    style="text-align: right;"
+                    :label="$t('send_reminder_message')"
+                  />
 
-                <v-textarea 
-                  v-if="send_msg" 
-                  v-model="editedItem.appointmentMessage" 
-                  label="Message" 
-                  outlined
-                />
+                  <v-textarea v-if="send_msg" v-model="editedItem.appointmentMessage" :label="$t('message')" outlined />
+
+                </div>
+              </v-col>
+
+              <v-col>
+                <div >
+                  <v-switch
+                    :disabled="!editedItem.reservation_from_time"
+                    v-model="send_msg"
+                   
+                    @change="() => handleSendMsg(item)"
+                    style="text-align: right;"
+                    :label="$t('send_reminder_message')"
+                  />
+
+                  <v-textarea v-if="send_msg" v-model="editedItem.appointmentMessage" :label="$t('message')" outlined />
+
                 </div>
               </v-col>
 
@@ -176,37 +190,34 @@ export default {
     },
   },
   watch: {
-    send_msg(newValue) {
-    if (newValue) {
-      this.updateAppointmentMessage();
-    } else {
-      this.editedItem.appointmentMessage = '';
-    }
-  },
-  'editedItem.reservation_start_date'(newValue) {
-    newValue
-    if (this.send_msg) {
-      this.updateAppointmentMessage();
-    }
-  },
   'editedItem.reservation_from_time'(newValue) {
-    newValue
-    if (this.send_msg) {
-      this.updateAppointmentMessage();
+
+    if (newValue) {
+      this.$set(this.editedItem, 'appointmentMessage', `يسرنا إبلاغكم بموعدكم القادم في عيادة ${this.clinicName} بتاريخ ${this.editedItem.reservation_start_date} في الساعة ${this.convertToArabicAmPm(this.editedItem.reservation_from_time)} حتى ${this.convertToArabicAmPm(newValue)}. نتمنى لكم دوام الصحة والعافية ونتطلع لرؤيتكم قريبًا.`);
+      // this.send_msg = false; // Reset the v-switch to false when time changes
     }
   },
-  'editedItem.reservation_to_time'(newValue) {
-    newValue
-    if (this.send_msg) {
-      this.updateAppointmentMessage();
+  send_msg(newValue) {
+    if (newValue) {
+      this.handleSendMsg();
     }
-  },
-  },
+  }
+},
   mounted() {
     
     this.getOwnerTctateitemsById();
   },
   methods: {
+    handleSendMsg(item) { // Rename the method to avoid conflict
+        
+        if (this.editedItem.reservation_from_time) {
+
+          this.editedItem.appointmentMessage =
+            `يسرنا إبلاغكم بموعدكم القادم في عيادة ${this.clinicName} بتاريخ ${this.editedItem.reservation_start_date} في الساعة ${this.convertToArabicAmPm(this.editedItem.reservation_from_time)}  . نتمنى لكم دوام الصحة والعافية ونتطلع لرؤيتكم قريبًا.`;
+        } else {
+          this.editedItem.appointmentMessage = '';
+        }
+      },
     addtime(item){
         let time = this.editedItem.reservation_from_time; // Example: "12:30"
 let [hours, minutes] = time.split(":").map(Number);
@@ -279,9 +290,32 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
         }).then(response => {
           response
           this.BookingDetails = false;
+
+          if (this.send_msg) {
+            this.$http.post('/whatsapp',
+  {
+    patient_id: this.patientInfo ? this.patientInfo.id : null,
+    message: this.editedItem.appointmentMessage
+  },
+  {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+    },
+  }
+)
+            }
           this.close();
+
+          
           EventBus.$emit('GetResCancel', true);
         
+
+
+         
+
+          
           this.$swal.fire({
                     position: "top-end",
   icon: "success",
