@@ -9,8 +9,19 @@
         </v-dialog>
 
         <v-container id="dashboard" fluid tag="section">
-            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" items-per-page="15"
-                :items="desserts" class="elevation-1 request_table">
+            <v-data-table 
+                :headers="headers" 
+                :items="desserts"
+                :options.sync="options"
+                :server-items-length="totalItems"
+                :loading="loadingData"
+                :items-per-page="itemsPerPage"
+                :footer-props="{
+                    'items-per-page-options': [5, 10, 15, 20],
+                    'items-per-page-text': 'Rows per page'
+                }"
+                class="elevation-1 request_table"
+            >
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.showCases") }}
@@ -334,6 +345,10 @@
 
             <Fancybox></Fancybox>
         </v-container>
+
+        <v-overlay :value="loadingData" absolute>
+            <v-progress-circular indeterminate size="64"></v-progress-circular>
+        </v-overlay>
     </div>
 </template>
 

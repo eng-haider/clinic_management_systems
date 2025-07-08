@@ -167,47 +167,20 @@
 
         
 
-        <template v-slot:[`item.case_push`]="{ item }">
-          <v-chip class="text-right" :color="'green'" outlined>
-          
-            {{BillsSumPaid(item.billable)| currency}}
-
-          </v-chip>
-
-
-        </template>
         <template v-slot:[`item.price`]="{ item }">
-          <!-- <v-chip class="text-right" :color="'green'" outlined> -->
-
-{{ item.billable.price | currency}}
-            <!-- {{BillsSumPaid(item)| currency}} -->
-
-          <!-- </v-chip> -->
-
-
-        </template>
-
-
-        <template v-slot:[`item.case_sum`]="{ item }">
-          {{item.price| currency}}
-        </template>
-
-
-        <template v-slot:[`item.case_rem`]="{ item }">
-
-
-
-          
-
-
-
-          <v-chip :color="'red'" outlined class="text-right">
-
-            {{(item.billable.price-BillsSumPaid(item.billable)) | currency}}
+          <v-chip class="text-right" :color="'green'" outlined>
+            {{ item.price | currency}}
           </v-chip>
+        </template>
 
+        <template v-slot:[`item.is_paid`]="{ item }">
+          <v-chip :color="item.is_paid ? 'green' : 'red'" outlined>
+            {{ item.is_paid ? 'مدفوع' : 'غير مدفوع' }}
+          </v-chip>
+        </template>
 
-
+        <template v-slot:[`item.PaymentDate`]="{ item }">
+          {{ new Date(item.PaymentDate).toLocaleDateString('ar-IQ') }}
         </template>
 
 
@@ -431,6 +404,7 @@
 
     data() {
       return {
+        allItem: false,
         dataSource2: [],
         is_Conjugations: false,
         Conjugations: [],
@@ -509,58 +483,38 @@
         headers: [{
             text: this.$t('datatable.name'),
             align: "start",
-            value: "billable.patient.name"
+            value: "billable.name"
           },
 
-
-
-
-
-
-          
-
-
-
           {
-            text: 'نوع الحالة',
-            value: "billable.case_categories.name_ar",
+            text: 'رقم الهاتف',
+            value: "billable.phone",
             sortable: false
           },
 
-   
+          {
+            text: 'تاريخ الدفع',
+            value: "PaymentDate",
+            sortable: false
+          },
 
           {
             text: '  مبلغ الدفعة',
-            value: "case_sum",
-            sortable: false
-          },
-
-          {
-            text: '  مبلغ الحالة',
             value: "price",
             sortable: false
           },
+
           {
-            text: ' المدفوع',
-            value: "case_push",
+            text: 'حالة الدفع',
+            value: "is_paid",
             sortable: false
           },
 
-
           {
-            text: ' المتبقي',
-            value: "case_rem",
+            text: 'الطبيب',
+            value: "user.name",
             sortable: false
-          },
-
-
-
-
-          // {
-          //   text: this.$t('Processes'),
-          //   value: "actions",
-          //   sortable: false
-          // }
+          }
         ],
         dataSource: [
 
@@ -585,7 +539,7 @@
 
           return this.initialize()
         }
-        this.axios.get("patientsAccounsts/getByDoctor/" + this.searchDocorId, {
+        this.axios.get("patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -595,63 +549,44 @@
           .then(res => {
             this.loadingData = false;
 
-            this.Cases = res.data.data;
-            this.Conjugations = res.data.Conjugations;
+            // Handle the new response structure
+            if (res.data.data && res.data.data.data) {
+              this.Cases = res.data.data.data;
+              this.last_page = res.data.data.last_page;
+              this.pageCount = res.data.data.last_page;
+            } else {
+              this.Cases = res.data.data || [];
+            }
 
-
-
-            this.accounts_statistic.all_sum = res.data.all_sum;
-            this.accounts_statistic.case_count = res.data.case_count;
-
-            this.accounts_statistic.paid = res.data.paid;
-            this.accounts_statistic.remainingamount = res.data.remainingamount;
-
-            this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
-
-
-            this.last_page = res.data.meta.last_page;
-            this.pageCount = res.data.meta.last_page;
-
-
-
+            // Get statistics from report endpoint
+            this.getAccountsReport();
           })
-          .catch(() => {
-            this.loading = false;
+          .catch((error) => {
+            console.error('getByDocor API error:', error);
+            this.loadingData = false;
           });
       },
       Export() {
-
-        // this.axios({
-        //   url: 'patientsAccounsts/export',
-        //   method: 'GET',
-        //   responseType: 'blob',
-        // })
-
-
-
-        this.axios.get('/patientsAccounsts/export', {
+        this.axios.get('/patientsAccounstsv2/export', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
               Authorization: "Bearer " + this.$store.state.AdminInfo.token
             }
           })
-
-
-
           .then((response) => {
             var fileURL = window.URL.createObjectURL(new Blob([response.data]));
             var fileLink = document.createElement('a');
 
             fileLink.href = fileURL;
-            fileLink.setAttribute('download', 'file.xlsx');
+            fileLink.setAttribute('download', 'accounts_export.xlsx');
             document.body.appendChild(fileLink);
 
             fileLink.click();
+          })
+          .catch((error) => {
+            console.error('Export error:', error);
           });
-
-
-
       },
       getMoreitems() {
 
@@ -729,9 +664,17 @@
 
       //user1_hospital1
       initialize() {
+        console.log('Initialize called with is_search:', this.is_search);
+        console.log('Search parameters:', this.search);
+        console.log('Current page:', this.current_page);
+        
+        // First get the statistics/report data
+        this.getAccountsReport();
+        
         if (this.is_search == true) {
-this.allItem=true;
-          this.axios.post('/patientsAccounsts/search?page=' + this.current_page, this.search, {
+          this.allItem=true;
+          console.log('Making search API call...');
+          this.axios.post('/patientsAccounstsv2/search?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -739,38 +682,21 @@ this.allItem=true;
               }
             })
             .then(res => {
+              console.log('Search API response:', res.data);
               this.loadingData = false;
 
-              this.Cases = res.data.data;
-
-              this.Conjugations = res.data.Conjugations;
-
-
-
-              this.accounts_statistic.all_sum = res.data.all_sum;
-              this.accounts_statistic.case_count = res.data.case_count;
-
-              this.accounts_statistic.paid = res.data.paid;
-              this.accounts_statistic.remainingamount = res.data.remainingamount;
-
-              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
-
-              this.last_page = res.data.meta.last_page;
-              this.pageCount = res.data.meta.last_page;
-
-
-
-
-
-
-
+              this.Cases = res.data.data.data;
+              this.last_page = res.data.data.last_page;
+              this.pageCount = res.data.data.last_page;
             })
-            .catch(() => {
-              this.loading = false;
+            .catch((error) => {
+              console.error('Search API error:', error);
+              this.loadingData = false;
             });
         } else {
+          console.log('Making general API call...');
 
-          this.axios.get('/patientsAccounsts?page=' + this.current_page, {
+          this.axios.get('/patientsAccounstsv2?page=' + this.current_page, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -778,36 +704,45 @@ this.allItem=true;
               }
             })
             .then(res => {
+              console.log('General API response:', res.data);
               this.loadingData = false;
-              this.accounts_statistic.all_sum = res.data.all_sum;
-              this.accounts_statistic.case_count = res.data.case_count;
-              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
-
-
-              this.accounts_statistic.paid = res.data.paid;
-              this.accounts_statistic.remainingamount = res.data.remainingamount;
-              this.Cases = res.data.data;
-              this.Conjugations = res.data.Conjugations;
-
-
-              this.last_page = res.data.meta.last_page;
-              this.pageCount = res.data.meta.last_page;
-
-
-
-
-
-
-
+              
+              this.Cases = res.data.data.data;
+              this.last_page = res.data.data.last_page;
+              this.pageCount = res.data.data.last_page;
             })
-            .catch(() => {
-              this.loading = false;
+            .catch((error) => {
+              console.error('General API error:', error);
+              this.loadingData = false;
             });
         }
       },
 
+      getAccountsReport() {
+        console.log('Getting accounts report...');
+        this.axios.get('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(res => {
+            console.log('Report API response:', res.data);
+            
+            this.accounts_statistic.all_sum = res.data.all_sum;
+            this.accounts_statistic.paid = res.data.paid;
+            this.accounts_statistic.remainingamount = res.data.remainingamount;
+            this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+            this.Conjugations = res.data.Conjugations;
+          })
+          .catch((error) => {
+            console.error('Report API error:', error);
+          });
+      },
+
       getclinicDoctor() {
-        this.loading = true;
+        this.loadingData = true;
         this.axios.get("doctors/clinic", {
             headers: {
               "Content-Type": "application/json",
@@ -817,25 +752,24 @@ this.allItem=true;
           })
           .then(res => {
             this.loadingData = false;
-            this.loading = false;
-            this.doctors = res.data.data;
-
-
-            this.doctorsAll.push({
+            
+            // Handle the response structure - check if data is nested
+            const doctors = res.data.data || res.data;
+            
+            this.doctorsAll = [{
               id: 0,
               name: ' الكل'
-            });
-            this.doctors.forEach((item, index) => {
-              index
-              this.doctorsAll.push(item)
-            })
-
-
-
-
+            }];
+            
+            if (Array.isArray(doctors)) {
+              doctors.forEach((item) => {
+                this.doctorsAll.push(item);
+              });
+            }
           })
-          .catch(() => {
-            this.loading = false;
+          .catch((error) => {
+            console.error('getclinicDoctor error:', error);
+            this.loadingData = false;
           });
       },
       getCase_number_stats() {

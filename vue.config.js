@@ -7,6 +7,50 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 
 module.exports = {
+  chainWebpack: config => {
+    // Remove prefetch plugins to improve initial load time
+    config.plugins.delete('prefetch')
+    
+    // Split vendor chunks for better caching
+    config.optimization.splitChunks({
+      chunks: 'all',
+      minSize: 20000,
+      maxSize: 250000,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name(module) {
+            const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1]
+            return `vendor.${packageName.replace('@', '')}`
+          },
+          priority: 1
+        },
+        common: {
+          name: 'chunk-common',
+          minChunks: 2,
+          priority: -20,
+          chunks: 'initial',
+          reuseExistingChunk: true
+        }
+      }
+    })
+  },
+
+  // Disable source maps in production
+  productionSourceMap: false,
+
+  // Performance optimizations
+  configureWebpack: {
+    performance: {
+      hints: false,
+      maxEntrypointSize: 512000,
+      maxAssetSize: 512000
+    },
+    optimization: {
+      minimize: true,
+      runtimeChunk: 'single'
+    }
+  },
   productionSourceMap: false,
   parallel: true,
   devServer: {

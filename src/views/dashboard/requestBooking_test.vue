@@ -157,11 +157,22 @@
                 </v-menu>
 
                 <div v-if="$store.state.AdminInfo.send_msg ==1">
-                  <v-checkbox :disabled="!editedItem.reservation_from_time || !editedItem.reservation_to_time"
-                    v-model="send_msg" style="    text-align: right;" :label="$t('send_reminder_message')" />
+                  <v-checkbox 
+                    :disabled="!editedItem.reservation_from_time || !editedItem.reservation_start_date"
+                    v-model="send_msg" 
+                    style="text-align: right;" 
+                    :label="$t('send_reminder_message')"
+                    @change="handleSendMsg"
+                  />
 
-                  <v-textarea v-if="send_msg" v-model="editedItem.appointmentMessage" :label="$t('message')" outlined />
-
+                  <v-textarea 
+                    v-if="send_msg" 
+                    v-model="editedItem.appointmentMessage" 
+                    :label="$t('message')" 
+                    outlined 
+                    rows="3"
+                    auto-grow
+                  />
                 </div>
 
 
@@ -173,11 +184,22 @@
 
 
                 <div v-if="$store.state.AdminInfo.send_msg ==1">
-                  <v-checkbox :disabled="!editedItem.reservation_from_time" v-model="send_msg"
-                    style="    text-align: right;" :label="$t('send_reminder_message')" />
+                  <v-checkbox 
+                    :disabled="!editedItem.reservation_from_time || !editedItem.reservation_start_date" 
+                    v-model="send_msg"
+                    style="text-align: right;" 
+                    :label="$t('send_reminder_message')"
+                    @change="handleSendMsg"
+                  />
 
-                  <v-textarea v-if="send_msg" v-model="editedItem.appointmentMessage" :label="$t('message')" outlined />
-
+                  <v-textarea 
+                    v-if="send_msg" 
+                    v-model="editedItem.appointmentMessage" 
+                    :label="$t('message')" 
+                    outlined 
+                    rows="3"
+                    auto-grow
+                  />
                 </div>
 
               </v-col>
@@ -264,6 +286,25 @@
         return this.$store.state.AdminInfo.clinics_info?.name || '';
       },
     },
+
+    watch: {
+      // Watch for changes in reservation time to update message
+      'editedItem.reservation_from_time'() {
+        if (this.send_msg) {
+          this.handleSendMsg(true);
+        }
+      },
+      'editedItem.reservation_to_time'() {
+        if (this.send_msg) {
+          this.handleSendMsg(true);
+        }
+      },
+      'editedItem.reservation_start_date'() {
+        if (this.send_msg) {
+          this.handleSendMsg(true);
+        }
+      }
+    },
    
     methods: {
        formatEventDetails(event) {
@@ -337,44 +378,42 @@
       },
       async confirmDelete() {
         this.dialog = false;
-        const userConfirmed = confirm("Are you sure you want to delete this event? This action cannot be undone.");
+        const userConfirmed = confirm("هل أنت متأكد من حذف هذا الموعد؟ لا يمكن التراجع عن هذا الإجراء.");
         if (!userConfirmed) {
           return; // If user cancels, exit the function
         }
 
         try {
-          const response = await fetch(`https://tctate.com/api/api/v2/reservation/delete/${this.book_details.id}`, {
-            method: "DELETE",
+          // Update to use the new API endpoint for deletion
+          const response = await axios.delete(`https://apismartclinicv3.tctate.com/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token
-            },
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
           });
 
-          if (!response.ok) {
-            this.fetchReservations();
-            throw new Error("Failed to delete the event.");
-          }
-
-          const data = await response.json();
-          data
-          this.fetchReservations();
+          // Refresh the reservations list
+          await this.fetchReservations();
 
           this.$swal.fire({
             position: "top-end",
             icon: "success",
-            title: "تم الحجز بنجاح",
+            title: "تم حذف الموعد بنجاح",
             showConfirmButton: false,
             timer: 1500
           });
 
-
-
-
           this.dialog = false;
         } catch (error) {
-          console.error("Error deleting event:", error);
-          alert("Failed to delete the event. Please try again.");
+          console.error("Error deleting reservation:", error);
+          
+          this.$swal.fire({
+            icon: 'error',
+            title: 'خطأ في حذف الموعد',
+            text: 'حدث خطأ أثناء حذف الموعد. يرجى المحاولة مرة أخرى.',
+            confirmButtonText: 'موافق'
+          });
         }
       },
       chatWithPatient() {
@@ -383,26 +422,28 @@
         window.open(`https://wa.me/${phone}`, "_blank");
       },
       openReservationDialog(event) {
-        console.log(event)
+        console.log('Opening reservation dialog:', event);
 
-        //  alert(event.event.startTime)
+        // Extract event details with fallbacks for missing data
         this.book_details.star_date = event.eventParsed.start.date;
         this.book_details.name = event.event.name;
         this.book_details.book_time = event.event.startTime;
         this.book_details.user_phone = event.event.phone;
         this.book_details.id = event.event.id;
-        this.book_details.owner_name = event.event.owner_name;
-
-        
+        this.book_details.owner_name = event.event.owner_name || 'غير محدد'; // Fallback if owner_name is not available
 
         this.selectedEvent = event; // Set the selected reservation
         this.dialog = true;
-
       },
-      handleSendMsg(newValue) { // Rename the method to avoid conflict
-        if (newValue && this.editedItem.reservation_from_time && this.editedItem.reservation_to_time) {
-          this.editedItem.appointmentMessage =
-            `يسرنا إبلاغكم بموعدكم القادم في عيادة ${this.clinicName} بتاريخ ${this.editedItem.reservation_start_date} في الساعة ${this.convertToArabicAmPm(this.editedItem.reservation_from_time)} حتى ${this.convertToArabicAmPm(this.editedItem.reservation_to_time)}. نتمنى لكم دوام الصحة والعافية ونتطلع لرؤيتكم قريبًا.`;
+      handleSendMsg(newValue) {
+        if (newValue && this.editedItem.reservation_from_time && this.editedItem.reservation_start_date) {
+          // Auto-generate the appointment message when switch is turned on
+          const toTime = this.owner_item.possib_reserving_period == null ? 
+            this.editedItem.reservation_to_time : 
+            this.addtime(this.owner_item.possib_reserving_period);
+            
+          this.editedItem.appointmentMessage = 
+            `يسرنا إبلاغكم بموعدكم القادم في عيادة ${this.clinicName} بتاريخ ${this.editedItem.reservation_start_date} في الساعة ${this.convertToArabicAmPm(this.editedItem.reservation_from_time)}${toTime ? ' حتى ' + this.convertToArabicAmPm(toTime) : ''}. نتمنى لكم دوام الصحة والعافية ونتطلع لرؤيتكم قريبًا.`;
         } else {
           this.editedItem.appointmentMessage = '';
         }
@@ -431,7 +472,7 @@
       },
       getPatient() {
         this.loadingData = true; // Show loading indicator
-        axios.get("patients/getByUserIdv2", {
+        axios.get("patients/getByUserIdv3", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -457,237 +498,165 @@
         return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
       },
       async save() {
-
         if (this.$refs.form.validate()) {
           this.loadSave = true; // Show loading indicator
 
-
-
-
-          if (this.doctors.length > 1) {
-
-            this.tokx = this.patient.doctors[0].user.tctate_token;
-          } else {
-            this.tokx = this.$store.state.AdminInfo.tctate_token;
-          }
-
           try {
-            this.addtime();
-
             const fromTime = this.editedItem.reservation_from_time;
-            const toTime = this.owner_item.possib_reserving_period == null ? this.editedItem.reservation_to_time :
+            const toTime = this.owner_item.possib_reserving_period == null ? 
+              this.editedItem.reservation_to_time :
               this.addtime(this.owner_item.possib_reserving_period);
-
 
             // The reservation start date is the date clicked by the user
             const reservationStartDate = this.editedItem.reservation_start_date;
 
+            // Prepare reservation data for the new API
             const reservationData = {
+              patient_id: this.patient ? this.patient.id : null,
               reservation_start_date: reservationStartDate,
-              reservation_end_date: reservationStartDate, // Use the same date if it's a one-day reservation
+              reservation_end_date: reservationStartDate,
               reservation_from_time: fromTime,
               reservation_to_time: toTime,
               item_id: this.item_id,
               reservation_number: 1,
-              appointmentMessage: this.editedItem.appointmentMessage,
+              appointmentMessage: this.editedItem.appointmentMessage || "",
               reservation_date: reservationStartDate,
               ReservationRequirements: [],
               item_features: [],
-              phone: '',
+              phone: "",
               withoutBills: 0,
               deliverable: false,
+              user: {
+                phone: this.patient && this.patient.phone ? 
+                  "964" + parseInt(this.patient.phone.replace(/ /g, "")) : "9647700281899",
+                name: this.patient ? this.patient.name : ""
+              }
             };
 
+            console.log('Booking data:', reservationData);
 
-            if (this.patient && this.patient.phone) {
-              reservationData.user = {
-                phone: "964" + parseInt(this.patient.phone.replace(/ /g, "")),
-                name: this.patient.name
-              };
-            } else {
-              reservationData.user = {
-                phone: "9647700281899",
-                name: this.patient ? this.patient.name : ""
-              };
-            }
-
-
-            // Make the API call...
-            const response = await axios.post('https://tctate.com/api/api/reservation/owner/setv2', reservationData, {
+            // Make the API call to create reservation
+            const response = await axios.post('https://apismartclinicv3.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                Authorization: "Bearer " + this.tokx,
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
               },
             });
-            response
-            // Add the new reservation to the local list of reservations
+
+            console.log('Booking response:', response.data);
+
+            // Send WhatsApp message if the switch is enabled and message exists
+            if (this.send_msg && this.editedItem.appointmentMessage && this.patient) {
+              try {
+                const whatsappData = {
+                  patient_id: this.patient.id,
+                  message: this.editedItem.appointmentMessage,
+                  date: `${reservationStartDate} ${fromTime}`
+                };
+
+                const whatsappResponse = await axios.post('https://apismartclinicv3.tctate.com/api/whatsapp', whatsappData, {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                  },
+                });
+
+                console.log('WhatsApp message sent:', whatsappResponse.data);
+              } catch (whatsappError) {
+                console.error('Error sending WhatsApp message:', whatsappError);
+                // Don't fail the booking if WhatsApp fails
+              }
+            }
+
+            // Add the new reservation to the local list
             this.reservations.push({
               name: reservationData.user.name,
-              details: 'New Reservation',
+              details: `Appointment with ${reservationData.user.name}`,
+              phone: reservationData.user.phone,
+              id: response.data.id || Date.now(),
               start: `${reservationStartDate} ${fromTime}`,
               startTime: fromTime,
-              color: "green",
+              color: this.getReservationColor(reservationStartDate, fromTime)
             });
+
+            // Close dialog and show success message
             this.close();
             this.BookingDetails = false;
+            
             this.$swal.fire({
               position: "top-end",
               icon: "success",
-              title: "تم الحجز بنجاح",
+              title: this.send_msg && this.editedItem.appointmentMessage ? 
+                "تم الحجز وإرسال الرسالة بنجاح" : "تم الحجز بنجاح",
               showConfirmButton: false,
-              timer: 1500
+              timer: 2000
             });
-            this.resetForm();
-            this.fetchReservations();
 
+            this.resetForm();
+            this.fetchReservations(); // Refresh the calendar
 
           } catch (error) {
-
-
-            const fromTime = this.editedItem.reservation_from_time;
-            const toTime = this.editedItem.reservation_to_time;
-
-
-
-
-
-            // The reservation start date is the date clicked by the user
-            const reservationStartDate = this.editedItem.reservation_start_date;
-
-            const reservationData = {
-              reservation_start_date: reservationStartDate,
-              reservation_end_date: reservationStartDate, // Use the same date if it's a one-day reservation
-              reservation_from_time: fromTime,
-              reservation_to_time: toTime,
-              item_id: this.item_id,
-              reservation_number: 1,
-              appointmentMessage: this.editedItem.appointmentMessage,
-
-              reservation_date: reservationStartDate,
-              ReservationRequirements: [],
-              item_features: [],
-              phone: '',
-              withoutBills: 0,
-
-
-
-
-              deliverable: false,
-            };
-            console.log(this.patient)
-
-            if (this.patient && this.patient.phone) {
-              reservationData.user = {
-                phone: "964" + parseInt(this.patient.phone.replace(/ /g, "")),
-                name: this.patient.name
-              };
-            } else {
-              reservationData.user = {
-                phone: "",
-                name: this.patient ? this.patient.name : ""
-              };
-            }
-            this.reservations.push({
-              name: reservationData.user.name,
-              details: 'New Reservation',
-              start: `${reservationStartDate} ${fromTime}`,
-              startTime: fromTime,
-              color: "green",
-            });
-            this.close();
-            this.BookingDetails = false;
+            console.error('Error creating reservation:', error);
+            
             this.$swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: "تم الحجز بنجاح",
-              showConfirmButton: false,
-              timer: 1500
+              icon: 'error',
+              title: 'خطأ في الحجز',
+              text: 'حدث خطأ أثناء إنشاء الموعد. يرجى المحاولة مرة أخرى.',
+              confirmButtonText: 'موافق'
             });
-            this.resetForm();
-            // this.BookingDetails = false;
-            // console.error('An error occurred:', error);
           } finally {
             this.loadSave = false;
           }
-
-        } else {
-          // alert('s')
         }
       },
       async fetchReservations() {
         try {
-
-
-
-          // Get the current date
-          const currentDate = new Date();
-          currentDate;
-          // Set the start date for December (first day of December)
-          const startDate = new Date(2024, 31, 12); // December is month 11 (zero-indexed)
-
-          // Set the end date for December (last day of December)
-          const endDate = new Date(2025, 12, 29); // December 31st
-
-          // Convert to ISO format (YYYY-MM-DD)
-          const startDateISO = startDate.toISOString().split('T')[0];
-          const endDateISO = endDate.toISOString().split('T')[0];
-          startDateISO;
-          let allReservations = [];
-
-          if (this.doctors.length > 1 && this.$store.state.role == 'secretary') {
-            for (let doctor of this.doctors) {
-
-              console.log(doctor)
-              const response = await axios.get(
-                `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=2024-29-12_${endDateISO}&filter[status_id]=%20&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + doctor.user.tctate_token,
-                  }
-                }
-              );
-
-              const reservations = response.data.data.map(reservation => ({
-                name: reservation.user.full_name,
-                details: '',
-                phone: reservation.user.user_phone,
-                owner_name: reservation.owner_name,
-                id: reservation.id,
-                start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
-                startTime: reservation.reservation_from_time,
-                color: ''
-              }));
-
-              allReservations = allReservations.concat(reservations);
-              this.reservations = allReservations;
+          console.log('Fetching reservations from new API...');
+          
+          // Use the new API endpoint
+          const response = await axios.get('https://apismartclinicv3.tctate.com/api/reservations/formatted', {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
             }
-          } else {
-            const response = await axios.get(
-              `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=2024-29-12_${endDateISO}&filter[status_id]=%20&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                  Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token,
-                }
-              }
-            );
+          });
 
-            allReservations = response.data.data.map(reservation => ({
+          console.log('API Response:', response.data);
+
+          // Check if the response has the expected structure
+          if (response.data && response.data.status && response.data.data) {
+            // Map the API response to the format expected by the calendar
+            this.reservations = response.data.data.map(reservation => ({
               name: reservation.user.full_name,
-              details: '',
+              details: `Appointment with ${reservation.user.full_name}`,
               phone: reservation.user.user_phone,
+              owner_name: '', // This field might not be in the new API response
               id: reservation.id,
               start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
               startTime: reservation.reservation_from_time,
-              color: '',
+              color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
             }));
 
-            this.reservations = allReservations;
+            console.log('Formatted reservations:', this.reservations);
+          } else {
+            console.error('Unexpected API response structure:', response.data);
+            this.reservations = [];
           }
         } catch (error) {
           console.error('Error fetching reservations:', error);
+          
+          // Fallback: show user-friendly error message
+          this.$swal.fire({
+            icon: 'error',
+            title: 'خطأ في تحميل المواعيد',
+            text: 'حدث خطأ أثناء تحميل المواعيد. يرجى المحاولة مرة أخرى.',
+            confirmButtonText: 'موافق'
+          });
+          
+          this.reservations = [];
         }
       },
 
@@ -723,6 +692,18 @@
 
   return "#FFA500"; // Default to event color or lightblue
 },
+      // Helper method to determine color based on reservation date and time
+      getReservationColor(reservationDate, reservationTime) {
+        const currentDateTime = new Date();
+        const reservationDateTime = new Date(`${reservationDate} ${reservationTime}`);
+        
+        // Check if the reservation is in the past
+        if (reservationDateTime < currentDateTime) {
+          return "green"; // Past reservations are green
+        }
+        
+        return "#FFA500"; // Future reservations are orange
+      },
       searchPatients(query) {
         console.log(query)
         if (query.length < 3) {

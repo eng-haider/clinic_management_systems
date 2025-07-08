@@ -12,7 +12,7 @@ axios.defaults.headers.get['Accepts'] = 'application/json'
 // axios.defaults.headers.get['lang'] = this.$i18n.locale
 axios.interceptors.request.use(
   config => {
-    const token = localStorage.getItem("tokin");
+    const token = localStorage.getItem("tokinn");
     const auth = token ? `Bearer ${token}` : "";
     config.headers.common.Authorization = auth;
     return config;
@@ -41,7 +41,7 @@ axios.interceptors.response.use((response) => {
 
 
 //Vue.prototype.$http = axios;
-axios.defaults.baseURL =  'https://apismartclinicv2.tctate.com/api/';
+axios.defaults.baseURL =  'https://apismartclinicv3.tctate.com/api/';
  //axios.defaults.baseURL =  'http://127.0.0.1:8003/api/';
 
 //http://127.0.0.1:8001

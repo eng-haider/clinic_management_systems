@@ -1,0 +1,272 @@
+/* Global Performance and Lazy Loading Styles */
+
+/* Lazy loading image states */
+.lazy-image {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  will-change: opacity;
+}
+
+.lazy-placeholder {
+  opacity: 0.7;
+  filter: blur(2px);
+  background: #f5f5f5;
+}
+
+.lazy-loading {
+  opacity: 0.5;
+  position: relative;
+}
+
+.lazy-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #3F51B5;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.lazy-loaded {
+  opacity: 1;
+  filter: none;
+}
+
+.lazy-error {
+  opacity: 0.6;
+  filter: grayscale(100%);
+  background: #ffebee;
+  position: relative;
+}
+
+.lazy-error::after {
+  content: '⚠️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+}
+
+/* Performance optimizations */
+.performance-optimized {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* Smooth transitions */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter, .slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* Virtual scrolling prep */
+.virtual-scroll-container {
+  overflow-y: auto;
+  contain: strict;
+  height: 100%;
+}
+
+.virtual-scroll-item {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* Loading skeletons */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.skeleton-text {
+  height: 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: 8px;
+}
+
+/* Button loading states */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid currentColor;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Form optimizations */
+.form-field-lazy {
+  contain: layout style;
+}
+
+.form-field-lazy input,
+.form-field-lazy textarea,
+.form-field-lazy select {
+  will-change: auto;
+}
+
+/* Table optimizations */
+.data-table-optimized {
+  contain: layout style;
+}
+
+.data-table-optimized .v-data-table__wrapper {
+  contain: strict;
+}
+
+.data-table-row {
+  contain: layout style paint;
+}
+
+/* Image gallery optimizations */
+.image-gallery {
+  contain: layout style;
+}
+
+.image-gallery img {
+  object-fit: cover;
+  will-change: transform;
+}
+
+/* Modal optimizations */
+.modal-overlay {
+  contain: layout style paint;
+  will-change: opacity;
+}
+
+/* Chart container optimizations */
+.chart-container {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* Responsive optimizations */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    contain: layout style;
+  }
+  
+  .mobile-optimized img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .lazy-image,
+  .fade-enter-active,
+  .fade-leave-active,
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: none;
+  }
+  
+  .skeleton,
+  .btn-loading::after,
+  .lazy-loading::after {
+    animation: none;
+  }
+}
+
+/* Print optimizations */
+@media print {
+  .lazy-image {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  
+  .loading-spinner,
+  .skeleton,
+  .btn-loading::after {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .lazy-placeholder {
+    background: #000;
+    color: #fff;
+  }
+  
+  .lazy-error {
+    background: #ff0000;
+    color: #fff;
+  }
+}
+
+/* Dark theme optimizations */
+@media (prefers-color-scheme: dark) {
+  .lazy-placeholder {
+    background: #333;
+  }
+  
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  .lazy-error {
+    background: #4a1a1a;
+  }
+}

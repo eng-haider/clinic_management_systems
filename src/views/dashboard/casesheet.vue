@@ -24,12 +24,114 @@
             <Recipe :patients="desserts" :RecipeInfo="RecipeInfo" :recipes="recipes" :CaseCategories="CaseCategories">
             </Recipe>
         </v-dialog>
+
+        <!-- WhatsApp Dialog -->
+        <v-dialog v-model="whatsappDialog" max-width="500px">
+            <v-card>
+                <v-toolbar color="green" dark>
+                    <v-icon left>mdi-whatsapp</v-icon>
+                    <v-toolbar-title>إرسال رسالة واتساب</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="closeWhatsappDialog">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-toolbar>
+                
+                <v-card-text class="pt-4">
+                    <div class="patient-info mb-3">
+                        <p class="subtitle-1 mb-1">
+                            <strong>المريض:</strong> {{ selectedPatient.name }}
+                        </p>
+                        <p class="subtitle-2 mb-1">
+                            <strong>الهاتف:</strong> {{ selectedPatient.phone }}
+                        </p>
+                    </div>
+                    
+                    <v-textarea
+                        v-model="whatsappMessage.message"
+                        label="الرسالة"
+                        rows="5"
+                        outlined
+                        counter
+                        :loading="sendingMessage"
+                    ></v-textarea>
+                    
+                    <div class="d-flex mt-2 mb-2">
+                        <v-chip-group>
+                            <v-chip 
+                                @click="setQuickMessage('تذكير بالموعد')"
+                                color="green" 
+                                text-color="white"
+                                clickable
+                            >
+                                تذكير بالموعد
+                            </v-chip>
+                            <v-chip 
+                                @click="setQuickMessage('تذكير بالدفع')"
+                                color="green" 
+                                text-color="white"
+                                clickable
+                            >
+                                تذكير بالدفع
+                            </v-chip>
+                            <v-chip 
+                                @click="setQuickMessage('متابعة الحالة')"
+                                color="green" 
+                                text-color="white"
+                                clickable
+                            >
+                                متابعة الحالة
+                            </v-chip>
+                        </v-chip-group>
+                    </div>
+                </v-card-text>
+                
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn 
+                        text 
+                        color="grey darken-1" 
+                        @click="closeWhatsappDialog"
+                        :disabled="sendingMessage"
+                    >
+                        إلغاء
+                    </v-btn>
+                    <v-btn 
+                        color="green" 
+                        dark 
+                        @click="sendWhatsappMessage"
+                        :loading="sendingMessage"
+                        :disabled="!whatsappMessage.message.trim()"
+                    >
+                        <v-icon left>mdi-send</v-icon>
+                        إرسال
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <v-container id="dashboard" fluid tag="section">
 
 
-            <v-data-table :headers="headers" :loading="loadingData" disable-pagination :page.sync="page"
-                @page-count="pageCount = $event" hide-default-footer :items="desserts" class="elevation-1 request_table"
-                items-per-page="15">
+            <v-data-table 
+                :headers="headers"
+                :items="desserts"
+                :loading="loadingData"
+                :options.sync="tableOptions"
+                :server-items-length="totalItems"
+                :footer-props="{
+                    'items-per-page-options': [5, 10, 15, 20, 25],
+                    'items-per-page-text': $t('rows_per_page')
+                }"
+                @update:options="handleTableUpdate"
+                class="elevation-1 request_table"
+                @click:row="handleRowClick"
+            >
+                <template v-slot:progress>
+                    <v-overlay absolute :value="loadingData">
+                        <v-progress-circular indeterminate size="64"></v-progress-circular>
+                    </v-overlay>
+                </template>
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.casesheet") }}
@@ -37,151 +139,27 @@
 
                         <v-divider class="mx-4" inset vertical></v-divider>
                         <v-spacer></v-spacer>
-                        <v-dialog v-model="dialog" max-width="800px">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn color="primary" @click="editedIndex = -1 
-                                ;  
-                                
-                                " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
-                                    <i class="fas fa-plus" style="position: relative;left:5px"></i>
-                                    {{ $t("patients.addnewpatients") }}
+                        <!-- Add Patient Button -->
+                        <!-- <v-btn 
+                            color="primary" 
+                            @click="openAddPatientDialog" 
+                            dark 
+                            class="mb-2" 
+                            style="color:#fff;font-family: 'Cairo'"
+                        >
+                            <i class="fas fa-plus" style="position: relative;left:5px"></i>
+                            {{ $t("patients.addnewpatients") }}
+                        </v-btn> -->
 
-
-                                </v-btn>
-                            </template>
-                            <v-form ref="form" v-model="valid">
-                                <v-card>
-
-                                    <v-toolbar dark color="primary lighten-1 mb-5">
-                                        <v-toolbar-title>
-                                            <h3 style="color:#fff;font-family: 'Cairo'"> {{formTitle}}</h3>
-                                        </v-toolbar-title>
-                                        <v-spacer />
-                                        <v-btn @click="close()" icon>
-                                            <v-icon>mdi-close</v-icon>
-                                        </v-btn>
-                                    </v-toolbar>
-
-                                    <v-card-text>
-                                        <v-container>
-
-                                            <v-row>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.name"
-                                                        style="direction: rtl;text-align: right;"
-                                                        :rules="[rules.required]" :label="$t('datatable.name')"
-                                                        outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.phone" v-mask="mask"
-                                                        placeholder="07XX XXX XXXX" style="direction:ltr"
-                                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
-                                                        :label="$t('datatable.phone')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.birth_date" type="date"
-                                                        :label="$t('datatable.birth_date')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" v-if="editedIndex > -1" cols="12" sm="6" md="6">
-                                                    <v-text-field :disabled="true" v-model="editedItem.age"
-                                                        type="number" :label="$t('datatable.age')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-radio-group v-model="editedItem.sex" row>
-                                                        <v-radio :label="$t('sex.female')" :value="1"></v-radio>
-                                                        <v-radio :label="$t('sex.male')" :value="0"></v-radio>
-                                                    </v-radio-group>
-                                                </v-col>
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-text-field v-model="editedItem.address"
-                                                        style="direction: rtl;text-align: right;"
-                                                        :label="$t('datatable.address')" outlined>
-                                                    </v-text-field>
-                                                </v-col>
-
-
-                                                <v-col class="py-0" cols="12" sm="6" md="6"
-                                                    v-if="$store.state.role=='secretary'  && doctors.length>1">
-                                                    <v-select :rules="[rules.required]" v-model="editedItem.doctors"
-                                                        :label="$t('doctor')" :items="doctors" outlined item-text="name"
-                                                        item-value="id">
-                                                    </v-select>
-
-                                                </v-col>
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-
-
-
-
-
-
-
-
-
-                                            </v-row>
-
-
-                                            <v-row>
-                                                <v-col class="py-0" cols="12" sm="12" md="12">
-                                                    <v-textarea dense v-model="editedItem.systemic_conditions"
-                                                        :label="$t('patients.systemicdisease')" outlined>
-                                                    </v-textarea>
-                                                </v-col>
-
-                                            </v-row>
-
-
-                                            <v-row>
-                                                <v-col class="py-0" cols="12" sm="6" md="6">
-                                                    <v-switch v-model="editedItem.is_scheduled_today"
-                                                        :label="$t('patients.add_to_today_sequence')" color="primary"
-                                                        inset></v-switch>
-                                                </v-col>
-                                            </v-row>
-
-                                        </v-container>
-                                    </v-card-text>
-
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <v-btn color="red darken-1" text @click="close()">{{ $t("close") }}
-                                        </v-btn>
-                                        <v-btn :loading="loadSave" style="color: #fff;" color="green darken-1"
-                                            @click="save()">
-                                            {{ $t("next") }}</v-btn>
-                                    </v-card-actions>
-                                </v-card>
-                            </v-form>
-                        </v-dialog>
+                        <!-- Patient Edit Dialog -->
+                        <PatientEditDialog
+                            v-model="dialog"
+                            :patient="editedIndex > -1 ? editedItem : null"
+                            :doctors="doctors"
+                            :loading="loadSave"
+                            @save="save"
+                            @close="close"
+                        />
                     </v-toolbar>
 
 
@@ -246,7 +224,7 @@
                 </template> -->
 
 
-                <template v-if="$store.state.role == 'secretary'" v-slot:[`item.created_at`]="{ item }">
+                <template v-if="$store.getters.isSecretary" v-slot:[`item.created_at`]="{ item }">
                     {{cropdate(item.created_at)}}
 
 
@@ -257,57 +235,24 @@
 
 
                 <template v-slot:[`item.doctor`]="{ item }"
-                    v-if="$store.state.role == 'secretary'|| this.$store.state.role=='adminDoctor' ">
+                    v-if="$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' ">
 
-
-
-                    <v-chip style="margin:2px" color="primary" v-if="item.doctors[0]">
+                    <v-chip style="margin:2px" color="primary" v-if="hasDoctorAssigned(item)">
                         <v-icon left>
                             mdi-account-circle-outline
-                        </v-icon>{{ item.doctors[0].name }}
+                        </v-icon>{{ getDoctorName(item) }}
                     </v-chip>
 
-
-                </template>
-
-
-                <template v-slot:[`item.casesx`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_cases')">
-
-
-                    <span v-if="item.cases_count==0">
-                        {{ $t("no_cases") }}
+                    <span v-else style="color: #666; font-style: italic;">
+                        {{ getDoctorName(item) }}
                     </span>
 
-                    <v-btn v-else dense @click="$router.push('/patient/'+item.id)" color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">{{ $t("header.cases") }}</v-btn>
-
-
-
-
                 </template>
 
 
+             
 
 
-                <template v-slot:[`item.addCase`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('add_case')">
-
-
-
-                    <v-btn @click="addCase(item);addCase(item);gocase=true" dense color="#0a304ed4"
-                        style="color:#fff;height:28px;font-weight:bold">
-                        <i class="fas fa-plus" style="position: relative;left:5px"></i>
-
-
-                        {{ $t("addcase") }}
-
-                    </v-btn>
-
-
-
-
-                </template>
 
 
                 <template v-slot:[`item.Recipe`]="{ item }"
@@ -316,7 +261,7 @@
 
                     <span style="display:none">{{item.id}}</span>
 
-                    <v-btn @click="addRecipe(item)" dense color="#3b6a75"
+                    <v-btn @click.stop="addRecipe(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="fas fa-prescription " style="position: relative;left:5px"></i>
 
@@ -331,7 +276,7 @@
 
                     <span style="display:none">{{item.id}}</span>
 
-                    <v-btn @click="addbooking(item)" dense color="#3b6a75"
+                    <v-btn @click.stop="addbooking(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <i class="far fa-clock" style="position: relative;left:5px"></i>
 
@@ -349,7 +294,7 @@
 
 
 
-                    <v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
+                    <v-btn @click.stop="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
                         <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
 
@@ -364,8 +309,24 @@
                 <!-- Custom Actions Column Slot -->
                 <template v-slot:[`item.actions`]="{ item }">
                     <v-tooltip bottom>
-                        <template v-slot:activator="{  }">
-                            <v-icon class="ml-5" @click="editItem(item)" v-if="!item.isDeleted" v-bind="attrs">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon 
+                                class="ml-2" 
+                                @click.stop="openWhatsappDialog(item)" 
+                                v-bind="attrs" 
+                                v-on="on"
+                                color="green"
+                                style="color: rgb(37, 211, 102);"
+                            >
+                                mdi-whatsapp
+                            </v-icon>
+                        </template>
+                        <span>{{ $t("Send WhatsApp") }}</span>
+                    </v-tooltip>
+
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon class="ml-2" @click.stop="editItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
                                 mdi-pencil
                             </v-icon>
                         </template>
@@ -374,7 +335,7 @@
 
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
-                            <v-icon @click="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs">
+                            <v-icon class="ml-2" @click.stop="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs" v-on="on">
                                 mdi-delete
                             </v-icon>
                         </template>
@@ -410,20 +371,32 @@
     export default {
         directives: {
             mask,
-        },
-
-        components: {
+        },        components: {
             OwnerBooking: () => import("./sub_components/ownerBookinfDed.vue"),
-  cases: () => import(/* webpackChunkName: "cases" */ "./case.vue"),
-  Recipe: () => import(/* webpackChunkName: "recipe" */ "./Recipe.vue"),
-  Bill: () => import(/* webpackChunkName: "bill" */ "./sub_components/billsReport.vue")
-            
-
-
+            cases: () => import(/* webpackChunkName: "cases" */ "./case.vue"),
+            Recipe: () => import(/* webpackChunkName: "recipe" */ "./Recipe.vue"),
+            Bill: () => import(/* webpackChunkName: "bill" */ "./sub_components/billsReport.vue"),
+            PatientEditDialog: () => import("@/components/PatientEditDialog.vue")
         },
 
         data() {
             return {
+                // WhatsApp Dialog
+                whatsappDialog: false,
+                whatsappMessage: {
+                    message: ''
+                },
+                selectedPatient: {
+                    id: null,
+                    name: '',
+                    phone: ''
+                },
+                sendingMessage: false,
+
+                // Server-side pagination
+                tableOptions: {},
+                totalItems: 0,
+
                 gocase: false,
                 isSearching: false,
                 desserts: [
@@ -539,13 +512,13 @@
                         value: "age"
                     },
 
-                    this.$store.state.role == 'secretary' ? {
+                    this.$store.getters.isSecretary ? {
                         text: this.$t('datatable.data_create'),
                         align: "start",
                         value: "created_at"
                     } : '',
 
-                    this.$store.state.role == 'secretary' || this.$store.state.role == 'adminDoctor' ? {
+                    this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' ? {
                         text: this.$t('datatable.doctor'),
                         align: "start",
                         value: "doctor"
@@ -555,17 +528,6 @@
 
 
 
-                    {
-                        text: 'الحالات',
-                        value: "casesx",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "addCase",
-                        sortable: false
-                    },
-                    //Recipe
 
                     {
                         text: '',
@@ -594,6 +556,138 @@
         },
 
         methods: {
+            // WhatsApp Methods
+            openWhatsappDialog(item) {
+                this.selectedPatient = {
+                    id: item.id,
+                    name: item.name || '',
+                    phone: item.phone || ''
+                };
+                this.whatsappMessage = {
+                    message: ''
+                };
+                this.whatsappDialog = true;
+            },
+
+            closeWhatsappDialog() {
+                this.whatsappDialog = false;
+                this.whatsappMessage = {
+                    message: ''
+                };
+                this.selectedPatient = {
+                    id: null,
+                    name: '',
+                    phone: ''
+                };
+                this.sendingMessage = false;
+            },
+
+            setQuickMessage(messageType) {
+                const messages = {
+                    'تذكير بالموعد': `مرحباً ${this.selectedPatient.name}،\n\nنذكركم بموعدكم القادم في العيادة.\n\nشكراً لكم`,
+                    'تذكير بالدفع': `مرحباً ${this.selectedPatient.name}،\n\nنذكركم بوجود مستحقات مالية متبقية.\n\nيرجى التواصل معنا لتسوية الحساب.\n\nشكراً لكم`,
+                    'متابعة الحالة': `مرحباً ${this.selectedPatient.name}،\n\nنود الاطمئنان على حالتكم الصحية.\n\nكيف تشعرون بعد العلاج؟\n\nشكراً لكم`
+                };
+                this.whatsappMessage.message = messages[messageType] || '';
+            },
+
+            async sendWhatsappMessage() {
+                if (!this.whatsappMessage.message.trim()) {
+                    this.$swal.fire({
+                        title: "خطأ",
+                        text: "يرجى كتابة الرسالة",
+                        icon: "error",
+                        confirmButtonText: "اغلاق",
+                    });
+                    return;
+                }
+
+                if (!this.selectedPatient.id) {
+                    this.$swal.fire({
+                        title: "خطأ",
+                        text: "معرف المريض غير موجود",
+                        icon: "error",
+                        confirmButtonText: "اغلاق",
+                    });
+                    return;
+                }
+
+                this.sendingMessage = true;
+
+                try {
+                    const response = await this.apiRequest('whatsapp/storeNow', 'post', {
+                        patient_id: this.selectedPatient.id,
+                        message: this.whatsappMessage.message.trim()
+                    });
+
+                    this.$swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "تم إرسال الرسالة بنجاح",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    this.closeWhatsappDialog();
+                } catch (error) {
+                    console.error('WhatsApp send error:', error);
+                    
+                    let errorMessage = "حدث خطأ أثناء إرسال الرسالة";
+                    if (error.response && error.response.data && error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    }
+
+                    this.$swal.fire({
+                        title: "فشل في الإرسال",
+                        text: errorMessage,
+                        icon: "error",
+                        confirmButtonText: "اغلاق",
+                    });
+                } finally {
+                    this.sendingMessage = false;
+                }
+            },
+
+            // Server-side pagination handler
+            handleTableUpdate(options) {
+                this.tableOptions = options;
+                this.loadTableData();
+            },
+
+            loadTableData() {
+                if (this.isSearching) {
+                    this.seachs();
+                } else if (this.isSearchingDoctor) {
+                    this.getByDocor();
+                } else {
+                    this.initialize();
+                }
+            },
+
+            // Open the patient dialog for adding new patient
+            openAddPatientDialog() {
+                this.editedIndex = -1;
+                this.dialog = true;
+            },
+
+            // Helper method to safely get doctor name
+            getDoctorName(item) {
+                if (item.doctors && item.doctors.length > 0 && item.doctors[0] && item.doctors[0].name) {
+                    return item.doctors[0].name;
+                }
+                return '';
+            },
+
+            // Helper method to check if doctor exists
+            hasDoctorAssigned(item) {
+                return item.doctors && item.doctors.length > 0 && item.doctors[0];
+            },
+
+            // Handle row click to navigate to patient page
+            handleRowClick(item) {
+                this.$router.push(`/patient/${item.id}`);
+            },
+
             apiRequest(url, method = 'get', data = null) {
                 return Axios({
                     url,
@@ -687,15 +781,21 @@
                     return this.initialize();
                 }
                 this.isSearchingDoctor = true;
-                this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${this.current_page}`)
+                this.loadingData = true;
+                
+                const currentPage = this.tableOptions.page || 1;
+                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                
+                this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
-                        this.loading = false;
+                        this.loadingData = false;
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
+                        this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
                     })
                     .catch(() => {
-                        this.loading = false;
+                        this.loadingData = false;
                     });
             },
 
@@ -906,10 +1006,9 @@
                     case: {
                         case_categores_id: "",
                         upper_right: "",
-                        upper_left: "",
+                        lower_left: "",
                         patient_id: "",
                         lower_right: "",
-                        lower_left: "",
                         status_id: 42,
                         bills: [{
                             price: '',
@@ -959,22 +1058,28 @@
             },
             seachs() {
                 this.isSearching = true;
-                this.apiRequest(`patients/searchv2/${this.search}`)
+                this.loadingData = true;
+                
+                const currentPage = this.tableOptions.page || 1;
+                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                
+                this.apiRequest(`patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
-                        this.loading = false;
+                        this.loadingData = false;
                         this.allItem = true;
                         this.desserts = res.data.data;
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
+                        this.totalItems = res.data.meta.total;
                     })
                     .catch(() => {
-                        this.loading = false;
+                        this.loadingData = false;
                     });
             },
 
 
             getclinicDoctor() {
-                const endpoint = this.$store.state.role === 'secretary' ? 'doctors/secretary' : 'doctors/clinic';
+                const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
                 this.apiRequest(endpoint)
                     .then(res => {
                         this.loadingData = false;
@@ -989,20 +1094,25 @@
 
 
             initialize(page = 1) {
-                page
                 if (this.isSearching || this.isSearchingDoctor) return;
-                this.loading = true;
-                this.apiRequest(`patients/getByUserIdv2?page=${this.current_page}`)
+                
+                this.loadingData = true;
+                
+                // Get pagination parameters from tableOptions
+                const currentPage = this.tableOptions.page || 1;
+                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                
+                this.apiRequest(`patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
-                        this.loading = false;
                         this.loadingData = false;
                         this.search = null;
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
+                        this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
                     })
                     .catch(() => {
-                        this.loading = false;
+                        this.loadingData = false;
                     });
             },
 
@@ -1099,19 +1209,51 @@
 
             },
 
-            save() {
-                if (this.$refs.form.validate()) {
-                    this.loadSave = true;
-
-                    if (this.doctors.length > 1 && this.$store.state.role == 'secretary') {
-                        this.editedItem.doctors = [this.editedItem.doctors];
-                    } else {
-                        delete this.editedItem.doctors;
+            save(eventData) {
+                // Handle PatientEditDialog events - the dialog now handles API calls internally
+                if (eventData && typeof eventData === 'object' && eventData.patient) {
+                    const patientData = eventData.patient;
+                    const isEditing = eventData.isEditing;
+                    
+                    // Update local data
+                    this.initialize();
+                    
+                    // Handle redirection based on user role
+                    const userRole = this.$store.getters.userRole;
+                    if (!isEditing) {
+                        // Only redirect for new patients
+                        if (userRole === 'adminDoctor' || userRole === 'admin' || userRole === 'doctor') {
+                            // Redirect to patient page for these roles
+                            this.$router.push(`/patient/${patientData.id}`);
+                        } else if (!this.$store.getters.isSecretary) {
+                            this.gocase = false;
+                            this.addCase(patientData);
+                        }
                     }
+                    
+                    this.close();
+                    return;
+                }
 
-                    if (this.editedIndex > -1) {
+                // Legacy code for old direct calls (keeping for backward compatibility)
+                if (this.$refs.form && !this.$refs.form.validate()) {
+                    return;
+                }
+                
+                const patientData = { ...this.editedItem };
+                const isEditing = this.editedIndex > -1;
+                
+                if (this.doctors.length > 1 && this.$store.getters.isSecretary) {
+                    patientData.doctors = [patientData.doctors];
+                } else {
+                    delete patientData.doctors;
+                }
+
+                this.loadSave = true;
+
+                if (isEditing) {
                         this.axios
-                            .patch("patients/" + this.editedItem.id, this.editedItem, {
+                            .patch("patients/" + (patientData.id || this.editedItem.id), patientData, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1143,7 +1285,7 @@
                             });
                     } else {
                         this.axios
-                            .post("patients", this.editedItem, {
+                            .post("patients", patientData, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1158,7 +1300,12 @@
                                 this.dialog = false;
                                 this.initialize();
 
-                                if (this.$store.state.role !== 'secretary') {
+                                // Check user role and redirect accordingly
+                                const userRole = this.$store.getters.userRole;
+                                if (userRole === 'adminDoctor' || userRole === 'admin' || userRole === 'doctor') {
+                                    // Redirect to patient page for these roles
+                                    this.$router.push(`/patient/${this.patientInfo.id}`);
+                                } else if (!this.$store.getters.isSecretary) {
                                     this.gocase = false;
                                     this.addCase(this.patientInfo);
                                 } else {
@@ -1182,8 +1329,7 @@
                                 });
                             });
                     }
-                }
-            },
+            }
 
         },
 

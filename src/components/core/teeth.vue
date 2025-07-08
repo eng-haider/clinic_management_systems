@@ -1,4 +1,10 @@
 <template>
+    <!-- 
+    Dental Chart Component
+    - Desktop: Right-click on tooth to show categories menu
+    - Mobile/Touch: Tap on tooth to show categories menu
+    - All devices: Left-click toggles tooth selection (color change)
+    -->
     <div>
         <div class="teeth-svg">
 
@@ -70,33 +76,32 @@
                     </a>
                     <path class="st1" d="M75.6,111.7c2.1-0.8,5.3-5.5,6.9-1.8c-3,1.5-5.4,3.9-7,6.9c-1.7-2.2-3.4-4.2-5-6.4
         C72.3,110.2,73.9,111.2,75.6,111.7z" />
-                </g>
-                <a href="#">
-                    <g>
-                        <path class="comon st2" @click="reply_click(13)"
-                            :class="[tooth_num.includes(13)==true ?  'activeClass comon st3 ' : ' comon st3']" id="13"
-                            d="M162.9,14.5c3.6-1.9,8.1-0.5,10.9,2.1c5,5.9,6.5,13.9,5.8,21.4c-1.1,4.5-4.7,7.9-8.3,10.7
+                </g>                    <a href="#">
+                        <g>
+                            <path class="comon st2" @click="reply_click(13, $event)" @contextmenu.prevent="right_click(13, $event)"
+                                :class="[tooth_num.includes(13)==true ?  'activeClass comon st3 ' : ' comon st3']" id="13"
+                                d="M162.9,14.5c3.6-1.9,8.1-0.5,10.9,2.1c5,5.9,6.5,13.9,5.8,21.4c-1.1,4.5-4.7,7.9-8.3,10.7
         c-2.2,1.4-4.5,3.8-7.4,2.7c-4.8-2.3-8.9-6.3-10.8-11.4C152.2,30.9,153.1,18.8,162.9,14.5z" />
                     </g>
                 </a>
                 <a href="#">
                     <g>
-                        <path @click="reply_click(11)"
+                        <path @click="reply_click(11, $event)" @contextmenu.prevent="right_click(11, $event)"
                             :class="[tooth_num.includes(11)==true ?  'activeClass comon st3 ' : ' comon st3']" id="11"
                             d="M224.1,14.8c4-1.2,7.9,1.4,9.8,4.8c5.2,7.1,3.6,16.3,3.9,24.5c-0.1,2.9,0.5,7.2-3.1,8.2
         c-4,0.7-8.2,1.4-12.3,0.7c-3.7-0.5-7.5-0.1-10.9-1.9c-0.8-4.6-0.1-9.4-0.4-14.1C210.9,28,215.4,18.2,224.1,14.8z" />
-                        <path @click="reply_click(21)"
+                        <path @click="reply_click(21, $event)" @contextmenu.prevent="right_click(21, $event)"
                             :class="[tooth_num.includes(21)==true?  'activeClass comon st3 ' : ' comon st4']" id="21" d="M250,14.7c3.3-0.9,6.5,1,8.8,3c5.5,4.7,8,12.1,8,19.3c-0.1,4.4,0.1,8.8-0.1,13.2c-2,2.8-6.1,2.1-9.1,2.5
         c-5,0.8-10.2,0.5-15.1-0.7c-2.8-1.6-2.3-5.3-2.4-8c0.3-7.7-1.3-16.2,3.1-23.2C244.9,18.2,246.9,15.4,250,14.7z" />
-                        <path @click="reply_click(43)"
+                        <path @click="reply_click(43, $event)" @contextmenu.prevent="right_click(43, $event)"
                             :class="[tooth_num.includes(43)==true ?  'activeClass comon st5 ' : ' comon st5']" id="43"
                             d="M163.9,102.6c2.9-0.8,5.4,1.5,7.6,3.2c3.1,2.7,6.1,5.6,8.2,9.2c-0.1,6.1-0.3,12.8-4.5,17.7c-2.2,3-6.3,4-9.7,3
         c-5.8-2-10.5-6.8-12.3-12.6c0-4.3-1.2-9.1,1.4-12.9C156.7,106.7,160,103.8,163.9,102.6z" />
-                        <path @click="reply_click(42)"
+                        <path @click="reply_click(42, $event)" @contextmenu.prevent="right_click(42, $event)"
                             :class="[tooth_num.includes(42)==true ?  'activeClass comon st5 ' : ' comon st6']" id="42"
                             d="M192.5,104.1c4.7-0.4,9.5-0.3,14.1,0.8c1.3,0,1.9,0.7,1.8,1.9c0.2,6.8,0.3,13.8-2.2,20.3
         c-1,3.4-4.6,5.1-7.7,6.2c-5.1,0.9-10.3-1.9-13.4-5.9c-4.1-5.8-2.8-13.2-2.9-19.8C184.4,104.4,189,104.8,192.5,104.1z" />
-                        <path @click="reply_click(41)"
+                        <path @click="reply_click(41, $event)" @contextmenu.prevent="right_click(41, $event)"
                             :class="[tooth_num.includes(41)==true ?  'activeClass comon st7 ' : ' comon st7']" id="41"
                             d="M211.2,105.7c8.5-2.8,17.9-3.1,26.6-0.7c0,5.7,0.2,11.4-0.1,17c-1.1,5.3-4.8,10.6-10.1,12.4
         c-3.1,0.4-5.9-1.6-8.1-3.5c-3.4-3.3-5.8-7.4-7.3-11.9C210.5,114.8,211.4,110.1,211.2,105.7z" />
@@ -104,28 +109,28 @@
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st8" @click="reply_click(23)"
+                        <path class="comon st8" @click="reply_click(23, $event)" @contextmenu.prevent="right_click(23, $event)"
                             :class="[tooth_num.includes(23)==true?  'activeClass comon st3 ' : ' comon st3']" id="23" d="M304.6,16.2c3.9-3.4,9.8-3.2,13.6,0.3c7.3,5.4,7,15.5,6.8,23.6c-2.3,4.9-6,9.1-11,11.3
         c-3.1,1.2-5.6-1.5-7.8-3.1c-3.3-2.7-6.7-6-7.7-10.2C297.6,30.4,299.2,22,304.6,16.2z" />
-                        <path class="comon st9" id="14" @click="reply_click(14)"
+                        <path class="comon st9" id="14" @click="reply_click(14, $event)" @contextmenu.prevent="right_click(14, $event)"
                             :class="[tooth_num.includes(14)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M133.8,18.4c2.1-1.6,4.8-1,6.8,0.4c4.4,2.9,7.4,7.5,9.6,12.2c0.3,3.7,1.3,8.3-1.6,11.3
         c-3.1,4.4-8.6,7.8-14.1,6.8c-3.7-0.8-7.6-2.3-10.1-5.3C122.8,34.5,125.3,23.6,133.8,18.4z" />
 
-                        <path class="comon st10" id="12" @click="reply_click(12)"
+                        <path class="comon st10" id="12" @click="reply_click(12, $event)" @contextmenu.prevent="right_click(12, $event)"
                             :class="[tooth_num.includes(12)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M184.3,25.8c3.6-5.1,10.4-8.2,16.6-6c3.9,1.9,7,5.6,7.4,10.1c0.4,5.8,0.3,11.6,0.1,17.3
         c-5.3,3.3-11.8,3.4-17.8,2.6c-3.2-0.5-6.2-1.9-8.4-4.2C182.9,39,180.5,31.7,184.3,25.8z" />
 
 
-                        <path class="comon st11" id="24" @click="reply_click(24)"
+                        <path class="comon st11" id="24" @click="reply_click(24, $event)" @contextmenu.prevent="right_click(24, $event)"
                             :class="[tooth_num.includes(24)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M338.5,18.1c3.2-1.9,6.5,0.8,8.8,3c5.9,5.9,7.6,14.9,6.1,22.8c-4.6,5.1-13.1,7.4-19.1,3.4
         c-3-1.6-4.9-4.5-6.9-7.2c0.1-3.2-0.5-6.5,0.4-9.6C330.3,25.5,333.5,20.6,338.5,18.1z" />
-                        <path class="comon st12" id="22" @click="reply_click(22)"
+                        <path class="comon st12" id="22" @click="reply_click(22, $event)" @contextmenu.prevent="right_click(22, $event)"
                             :class="[tooth_num.includes(22)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M270.7,26.4c2.9-8.1,14.4-9.4,20.2-3.7c6.6,4.7,4.8,13.3,5,20.2c0.8,4.1-3.8,5.5-6.8,6.5
         c-6.4,1.3-13.4,1.2-19.2-2.1C269.3,40.4,268.6,33.1,270.7,26.4z" />
-                        <path class="comon st13" id="44" @click="reply_click(44)"
+                        <path class="comon st13" id="44" @click="reply_click(44, $event)" @contextmenu.prevent="right_click(44, $event)"
                             :class="[tooth_num.includes(44)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M131.1,106c6.1-3.2,13.9-0.8,17.4,5c2.5,2.4,1.8,5.9,1.9,9c0.4,4-2.5,7.2-4.9,10c-3,3.5-8.5,5-12.6,2.3
         c-4.1-3-8.4-6.9-8.8-12.3c0-3.1-0.8-6.6,0.9-9.5C126.7,108.5,128.9,107,131.1,106z" />
-                        <path class="comon st14" id="34" @click="reply_click(34)"
+                        <path class="comon st14" id="34" @click="reply_click(34, $event)" @contextmenu.prevent="right_click(34, $event)"
                             :class="[tooth_num.includes(34)==true ?  'activeClass comon st3 ' : ' comon st3']"
                             d="M335.9,105.4c4.5-1.8,9.8-0.6,13.7,2.1c2.1,1.5,4.3,3.6,4.3,6.4c0.3,4.8-0.1,10.2-3.7,13.7
         c-2.7,2.6-5.6,6.2-9.7,5.9c-6.2,0.3-10.4-5.6-12.7-10.6c-0.1-4-1.3-8.8,1.7-12C331.1,108.6,333.2,106.6,335.9,105.4z" />
@@ -133,56 +138,56 @@
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st15" @click="reply_click(15)"
+                        <path class="comon st15" @click="reply_click(15, $event)" @contextmenu.prevent="right_click(15, $event)"
                             :class="[tooth_num.includes(15)==true ?  'activeClass comon st3 ' : ' comon st3']" id="15"
                             d="M99.3,25.8c3.3-3.1,7.6-6.3,12.3-4.8c4.2,1.6,6.4,6.1,8.2,9.9c1.9,3.3,1.6,7.2,1.2,10.8
         c-2.3,3.4-6.4,4.9-10.1,6c-2.8,1-5.7,0-8.5-0.4c-2.6-1.1-5.3-2.2-7.4-4.1C94.4,37.3,94.5,30.1,99.3,25.8z" />
-                        <path class="comon st16" id="25" @click="reply_click(25)"
+                        <path class="comon st16" id="25" @click="reply_click(25, $event)" @contextmenu.prevent="right_click(25, $event)"
                             :class="[tooth_num.includes(25)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M366.5,20.9c5.2-1.5,9.9,2.5,13.3,5.9c4,4.5,3.5,10.9,3.4,16.5c-5,3.4-11.5,6.3-17.6,4
         c-3.3-1-6.1-2.8-8.7-5.1c0-3.8-0.8-7.9,1.2-11.3C360,27,362.1,22.5,366.5,20.9z" />
-                        <path class="comon st17" id="16" @click="reply_click(16)"
+                        <path class="comon st17" id="16" @click="reply_click(16, $event)" @contextmenu.prevent="right_click(16, $event)"
                             :class="[tooth_num.includes(16)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M66.3,34.6c1.7-5.5,4.4-11.7,10.1-13.8c3.9-0.9,8.6-0.2,11.2,3.2c2.9,4.1,4.7,9,4.6,14.1
         c-0.1,3,0.7,6.6-2.1,8.7c-2.4,2.8-6.6,1.8-8.8-0.6c-2-1.7-4.2-5-7-3.2c1,1,2.1,2,3.1,3c-3.3,2.8-7.7,2.9-11.5,1.5
         C66,43.2,65.4,38.8,66.3,34.6z" />
-                        <path class="comon st18" id="28" @click="reply_click(28)"
+                        <path class="comon st18" id="28" @click="reply_click(28, $event)" @contextmenu.prevent="right_click(28, $event)"
                             :class="[tooth_num.includes(28)==true?  'activeClass comon st3 ' : ' comon st3']" d="M448.5,25.9c2.6-2.8,6.6-2.3,10-2.1c4.1,0.6,8.1,2,11.7,4.1c-0.1,4.5,0.4,9.1-0.2,13.6
         c-1.4,1.9-4.2,1.3-6.3,1.8c0.1-0.8,0.2-2.3,0.2-3c-4.4,1.6-9,3.2-12.5,6.4c-2.7-0.1-6.3-0.2-7.4-3.1
         C443.6,37.5,443.4,30.2,448.5,25.9z" />
-                        <path class="comon st19" id="33" @click="reply_click(33)"
+                        <path class="comon st19" id="33" @click="reply_click(33, $event)" @contextmenu.prevent="right_click(33, $event)"
                             :class="[tooth_num.includes(33)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M298.4,114.8c3-4.8,7.3-9.2,12.3-11.9c2.5-1.4,5.2,0.1,7.3,1.5c3.2,2,5.3,5.2,7,8.4c-0.3,4.4,1,9.3-1.4,13.3
         c-2.3,4-5.9,7.3-10.1,9.1c-3.3,1.4-7.6,0.8-10-2.1C298.8,128.3,298.1,121.2,298.4,114.8z" />
-                        <path class="comon st20" id="45" @click="reply_click(45)"
+                        <path class="comon st20" id="45" @click="reply_click(45, $event)" @contextmenu.prevent="right_click(45, $event)"
                             :class="[tooth_num.includes(45)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M106.7,104.3c5.4-0.9,10.7,2.8,13.6,7.2c1.5,1.8,1,4.4,1,6.5c-0.1,5.3-3.9,9.7-8,12.7
         c-2.7,2.6-7.3,2.7-10.3,0.6c-3.4-2.1-6.4-5-8-8.7c-0.4-3.4-0.3-6.9-0.1-10.3C97.1,107.8,102,105.3,106.7,104.3z" />
-                        <path class="comon st21" id="35" @click="reply_click(35)"
+                        <path class="comon st21" id="35" @click="reply_click(35, $event)" @contextmenu.prevent="right_click(35, $event)"
                             :class="[tooth_num.includes(35)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M366,104.8c6.2-2,13.4,1.7,16.8,7c0.7,3.5,0.4,7.2,0.2,10.8c-2,4.5-5.9,8.2-10.4,10
         c-5.7,1.6-10.2-3.2-13.3-7.3c-2.8-3.6-2.9-8.5-2.1-12.8C359.1,109,362.2,106.1,366,104.8z" />
                     </g>
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st22" id="26" @click="reply_click(26)"
+                        <path class="comon st22" id="26" @click="reply_click(26, $event)" @contextmenu.prevent="right_click(26, $event)"
                             :class="[tooth_num.includes(26)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M390.3,24c2.7-3.6,7.9-4.2,11.9-2.9c4.4,2,7,6.5,8.5,10.9c2,4.9,1,10.3,1.2,15.5c-3.8,1.4-8,1.3-11.3-1.3
         c1-1.2,2.4-2.2,2.7-3.8c-4.4-0.7-6,4.6-9.9,5.7c-3.2,1.5-6.6-1.2-7.6-4.1C385,37,386,29.7,390.3,24z" />
                     </g>
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st23" id="18" @click="reply_click(18)"
+                        <path class="comon st23" id="18" @click="reply_click(18, $event)" @contextmenu.prevent="right_click(18, $event)"
                             :class="[tooth_num.includes(18)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M7.7,28c5.3-3.3,11.7-4.9,18-4.1c6,1.6,8.7,8.4,8.3,14.2c-0.3,2.4,0.9,5.6-1.5,7.3c-2.1,1.4-5.4,2-7.4,0.2
         c-3.2-2.5-7.1-3.7-10.7-5.3c-0.1,0.7-0.3,2.2-0.4,2.9c-2.1,0.2-4.4,0.1-6-1.5C7.4,37.1,7.9,32.5,7.7,28z" />
                     </g>
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st24" id="17" @click="reply_click(17)"
+                        <path class="comon st24" id="17" @click="reply_click(17, $event)" @contextmenu.prevent="right_click(17, $event)"
                             :class="[tooth_num.includes(17)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M40.8,27.4c4.6-5.3,13-4.1,18.8-1.6c5.1,5.5,3.4,13.7,3.5,20.5c-2.2,0.2-4.4,0.4-6.6,0.4l-0.7,0.5
         c-6.3,0.1-13,0.1-18.8-2.6C35.8,38.7,37.6,32.5,40.8,27.4z" />
                     </g>
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st25" id="27" @click="reply_click(27)"
+                        <path class="comon st25" id="27" @click="reply_click(27, $event)" @contextmenu.prevent="right_click(27, $event)"
                             :class="[tooth_num.includes(27)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M420.2,24.7c5.6-0.9,12.9-2.4,17,2.7c2.5,4.1,4.3,8.8,4.2,13.6c-0.3,1.3,0.6,3.5-1,4.1
         c-8.1,3.1-17,2.3-25.4,1.2C415,39.1,412.9,29.3,420.2,24.7z" />
 
@@ -192,7 +197,7 @@
                 <a href="#">
                     <g>
 
-                        <path class="comon st26" id="31" @click="reply_click(31)"
+                        <path class="comon st26" id="31" @click="reply_click(31, $event)" @contextmenu.prevent="right_click(31, $event)"
                             :class="[tooth_num.includes(31)==true ?  'activeClass comon st3 ' : ' comon st3']" d="M240.2,105c8.6-2.5,18-2.1,26.5,0.6c0,3.5,0,6.9,0,10.4c-2,7-5.6,14.3-12.4,17.6c-2.9,1.8-6.4,0.2-8.6-1.9
         c-2.6-2.7-4.8-6-5.5-9.7C240.1,116.3,240.3,110.7,240.2,105z" />
                     </g>
@@ -253,7 +258,7 @@
                 <g>
                     <a href="#">
                         <g>
-                            <path class="comon st28" @click="reply_click(38)"
+                            <path class="comon st28" @click="reply_click(38, $event)" @contextmenu.prevent="right_click(38, $event)"
                                 :class="[tooth_num.includes(38)==true  ?  'activeClass comon st3 ' : ' comon st3']"
                                 id="38" d="M457.6,115c2.9-1.8,6.2-2.8,9.7-2.7c6,5.7,3.2,17.2-4.5,19.9c-4.8,1-10.8,2.2-14.6-1.8
             c-4.4-3.3-4.5-9.4-4.1-14.4c0.1-1.5,1.7-2.1,2.9-2.6C450.5,112.8,454.3,113.3,457.6,115z M448,115.2c0.3,0.7,0.6,1.4,0.9,2.1
@@ -275,7 +280,7 @@
                 </a>
                 <a href="#">
                     <g>
-                        <path class="comon st31" @click="reply_click(32)"
+                        <path class="comon st31" @click="reply_click(32, $event)" @contextmenu.prevent="right_click(32, $event)"
                             :class="[tooth_num.includes(32)==true  ?  'activeClass comon st3 ' : ' comon st3']" id="32"
                             d="M269.2,105.7c6.3-1.6,12.9-1.5,19.3-1c2.7,0.2,5.2,1.4,7.4,2.8c-0.1,3.8,0,7.7-0.1,11.5
         c-0.2,5.4-3.3,10.5-8.1,13.1c-5,3.1-12.8,1.8-15.8-3.5C268.9,121.4,269.2,113.3,269.2,105.7z" />
@@ -284,7 +289,7 @@
                 <g>
                     <a href="#">
                         <g>
-                            <path class="comon st32" @click="reply_click(46)"
+                            <path class="comon st32" @click="reply_click(46, $event)" @contextmenu.prevent="right_click(46, $event)"
                                 :class="[tooth_num.includes(46)==true  ?  'activeClass comon st3 ' : ' comon st3']"
                                 id="46" d="M74.7,110.9c3.6-3,8.4-4.6,13-3.3c2.5,1.5,4.9,4.1,4.5,7.3c-0.3,4.8,1,10.5-2.3,14.5
             c-3.6,4.6-10.3,3-15.4,3.2c-5.6,0.4-9.1-5.7-8.7-10.7c0.4-4.1-1.4-9.2,2.3-12.2C70,107.2,72.8,109.8,74.7,110.9z M75.6,111.7
@@ -296,7 +301,7 @@
 
                     <a href="#">
                         <g>
-                            <path class="comon st33" @click="reply_click(36)"
+                            <path class="comon st33" @click="reply_click(36, $event)" @contextmenu.prevent="right_click(36, $event)"
                                 :class="[tooth_num.includes(36)==true ?  'activeClass comon st3 ' : ' comon st3']"
                                 id="36"
                                 d="M385.7,115c-0.4-4.1,3.6-8.3,7.8-7.8c3-0.3,5.8,1,8.3,2.7c2.1,1.9,4.1-1.1,6.1-1.7c1.5,1.2,2.8,2.6,4.1,4
@@ -309,11 +314,11 @@
                 <a href="#">
                     <g>
 
-                        <path class="comon st34" @click="reply_click(47)"
+                        <path class="comon st34" @click="reply_click(47, $event)" @contextmenu.prevent="right_click(47, $event)"
                             :class="[tooth_num.includes(47)==true ?  'activeClass comon st3 ' : ' comon st3']" id="47"
                             d="M36.7,113.1c1.9-0.9,3.8-1.9,5.8-2.4c2.6-0.1,5,1.4,7.1,2.9c3.3-3,9.1-4.7,12.6-1.3c1.5,1.1,0.9,3.1,1.1,4.7
         c0.4,6.2-3.4,12.3-8.8,15.2c-4.7,1.7-9.4-1.2-12.8-4.3C38,123.9,36,118.5,36.7,113.1z" />
-                        <path class="comon st35" @click="reply_click(37)"
+                        <path class="comon st35" @click="reply_click(37, $event)" @contextmenu.prevent="right_click(37, $event)"
                             :class="[tooth_num.includes(37)==true ?  'activeClass comon st3 ' : ' comon st3']" id="37"
                             d="M415,113.3c3.2-4.6,10-3.2,13.5,0.3c2.8-2.2,6.6-3.8,10.1-1.9c4,0.8,3,5.6,2.2,8.5
         c-1.7,6.2-6.8,11.5-13.2,12.5c-4.5,0.7-8-3.1-10.3-6.4C414.6,122.4,414.4,117.7,415,113.3z" />
@@ -322,7 +327,7 @@
                 <g>
                     <a href="#">
                         <g>
-                            <path class="comon st36" @click="reply_click(48)"
+                            <path class="comon st36" @click="reply_click(48, $event)" @contextmenu.prevent="right_click(48, $event)"
                                 :class="[tooth_num.includes(48)==true ?  'activeClass comon st3 ' : ' comon st3']"
                                 id="48" d="M7.7,120c-0.4-3,0.9-6.2,3.7-7.6c3.3-0.3,6.3,1.2,9.1,2.6c4-1.9,9.6-3.2,13.3-0.1c0.6,5.3,0.9,11.8-3.8,15.4
             c-3.2,3.4-8.3,3-12.5,2.3C11.4,132.1,7.1,125.8,7.7,120z M17.3,118.1c2.1,1.6,4.2-0.2,6.3-0.6c1.8-0.2,3.6-0.1,5.3-0.1
@@ -428,6 +433,21 @@
     .comon:hover {
         fill: aqua;
     }
+    
+    /* Mobile-friendly touch styles */
+    @media (max-width: 768px) or (pointer: coarse) {
+        .comon {
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0, 255, 255, 0.3);
+            tap-highlight-color: rgba(0, 255, 255, 0.3);
+        }
+        
+        .comon:active {
+            fill: lightblue;
+            transform: scale(1.05);
+            transition: all 0.1s ease;
+        }
+    }
 
     .activeClass {
         fill: aqua;
@@ -467,9 +487,40 @@ fill: #000;
     },
   },
         methods: {
-            reply_click(id) {
+            reply_click(id, event) {
+                // Check if this is a mobile device or touch device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                ('ontouchstart' in window) || 
+                                (navigator.maxTouchPoints > 0);
 
+                // For mobile devices, show the context menu on click
+                if (isMobile) {
+                    console.log('Mobile click on tooth:', id);
+                    
+                    // Create a fake event object for mobile context menu
+                    const fakeEvent = event || {
+                        clientX: 100,
+                        clientY: 200,
+                        preventDefault: () => {},
+                        stopPropagation: () => {}
+                    };
+                    
+                    // Emit the tooth right-click event to show context menu
+                    EventBus.$emit("toothRightClick", {
+                        toothId: id,
+                        event: fakeEvent
+                    });
+                    
+                    // Also emit as a component event
+                    this.$emit('tooth-right-clicked', {
+                        toothId: id,
+                        event: fakeEvent
+                    });
+                    
+                    return; // Exit early for mobile, don't toggle tooth selection
+                }
 
+                // Desktop behavior - toggle tooth selection
                 function isValidJSON(jsonString) {
                     try {
                         JSON.parse(jsonString);
@@ -479,42 +530,47 @@ fill: #000;
                     }
                 }
 
-
                 if (isValidJSON(this.tooth_num)) {
-
-
                     if (this.id !== undefined) {
                         this.tooth_num = JSON.parse(this.tooth_num);
                     }
                     if (this.tooth_num.includes(id)) {
-
                         var carIndex = this.tooth_num.indexOf(id);
                         this.tooth_num.splice(carIndex, 1);
                     } else {
                         this.tooth_num.push(id);
                         EventBus.$emit("changetooth", this.tooth_num);
                     }
-
-
                 } else {
                     this.tooth_num
 
                     if (this.tooth_num.includes(id)) {
-
                         carIndex = this.tooth_num.indexOf(id); //get  "car" index
                         //remove car from the colors array
                         this.tooth_num.splice(carIndex, 1); //
                     } else {
-
                         this.tooth_num.push(id);
                         EventBus.$emit("changetooth", this.tooth_num);
                     }
-
                 }
+            },
 
-
-
-
+            right_click(id, event) {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log('Right clicked tooth:', id);
+                
+                // Emit event through EventBus for backward compatibility
+                EventBus.$emit("toothRightClick", {
+                    toothId: id,
+                    event: event
+                });
+                
+                // Also emit as a component event
+                this.$emit('tooth-right-clicked', {
+                    toothId: id,
+                    event: event
+                });
             }
         }
     }

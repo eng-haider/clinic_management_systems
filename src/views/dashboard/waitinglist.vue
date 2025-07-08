@@ -486,7 +486,7 @@
 
             async getclinicDoctor() {
 
-                if(this.$store.state.role=='secretary'){
+                if(this.$store.getters.isSecretary){
                 this.loading = true;
                 try {
                     const response = await Axios.get("doctors/secretary", {
@@ -514,7 +514,7 @@
                     const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                     let allReservations = [];
 
-                    if (this.doctors.length > 1 && this.$store.state.role === 'secretary') {
+                    if (this.doctors.length > 1 && this.$store.getters.isSecretary) {
                         for (let doctor of this.doctors) {
                             const response = await Axios.get(
                                 `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,

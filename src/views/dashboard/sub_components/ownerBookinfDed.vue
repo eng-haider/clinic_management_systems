@@ -262,7 +262,7 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
         this.prepareReservationData();
         
 
-        if(this.doctors.length>1){
+        if(this.doctors.length>1 && this.patientInfo.doctors && this.patientInfo.doctors.length > 0 && this.patientInfo.doctors[0] && this.patientInfo.doctors[0].user){
      
      this.tokx=this.patientInfo.doctors[0].user.tctate_token;
     }else{

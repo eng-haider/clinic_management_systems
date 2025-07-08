@@ -948,7 +948,7 @@
                                     this.initialize();
 
 
-                                if (this.$store.state.role !== 'secretary') {
+                                if (!this.$store.getters.isSecretary) {
                                     this.gocase = false;
                                     this.addCase(this.patientInfo);
                                 }

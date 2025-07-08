@@ -4,6 +4,31 @@ import store from './store'
 
 Vue.use(Router)
 
+// Route component imports with chunk naming and prefetch control
+const routeComponents = {
+  // Auth pages
+  Login: () => import(/* webpackChunkName: "auth" */ '@/views/pages/Login'),
+  Register: () => import(/* webpackChunkName: "auth" */ '@/views/pages/register'),
+  
+  // Layouts
+  DashboardLayout: () => import(/* webpackChunkName: "layout" */ '@/views/dashboard/Index'),
+  PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
+  
+  // Main dashboard views
+  Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard'),
+  CaseSheet: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/casesheet'),
+  Cases: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/cases'),
+  Patient: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/patient'),
+  Calendar: () => import(/* webpackChunkName: "calendar" */ '@/views/dashboard/calendar'),
+  Recipe: () => import(/* webpackChunkName: "medical" */ '@/views/dashboard/Recipe'),
+  Reports: () => import(/* webpackChunkName: "reports" */ '@/views/dashboard/reports'),
+  Accounts: () => import(/* webpackChunkName: "finance" */ '@/views/dashboard/accounts'),
+  BillsReport: () => import(/* webpackChunkName: "finance" */ '@/views/dashboard/billsReport'),
+  
+  // Error pages
+  Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
+}
+
 const router = new Router({
   mode: 'history',
   scrollBehavior() {
@@ -14,29 +39,29 @@ const router = new Router({
   routes: [
     {
       path: '/login',
-      component: () => import('@/views/pages/Index'),
+      component: routeComponents.PagesLayout,
       children: [
         {
           path: '',
           name: 'Login',
-          component: () => import('@/views/pages/Login')
+          component: routeComponents.Login
         }
       ]
     },
     {
       path: '/register',
-      component: () => import('@/views/pages/register'),
+      component: routeComponents.Register,
       children: [
         {
           path: '',
           name: 'Register',
-          component: () => import('@/views/pages/register')
+          component: routeComponents.Register
         }
       ]
     },
     {
       path: '/',
-      component: () => import('@/views/dashboard/Index'),
+      component: routeComponents.DashboardLayout,
       beforeEnter: (to, from, next) => {
         const isAuthenticated = localStorage.getItem('tokinn') && store?.state?.AdminInfo?.authe === true
         next(isAuthenticated ? true : { path: '/register' })
@@ -45,17 +70,17 @@ const router = new Router({
         {
           path: '',
           name: 'statistics',
-          component: () => import('@/views/dashboard/Dashboard')
+          component: routeComponents.Dashboard
         },
         {
           path: 'patients',
           name: 'casesheet',
-          component: () => import('@/views/dashboard/casesheet')
+          component: routeComponents.CaseSheet
         },
         {
           path: 'accounts',
           name: 'accounts',
-          component: () => import('@/views/dashboard/accounts')
+          component: routeComponents.Accounts
         },
         {
           path: 'doctors',
@@ -70,8 +95,15 @@ const router = new Router({
         {
           path: 'patient/:id',
           name: 'showCases',
-          component: () => import('@/views/dashboard/showCases')
+          component: () => import('@/views/dashboard/patient')
         },
+
+  // {
+  //         path: 'patient',
+  //         name: 'patient',
+  //         component: () => import('@/views/dashboard/patient')
+  //       },
+       
         {
           path: 'recipes',
           name: 'recipes',
@@ -100,7 +132,7 @@ const router = new Router({
         {
           path: 'cases',
           name: 'cases',
-          component: () => import('@/views/dashboard/cases')
+          component: routeComponents.Cases
         },
         {
           path: 'dashboard',

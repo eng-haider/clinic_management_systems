@@ -20,16 +20,24 @@ export default new Vuex.Store({
 
     idToken:localStorage.getItem('tokinn'),
     tctate_token:localStorage.getItem('tctate_token'),
-    AdminInfo:{
-        id:'',
-        token:'',
-        authe:false,
-        role:'',
-        name:'',
-        email:'',
-        tctate_token:'',
-        photo:''
-
+    role: '', // Keep for backward compatibility
+    AdminInfo: {
+        id: '',
+        user_id: '',
+        doctor_id: null,
+        token: '',
+        authe: false,
+        role: '',
+        name: '',
+        email: '',
+        tctate_token: '',
+        photo: '',
+        phone: '',
+        img_name: null,
+        Permissions: [],
+        dir: '',
+        send_msg: 1,
+        clinics_info: ''
     }
  
   },
@@ -37,6 +45,24 @@ export default new Vuex.Store({
     createPersistedState({     
     })
   ],
+  getters: {
+    userRole: state => {
+      const role = state.AdminInfo.role || state.role;
+      console.log('Getting userRole:', { adminInfoRole: state.AdminInfo.role, stateRole: state.role, result: role });
+      return role;
+    },
+    isSecretary: state => {
+      const role = state.AdminInfo.role || state.role;
+      const isSecretary = role === 'secretary';
+      console.log('Getting isSecretary:', { adminInfoRole: state.AdminInfo.role, stateRole: state.role, role, isSecretary });
+      return isSecretary;
+    },
+    isAuthenticated: state => state.AdminInfo.authe,
+    userPermissions: state => state.AdminInfo.Permissions || [],
+    hasPermission: (state) => (permission) => {
+      return state.AdminInfo.Permissions.includes(permission);
+    }
+  },
   mutations: {
     SET_DRAWER(state, payload) {
       state.drawer = payload;
@@ -53,24 +79,32 @@ export default new Vuex.Store({
     },
 
     setRole(state,role) {
-      state.role = role
-     
+      console.log('Setting role:', role);
+      state.role = role;
+      state.AdminInfo.role = role;
+      console.log('Role set successfully. State:', { role: state.role, adminInfoRole: state.AdminInfo.role });
     },
 
     clearAuth(state) {
-        state.AdminInfo={
-          id:'',
-          token:'',
-          authe:false,
-          name:'',
-          email:'',
-          role:'',
-          photo:'',
-          clinics_info:''
-
-          
+        state.AdminInfo = {
+          id: '',
+          user_id: '',
+          doctor_id: null,
+          token: '',
+          authe: false,
+          role: '',
+          name: '',
+          email: '',
+          tctate_token: '',
+          photo: '',
+          phone: '',
+          img_name: null,
+          Permissions: [],
+          dir: '',
+          send_msg: 1,
+          clinics_info: ''
         }
-      } ,
+      },
 
    
       UpdateUserInfo(state, userData) {
@@ -94,21 +128,21 @@ export default new Vuex.Store({
 
     authUser(state, userData) {
         state.AdminInfo.id = userData.id
+        state.AdminInfo.user_id = userData.user_id
+        state.AdminInfo.doctor_id = userData.doctor_id
         state.AdminInfo.name = userData.name
-        state.AdminInfo.authe=true
+        state.AdminInfo.authe = true
         state.AdminInfo.email = userData.email
         state.AdminInfo.phone = userData.phone
         state.AdminInfo.photo = userData.photo
-        state.AdminInfo.role = userData.role.name
+        state.AdminInfo.role = userData.role
         state.AdminInfo.img_name = userData.img_name
         state.AdminInfo.Permissions = userData.Permissions
         state.AdminInfo.dir = userData.dir
-        state.AdminInfo.send_msg=userData.send_msg
-        state.AdminInfo.tctate_token=localStorage.getItem('tctate_token'),
-        state.AdminInfo.token =localStorage.getItem('tokinn')
-        state.AdminInfo.clinics_info =userData.clinic_info
-
-       
+        state.AdminInfo.send_msg = userData.send_msg
+        state.AdminInfo.tctate_token = userData.tctate_token
+        state.AdminInfo.token = userData.token
+        state.AdminInfo.clinics_info = userData.clinics_info
       },
 
       updatePermissions(state, permissions) {
@@ -170,55 +204,62 @@ export default new Vuex.Store({
 
     login({
         commit
-      }, rt) {
-  var userData=rt.result;
+      }, loginResponse) {
       
-     var Permissions=Array();
-      for(var i=0;i<userData.Permissions.length;i++){
-        Permissions.push(userData.Permissions[i].name);
+      // Extract data from the new login response structure
+      const userData = loginResponse.result;
+      const token = loginResponse.token;
+      const tctateToken = loginResponse.tctate_token;
+      const dir = loginResponse.dir;
+      
+      // Store tokens in localStorage
+      localStorage.setItem('tokinn', token);
+      localStorage.setItem('tctate_token', tctateToken);
+      
+      // Process permissions array
+      const Permissions = userData.Permissions.map(permission => permission.name);
+      
+      // Prepare user data for commit
+      const processedUserData = {
+        id: userData.id,
+        user_id: userData.id,
+        doctor_id: userData.doctor ? userData.doctor.id : null,
+        token: token,
+        tctate_token: tctateToken,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role.name,
+        img_name: userData.img_file,
+        photo: userData.img_file,
+        Permissions: Permissions,
+        dir: dir,
+        send_msg: userData.send_msg,
+        clinics_info: loginResponse.clinic_info || userData.Clinics
+      };
+      
+      // Commit to store
+      commit('authUser', processedUserData);
+      
+      // Set up user authentication
+      let authenticate = Promise.resolve({ role: userData.role.name });
+      authenticate.then(user => { 
+        if (Vue.prototype.$user) {
+          Vue.prototype.$user.set(user);
+        }
+      });
+
+      commit('setRole', userData.role.name);
+      
+      // Navigate based on permissions
+      if (!Permissions.includes('show_accounts')) {
+        router.push("/patients");
+      } else if (dir === 'login') {
+        router.push("/");
+      } else {
+        router.push("/patients");
       }
-    
-      
-      //alert(userData.img_name);
-        commit('authUser', {
-          token:localStorage.getItem('tokinn'),
-          userId: userData.id,
-          tctate_token:userData.tctate_token,
-          name: userData.name,
-          send_msg:userData.send_msg,
-          policyNumber: userData.photp,
-          userPhotoUrl: userData.email,
-          role:userData.role.name,
-          clinic_info:userData.clinic_info,
-          img_name:userData.img_file,
-          phone:userData.phone,
-          Permissions:Permissions
-      
-
-    
-        });
-      
-        let authenticate = Promise.resolve({ role:userData.role.name});
-        authenticate.then(user => { Vue.prototype.$user.set(user);})
-
-        commit('setRole',userData.role.name);
-        if(Permissions.includes('show_accounts')==false){
-          router.push("/patients");
-        }
-
-     
-        else    if(rt.dir=='login'){
-          router.push("/");
-        }
-        else{
-          router.push("/patients");
-          
-        }
-       
-      //  location.reload();
-     
-
-      },
+    },
 
       logout({
         commit
