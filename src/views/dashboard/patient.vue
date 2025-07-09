@@ -1,31 +1,15 @@
 <template>
   <v-container fluid class="patient-detail-page">
-    <!-- Global Loading Overlay -->
-    <v-overlay :value="loading || initialLoading" absolute z-index="1000">
-      <div class="text-center">
-        <v-progress-circular 
-          indeterminate 
-          size="64" 
-          color="primary"
-          width="4"
-        ></v-progress-circular>
-        <div class="mt-4 white--text">
-          <div class="text-h6">{{ loadingMessage }}</div>
-          <div class="caption">{{ loadingSubMessage }}</div>
-        </div>
-      </div>
-    </v-overlay>
-
     <!-- Patient Header Card -->
     <v-card class="mb-4 patient-header-card" outlined>
       <v-row no-gutters align="center">
         <!-- Patient Avatar -->
         <v-col cols="auto" class="pa-4">
           <v-avatar size="60" class="mr-3">
-            <v-icon v-if="!patient.avatar" size="70" color="grey lighten-1">
+            <v-icon  size="70" color="grey lighten-1">
               mdi-account-circle
             </v-icon>
-            <v-img v-else :src="patient.avatar" />
+           
           </v-avatar>
         </v-col>
 
@@ -33,9 +17,9 @@
         <v-col>
           <div class="d-flex flex-column patient-info-container">
             <h2 class="text-h5 font-weight-medium mb-1" style="font-family: Cairo, sans-serif !important;">
-              {{ patient.name }}
+              {{ patient.name || 'جاري التحميل...' }}
             </h2>
-            <div class="patient-sub-info">
+            <div class="patient-sub-info" v-if="patient.phone">
                <div class="patient-phone d-flex align-center">
                 <v-icon size="16" class="mr-1">mdi-whatsapp</v-icon>
                 <a 
@@ -394,16 +378,11 @@
                     type="number"
                     outlined
                     dense
-                    :disabled="!canEditBill(bill)"
-                    :readonly="!canEditBill(bill)"
+               
                     @input="updateBillPrice(bill)"
                   />
-                  <div class="caption text-right pr-1 user-created">
-                    <v-icon size="12" class="mr-1 grey--text text--darken-1">
-                      mdi-account
-                    </v-icon>
-                    <span class="grey--text text--darken-1">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
-                  </div>
+                 <span style="position: relative;
+    bottom: 20px;" class="grey--text text--darken-1">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
                 </v-flex>
 
                 <!-- Payment Date -->
@@ -428,8 +407,7 @@
                     type="date"
                     outlined
                     dense
-                    :disabled="!canEditBill(bill)"
-                    :readonly="!canEditBill(bill)"
+                   
                     @input="updateBillDate(bill)"
                   >
                     <template v-slot:prepend>
@@ -576,18 +554,13 @@ export default {
   
   data() {
     return {
-      loading: false,
       saving: false,
-      initialLoading: true,
-      loadingMessage: 'جاري تحميل البيانات...',
-      loadingSubMessage: 'يرجى الانتظار',
       
       // Patient Data (will be loaded from API)
       patient: {
         id: null,
         name: '',
         phone: '',
-        avatar: null,
         age: null,
         address: '',
         email: '',
@@ -776,6 +749,8 @@ export default {
       }
     },
 
+
+
     // Patient info formatted for OwnerBooking component
     patientInfo() {
       return {
@@ -810,14 +785,21 @@ export default {
     // Fetch dental operations from API
     async fetchDentalOperations() {
       try {
-        this.loadingSubMessage = 'تحميل العمليات السنية...';
-        const response = await this.$http.get('cases/CaseCategories', {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Dental operations request timeout')), 10000); // 10 seconds timeout
         });
+
+        const response = await Promise.race([
+          this.$http.get('cases/CaseCategories', {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          }),
+          timeoutPromise
+        ]);
         
         this.dentalOperations = response.data.map(category => ({
           id: category.id,
@@ -840,67 +822,97 @@ export default {
     },
 
     // Fetch doctors from API
-    async fetchDoctors() {
-      try {
-        this.loadingSubMessage = 'تحميل قائمة الأطباء...';
-        const response = await this.$http.get('doctors', {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
-        });
+    // async fetchDoctors() {
+    //   try {
+    //     this.loadingSubMessage = 'تحميل قائمة الأطباء...';
         
-        this.doctors = response.data.map(doctor => ({
-          id: doctor.id,
-          name: doctor.name,
-          name_ar: doctor.name_ar || doctor.name,
-          specialty: doctor.specialty,
-          phone: doctor.phone,
-          email: doctor.email
-        }));
+    //     // Add timeout to prevent hanging
+    //     const timeoutPromise = new Promise((_, reject) => {
+    //       setTimeout(() => reject(new Error('Doctors request timeout')), 10000); // 10 seconds timeout
+    //     });
+
+    //     const response = await Promise.race([
+    //       this.$http.get('doctors', {
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //           Accept: "application/json",
+    //           Authorization: "Bearer " + this.$store.state.AdminInfo.token
+    //         }
+    //       }),
+    //       timeoutPromise
+    //     ]);
         
-        console.log('📥 Fetched doctors:', this.doctors.length);
-      } catch (error) {
-        console.error('❌ Error fetching doctors:', error);
+    //     this.doctors = response.data.map(doctor => ({
+    //       id: doctor.id,
+    //       name: doctor.name,
+    //       name_ar: doctor.name_ar || doctor.name,
+    //       specialty: doctor.specialty,
+    //       phone: doctor.phone,
+    //       email: doctor.email
+    //     }));
         
-        // Fallback to default doctor if API fails
-        this.doctors = [
-          { id: 1, name: 'طبيب افتراضي', name_ar: 'طبيب افتراضي' }
-        ];
-      }
-    },
+    //     console.log('📥 Fetched doctors:', this.doctors.length);
+    //   } catch (error) {
+    //     console.error('❌ Error fetching doctors:', error);
+        
+    //     // Fallback to default doctor if API fails
+    //     this.doctors = [
+    //       { id: 1, name: 'طبيب افتراضي', name_ar: 'طبيب افتراضي' }
+    //     ];
+    //   }
+    // },
 
     // Load patient data from API
     async loadPatientData() {
       try {
-        this.initialLoading = true;
-        this.loadingMessage = 'جاري تحميل بيانات المريض...';
+        console.log('🔄 Starting loadPatientData...');
 
         // Get patient ID from route
         const patientId = this.$route.params.id;
+        console.log('🆔 Patient ID from route:', patientId);
+        
         if (!patientId) {
           throw new Error('Patient ID not found in route');
         }
 
+        // Check if we have token
+        const token = this.$store.state.AdminInfo?.token;
+        console.log('🔑 Token available:', !!token);
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
         // Load patient data using the new API endpoint
-        this.loadingSubMessage = 'تحميل بيانات المريض...';
-        const response = await this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
+        console.log('📡 Making API request to get patient data...');
+        
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Request timeout')), 30000); // 30 seconds timeout
         });
 
+        const response = await Promise.race([
+          this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + token
+            }
+          }),
+          timeoutPromise
+        ]);
+
+        console.log('📡 API response received:', response.status);
         const data = response.data;
+        console.log('📊 Patient data structure:', Object.keys(data));
         
         // Set patient basic info
+        console.log('👤 Processing patient basic info...');
         this.patient = {
           id: data.id,
           name: data.name,
           phone: data.phone,
-          avatar: null,
+       
           age: data.age,
           address: data.address,
           email: data.email,
@@ -910,8 +922,10 @@ export default {
           notes: data.notes,
           rx_id: data.rx_id
         };
+        console.log('👤 Patient basic info set:', this.patient.name);
 
         // Process cases data
+        console.log('📋 Processing cases data...');
         this.patientCases = data.cases ? data.cases.map(caseItem => {
           // Parse tooth number from JSON array format
           let toothNumber = null;
@@ -943,8 +957,10 @@ export default {
             case_categories: caseItem.case_categories
           };
         }) : [];
+        console.log('📋 Cases processed:', this.patientCases.length);
 
         // Process bills data
+        console.log('💰 Processing bills data...');
         this.patientBills = data.bills ? data.bills.map(bill => ({
           id: bill.id,
           server_id: bill.id,
@@ -963,24 +979,41 @@ export default {
           isNew: false,
           modified: false
         })) : [];
+        console.log('💰 Bills processed:', this.patientBills.length);
 
-        // Load dental operations and doctors
-        await Promise.all([
-          this.fetchDentalOperations(),
-          this.fetchDoctors()
-        ]);
+        // Load dental operations and doctors with individual error handling
+        try {
+          await this.fetchDentalOperations();
+        } catch (error) {
+          console.error('❌ Failed to load dental operations:', error);
+          // Continue with fallback data
+        }
 
-        this.initialLoading = false;
         console.log('✅ Patient data loaded successfully');
         console.log('Patient:', this.patient);
         console.log('Cases:', this.patientCases);
         console.log('Bills:', this.patientBills);
       } catch (error) {
         console.error('❌ Error loading patient data:', error);
-        this.initialLoading = false;
+        
+        // More detailed error handling
+        let errorMessage = "تعذر تحميل بيانات المريض. يرجى المحاولة مرة أخرى.";
+        let errorTitle = "خطأ في تحميل البيانات";
+        
+        if (error.message === 'Request timeout') {
+          errorMessage = "انتهت مهلة الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.";
+          errorTitle = "انتهت مهلة الاتصال";
+        } else if (error.response && error.response.status === 401) {
+          errorMessage = "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.";
+          errorTitle = "خطأ في التحقق من الهوية";
+        } else if (error.response && error.response.status === 404) {
+          errorMessage = "لم يتم العثور على بيانات المريض. يرجى التحقق من الرابط.";
+          errorTitle = "المريض غير موجود";
+        }
+        
         this.$swal.fire({
-          title: "خطأ في تحميل البيانات",
-          text: "تعذر تحميل بيانات المريض. يرجى المحاولة مرة أخرى.",
+          title: errorTitle,
+          text: errorMessage,
           icon: "error",
           confirmButtonText: "اغلاق"
         });
@@ -1004,13 +1037,47 @@ export default {
     showToothMenuAtPosition(toothNumber) {
       this.selectedTooth = toothNumber;
       
-      // Calculate position based on tooth number (simplified positioning)
-      const baseX = 100;
-      const baseY = 200;
+      // Calculate position based on tooth number and viewport size
+      const toothNum = parseInt(toothNumber);
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Context menu approximate dimensions (based on actual CSS)
+      const menuWidth = 180; // min-width: 150px + padding
+      const menuHeight = 350; // max-height: 300px + header + padding
+      
+      // Calculate base position (center of viewport as fallback)
+      let baseX = viewportWidth / 2;
+      let baseY = viewportHeight / 2;
+      
+      // Adjust position based on tooth quadrant
+      if (toothNum >= 11 && toothNum <= 18) {
+        // Upper right quadrant
+        baseX = viewportWidth * 0.75;
+        baseY = viewportHeight * 0.3;
+      } else if (toothNum >= 21 && toothNum <= 28) {
+        // Upper left quadrant
+        baseX = viewportWidth * 0.25;
+        baseY = viewportHeight * 0.3;
+      } else if (toothNum >= 31 && toothNum <= 38) {
+        // Lower left quadrant
+        baseX = viewportWidth * 0.25;
+        baseY = viewportHeight * 0.7;
+      } else if (toothNum >= 41 && toothNum <= 48) {
+        // Lower right quadrant
+        baseX = viewportWidth * 0.75;
+        baseY = viewportHeight * 0.7;
+      }
+      
+      // Ensure menu doesn't go off-screen
+      baseX = Math.max(10, Math.min(baseX, viewportWidth - menuWidth - 10));
+      baseY = Math.max(10, Math.min(baseY, viewportHeight - menuHeight - 10));
       
       this.contextMenuStyle = {
+        position: 'fixed',
         top: baseY + 'px',
         left: baseX + 'px',
+        zIndex: 1000,
         display: 'block'
       };
       this.showContextMenu = true;
@@ -1028,12 +1095,50 @@ export default {
         this.selectedTooth = data.toothId;
         
         // Get the viewport coordinates
-        const x = data.event.clientX;
-        const y = data.event.clientY;
+        let x = data.event.clientX;
+        let y = data.event.clientY;
         
-        console.log('Context menu position:', { x, y });
+        // Calculate better positioning based on tooth number and viewport size
+        const toothNum = parseInt(data.toothId);
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         
-        // Position context menu at click location (fixed positioning relative to viewport)
+        // Context menu approximate dimensions (based on actual CSS)
+        const menuWidth = 180; // min-width: 150px + padding
+        const menuHeight = 350; // max-height: 300px + header + padding
+        
+        // Adjust horizontal position based on tooth location
+        if (toothNum >= 11 && toothNum <= 18) {
+          // Upper right quadrant - position menu to the left of click
+          x = Math.max(10, x - menuWidth - 10);
+        } else if (toothNum >= 21 && toothNum <= 28) {
+          // Upper left quadrant - position menu to the right of click
+          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
+        } else if (toothNum >= 31 && toothNum <= 38) {
+          // Lower left quadrant - position menu to the right of click
+          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
+        } else if (toothNum >= 41 && toothNum <= 48) {
+          // Lower right quadrant - position menu to the left of click
+          x = Math.max(10, x - menuWidth - 10);
+        } else {
+          // Default positioning - try to keep menu in viewport
+          if (x + menuWidth > viewportWidth) {
+            x = viewportWidth - menuWidth - 10;
+          }
+        }
+        
+        // Adjust vertical position to keep menu in viewport
+        if (y + menuHeight > viewportHeight) {
+          y = Math.max(10, y - menuHeight);
+        }
+        
+        // Ensure menu doesn't go off-screen
+        x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
+        y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
+        
+        console.log('Context menu position:', { x, y, toothNum });
+        
+        // Position context menu at calculated location (fixed positioning relative to viewport)
         this.contextMenuStyle = {
           position: 'fixed',
           top: y + 'px',
@@ -1136,10 +1241,35 @@ export default {
       
       this.selectedTooth = null;
       
+      // Get the viewport coordinates
+      let x = event.clientX;
+      let y = event.clientY;
+      
+      // Calculate better positioning
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Context menu approximate dimensions (based on actual CSS)
+      const menuWidth = 180; // min-width: 150px + padding
+      const menuHeight = 350; // max-height: 300px + header + padding
+      
+      // Adjust position to keep menu in viewport
+      if (x + menuWidth > viewportWidth) {
+        x = viewportWidth - menuWidth - 10;
+      }
+      
+      if (y + menuHeight > viewportHeight) {
+        y = Math.max(10, y - menuHeight);
+      }
+      
+      // Ensure menu doesn't go off-screen
+      x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
+      y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
+      
       this.contextMenuStyle = {
         position: 'fixed',
-        top: event.clientY + 'px',
-        left: event.clientX + 'px',
+        top: y + 'px',
+        left: x + 'px',
         zIndex: 1000,
         display: 'block'
       };
@@ -1208,9 +1338,51 @@ export default {
         this.selectedTooth = toothNumber;
       }
       
+      // Get the viewport coordinates
+      let x = event.clientX;
+      let y = event.clientY;
+      
+      // Calculate better positioning
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Context menu approximate dimensions (based on actual CSS)
+      const menuWidth = 180; // min-width: 150px + padding
+      const menuHeight = 350; // max-height: 300px + header + padding
+      
+      // Adjust position based on tooth number if available
+      if (toothNumber) {
+        const toothNum = parseInt(toothNumber);
+        
+        if (toothNum >= 11 && toothNum <= 18) {
+          // Upper right quadrant - position menu to the left of click
+          x = Math.max(10, x - menuWidth - 10);
+        } else if (toothNum >= 21 && toothNum <= 28) {
+          // Upper left quadrant - position menu to the right of click
+          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
+        } else if (toothNum >= 31 && toothNum <= 38) {
+          // Lower left quadrant - position menu to the right of click
+          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
+        } else if (toothNum >= 41 && toothNum <= 48) {
+          // Lower right quadrant - position menu to the left of click
+          x = Math.max(10, x - menuWidth - 10);
+        }
+      }
+      
+      // Adjust vertical position to keep menu in viewport
+      if (y + menuHeight > viewportHeight) {
+        y = Math.max(10, y - menuHeight);
+      }
+      
+      // Ensure menu doesn't go off-screen
+      x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
+      y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
+      
       this.contextMenuStyle = {
-        top: event.clientY + 'px',
-        left: event.clientX + 'px',
+        position: 'fixed',
+        top: y + 'px',
+        left: x + 'px',
+        zIndex: 1000,
         display: 'block'
       };
       this.showContextMenu = true;
@@ -1245,12 +1417,6 @@ export default {
       );
       
       if (existingCase) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "هذه الحالة موجودة بالفعل لهذا السن",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
         return;
       }
 
@@ -1266,731 +1432,238 @@ export default {
         operation_id: operation.id,
         status_id: 42, // Default status
         sessions: [],
-        additionalSessions: [] // Initialize empty array for additional session notes
+        additionalSessions: [],
+        modified: true // Mark as new/modified for save
       };
       
+      // Only add to local array - no API call
       this.patientCases.unshift(newCase);
+      this.selectedTooth = null;
+    },
+    
+    // Update case price
+    updateCasePrice(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Update the price locally
+        this.patientCases[index].price = caseItem.price;
+        this.patientCases[index].modified = true; // Mark as modified for save
+      }
+    },
+    
+    // Update case status
+    updateCaseStatus(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Update the status locally
+        this.patientCases[index].completed = caseItem.completed;
+        this.patientCases[index].modified = true; // Mark as modified for save
+      }
+    },
+    
+    // Update case notes
+    updateCaseNotes(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Update the notes locally
+        this.patientCases[index].notes = caseItem.notes;
+        this.patientCases[index].modified = true; // Mark as modified for save
+      }
+    },
+    
+    // Update existing session note
+    updateExistingSessionNote(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Update the sessions array
+        this.patientCases[index].sessions = caseItem.sessions;
+      }
+    },
+    
+    // Update new session note
+    updateSessionNote(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Update the additionalSessions array
+        this.patientCases[index].additionalSessions = caseItem.additionalSessions;
+      }
+    },
+    
+    // Add a new note (session) to the case
+    addNote(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Create a new session object
+        const newSession = {
+          id: Date.now(), // Temporary ID
+          note: '',
+          date: new Date().toISOString().substr(0, 10)
+        };
+        
+        // Add the new session to the case
+        this.patientCases[index].additionalSessions.push(newSession);
+        
+        // Optimistically update the UI
+        this.$forceUpdate();
+      }
+    },
+    
+    // Delete a case
+    deleteCase(caseItem) {
+      // Confirm deletion
+      this.$swal.fire({
+        title: "تأكيد الحذف",
+        text: "هل أنت متأكد أنك تريد حذف هذه الحالة؟",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "نعم، احذفها",
+        cancelButtonText: "لا، تراجع"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Find the case in the array
+          const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+          if (index !== -1) {
+            // Remove the case from the array
+            this.patientCases.splice(index, 1);
+            
+            // Show success message
+            this.$swal.fire({
+              title: "تم الحذف",
+              text: "تم حذف الحالة بنجاح",
+              icon: "success",
+              confirmButtonText: "موافق"
+            });
+          }
+        }
+      });
+    },
+    
+    // Add a new payment
+    addPayment() {
+      // Create a new bill object
+      const newBill = {
+        id: Date.now(), // Temporary ID
+        price: 0,
+        PaymentDate: new Date().toISOString().substr(0, 10),
+        is_paid: 0,
+        user_id: this.$store.state.AdminInfo.user_id,
+        clinics_id: this.$store.state.AdminInfo.clinics_id,
+        isNew: true, // Mark as new bill to be saved
+        user: {
+          id: this.$store.state.AdminInfo.user_id,
+          name: this.$store.state.AdminInfo.name
+        }
+      };
+      
+      // Add the new bill to the patientBills array
+      this.patientBills.push(newBill);
+      
+      // Optimistically update the UI
+      this.$forceUpdate();
       
       // Show success message
       this.$swal.fire({
-        position: "top-end",
+        title: "نجاح",
+        text: "تمت إضافة دفعة جديدة",
         icon: "success",
-        title: `تم إضافة ${operationName} للسن ${toothNumber}`,
-        showConfirmButton: false,
-        timer: 1500
+        confirmButtonText: "موافق"
       });
     },
     
-    // Case management
-    updateCasePrice(case_item) {
-      console.log('Price updated for case:', case_item.id, 'New price:', case_item.price);
-      // Mark case as modified for next save
-      case_item.modified = true;
-    },
-    
-    updateCaseStatus(case_item) {
-      console.log('Status updated for case:', case_item.id, 'Completed:', case_item.completed);
-      // Mark case as modified for next save
-      case_item.modified = true;
-    },
-    
-    updateCaseNotes(case_item) {
-      console.log('Notes updated for case:', case_item.id, 'New notes:', case_item.notes);
-      // Mark case as modified for next save
-      case_item.modified = true;
-    },
-    
-    addNote(case_item) {
-      console.log('Adding note for case:', case_item.id);
-      
-      // Initialize additionalSessions array if it doesn't exist
-      if (!case_item.additionalSessions) {
-        case_item.additionalSessions = [];
-      }
-      
-      // Create a new empty session note that will be edited inline
-      const newSession = {
-        note: '',
-        date: new Date().toISOString().substr(0, 10),
-        case_id: case_item.server_id
-      };
-      
-      // Add the new session to the additionalSessions array
-      case_item.additionalSessions.push(newSession);
-      
-      // Mark case as modified for next save
-      case_item.modified = true;
-      
-      console.log('New session note field added');
-    },
-    
-    updateSessionNote(case_item) {
-      // Mark case as modified when session note is updated
-      case_item.modified = true;
-      console.log('Session note updated for case:', case_item.id);
-    },
-    
-    updateExistingSessionNote(case_item) {
-      // Mark case as modified when existing session note is updated
-      case_item.modified = true;
-      console.log('Existing session note updated for case:', case_item.id);
-    },
-    
-    formatSessionDate(dateString) {
-      if (!dateString) return '';
-      try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ar-IQ', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
-      } catch (error) {
-        return dateString.split(' ')[0] || '';
-      }
-    },
-    
-    formatBillDate(dateString) {
-      if (!dateString) return '';
-      try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ar-IQ', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
-      } catch (error) {
-        // If it's already in a good format, return the date part only
-        return dateString.split(' ')[0] || dateString;
-      }
-    },
-    
-    async deleteCase(case_item) {
-      // Show confirmation dialog
-      const result = await this.$swal.fire({
-        title: 'تأكيد الحذف',
-        text: `هل أنت متأكد من حذف ${case_item.case_type} للسن ${case_item.tooth_number}؟`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-      });
-
-      if (!result.isConfirmed) {
-        return;
-      }
-
-      try {
-        // If case has server_id, delete from server
-        if (case_item.server_id) {
-          await this.$http.delete("cases/" + case_item.server_id, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          });
-        }
-
-        // Remove from local array
-        const index = this.patientCases.findIndex(c => c.id === case_item.id);
-        if (index > -1) {
-          this.patientCases.splice(index, 1);
-        }
-
-        this.$swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "تم حذف الحالة بنجاح",
-          showConfirmButton: false,
-          timer: 1500
-        });
-      } catch (error) {
-        console.error('Error deleting case:', error);
-        this.$swal.fire({
-          title: "حدث خطأ في حذف الحالة",
-          text: "تاكد من الاتصال بالإنترنت وحاول مرة أخرى",
-          icon: "error",
-          confirmButtonText: "اغلاق"
-        });
-      }
-    },
-
-    // Bill management methods
-    editBill(bill) {
-      console.log('Editing bill:', bill.id);
-      // TODO: Implement bill editing logic
-    },
-
-    async deleteBill(bill) {
-      // Show confirmation dialog
-      const result = await this.$swal.fire({
-        title: 'تأكيد الحذف',
-        text: `هل أنت متأكد من حذف الفاتورة رقم ${bill.id}؟`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-      });
-
-      if (!result.isConfirmed) {
-        return;
-      }
-
-      try {
-        // If bill has server_id, delete from server
-        if (bill.server_id) {
-          await this.$http.delete("bills/" + bill.server_id, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          });
-        }
-
-        // Remove from local array
-        const index = this.patientBills.findIndex(b => b.id === bill.id);
-        if (index > -1) {
-          this.patientBills.splice(index, 1);
-        }
-
-        this.$swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "تم حذف الفاتورة بنجاح",
-          showConfirmButton: false,
-          timer: 1500
-        });
-      } catch (error) {
-        console.error('Error deleting bill:', error);
-        this.$swal.fire({
-          title: "حدث خطأ في حذف الفاتورة",
-          text: "تاكد من الاتصال بالإنترنت وحاول مرة أخرى",
-          icon: "error",
-          confirmButtonText: "اغلاق"
-        });
-      }
-    },
-
-    async toggleBillPaymentStatus(bill) {
-      if (!this.canChangePaymentStatus) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "ليس لديك صلاحية لتغيير حالة الدفع",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem('tokinn');
-        if (!token) {
-          this.$swal.fire({
-            title: "خطأ في التحقق من الهوية",
-            text: "يرجى تسجيل الدخول مرة أخرى",
-            icon: "error",
-            confirmButtonText: "اغلاق"
-          });
-          return;
-        }
-        
-        const newStatus = bill.is_paid == 1 ? 0 : 1;
-        
-        // Call API to update payment status
-        const response = await this.$http.put(`bills/${bill.id}`, {
-          is_paid: newStatus,
-          PaymentDate: newStatus == 1 ? new Date().toISOString().split('T')[0] : null
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.status === 200) {
-          // Update local state
-          const billIndex = this.patientBills.findIndex(b => b.id === bill.id);
-          if (billIndex > -1) {
-            this.patientBills[billIndex].is_paid = newStatus;
-            if (newStatus == 1) {
-              this.patientBills[billIndex].PaymentDate = new Date().toISOString().split('T')[0];
-            } else {
-              this.patientBills[billIndex].PaymentDate = null;
-            }
-          }
-          
-          const successMessage = newStatus == 1 ? 'تم تحديد الفاتورة كمدفوعة' : 'تم تحديد الفاتورة كغير مدفوعة';
-          this.$swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: successMessage,
-            showConfirmButton: false,
-            timer: 1500
-          });
-        }
-      } catch (error) {
-        console.error('Error toggling payment status:', error);
-        this.$swal.fire({
-          title: "حدث خطأ في تحديث حالة الدفع",
-          text: "تاكد من الاتصال بالإنترنت وحاول مرة أخرى",
-          icon: "error",
-          confirmButtonText: "اغلاق"
-        });
-      }
-    },
-
-    async addNewBill() {
-      if (!this.currentPayment.amount || this.currentPayment.amount === '' || parseFloat(this.currentPayment.amount) <= 0) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "يرجى إدخال مبلغ صحيح",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      if (!this.currentPayment.date) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "يرجى إدخال تاريخ الدفعة",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      try {
-        const token = localStorage.getItem('tokinn');
-        if (!token) {
-          this.$swal.fire({
-            title: "خطأ في التحقق من الهوية",
-            text: "يرجى تسجيل الدخول مرة أخرى",
-            icon: "error",
-            confirmButtonText: "اغلاق"
-          });
-          return;
-        }
-
-        // Create new bill
-        const newBillData = {
-          patient_id: this.patient.id,
-          price: parseFloat(this.currentPayment.amount),
-          PaymentDate: this.currentPayment.date,
-          is_paid: 0, // Default to unpaid
-          description: 'فاتورة جديدة'
-        };
-
-        const response = await this.$http.post('bills', newBillData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 201 || response.status === 200) {
-          // Add the new bill to local state
-          const newBill = response.data.bill || {
-            ...newBillData,
-            id: Date.now(), // Temporary ID if not returned from server
-            user: {
-              name: this.currentUser
-            },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-
-          this.patientBills.push(newBill);
-          
-          // Reset form
-          this.currentPayment = {
-            amount: '',
-            date: new Date().toISOString().split('T')[0]
-          };
-
-          this.$swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: "تم إضافة الفاتورة بنجاح",
-            showConfirmButton: false,
-            timer: 1500
-          });
-        }
-      } catch (error) {
-        console.error('Error adding new bill:', error);
-        this.$swal.fire({
-          title: "حدث خطأ في إضافة الفاتورة",
-          text: "تاكد من الاتصال بالإنترنت وحاول مرة أخرى",
-          icon: "error",
-          confirmButtonText: "اغلاق"
-        });
-      }
-    },
-
-    canEditBill(bill) {
-      // Check if user can edit this bill based on role and bill ownership
-      try {
-        const role = this.$store.state.role;
-        const currentUserId = this.$store.state.AdminInfo?.user_id;
-        
-        // Admin doctors can edit all bills
-        if (role === 'adminDoctor') {
-          return true;
-        }
-        
-        // Doctors and secretaries can edit their own bills
-        if (role === 'doctor' || role === 'secretary') {
-          return bill.user_id === currentUserId;
-        }
-        
-        return false;
-      } catch (error) {
-        console.error('Error checking bill edit permission:', error);
-        return false;
-      }
-    },
-
+    // Update bill price
     updateBillPrice(bill) {
-      // Check if user can edit this bill
-      if (!bill.isNew && !this.canEditBill(bill)) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "ليس لديك صلاحية لتعديل هذه الفاتورة",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      // Mark bill as modified for next save
-      bill.modified = true;
-      console.log('Bill price updated:', bill.id, 'New price:', bill.price);
-      
-      // Auto-save for new bills
-      if (bill.isNew && bill.price && parseFloat(bill.price) > 0) {
-        setTimeout(() => {
-          this.saveNewBillRow(bill);
-        }, 2000);
+      // Find the bill in the array
+      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      if (index !== -1) {
+        // Update the price locally
+        this.patientBills[index].price = bill.price;
+        // Mark as modified for saving (unless it's already marked as new)
+        if (!this.patientBills[index].isNew) {
+          this.patientBills[index].modified = true;
+        }
       }
     },
-
+    
+    // Update bill date
     updateBillDate(bill) {
-      // Check if user can edit this bill
-      if (!bill.isNew && !this.canEditBill(bill)) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "ليس لديك صلاحية لتعديل هذه الفاتورة",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      // Mark bill as modified for next save
-      bill.modified = true;
-      console.log('Bill date updated:', bill.id, 'New date:', bill.PaymentDate);
-    },
-
-    addPayment() {
-      console.log('addPayment() method called - Add Bill button clicked!');
-      
-      // Check if user has permission to add bills
-      const role = this.$store.state.role;
-      if (role !== 'secretary' && role !== 'adminDoctor' && role !== 'doctor') {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "ليس لديك صلاحية لإضافة فواتير",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      // Check if there's already a new bill being created
-      const existingNewBill = this.patientBills.find(bill => bill.isNew === true);
-      if (existingNewBill) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "يرجى حفظ الفاتورة الحالية أولاً",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      console.log('Current patient:', this.patient);
-      console.log('Current bills before adding:', this.patientBills.length);
-      
-      const date = new Date();
-      let day = date.getDate();
-      let month = date.getMonth() + 1;
-      let year = date.getFullYear();
-
-      // Format month and day with leading zeros if needed
-      if (month < 10) month = `0${month}`;
-      if (day < 10) day = `0${day}`;
-
-      // Create a new empty bill object
-      const newBill = {
-        id: Date.now(), // Temporary client-side ID
-        server_id: null, // Will be set after saving to server
-        billable_id: this.patient.id,
-        patient_id: this.patient.id,
-        price: '', // Empty for user input
-        PaymentDate: `${year}-${month}-${day}`, // Today's date in YYYY-MM-DD format
-        is_paid: 0, // Default to unpaid
-        billable_type: "App\\Models\\Patients",
-        user_id: this.$store.state.AdminInfo?.user_id, // Current user ID
-        clinics_id: this.$store.state.AdminInfo?.clinics_id,
-        user: {
-          id: this.$store.state.AdminInfo?.user_id,
-          name: this.$store.state.AdminInfo?.name || 'المستخدم الحالي'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        isNew: true, // Flag to identify new bills for editing
-        modified: false
-      };
-
-      console.log('New bill created:', newBill);
-
-      // Add the new bill to the end of the array so it appears at the bottom
-      this.patientBills.push(newBill);
-      
-      console.log('Bills after adding:', this.patientBills.length);
-      console.log('New bill added successfully!');
-      
-      // Show a success message to confirm the bill was added
-      this.$swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "تم إضافة فاتورة جديدة",
-        text: "يمكنك الآن تعديل المبلغ والتاريخ",
-        showConfirmButton: false,
-        timer: 2000
-      });
-    },
-
-    async saveNewBillRow(bill) {
-      if (!bill.price || bill.price <= 0) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "يرجى إدخال مبلغ صحيح",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      if (!bill.PaymentDate) {
-        this.$swal.fire({
-          title: "تنبيه",
-          text: "يرجى إدخال تاريخ الدفعة",
-          icon: "warning",
-          confirmButtonText: "اغلاق"
-        });
-        return;
-      }
-
-      try {
-        const token = localStorage.getItem('tokinn');
-        if (!token) {
-          this.$swal.fire({
-            title: "خطأ في التحقق من الهوية",
-            text: "يرجى تسجيل الدخول مرة أخرى",
-            icon: "error",
-            confirmButtonText: "اغلاق"
-          });
-          return;
+      // Find the bill in the array
+      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      if (index !== -1) {
+        // Update the date locally
+        this.patientBills[index].PaymentDate = bill.PaymentDate;
+        // Mark as modified for saving (unless it's already marked as new)
+        if (!this.patientBills[index].isNew) {
+          this.patientBills[index].modified = true;
         }
-
-        // Create bill data for API
-        const billData = {
-          patient_id: this.patient.id,
-          price: parseFloat(bill.price),
-          PaymentDate: bill.PaymentDate,
-          is_paid: bill.is_paid || 0,
-          description: bill.description || 'فاتورة جديدة'
-        };
-
-        const response = await this.$http.post('bills', billData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 201 || response.status === 200) {
-          // Update the bill with server data
-          const savedBill = response.data.bill || response.data;
-          Object.assign(bill, {
-            id: savedBill.id,
-            server_id: savedBill.id,
-            isNew: false, // No longer a new bill
-            modified: false
-          });
-
-          this.$swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: "تم حفظ الفاتورة بنجاح",
-            showConfirmButton: false,
-            timer: 1500
-          });
+      }
+    },
+    
+    // Toggle bill payment status
+    toggleBillPaymentStatus(bill) {
+      // Find the bill in the array
+      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      if (index !== -1) {
+        // Toggle the payment status locally
+        this.patientBills[index].is_paid = this.patientBills[index].is_paid === 1 ? 0 : 1;
+        // Mark as modified for saving (unless it's already marked as new)
+        if (!this.patientBills[index].isNew) {
+          this.patientBills[index].modified = true;
         }
-      } catch (error) {
-        console.error('Error saving new bill row:', error);
-       
       }
     },
     
-    // Action methods
-    editPatient() {
-      this.editDialog = true;
+    // Close bill report dialog
+    closeBillDialog() {
+      this.billDialog = false;
     },
     
-    async bookAppointment() {
-      console.log('bookAppointment called, current dialog state:', this.appointmentDialog);
-      
-      // Prevent multiple dialogs from opening
-      if (this.appointmentDialog) {
-        console.log('Dialog already open, returning');
-        return;
-      }
-      
-      try {
-        // Ensure doctors are loaded before opening appointment dialog
-        if (this.doctors.length === 0) {
-          console.log('Loading doctors...');
-          await this.fetchDoctors();
-        }
-        
-        console.log('Opening appointment dialog');
-        this.appointmentDialog = true;
-      } catch (error) {
-        console.error('Error opening appointment dialog:', error);
-      }
-    },
-    
-    generateBill() {
-      console.log('Opening bill dialog...');
-      this.billDialog = true;
-    },
-    
-    async savePatientEdit(eventData) {
-      try {
-        this.saving = true;
-        
-        const { patient: patientData, isEditing } = eventData;
-        
-        if (isEditing) {
-          // Update existing patient
-          const response = await this.$http.patch(`patients/${this.patient.id}`, patientData);
-          
-          // Update local patient data
-          Object.assign(this.patient, response.data);
-          
-          this.$swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: "تم تحديث بيانات المراجع بنجاح",
-            showConfirmButton: false,
-            timer: 1500
-          });
-        } else {
-          // This shouldn't happen in patient detail page, but handle it anyway
-          const response = await this.$http.post('patients', patientData);
-          console.log('New patient created:', response.data);
-          
-          this.$swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: "تم إضافة المراجع بنجاح",
-            showConfirmButton: false,
-            timer: 1500
-          });
-        }
-        
-        this.editDialog = false;
-      } catch (error) {
-        console.error('Error saving patient:', error);
-        this.$swal.fire({
-          title: "حدث خطأ في حفظ البيانات",
-          text: "تاكد من ملء المعلومات بشكل صحيح",
-          icon: "error",
-          confirmButtonText: "اغلاق"
-        });
-      } finally {
-        this.saving = false;
-      }
-    },
-    
-    closePatientEditDialog() {
-      this.editDialog = false;
-    },
-    
-    closeAppointmentDialog() {
-      console.log('Closing appointment dialog');
-      this.appointmentDialog = false;
-    },
-    
-    saveAppointment() {
-      this.appointmentDialog = false;
-      // Save appointment logic here
-    },
-    
-    deletePayment() {
-      console.log('Deleting payment...');
-    },
-    
+    // Save patient data
     async savePatientData() {
       this.saving = true;
       
       try {
-        // Process new cases (cases without server ID)
-        const newCases = this.patientCases.filter(caseItem => !caseItem.server_id && caseItem.id > 1000000);
+        // Process new cases (cases without server_id)
+        const newCases = this.patientCases.filter(caseItem => !caseItem.server_id);
         
         // Process existing cases that need updates (have server_id and are modified)
-        const existingCases = this.patientCases.filter(caseItem => caseItem.server_id && caseItem.modified);
+        const modifiedCases = this.patientCases.filter(caseItem => caseItem.server_id && caseItem.modified);
         
         // Save new cases
         for (const newCase of newCases) {
           await this.saveNewCase(newCase);
         }
         
-        // Update existing cases
-        for (const existingCase of existingCases) {
-          await this.updateExistingCase(existingCase);
+        // Update modified cases
+        for (const modifiedCase of modifiedCases) {
+          await this.updateExistingCase(modifiedCase);
         }
         
-        // Save bills using the specified API
-        await this.saveBillsToAPI();
+        // Save bills if any are new or modified
+        const modifiedBills = this.patientBills.filter(bill => bill.isNew || bill.modified);
+        if (modifiedBills.length > 0) {
+          await this.saveBills(modifiedBills);
+        }
         
-        // Clear patient cache since data has changed (cache removed)
-        
+        // Show success without reloading
         this.$swal.fire({
-          position: "top-end",
+          title: "نجاح",
+          text: "تم حفظ بيانات المريض بنجاح",
           icon: "success",
-          title: "تم حفظ البيانات بنجاح",
-          showConfirmButton: false,
-          timer: 1500
+          confirmButtonText: "موافق"
         });
         
-        // Reload patient data to get updated information
-        await this.loadPatientData();
-        
       } catch (error) {
-        console.error('Error saving patient data:', error);
+        console.error('❌ Error saving patient data:', error);
         
         this.$swal.fire({
-          title: "خطأ في حفظ البيانات",
-          text: "تاكد من الاتصال بالإنترنت وحاول مرة أخرى",
+          title: "خطأ",
+          text: "تعذر حفظ بيانات المريض. يرجى المحاولة مرة أخرى.",
           icon: "error",
           confirmButtonText: "اغلاق"
         });
@@ -1998,234 +1671,171 @@ export default {
         this.saving = false;
       }
     },
-
-    // Save bills using the specified API format
-    async saveBillsToAPI() {
-      try {
-        // Get bills that need to be saved (new bills or modified bills)
-        const billsToSave = this.patientBills.filter(bill => 
-          bill.isNew || bill.modified
-        );
-
-        if (billsToSave.length === 0) {
-          console.log('No bills to save');
-          return;
-        }
-
-        // Format bills according to the specified API structure
-        const billsData = billsToSave.map(bill => ({
-          price: bill.price.toString(),
-          PaymentDate: bill.PaymentDate || new Date().toISOString().substr(0, 10),
-          patient_id: this.patient.id.toString(),
-          is_paid: bill.is_paid || 0
-        }));
-
-        const requestBody = {
-          bills: billsData,
-          patient_id: this.patient.id.toString()
-        };
-
-        console.log('Saving bills to API:', requestBody);
-
-        const response = await this.$http.post(
-          `https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, 
-          requestBody,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          }
-        );
-
-        console.log('Bills saved successfully:', response.data);
-
-        // Mark bills as saved
-        billsToSave.forEach(bill => {
-          bill.isNew = false;
-          bill.modified = false;
-        });
-
-      } catch (error) {
-        console.error('Error saving bills to API:', error);
-        throw error;
-      }
-    },
-
-    // Clear patient cache data (cache functionality removed)
-    clearPatientCache() {
-      // Cache functionality has been removed - this is a placeholder
-      console.log('Cache clearing functionality removed for patient ID:', this.patient.id);
-    },
-
+    
+    // Save new case to API
     async saveNewCase(caseItem) {
       try {
-        // Find the operation details
-        const operation = this.dentalOperations.find(op => 
-          (op.name === caseItem.case_type || op.name_ar === caseItem.case_type)
-        );
-        
-        // Prepare sessions array - include main note and additional sessions
-        const sessionsArray = [
-          {
-            note: caseItem.notes || "",
-            date: caseItem.date || new Date().toISOString().substr(0, 10)
-          }
-        ];
-        
-        // Add additional sessions if they exist
-        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
-          caseItem.additionalSessions.forEach(session => {
-            if (session.note && session.note.trim()) {
-              sessionsArray.push({
-                note: session.note.trim(),
-                date: session.date || new Date().toISOString().substr(0, 10)
-              });
-            }
-          });
-        }
-        
         const requestBody = {
-          case_categores_id: operation ? operation.id : 11, // Default to 11 if not found
+          case_categores_id: caseItem.operation_id,
           tooth_num: [parseInt(caseItem.tooth_number)],
-          status_id: caseItem.completed ? 43 : 42, // 43 = complete, 42 = not complete
-          sessions: sessionsArray,
-          bills: [
-            {
-              price: caseItem.price.toString(),
-              PaymentDate: caseItem.date || new Date().toISOString().substr(0, 10),
-              patient_id: this.patient.id.toString()
-            }
-          ],
+          status_id: caseItem.completed ? 43 : 42,
+          sessions: [{
+            note: caseItem.notes || "",
+            date: caseItem.date
+          }],
+          bills: [{
+            price: caseItem.price.toString(),
+            PaymentDate: caseItem.date,
+            patient_id: this.patient.id.toString()
+          }],
           images: [],
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
           patient_id: this.patient.id.toString()
         };
         
-        console.log('Saving new case:', requestBody);
+        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        });
         
-        const response = await this.$http.post('cases', requestBody);
-        console.log('Case saved successfully:', response.data);
-        
-        // Update the case with server ID
+        // Update case with server ID
         caseItem.server_id = response.data.id;
+        caseItem.modified = false;
         
       } catch (error) {
         console.error('Error saving new case:', error);
         throw error;
       }
     },
-
+    
+    // Update existing case
     async updateExistingCase(caseItem) {
       try {
-        // Find the operation details
-        const operation = this.dentalOperations.find(op => 
-          (op.name === caseItem.case_type || op.name_ar === caseItem.case_type)
-        );
-        
-        // Prepare sessions array with proper format
-        let sessions = [];
-        
-        // Start with existing sessions
-        if (caseItem.sessions && caseItem.sessions.length > 0) {
-          sessions = caseItem.sessions
-            .map(session => ({
-              id: session.id,
-              note: session.note || "",
-              date: session.date || caseItem.date || new Date().toISOString().substr(0, 10),
-              case_id: caseItem.server_id
-            }));
-        }
-        
-        // Add additional sessions
-        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
-          caseItem.additionalSessions.forEach(session => {
-            if (session.note && session.note.trim()) {
-              sessions.push({
-                note: session.note.trim(),
-                date: session.date || new Date().toISOString().substr(0, 10),
-                case_id: caseItem.server_id
-              });
-            }
-          });
-        }
-        
-        // If no sessions exist, create one with the main notes
-        if (sessions.length === 0 && caseItem.notes) {
-          sessions = [{
-            note: caseItem.notes,
-            date: caseItem.date || new Date().toISOString().substr(0, 10),
-            case_id: caseItem.server_id
-          }];
-        }
-        
         const requestBody = {
-          case_categores_id: operation ? operation.id : caseItem.operation_id || 3,
-          status_id: caseItem.completed ? 43 : 42, // 43 = complete, 42 = not complete
+          case_categores_id: caseItem.operation_id,
+          status_id: caseItem.completed ? 43 : 42,
           images: [],
-          tooth_num: `[${caseItem.tooth_number}]`, // String format for update
+          tooth_num: `[${caseItem.tooth_number}]`,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
-          sessions: sessions
+          sessions: caseItem.sessions || []
         };
         
-        console.log('Updating existing case:', caseItem.server_id, requestBody);
+        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        });
         
-        const response = await this.$http.patch(`cases_v2/${caseItem.server_id}`, requestBody);
-        console.log('Case updated successfully:', response.data);
-        
-        // Clear the modified flag after successful update
+        // Clear modified flag
         caseItem.modified = false;
         
       } catch (error) {
-        console.error('Error updating existing case:', error);
+        console.error('Error updating case:', error);
         throw error;
       }
     },
-
-    async saveNewBill() {
+    
+    // Save bills
+    async saveBills(bills) {
       try {
+        const billsData = bills.map(bill => ({
+          price: bill.price.toString(),
+          PaymentDate: bill.PaymentDate,
+          patient_id: this.patient.id.toString(),
+          is_paid: bill.is_paid || 0
+        }));
+        
         const requestBody = {
-          bills: [
-            {
-              price: this.currentPayment.amount.toString(),
-              PaymentDate: this.currentPayment.date,
-              patient_id: this.patient.id.toString(),
-              is_paid: this.currentPayment.paid ? 1 : 0
-            }
-          ],
+          bills: billsData,
           patient_id: this.patient.id.toString()
         };
         
-        console.log('Saving new bill:', requestBody);
+        const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        });
         
-        const response = await this.$http.post(`patients/bills/${this.patient.id}`, requestBody);
-        console.log('Bill saved successfully:', response.data);
-        
-        // Reset current payment
-        this.currentPayment = {
-          id: null,
-          amount: 0,
-          date: new Date().toISOString().substr(0, 10),
-          paid: false,
-          user_name: ''
-        };
+        // Mark bills as saved
+        bills.forEach(bill => {
+          bill.isNew = false;
+          bill.modified = false;
+        });
         
       } catch (error) {
-        console.error('Error saving new bill:', error);
+        console.error('Error saving bills:', error);
         throw error;
+      }
+    },
+    
+    // Edit patient
+    editPatient() {
+      this.editDialog = true;
+    },
+    
+    // Book appointment  
+    bookAppointment() {
+      this.appointmentDialog = true;
+    },
+    
+    // Generate bill
+    generateBill() {
+      this.billDialog = true;
+    },
+    
+    // Save patient edit
+    savePatientEdit(data) {
+      console.log('Saving patient edit:', data);
+      this.editDialog = false;
+    },
+    
+    // Close patient edit dialog
+    closePatientEditDialog() {
+      this.editDialog = false;
+    },
+    
+    // Handle image upload success
+    handleImageSuccess(file, response) {
+      console.log('Image uploaded successfully:', response);
+    },
+    
+    // Handle image upload error
+    handleImageError(file, message, xhr) {
+      console.error('Image upload error:', message);
+    },
+    
+    // Handle image removal
+    handleImageRemoved(file, error, xhr) {
+      console.log('Image removed:', file);
+    },
+    
+    // Format session date
+    formatSessionDate(dateString) {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ar-IQ', {
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit'
+        });
+      } catch (error) {
+        return dateString.split(' ')[0] || '';
       }
     }
   },
   
   async mounted() {
     try {
-      // Start loading immediately
-      this.initialLoading = true;
-      this.loadingMessage = 'تهيئة التطبيق...';
-
       // Set authorization header for dropzone
       if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
         this.dropzoneOptions.headers = {
@@ -2247,15 +1857,6 @@ export default {
         this.billDialog = false;
       });
       
-      // Debug: Log all events on EventBus (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        const originalEmit = EventBus.$emit;
-        EventBus.$emit = function(event, ...args) {
-          console.log('EventBus event emitted:', event, args);
-          return originalEmit.call(this, event, ...args);
-        };
-      }
-      
       // Load patient data and dental operations
       await this.loadPatientData();
       
@@ -2263,7 +1864,6 @@ export default {
       
     } catch (error) {
       console.error('❌ Error during component mount:', error);
-      this.initialLoading = false;
     }
   },
   
@@ -2278,11 +1878,6 @@ export default {
       EventBus.$off('billsReportclose');
       document.removeEventListener('click', this.hideContextMenu);
       
-      // Clear any pending debounced functions
-      if (this.debouncedAutoSave) {
-        this.debouncedAutoSave = null;
-      }
-      
       console.log('✅ Component destroyed and cleaned up');
       
     } catch (error) {
@@ -2293,63 +1888,38 @@ export default {
 </script>
 
 <style scoped>
-/* Performance optimizations */
+/* Styles for the patient detail page */
 .patient-detail-page {
-  font-family: 'Cairo', sans-serif;
-  contain: layout style paint;
-  will-change: transform;
+  padding: 16px;
 }
 
-/* Lazy loading for images */
-.lazy {
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.lazy.loaded {
-  opacity: 1;
-}
-
-/* GPU acceleration for smooth animations */
+/* Styles for patient info section */
 .patient-header-card {
-  border-radius: 8px;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.patient-info-container h2 {
-  color: #1976d2;
+.patient-info-container {
+  padding: 8px 0;
 }
 
+/* Styles for WhatsApp link */
 .whatsapp-link {
-  color: #25d366;
+  color: #25D366 !important;
   text-decoration: none;
 }
 
 .whatsapp-link:hover {
-  color: #128c7e;
+  text-decoration: underline;
 }
 
-/* Dental Chart Styles */
-.teeth-svg {
-  position: relative;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.toomain {
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-}
-
+/* Context menu styles */
 .tooth-context-menu {
   position: fixed;
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 1000;
   min-width: 150px;
   max-height: 300px;
@@ -2357,337 +1927,47 @@ export default {
 }
 
 .context-menu-header {
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
   font-weight: bold;
-  color: #1976d2;
 }
 
 .tooth-context-menu ul {
-  list-style: none;
   margin: 0;
-  padding: 4px 0;
+  padding: 0;
+  list-style: none;
 }
 
-.tooth-context-menu li {
-  padding: 8px 16px;
+.context-menu-item {
+  padding: 8px 12px;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #eee;
+  list-style: none;
+  display: block;
+  width: 100%;
 }
 
-.tooth-context-menu li:last-child {
+.context-menu-item:hover {
+  background: #f0f0f0;
+}
+
+.context-menu-item:last-child {
   border-bottom: none;
 }
 
-.tooth-context-menu li:hover {
-  background-color: #f5f5f5;
-  color: #1976d2;
+/* Session chip styling */
+.session-date-chip {
+  font-size: 10px !important;
+  height: 20px !important;
 }
 
+/* Other component-specific styles */
 .teeth-container {
   position: relative;
-  width: 100%;
-  height: auto;
-  overflow: visible;
 }
 
-.tooth-normal {
-  fill: #e3f2fd;
-  stroke: #1976d2;
-  stroke-width: 1;
-  cursor: pointer;
-}
-
-.tooth-normal:hover {
-  fill: #bbdefb;
-}
-
-.tooth-with-case {
-  fill: #ffecb3;
-  stroke: #f57c00;
-  stroke-width: 2;
-  cursor: pointer;
-}
-
-.tooth-with-case:hover {
-  fill: #ffe082;
-}
-
-.tooth-number-text {
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  fill: #424242;
-  text-anchor: middle;
-  pointer-events: none;
-}
-
-/* Table Styles */
-.teeth-template-title,
-.bills-template-title {
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.teeth-template-card,
-.bills-template-card {
-  margin-bottom: 20px;
-}
-
-.tooth-number-cell {
-  display: flex;
-  justify-content: center;
-}
-
-.price-input {
-  max-width: 120px;
-}
-
-.notes-textarea {
-  font-size: 14px;
-}
-
-.notes-container {
-  width: 100%;
-}
-
-.main-note {
-  border-left: 3px solid #2196f3;
-}
-
-.session-note {
-  background-color: #fafafa;
-  border-left: 3px solid #e0e0e0;
-}
-
-.new-session {
-  border-left: 3px solid #4caf50;
-  background-color: #f1f8e9;
-}
-
-.session-date-chip {
-  min-width: 60px;
-  font-size: 10px;
-}
-
-.session-note .v-text-field__details {
-  display: none;
-}
-
-.bills-table .v-data-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #333;
-}
-
-.bills-table .v-data-table tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-.bill-id-cell {
-  display: flex;
-  justify-content: center;
-}
-
-.price-cell {
-  text-align: center;
-  font-weight: 600;
-  color: #2e7d32;
-}
-
-.date-cell {
-  text-align: center;
-  font-size: 14px;
-  color: #424242;
-}
-
-.user-name-cell {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #424242;
-}
-
-.bills-history-table {
-  margin-top: 20px;
-}
-
-/* Billing Styles */
-.cre_bill {
-  background-color: #fafafa;
-  border-radius: 8px;
-}
-
-.se_tit_menu {
-  font-weight: bold;
-  font-size: 18px;
-  color: #1976d2;
-  margin: 0;
-  padding: 8px 0;
-}
-
-.user-created {
-  font-size: 12px;
-}
-
-.payment-status-label {
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-/* Bills Payment Loop Styles - Optimized for performance */
-.bills-payment-loop {
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 8px;
-  contain: layout style paint;
-  transform: translateZ(0);
-}
-
-.bill-payment-item {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-left: 4px solid #1976d2;
-  transition: all 0.2s ease;
-  contain: layout style paint;
-  will-change: transform, box-shadow;
-}
-
-.bill-payment-item:hover {
-  background-color: #f0f8ff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.bill-payment-item.paid {
-  border-left-color: #4caf50;
-  background-color: #f1f8e9;
-}
-
-.bill-payment-item.new-bill-highlight {
-  border-left-color: #ff9800;
-  background-color: #fff3e0;
-  border: 2px solid #ff9800;
-}
-
-.new-bill-section {
-  background-color: #e8f5e8;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-  border: 2px dashed #4caf50;
-}
-
-.bill-divider {
-  margin: 16px 0;
-  opacity: 0.5;
-}
-
-/* Dropzone Styles */
-.dropzone-container {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 40px;
-  text-align: center;
-  background-color: #fafafa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.dropzone-container:hover {
-  border-color: #1976d2;
-  background-color: #f0f8ff;
-}
-
-.dz-message {
-  color: #666;
-  font-size: 16px;
-}
-
-.dz-message i {
-  font-size: 24px;
-  margin-right: 8px;
-  color: #1976d2;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .patient-header-card .v-btn {
-    margin: 2px;
-    font-size: 12px;
-  }
-  
-  .teeth-svg {
-    transform: scale(0.8);
-  }
-  
-  .tooth-context-menu {
-    min-width: 120px;
-  }
-  
-  .tooth-context-menu li {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-}
-
-/* Animation */
-.v-card {
-  transition: all 0.3s ease;
-}
-
-.v-btn {
-  transition: all 0.2s ease;
-}
-
-.v-chip {
-  transition: all 0.2s ease;
-}
-
-/* Dropzone Styles */
-.dropzone-container {
-  border: 2px dashed #007bff !important;
-  border-radius: 8px !important;
-  background: white !important;
-  min-height: 150px !important;
-  padding: 20px !important;
-}
-
-.dropzone-container .dz-message {
-  font-size: 16px !important;
-  color: #007bff !important;
-  font-family: 'Cairo', sans-serif !important;
-  text-align: center !important;
-}
-
-.dropzone-container .dz-message i {
-  display: block !important;
-  margin-bottom: 10px !important;
-  font-size: 24px !important;
-}
-
-.dropzone-container:hover {
-  border-color: #0056b3 !important;
-  background-color: #f8f9fa !important;
-}
-
-.dropzone-container .dz-preview {
-  margin: 10px !important;
-}
-
-.dropzone-container .dz-preview .dz-image {
-  border-radius: 5px !important;
-}
-
-.dropzone-container .dz-preview .dz-remove {
-  color: #dc3545 !important;
-  font-size: 12px !important;
-}
-
-.dropzone-container .dz-preview .dz-remove:hover {
-  text-decoration: underline !important;
+.case-title {
+  font-family: Cairo, sans-serif !important;
 }
 </style>
