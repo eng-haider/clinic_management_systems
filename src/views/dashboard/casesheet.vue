@@ -234,19 +234,10 @@
                 </template>
 
 
-                <template v-slot:[`item.doctor`]="{ item }"
-                    v-if="$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' ">
-
-                    <v-chip style="margin:2px" color="primary" v-if="hasDoctorAssigned(item)">
-                        <v-icon left>
-                            mdi-account-circle-outline
-                        </v-icon>{{ getDoctorName(item) }}
-                    </v-chip>
-
-                    <span v-else style="color: #666; font-style: italic;">
+                <template v-slot:[`item.doctor`]="{ item }">
+                    <span>
                         {{ getDoctorName(item) }}
                     </span>
-
                 </template>
 
 
@@ -539,11 +530,15 @@
                         value: "booking",
                         sortable: false
                     },
-                    {
-                        text: '',
+
+                      !this.$store.getters.isSecretary? {
+                         text: '',
                         value: "bills",
                         sortable: false
-                    },
+                    } : '',
+
+                    
+                 
                     //booking
                     //booking
                     {
@@ -672,7 +667,12 @@
 
             // Helper method to safely get doctor name
             getDoctorName(item) {
-                if (item.doctors && item.doctors.length > 0 && item.doctors[0] && item.doctors[0].name) {
+                // Check if doctors is an object (single doctor assigned)
+                if (item.doctors && typeof item.doctors === 'object' && item.doctors.name) {
+                    return item.doctors.name;
+                }
+                // Check if doctors is an array (multiple doctors - legacy format)
+                if (item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0 && item.doctors[0] && item.doctors[0].name) {
                     return item.doctors[0].name;
                 }
                 return '';
@@ -680,7 +680,12 @@
 
             // Helper method to check if doctor exists
             hasDoctorAssigned(item) {
-                return item.doctors && item.doctors.length > 0 && item.doctors[0];
+                // Check if doctors is an object
+                if (item.doctors && typeof item.doctors === 'object' && !Array.isArray(item.doctors)) {
+                    return true;
+                }
+                // Check if doctors is an array
+                return item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0 && item.doctors[0];
             },
 
             // Handle row click to navigate to patient page

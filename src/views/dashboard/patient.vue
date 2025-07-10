@@ -97,7 +97,7 @@
                     <li 
                       v-for="operation in dentalOperations" 
                       :key="operation.id"
-                      @click="selectOperation(operation)"
+                      @click.stop="selectOperation(operation)"
                       class="context-menu-item"
                     >
                       {{ operation.name || operation.name_ar }}
@@ -111,7 +111,7 @@
                 </div>
 
                 <!-- Reusable Teeth Component with right-click handling -->
-                <div class="teeth-container" @click="hideContextMenu($event)" @contextmenu="handleGlobalRightClick">
+                <div class="teeth-container" @contextmenu="handleTeethContextMenu">
                   <teeth 
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
@@ -425,7 +425,10 @@
                     style="position: relative; padding-right: 10px; bottom: 21px;"
                     @change="toggleBillPaymentStatus(bill)"
                   />
-                  <div class="caption text-center payment-status-label grey--text">
+                  <div class="caption text-center payment-status-label grey--text" style="    position: relative;
+    bottom: 37px;
+    left: 71px;
+">
                     {{ bill.is_paid == 1 ? 'مدفوع' : 'بانتظار التسديد' }}
                   </div>
                 </v-flex>
@@ -482,7 +485,7 @@
           </v-layout>
         </v-card>
 
-        <!-- Save Button (Hidden for secretaries) -->
+        <!-- Save Button (Hidden for secretaries when they can't create bills) -->
         <v-card class="cre_bill mt-4" >
           <v-card-actions class="justify-center">
             <v-btn
@@ -723,14 +726,16 @@ export default {
       try {
         const role = this.$store.state.role;
         const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
+
+       
         
         // If paid_at_secretary is true (1), only secretary can change payment status
         if (paidAtSecretary == 1 || paidAtSecretary === true) {
           return role === 'secretary';
         }
-        // If paid_at_secretary is false (0), both secretary and doctor can change payment status
+        // If paid_at_secretary is false (0), only secretary can change payment status
         else {
-          return role === 'secretary' || role === 'adminDoctor' || role === 'doctor';
+          return role === 'secretary';
         }
       } catch (error) {
         console.error('Error checking payment permission:', error);
@@ -742,7 +747,8 @@ export default {
     canAddBills() {
       try {
         const role = this.$store.state.role;
-        return role === 'secretary' || role === 'adminDoctor' || role === 'doctor';
+        // Only doctors and adminDoctors can create bills, secretaries cannot
+        return role === 'adminDoctor' || role === 'doctor';
       } catch (error) {
         console.error('Error checking add bills permission:', error);
         return false;
@@ -892,7 +898,7 @@ export default {
         });
 
         const response = await Promise.race([
-          this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
+          this.$http.get(`http://127.0.0.1:8001/api/getPatientById/${patientId}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -1231,8 +1237,76 @@ export default {
       console.log('Native context menu event from teeth component:', event);
       event.preventDefault();
       
-      // This is a fallback for when the teeth component doesn't emit the custom event
-      this.handleGlobalRightClick(event);
+      // Only handle right-clicks that occur on teeth elements
+      const target = event.target;
+      
+      // Check if the clicked element is actually a tooth or part of teeth component
+      const isToothElement = target.closest('.teeth-container') || 
+                            target.closest('[data-tooth-number]') ||
+                            target.closest('[id*="tooth"]') ||
+                            target.classList.contains('tooth') ||
+                            target.tagName === 'path' || // SVG teeth paths
+                            target.tagName === 'g' || // SVG groups
+                            target.tagName === 'circle' || // SVG circles
+                            target.tagName === 'rect'; // SVG rectangles
+      
+      if (!isToothElement) {
+        console.log('Right-click not on teeth element, ignoring');
+        return;
+      }
+      
+      // Try to determine which tooth was clicked
+      let toothNumber = null;
+      
+      // Check if target has a data attribute for tooth number
+      if (target.dataset && target.dataset.toothNumber) {
+        toothNumber = target.dataset.toothNumber;
+      }
+      // Check if target has an id that contains tooth number
+      else if (target.id && target.id.includes('tooth')) {
+        const match = target.id.match(/tooth[_-]?(\d+)/);
+        if (match) {
+          toothNumber = match[1];
+        }
+      }
+      // Check if target has a class that contains tooth number
+      else if (target.className && typeof target.className === 'string') {
+        const match = target.className.match(/tooth[_-]?(\d+)/);
+        if (match) {
+          toothNumber = match[1];
+        }
+      }
+      // Check parent elements for tooth information
+      else {
+        let parent = target.parentElement;
+        while (parent && !toothNumber) {
+          if (parent.dataset && parent.dataset.toothNumber) {
+            toothNumber = parent.dataset.toothNumber;
+            break;
+          }
+          if (parent.id && parent.id.includes('tooth')) {
+            const match = parent.id.match(/tooth[_-]?(\d+)/);
+            if (match) {
+              toothNumber = match[1];
+              break;
+            }
+          }
+          parent = parent.parentElement;
+        }
+      }
+      
+      console.log('Detected tooth number from teeth context menu:', toothNumber);
+      
+      if (toothNumber) {
+        // Trigger the context menu for this specific tooth
+        this.handleToothRightClick({
+          toothId: toothNumber,
+          event: event
+        });
+      } else {
+        // Show a general context menu only if we're sure we're in the teeth area
+        this.showGeneralContextMenu(event);
+      }
     },
     
     // Show general context menu when no specific tooth is detected
@@ -1327,73 +1401,29 @@ export default {
       return `https://wa.me/${fullPhone}`;
     },
     
-    // Tooth operations
-    selectTooth(toothNumber) {
-      this.selectedTooth = toothNumber;
-      console.log('Selected tooth:', toothNumber);
-    },
-    
-    showToothMenu(event, toothNumber = null) {
-      if (toothNumber) {
-        this.selectedTooth = toothNumber;
-      }
-      
-      // Get the viewport coordinates
-      let x = event.clientX;
-      let y = event.clientY;
-      
-      // Calculate better positioning
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      // Context menu approximate dimensions (based on actual CSS)
-      const menuWidth = 180; // min-width: 150px + padding
-      const menuHeight = 350; // max-height: 300px + header + padding
-      
-      // Adjust position based on tooth number if available
-      if (toothNumber) {
-        const toothNum = parseInt(toothNumber);
-        
-        if (toothNum >= 11 && toothNum <= 18) {
-          // Upper right quadrant - position menu to the left of click
-          x = Math.max(10, x - menuWidth - 10);
-        } else if (toothNum >= 21 && toothNum <= 28) {
-          // Upper left quadrant - position menu to the right of click
-          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
-        } else if (toothNum >= 31 && toothNum <= 38) {
-          // Lower left quadrant - position menu to the right of click
-          x = Math.min(viewportWidth - menuWidth - 10, x + 10);
-        } else if (toothNum >= 41 && toothNum <= 48) {
-          // Lower right quadrant - position menu to the left of click
-          x = Math.max(10, x - menuWidth - 10);
-        }
-      }
-      
-      // Adjust vertical position to keep menu in viewport
-      if (y + menuHeight > viewportHeight) {
-        y = Math.max(10, y - menuHeight);
-      }
-      
-      // Ensure menu doesn't go off-screen
-      x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
-      y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
-      
-      this.contextMenuStyle = {
-        position: 'fixed',
-        top: y + 'px',
-        left: x + 'px',
-        zIndex: 1000,
-        display: 'block'
-      };
-      this.showContextMenu = true;
-      
-      // Hide menu when clicking elsewhere
-      document.addEventListener('click', this.hideContextMenu);
-    },
-    
     hideContextMenu(event) {
+      // If no event is passed, force hide the menu (called programmatically)
+      if (!event) {
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+        document.removeEventListener('click', this.hideContextMenu);
+        return;
+      }
+      
       // Don't hide if clicking on the context menu itself
       if (event && event.target && event.target.closest('.tooth-context-menu')) {
+        return;
+      }
+      
+      // Don't hide if clicking on input fields or form elements
+      if (event && event.target && (
+        event.target.tagName === 'INPUT' ||
+        event.target.tagName === 'TEXTAREA' ||
+        event.target.tagName === 'SELECT' ||
+        event.target.closest('.v-input') ||
+        event.target.closest('.v-text-field') ||
+        event.target.closest('.v-select')
+      )) {
         return;
       }
       
@@ -1406,6 +1436,7 @@ export default {
       if (this.selectedTooth) {
         this.addCase(this.selectedTooth, operation);
       }
+      // Hide the context menu immediately when an operation is selected
       this.hideContextMenu();
     },
     
@@ -1546,6 +1577,18 @@ export default {
     
     // Add a new payment
     addPayment() {
+      // Check if user has permission to create bills
+      const role = this.$store.state.role;
+      if (role === 'secretary') {
+        this.$swal.fire({
+          title: "غير مسموح",
+          text: "ليس لديك صلاحية لإنشاء فواتير جديدة",
+          icon: "error",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
+      
       // Create a new bill object
       const newBill = {
         id: Date.now(), // Temporary ID
@@ -1694,7 +1737,7 @@ export default {
           patient_id: this.patient.id.toString()
         };
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('http://127.0.0.1:8001/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1725,7 +1768,7 @@ export default {
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`http://127.0.0.1:8001/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1745,31 +1788,58 @@ export default {
     // Save bills
     async saveBills(bills) {
       try {
-        const billsData = bills.map(bill => ({
-          price: bill.price.toString(),
-          PaymentDate: bill.PaymentDate,
-          patient_id: this.patient.id.toString(),
-          is_paid: bill.is_paid || 0
-        }));
+        // Separate new bills from existing bills
+        const newBills = bills.filter(bill => !bill.server_id);
+        const existingBills = bills.filter(bill => bill.server_id);
         
-        const requestBody = {
-          bills: billsData,
-          patient_id: this.patient.id.toString()
-        };
+        // Save new bills using POST to create them
+        if (newBills.length > 0) {
+          const billsData = newBills.map(bill => ({
+            price: bill.price.toString(),
+            PaymentDate: bill.PaymentDate,
+            patient_id: this.patient.id.toString(),
+            is_paid: bill.is_paid || 0
+          }));
+          
+          const requestBody = {
+            bills: billsData,
+            patient_id: this.patient.id.toString()
+          };
+          
+          const response = await this.$http.post(`http://127.0.0.1:8001/api/patients/bills/${this.patient.id}`, requestBody, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          });
+          
+          // Mark new bills as saved
+          newBills.forEach(bill => {
+            bill.isNew = false;
+            bill.modified = false;
+          });
+        }
         
-        const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
-        });
-        
-        // Mark bills as saved
-        bills.forEach(bill => {
-          bill.isNew = false;
+        // Update existing bills using PUT to update them individually
+        for (const bill of existingBills) {
+          const requestBody = {
+            price: bill.price,
+            PaymentDate: bill.PaymentDate,
+            is_paid: bill.is_paid || 0
+          };
+          
+          await this.$http.put(`http://127.0.0.1:8001/api/bills_v2/${bill.server_id}`, requestBody, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          });
+          
+          // Mark existing bill as saved
           bill.modified = false;
-        });
+        }
         
       } catch (error) {
         console.error('Error saving bills:', error);

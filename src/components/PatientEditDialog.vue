@@ -442,7 +442,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://apismartclinicv3.tctate.com/api/patients";
+        const apiUrl = "http://127.0.0.1:8001/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         

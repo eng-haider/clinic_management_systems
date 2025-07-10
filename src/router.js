@@ -4,7 +4,7 @@ import store from './store'
 
 Vue.use(Router)
 
-// Route component imports with chunk naming and prefetch control
+// Route component imports with simpler chunk naming
 const routeComponents = {
   // Auth pages
   Login: () => import(/* webpackChunkName: "auth" */ '@/views/pages/Login'),
@@ -14,16 +14,16 @@ const routeComponents = {
   DashboardLayout: () => import(/* webpackChunkName: "layout" */ '@/views/dashboard/Index'),
   PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
   
-  // Main dashboard views
+  // Main dashboard views - using simpler chunk names
   Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard'),
-  CaseSheet: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/casesheet'),
-  Cases: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/cases'),
-  Patient: () => import(/* webpackChunkName: "patients" */ '@/views/dashboard/patient'),
+  CaseSheet: () => import(/* webpackChunkName: "casesheet" */ '@/views/dashboard/casesheet'),
+  Cases: () => import(/* webpackChunkName: "cases" */ '@/views/dashboard/cases'),
+  Patient: () => import(/* webpackChunkName: "patient" */ '@/views/dashboard/patient'),
   Calendar: () => import(/* webpackChunkName: "calendar" */ '@/views/dashboard/calendar'),
-  Recipe: () => import(/* webpackChunkName: "medical" */ '@/views/dashboard/Recipe'),
+  Recipe: () => import(/* webpackChunkName: "recipe" */ '@/views/dashboard/Recipe'),
   Reports: () => import(/* webpackChunkName: "reports" */ '@/views/dashboard/reports'),
-  Accounts: () => import(/* webpackChunkName: "finance" */ '@/views/dashboard/accounts'),
-  BillsReport: () => import(/* webpackChunkName: "finance" */ '@/views/dashboard/billsReport'),
+  Accounts: () => import(/* webpackChunkName: "accounts" */ '@/views/dashboard/accounts'),
+  BillsReport: () => import(/* webpackChunkName: "bills" */ '@/views/dashboard/billsReport'),
   
   // Error pages
   Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),

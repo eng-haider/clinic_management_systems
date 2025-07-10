@@ -41,7 +41,7 @@ axios.interceptors.response.use((response) => {
 
 
 //Vue.prototype.$http = axios;
-axios.defaults.baseURL =  'https://apismartclinicv3.tctate.com/api/';
+axios.defaults.baseURL =  'http://127.0.0.1:8001/api/';
  //axios.defaults.baseURL =  'http://127.0.0.1:8003/api/';
 
 //http://127.0.0.1:8001
