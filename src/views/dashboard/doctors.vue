@@ -1,28 +1,17 @@
 <template>
-    <div class="performance-optimized">
-        <v-container id="dashboard" fluid tag="section">
-            <!-- Optimized search with debouncing -->
-            <v-text-field 
-                v-if="showSearch"
-                class="mt-4" 
-                :label="$t('search')" 
-                outlined 
-                append-icon="mdi-magnify" 
-                v-model="searchQuery"
-                @input="debouncedSearch"
-                clearable
-            />
 
-            <v-data-table 
-                :headers="headers" 
-                :loading="loadingData" 
-                :page.sync="page" 
-                @page-count="pageCount = $event"
-                hide-default-footer 
-                :items="filteredDesserts" 
-                class="elevation-1 request_table data-table-optimized" 
-                items-per-page="15"
-            >
+    <div>
+
+
+
+
+        <v-container id="dashboard" fluid tag="section">
+            <!-- <v-text-field class="mt-4" label="اكتب للبحث" outlined append-icon="mdi-magnify" v-model="search">
+            </v-text-field> -->
+
+
+            <v-data-table :headers="headers" :loading="loadingData" :page.sync="page" @page-count="pageCount = $event"
+                hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> دكاتره العياده
@@ -32,17 +21,12 @@
                         <v-spacer></v-spacer>
                         <v-dialog v-model="dialog" max-width="800px">
                             <template v-slot:activator="{ on, attrs }">
-                                <v-btn 
-                                    color="primary" 
-                                    @click="editedIndex = -1" 
-                                    dark 
-                                    class="mb-2" 
-                                    v-bind="attrs" 
-                                    v-on="on" 
-                                    style="color:#fff;font-family: 'Cairo'"
-                                >
-                                    <v-icon left>mdi-plus</v-icon>
-                                    اضافه حساب جديد
+                                <v-btn color="primary" @click="editedIndex = -1 
+                                ;  
+                                
+                                " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
+                                    <i class="fas fa-plus" style="position: relative;left:5px"></i>
+                                   اضافه حساب جديد
                                 </v-btn>
                             </template>
                             <v-form ref="form" v-model="valid">
@@ -150,7 +134,7 @@
                 </template>
 
 
-                <template v-slot:[`item.all`]="{ item }">
+                <!-- <template v-slot:[`item.all`]="{ item }">
 
                     <div style="color:blue;font-weight: bold;">
                         {{ item.all_sum | currency }} <span class="money">د.ع</span> </div>
@@ -181,7 +165,7 @@
 
 
                 </template>
-
+ -->
 
 
 
@@ -229,27 +213,29 @@
 </template>
 
 <script>
-    import { mask } from "vue-the-mask";
+    //Recipe
+
+    // import Swal from "sweetalert2";
+
+
+
+    import {
+        mask
+    } from "vue-the-mask";
     import Axios from "axios";
-    
     export default {
-        name: 'DoctorsView',
         directives: {
             mask,
         },
-        components: {},
+        components: {
+
+        },
         data() {
             return {
-                // Performance optimizations
-                searchQuery: '',
-                showSearch: true,
-                cachedData: null,
-                dataTimestamp: null,
-                
-                // Existing data
                 gocase: false,
-                desserts: [],
-                filteredDesserts: [], // Add filtered data for performance
+                desserts: [
+
+                ],
 
                 editedItem: {
                     name: "",
@@ -350,23 +336,23 @@
                         value: "info.cases_count"
                     },
 
-                    {
-                        text: 'مبالغ الحالات',
-                        align: "start",
-                        value: "all"
-                    },
+                    // {
+                    //     text: 'مبالغ الحالات',
+                    //     align: "start",
+                    //     value: "all"
+                    // },
 
 
-                    {
-                        text: 'المبالغ الدفوعه',
-                        align: "start",
-                        value: "paids"
-                    },
-                    {
-                        text: 'المبالغ المتبقيه',
-                        align: "start",
-                        value: "rem"
-                    },
+                    // {
+                    //     text: 'المبالغ الدفوعه',
+                    //     align: "start",
+                    //     value: "paids"
+                    // },
+                    // {
+                    //     text: 'المبالغ المتبقيه',
+                    //     align: "start",
+                    //     value: "rem"
+                    // },
 
 
 
@@ -416,8 +402,8 @@ if (this.$refs.form.validate()) {
                 });
 
                 this.patientInfo = res.data.data;
-                this.dialog = false;
-                this.initialize();
+                this.dialog = false,
+                    this.initialize();
 
 
                 // if (this.$store.state.role !== 'secretary') {
@@ -449,6 +435,81 @@ if (this.$refs.form.validate()) {
 
             },
 
+
+        
+
+
+
+
+
+
+            editItem(item) {
+                this.editedIndex = this.desserts.indexOf(item);
+
+                var doc = [];
+                item.doctors.forEach((item, index) => {
+                    index
+                    doc.push(item.id)
+                })
+                item.doctors = doc;
+
+                this.editedItem = Object.assign({}, item);
+
+                this.selecBill = Object.assign({}, this.editedItem);
+
+                if (this.editedItem.case == null) {
+                    this.editedItem.case = {
+                        case_categores_id: "",
+                        upper_right: "",
+                        upper_left: "",
+                        lower_right: "",
+                        lower_left: "",
+                        status_id: 42,
+
+                        bills: [{
+                            price: '',
+                            PaymentDate: ''
+                        }],
+                        sessions: [{
+                            note: '',
+                            date: ''
+                        }],
+                        images: [{
+                                img: '',
+                                descrption: ''
+                            }
+
+                        ],
+                        notes: ""
+                    }
+
+                }
+                if (this.editedItem.case.bills.length == 0) {
+                    this.editedItem.case.bills = [{
+                        price: '',
+                        PaymentDate: ''
+                    }]
+
+                }
+
+
+                if (this.editedItem.case.bills.length == 0) {
+                    this.editedItem.case.images = [{
+                            img: '',
+                            descrption: ''
+                        }
+
+                    ]
+
+                }
+                if (this.editedItem.case.images.length > 0) {
+                    this.imageSource = this.Url + this.editedItem.case.images[0].image_url;
+
+                }
+
+
+                this.dialog = true;
+            },
             close() {
                 this.dialog = false;
                 this.selecBill = {
@@ -512,109 +573,7 @@ if (this.$refs.form.validate()) {
             },
 
 
-            // Performance Methods
-            debouncedSearch() {
-                this.$debounce(() => {
-                    this.filterData();
-                }, 300);
-            },
-
-            filterData() {
-                if (!this.searchQuery) {
-                    this.filteredDesserts = this.desserts;
-                    return;
-                }
-                
-                const query = this.searchQuery.toLowerCase();
-                this.filteredDesserts = this.desserts.filter(item => {
-                    return (item.names && item.names.toLowerCase().includes(query)) ||
-                           (item.phones && item.phones.toLowerCase().includes(query));
-                });
-            },
-
-            // Cache management
-            shouldRefreshData() {
-                const now = Date.now();
-                const fiveMinutes = 5 * 60 * 1000;
-                return !this.dataTimestamp || (now - this.dataTimestamp) > fiveMinutes;
-            },
-
-            async loadDoctorsData() {
-                this.$startTimer('doctors_load');
-                
-                // Check cache first
-                if (this.cachedData && !this.shouldRefreshData()) {
-                    this.desserts = this.cachedData;
-                    this.filteredDesserts = this.desserts;
-                    this.loadingData = false;
-                    this.$endTimer('doctors_load');
-                    return;
-                }
-
-                try {
-                    const cacheKey = 'doctors_clinic_info';
-                    const data = await this.$apiCall("doctors/clinicDoctorInfo", {}, cacheKey);
-                    
-                    this.desserts = data;
-                    this.filteredDesserts = data;
-                    this.cachedData = data;
-                    this.dataTimestamp = Date.now();
-                    this.loadingData = false;
-                } catch (error) {
-                    console.error('Failed to load doctors data:', error);
-                    this.loadingData = false;
-                } finally {
-                    this.$endTimer('doctors_load');
-                }
-            },
-
-            async initialize() {
-                this.loading = true;
-                await this.loadDoctorsData();
-                this.loading = false;
-            },
-
-            // Optimized item operations
-            async editItem(item) {
-                this.$startTimer('edit_item');
-                // ...existing code...
-                this.$endTimer('edit_item');
-            },
-
-            async deleteItem(item) {
-                // Add confirmation with performance tracking
-                this.$startTimer('delete_item');
-                try {
-                    const result = await this.$swal({
-                        title: 'هل أنت متأكد؟',
-                        text: "لا يمكن التراجع عن هذا الإجراء!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'نعم، احذف!'
-                    });
-
-                    if (result.isConfirmed) {
-                        // Perform delete operation
-                        // Add your delete API call here
-                        
-                        // Update local data
-                        const index = this.desserts.findIndex(d => d.id === item.id);
-                        if (index > -1) {
-                            this.desserts.splice(index, 1);
-                            this.filterData();
-                        }
-                    }
-                } catch (error) {
-                    console.error('Delete operation failed:', error);
-                } finally {
-                    this.$endTimer('delete_item');
-                }
-            },
-
-            // Original initialize method (keeping for compatibility)
-            originalInitialize() {
+            initialize() {
                 this.loading = true;
                 Axios.get("doctors/clinicDoctorInfo", {
                         headers: {
@@ -646,29 +605,21 @@ if (this.$refs.form.validate()) {
 
         },
 
+
         computed: {
             formTitle() {
                 return this.editedIndex === -1 ? 'اضافه دكتور' : this.$t('update');
+
             },
         },
+        mounted() {
+            this.getCaseCategories();
+        },
+        created() {
+            this.initialize();
 
-        watch: {
-            searchQuery: {
-                handler() {
-                    this.debouncedSearch();
-                },
-                immediate: false
-            }
         },
 
-        async mounted() {
-            await this.getCaseCategories();
-            this.setupLazyImages();
-        },
-
-        async created() {
-            await this.initialize();
-        }
     }
 </script>
 

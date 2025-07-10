@@ -52,13 +52,13 @@
                                 outlined item-text="name" item-value="id"></v-select>
                         </v-flex>
 
-
+<!-- 
 
                         <v-flex xs12 md1 sm2 pr-4>
 
                             <v-select dense v-model="search.is_paid" :label="$t('payment_status')" clearable
                                 :items="paid" outlined item-text="name" item-value="id"></v-select>
-                        </v-flex>
+                        </v-flex> -->
 
 
 
@@ -297,12 +297,11 @@
 
                 </template>
 
-                <template v-slot:[`item.bills`]="{ item }">
+                <!-- <template v-slot:[`item.bills`]="{ item }">
 
 
-                    <!-- <v-chip v-if="(item.price==0 || item.pric==null)" class="ma-2" color="green" outlined>
-                     
-                    </v-chip> -->
+                 
+                    </v-chip> 
                     <v-chip v-if="(item.is_paid==1)" class="ma-2" color="green" outlined>
                         {{ $t("paid") }}
                     </v-chip>
@@ -313,18 +312,10 @@
 
 
 
-                    <!-- 
-                    <v-chip v-if="(sumPaybills(item.bills)==item.price)" class="ma-2" color="green" outlined>
-                        تم التسديد
-                    </v-chip>
-
-                    <v-chip v-else class="ma-2" color="red" outlined>
-                        لم يتم التسديد
-                    </v-chip> -->
+                  
 
 
-
-                </template>
+                </template> -->
 
 
 
@@ -549,11 +540,11 @@
                         value: "status"
                     },
 
-                    {
-                        text: this.$t('payment_status'),
-                        align: "start",
-                        value: "bills"
-                    },
+                    // {
+                    //     text: this.$t('payment_status'),
+                    //     align: "start",
+                    //     value: "bills"
+                    // },
 
 
 

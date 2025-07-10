@@ -525,7 +525,7 @@
       <!-- Bill Report Dialog -->
       <v-dialog v-model="billDialog" max-width="900px">
         <v-card>
-          <Bill :patient="patient" />
+          <Bill :patient="{ ...patient, bills: patientBills }" />
         </v-card>
       </v-dialog>
   </v-container>
@@ -758,6 +758,8 @@ export default {
 
     // Patient info formatted for OwnerBooking component
     patientInfo() {
+
+      console.log('📋 Formatting patient info for booking component:', this.patient);
       return {
         id: this.patient.id,
         name: this.patient.name,
@@ -767,7 +769,8 @@ export default {
         email: this.patient.email,
         sex: this.patient.sex,
         birth_date: this.patient.birth_date,
-        systemic_conditions: this.patient.systemic_conditions
+        systemic_conditions: this.patient.systemic_conditions,
+        bills: this.patient.bills
       };
     },
 

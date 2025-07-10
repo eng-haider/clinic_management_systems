@@ -123,12 +123,12 @@
             <br>
             <v-row justify="center">
 
-              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
+              <!-- <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
 
-              </v-col>
+              </v-col> -->
 
               <v-col cols="12" sm="6" xs="12" v-if="owner_item.possib_reserving_period ==null">
                 <v-menu ref="menu1" v-model="menu2" :close-on-content-click="false" :nudge-right="40"
@@ -513,6 +513,7 @@
             // Prepare reservation data for the new API
             const reservationData = {
               patient_id: this.patient ? this.patient.id : null,
+              doctor_id: this.editedItem.doctors ? this.editedItem.doctors.id : null,
               reservation_start_date: reservationStartDate,
               reservation_end_date: reservationStartDate,
               reservation_from_time: fromTime,

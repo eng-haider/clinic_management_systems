@@ -45,6 +45,9 @@
                 :items="billItems"
                 hide-default-footer
                 disable-pagination>
+                
+             
+                
                 <template v-slot:no-data>
                     <div class="text-center pa-4">لا توجد فواتير</div>
                 </template>
@@ -128,18 +131,36 @@
 
         computed: {
             billItems() {
-                // Handle both old structure (patient.cases) and new structure (direct bills)
+                let items = [];
+                
+                // Add case items
                 if (this.patient.cases && this.patient.cases.length > 0) {
-                    return this.patient.cases.map(item => ({
+                    items = this.patient.cases.map(item => ({
                         case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
                         tooth_number: item.tooth_num || item.upper_right || item.upper_left || item.lower_right || item.lower_left || '-',
                         price_formatted: `${this.$options.filters.currency(item.price || 0)} د.ع`,
                         date: this.cropdate(item.created_at),
                         price: item.price || 0
                     }));
-                } else {
-                    // Handle single bill item (new structure)
-                    return [{
+                }
+                
+                // Add payment items from bills array
+                if (this.patient.bills && this.patient.bills.length > 0) {
+                    const paymentItems = this.patient.bills.map(bill => ({
+                        case_type: bill.is_paid ? 'دفعة مالية' : 'فاتورة غير مدفوعة',
+                        tooth_number: '-',
+                        price_formatted: `${this.$options.filters.currency(bill.price || 0)} د.ع`,
+                        date: this.cropdate(bill.PaymentDate || bill.created_at),
+                        price: bill.price || 0,
+                        is_payment: true,
+                        is_paid: bill.is_paid
+                    }));
+                    items = items.concat(paymentItems);
+                }
+                
+                // If no cases but has direct price (fallback)
+                if (items.length === 0 && this.patient.price) {
+                    items = [{
                         case_type: 'فاتورة مباشرة',
                         tooth_number: '-',
                         price_formatted: `${this.$options.filters.currency(this.patient.price || 0)} د.ع`,
@@ -147,6 +168,8 @@
                         price: this.patient.price || 0
                     }];
                 }
+                
+                return items;
             },
 
             totalBill() {
@@ -158,7 +181,17 @@
             },
 
             totalPaid() {
-                if (this.patient.cases && this.patient.cases.length > 0) {
+                // Check if patient has bills array (new structure)
+                if (this.patient.bills && this.patient.bills.length > 0) {
+                    return this.patient.bills.reduce((total, bill) => {
+                        if (bill.is_paid) {
+                            return total + (parseFloat(bill.price) || 0);
+                        }
+                        return total;
+                    }, 0);
+                }
+                // Fallback to old structure
+                else if (this.patient.cases && this.patient.cases.length > 0) {
                     return this.patient.cases.reduce((total, item) => {
                         if (item.bills && item.bills.length > 0) {
                             return total + this.xx(item.bills);
@@ -251,6 +284,26 @@
 .bill-table >>> td {
     text-align: right !important;
     padding: 12px 16px !important;
+}
+
+.payment-item {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.unpaid-item {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.payment-amount {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.unpaid-amount {
+    color: #f44336;
+    font-weight: bold;
 }
 
 .bill-summary {

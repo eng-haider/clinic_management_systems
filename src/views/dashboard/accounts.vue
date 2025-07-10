@@ -10,7 +10,7 @@
       </v-card>
     </v-dialog>
 
-    <v-container id="dashboard" fluid >
+    <v-container id="dashboard" fluid>
 
 
       <v-data-table v-if="!is_Conjugations" :headers="headers" :loading="loadingData" :page.sync="page"
@@ -25,85 +25,85 @@
 
           </v-toolbar>
 
-          <v-container id="dashboard" fluid >
-          <v-layout row wrap>
+          <v-container id="dashboard" fluid>
+            <v-layout row wrap>
 
 
 
-            <v-flex xs12 pt-2 pl-3 sm3 md3>
+              <v-flex xs12 pt-2 pl-3 sm3 md3>
 
-              <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-                offset-y min-width="auto">
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field dense outlined v-model="search.from_date" label="من التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
-                    v-on="on"></v-text-field>
-                </template>
-                <v-date-picker v-model="search.from_date" no-title scrollable>
-                  <v-spacer></v-spacer>
+                <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                  offset-y min-width="auto">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field dense outlined v-model="search.from_date" label="من التاريخ"
+                      prepend-icon="mdi-calendar" v-bind="attrs" v-on="on"></v-text-field>
+                  </template>
+                  <v-date-picker v-model="search.from_date" no-title scrollable>
+                    <v-spacer></v-spacer>
 
-                </v-date-picker>
-              </v-menu>
+                  </v-date-picker>
+                </v-menu>
 
-            </v-flex>
-
-
-            <v-flex xs12 pt-2 pl-3 sm3 md3>
-
-              <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
-                offset-y min-width="auto">
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field dense outlined v-model="search.to_date" label="الئ التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
-                    v-on="on"></v-text-field>
-                </template>
-                <v-date-picker v-model="search.to_date" no-title scrollable>
-                  <v-spacer></v-spacer>
-
-                </v-date-picker>
-              </v-menu>
-
-            </v-flex>
+              </v-flex>
 
 
+              <v-flex xs12 pt-2 pl-3 sm3 md3>
+
+                <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
+                  offset-y min-width="auto">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field dense outlined v-model="search.to_date" label="الئ التاريخ"
+                      prepend-icon="mdi-calendar" v-bind="attrs" v-on="on"></v-text-field>
+                  </template>
+                  <v-date-picker v-model="search.to_date" no-title scrollable>
+                    <v-spacer></v-spacer>
+
+                  </v-date-picker>
+                </v-menu>
+
+              </v-flex>
 
 
 
 
-          
-
-            <v-flex xs12 md3 sm3 pt-2 style="float: left;" pl-3   v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2">
-              <v-select dense
-                v-model="search.DocorId" :label="$t('doctor')" :items="doctorsAll" outlined item-text="name"
-                item-value="id">
-              </v-select>
-            </v-flex>
 
 
 
-            <v-flex xs2 md1 sm1 pt-2>
-              <v-btn color="green" dense style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
-            </v-flex>
+
+              <v-flex xs12 md3 sm3 pt-2 style="float: left;" pl-3
+                v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') &&   doctorsAll.length>2">
+                <v-select dense v-model="search.DocorId" :label="$t('doctor')" :items="doctorsAll" outlined
+                  item-text="name" item-value="id">
+                </v-select>
+              </v-flex>
 
 
-            <v-flex xs3 md1 sm1 pt-2 pr-4   v-if="allItem">
-              <v-btn color="blue" style="color:#fff;" @click="allItem=false;is_search=false;initialize()">الكل</v-btn>
-            </v-flex>
+
+              <v-flex xs2 md1 sm1 pt-2>
+                <v-btn color="green" dense style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
+              </v-flex>
 
 
-          
+              <v-flex xs3 md1 sm1 pt-2 pr-4 v-if="allItem">
+                <v-btn color="blue" style="color:#fff;" @click="allItem=false;is_search=false;initialize()">الكل</v-btn>
+              </v-flex>
 
 
-            <!-- <v-flex md4>
+
+
+
+              <!-- <v-flex md4>
 
             </v-flex> -->
 
-            <!-- <v-flex md1>
+              <!-- <v-flex md1>
               <v-btn color="blue" style="color:#fff" @click="Export() ">تصــــدير</v-btn>
             </v-flex> -->
 
-          </v-layout>
+            </v-layout>
 
           </v-container>
-          <v-layout row wrap pt-4 pb-4 >
+          <v-layout row wrap pt-4 pb-4>
             <!-- <v-flex xs12 md3 sm6 pr-2 pb-4>
 
 
@@ -116,33 +116,93 @@
 
 
             <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#035aa6">fa-solid fa-money-bill</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #53D3F8;">مبلغ الحالات</div>
+                    <div class="text-h5 font-weight-bold mt-1">
+                      {{ accounts_statistic.all_sum | currency }}
+                    </div>
+                    <div v-if="showDoctorPercentage" class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ (accounts_statistic.all_sum * doctorPercentage / 100) | currency }}
+                      </div>
+                    </div>
 
-              <dash_card name="مبلغ الحالات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.all_sum|currency"></dash_card>
+                     <div  class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">المواد المستعملة</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ accounts_statistic.item_cost_sum | currency }}
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-flex>
 
             <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
-
-              <dash_card name="المدفوع" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6" :count="accounts_statistic.paid|currency
-"></dash_card>
-
-
-
-
-
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#035aa6">fa-solid fa-money-bill</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #53D3F8;">المدفوع</div>
+                    <div class="text-h5 font-weight-bold mt-1">
+                      {{ accounts_statistic.paid | currency }}
+                    </div>
+                    <div v-if="showDoctorPercentage" class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ doctorPaidAmount | currency }}
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-flex>
 
             <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
-
-              <dash_card name="المتبقي" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.remainingamount|currency"></dash_card>
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#035aa6">fa-solid fa-money-bill</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #53D3F8;">المتبقي</div>
+                    <div class="text-h5 font-weight-bold mt-1">
+                      {{ (accounts_statistic.all_sum - accounts_statistic.paid) | currency }}
+                    </div>
+                    <div v-if="showDoctorPercentage" class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
+                      <div class="text-h6 font-weight-medium" style="color: #FF9800;">
+                        {{ doctorRemainingAmount | currency }}
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-flex>
+            
             <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
 
 
-              
-              <dash_card  name="الصرفيات" icon="fa-solid fa-money-bill" text_color="#53D3F8" icon_color="#035aa6"
-                :count="accounts_statistic.Conjugationsprice|currency"></dash_card>
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#035aa6">fa-solid fa-money-bill</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #53D3F8;">الصرفيات</div>
+                    <div class="text-h5 font-weight-bold mt-1">
+                      {{ accounts_statistic.Conjugationsprice|currency}}
+                    </div>
+                  
+                  </div>
+                </v-card-text>
+              </v-card>
+
+
             </v-flex>
 
 
@@ -151,21 +211,21 @@
           </v-layout>
 
           <v-tabs>
-            <v-tab @click="is_Conjugations=false">دفعات  الحالات </v-tab>
+            <v-tab @click="is_Conjugations=false">دفعات الحالات </v-tab>
 
-            
+
             <v-tab @click="is_Conjugations=true">حسابات الصرفيات</v-tab>
 
           </v-tabs>
         </template>
 
-<!-- 
+        <!-- 
         <template v-slot:[`item.case_num`]="{ item }">
           {{ item.cases.length }}
         </template> -->
-   
 
-        
+
+
 
         <template v-slot:[`item.price`]="{ item }">
           <v-chip class="text-right" :color="'green'" outlined>
@@ -319,7 +379,7 @@
             </v-flex> -->
 
 
-           
+
 
             <v-flex xs12 md3 sm6 pr-2 pb-4>
 
@@ -430,10 +490,10 @@
         showChar: false,
         Cases: [],
         search: {
-          DocorId:0,
+          DocorId: 0,
           from_date: (new Date(new Date().setDate(new Date().getDate() - 30) - (new Date()).getTimezoneOffset() *
             60000)).toISOString().substr(0, 10),
-            
+
           to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
         },
         page: 1,
@@ -477,7 +537,7 @@
           }
         ],
 
-        
+
 
 
         headers: [{
@@ -525,6 +585,28 @@
 
       selected: function () {
         return this.getMoreitems();
+      },
+      
+      doctorPercentage() {
+        const doctorMoney = this.$store.state.AdminInfo.clinics_info?.doctor_mony;
+        console.log('Doctor money percentage:', this.$store.state.AdminInfo.clinics_info);
+      
+        return doctorMoney && !isNaN(doctorMoney) ? parseFloat(doctorMoney) : null;
+      },
+      
+      showDoctorPercentage() {
+        return this.doctorPercentage !== null;
+      },
+      
+      doctorPaidAmount() {
+        if (!this.showDoctorPercentage) return 0;
+        return (this.accounts_statistic.paid * this.doctorPercentage) / 100;
+      },
+      
+      doctorRemainingAmount() {
+        if (!this.showDoctorPercentage) return 0;
+        const remaining = this.accounts_statistic.all_sum - this.accounts_statistic.paid;
+        return (remaining * this.doctorPercentage) / 100;
       }
     },
     watch: {
@@ -634,16 +716,16 @@
       BillsSumPaid(cases) {
 
         var x = 0
-       
-        
 
-          //   x+=bills_amount[i].price
-          for (var j = 0; j < cases.bills.length; j++) {
-          
-            x += cases.bills[j].price
-          }
 
-        
+
+        //   x+=bills_amount[i].price
+        for (var j = 0; j < cases.bills.length; j++) {
+
+          x += cases.bills[j].price
+        }
+
+
 
         return x;
         //return this.caseBillsSum(totle_coast);
@@ -667,14 +749,15 @@
         console.log('Initialize called with is_search:', this.is_search);
         console.log('Search parameters:', this.search);
         console.log('Current page:', this.current_page);
-        
+
         // First get the statistics/report data
         this.getAccountsReport();
-        
+
         if (this.is_search == true) {
-          this.allItem=true;
-          console.log('Making search API call...');
-          this.axios.post('/patientsAccounstsv2/search?page=' + this.current_page, this.search, {
+          this.allItem = true;
+
+          console.log('Making search API call with params:', this.search);
+          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -694,9 +777,8 @@
               this.loadingData = false;
             });
         } else {
-          console.log('Making general API call...');
-
-          this.axios.get('/patientsAccounstsv2?page=' + this.current_page, {
+          console.log('Making general API call without body...');
+          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2?page=' + this.current_page, {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -706,7 +788,7 @@
             .then(res => {
               console.log('General API response:', res.data);
               this.loadingData = false;
-              
+
               this.Cases = res.data.data.data;
               this.last_page = res.data.data.last_page;
               this.pageCount = res.data.data.last_page;
@@ -720,25 +802,55 @@
 
       getAccountsReport() {
         console.log('Getting accounts report...');
-        this.axios.get('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(res => {
-            console.log('Report API response:', res.data);
-            
-            this.accounts_statistic.all_sum = res.data.all_sum;
-            this.accounts_statistic.paid = res.data.paid;
-            this.accounts_statistic.remainingamount = res.data.remainingamount;
-            this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
-            this.Conjugations = res.data.Conjugations;
-          })
-          .catch((error) => {
-            console.error('Report API error:', error);
-          });
+
+        if (this.is_search) {
+          // Send search parameters when searching
+          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
+              .search, {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                }
+              })
+            .then(res => {
+              console.log('Search Report API response:', res.data);
+
+              this.accounts_statistic.all_sum = res.data.all_case_sum;
+              this.accounts_statistic.item_cost_sum = res.data.item_cost_sum;
+              this.accounts_statistic.paid = res.data.paid;
+
+
+              this.accounts_statistic.remainingamount = res.data.remainingamount;
+              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.Conjugations = res.data.Conjugations;
+            })
+            .catch((error) => {
+              console.error('Search Report API error:', error);
+            });
+        } else {
+          // Send empty body when not searching
+          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(res => {
+              console.log('General Report API response:', res.data);
+
+              this.accounts_statistic.all_sum = res.data.all_case_sum;
+               this.accounts_statistic.item_cost_sum = res.data.item_cost_sum;
+              this.accounts_statistic.paid = res.data.paid;
+              this.accounts_statistic.remainingamount = res.data.remainingamount;
+              this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.Conjugations = res.data.Conjugations;
+            })
+            .catch((error) => {
+              console.error('General Report API error:', error);
+            });
+        }
       },
 
       getclinicDoctor() {
@@ -752,15 +864,15 @@
           })
           .then(res => {
             this.loadingData = false;
-            
+
             // Handle the response structure - check if data is nested
             const doctors = res.data.data || res.data;
-            
+
             this.doctorsAll = [{
               id: 0,
               name: ' الكل'
             }];
-            
+
             if (Array.isArray(doctors)) {
               doctors.forEach((item) => {
                 this.doctorsAll.push(item);
