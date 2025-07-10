@@ -385,7 +385,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          const response = await axios.delete(`http://127.0.0.1:8001/api/reservations/${this.book_details.id}`, {
+          const response = await axios.delete(`https://apismartclinicv4.tctate.com/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -536,7 +536,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('http://127.0.0.1:8001/api/reservations', reservationData, {
+            const response = await axios.post('https://apismartclinicv4.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -555,7 +555,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('http://127.0.0.1:8001/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://apismartclinicv4.tctate.com/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -616,7 +616,7 @@
           console.log('Fetching reservations from new API...');
           
           // Use the new API endpoint
-          const response = await axios.get('http://127.0.0.1:8001/api/reservations/formatted', {
+          const response = await axios.get('https://apismartclinicv4.tctate.com/api/reservations/formatted', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
