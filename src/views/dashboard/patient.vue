@@ -900,7 +900,7 @@ export default {
         });
 
         const response = await Promise.race([
-          this.$http.get(`http://127.0.0.1:8001/api/getPatientById/${patientId}`, {
+          this.$http.get(`https://apismartclinicv4.tctate.com/api/getPatientById/${patientId}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -1599,7 +1599,7 @@ export default {
           patient_id: this.patient.id.toString()
         };
         
-        const response = await this.$http.post('http://127.0.0.1:8001/api/cases', requestBody, {
+        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1630,7 +1630,7 @@ export default {
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`http://127.0.0.1:8001/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://apismartclinicv4.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1668,7 +1668,7 @@ export default {
             patient_id: this.patient.id.toString()
           };
           
-          const response = await this.$http.post(`http://127.0.0.1:8001/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://apismartclinicv4.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -1691,7 +1691,7 @@ export default {
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`http://127.0.0.1:8001/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://apismartclinicv4.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
