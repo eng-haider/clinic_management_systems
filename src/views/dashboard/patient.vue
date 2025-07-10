@@ -89,10 +89,7 @@
                   :style="contextMenuStyle"
                   v-show="showContextMenu"
                 >
-                  <div class="context-menu-header">
-                    <strong v-if="selectedTooth">السن {{ selectedTooth }}</strong>
-                    <strong v-else>اختر عملية</strong>
-                  </div>
+                 
                   <ul>
                     <li 
                       v-for="operation in dentalOperations" 
@@ -111,12 +108,11 @@
                 </div>
 
                 <!-- Reusable Teeth Component with right-click handling -->
-                <div class="teeth-container" @contextmenu="handleTeethContextMenu">
+                <div class="teeth-container">
                   <teeth 
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
                     @tooth-right-clicked="handleToothRightClick"
-                    @contextmenu.native="handleTeethContextMenu"
                   />
                 </div>
               </v-card-text>
@@ -137,6 +133,7 @@
                         class="elevation-1"
                         dense
                         :items-per-page="5"
+                        @click="handleDataTableClick"
                       >
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
@@ -165,6 +162,8 @@
                             hide-details
                             class="price-input"
                             @input="updateCasePrice(item)"
+                            @click.stop="hideContextMenu()"
+                            @focus.stop="hideContextMenu()"
                           />
                         </template>
 
@@ -1096,6 +1095,19 @@ export default {
     handleToothRightClick(data) {
       console.log('Tooth right-clicked received in patient component:', data);
       
+      // CRITICAL: Double-check that no form element is currently active
+      const activeElement = document.activeElement;
+      if (activeElement && this.isFormElement(activeElement)) {
+        console.log('Form element is active, blocking context menu in patient component');
+        return;
+      }
+      
+      // CRITICAL: Check if the event originated from a form element
+      if (data && data.event && data.event.target && this.isFormElement(data.event.target)) {
+        console.log('Event originated from form element, blocking context menu');
+        return;
+      }
+      
       if (data && data.toothId && data.event) {
         console.log('Processing right-click for tooth:', data.toothId);
         this.selectedTooth = data.toothId;
@@ -1172,190 +1184,26 @@ export default {
     
     // Handle global right-click on teeth area as fallback
     handleGlobalRightClick(event) {
-      console.log('Global right-click detected on teeth area:', event);
+      // This method is disabled now - we only want to show menu on direct tooth right-click
+      console.log('Global right-click disabled');
       event.preventDefault();
-      
-      // Try to determine which tooth was clicked by analyzing the target
-      const target = event.target;
-      
-      // Look for tooth number in various ways
-      let toothNumber = null;
-      
-      // Check if target has a data attribute for tooth number
-      if (target.dataset && target.dataset.toothNumber) {
-        toothNumber = target.dataset.toothNumber;
-      }
-      // Check if target has an id that contains tooth number
-      else if (target.id && target.id.includes('tooth')) {
-        const match = target.id.match(/tooth[_-]?(\d+)/);
-        if (match) {
-          toothNumber = match[1];
-        }
-      }
-      // Check if target has a class that contains tooth number
-      else if (target.className && typeof target.className === 'string') {
-        const match = target.className.match(/tooth[_-]?(\d+)/);
-        if (match) {
-          toothNumber = match[1];
-        }
-      }
-      // Check parent elements for tooth information
-      else {
-        let parent = target.parentElement;
-        while (parent && !toothNumber) {
-          if (parent.dataset && parent.dataset.toothNumber) {
-            toothNumber = parent.dataset.toothNumber;
-            break;
-          }
-          if (parent.id && parent.id.includes('tooth')) {
-            const match = parent.id.match(/tooth[_-]?(\d+)/);
-            if (match) {
-              toothNumber = match[1];
-              break;
-            }
-          }
-          parent = parent.parentElement;
-        }
-      }
-      
-      console.log('Detected tooth number from global right-click:', toothNumber);
-      
-      if (toothNumber) {
-        // Trigger the context menu for this tooth
-        this.handleToothRightClick({
-          toothId: toothNumber,
-          event: event
-        });
-      } else {
-        // Show a general context menu if no specific tooth detected
-        this.showGeneralContextMenu(event);
-      }
+      return;
     },
     
     // Handle right-click events specifically from teeth component
     handleTeethContextMenu(event) {
-      console.log('Native context menu event from teeth component:', event);
+      // This method is no longer used for general teeth container context menu
+      // All context menu handling is done through handleToothRightClick
       event.preventDefault();
-      
-      // Only handle right-clicks that occur on teeth elements
-      const target = event.target;
-      
-      // Check if the clicked element is actually a tooth or part of teeth component
-      const isToothElement = target.closest('.teeth-container') || 
-                            target.closest('[data-tooth-number]') ||
-                            target.closest('[id*="tooth"]') ||
-                            target.classList.contains('tooth') ||
-                            target.tagName === 'path' || // SVG teeth paths
-                            target.tagName === 'g' || // SVG groups
-                            target.tagName === 'circle' || // SVG circles
-                            target.tagName === 'rect'; // SVG rectangles
-      
-      if (!isToothElement) {
-        console.log('Right-click not on teeth element, ignoring');
-        return;
-      }
-      
-      // Try to determine which tooth was clicked
-      let toothNumber = null;
-      
-      // Check if target has a data attribute for tooth number
-      if (target.dataset && target.dataset.toothNumber) {
-        toothNumber = target.dataset.toothNumber;
-      }
-      // Check if target has an id that contains tooth number
-      else if (target.id && target.id.includes('tooth')) {
-        const match = target.id.match(/tooth[_-]?(\d+)/);
-        if (match) {
-          toothNumber = match[1];
-        }
-      }
-      // Check if target has a class that contains tooth number
-      else if (target.className && typeof target.className === 'string') {
-        const match = target.className.match(/tooth[_-]?(\d+)/);
-        if (match) {
-          toothNumber = match[1];
-        }
-      }
-      // Check parent elements for tooth information
-      else {
-        let parent = target.parentElement;
-        while (parent && !toothNumber) {
-          if (parent.dataset && parent.dataset.toothNumber) {
-            toothNumber = parent.dataset.toothNumber;
-            break;
-          }
-          if (parent.id && parent.id.includes('tooth')) {
-            const match = parent.id.match(/tooth[_-]?(\d+)/);
-            if (match) {
-              toothNumber = match[1];
-              break;
-            }
-          }
-          parent = parent.parentElement;
-        }
-      }
-      
-      console.log('Detected tooth number from teeth context menu:', toothNumber);
-      
-      if (toothNumber) {
-        // Trigger the context menu for this specific tooth
-        this.handleToothRightClick({
-          toothId: toothNumber,
-          event: event
-        });
-      } else {
-        // Show a general context menu only if we're sure we're in the teeth area
-        this.showGeneralContextMenu(event);
-      }
+      return;
     },
     
     // Show general context menu when no specific tooth is detected
     showGeneralContextMenu(event) {
-      console.log('Showing general context menu');
-      
-      this.selectedTooth = null;
-      
-      // Get the viewport coordinates
-      let x = event.clientX;
-      let y = event.clientY;
-      
-      // Calculate better positioning
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      // Context menu approximate dimensions (based on actual CSS)
-      const menuWidth = 180; // min-width: 150px + padding
-      const menuHeight = 350; // max-height: 300px + header + padding
-      
-      // Adjust position to keep menu in viewport
-      if (x + menuWidth > viewportWidth) {
-        x = viewportWidth - menuWidth - 10;
-      }
-      
-      if (y + menuHeight > viewportHeight) {
-        y = Math.max(10, y - menuHeight);
-      }
-      
-      // Ensure menu doesn't go off-screen
-      x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
-      y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
-      
-      this.contextMenuStyle = {
-        position: 'fixed',
-        top: y + 'px',
-        left: x + 'px',
-        zIndex: 1000,
-        display: 'block'
-      };
-      
-      this.showContextMenu = true;
-      
-      event.stopPropagation();
+      // Don't show general context menu, we only want to show menu when clicking on a specific tooth
+      console.log('Ignoring general right-click event');
       event.preventDefault();
-      
-      setTimeout(() => {
-        document.addEventListener('click', this.hideContextMenu);
-      }, 10);
+      return;
     },
 
     // Phone formatting
@@ -1415,23 +1263,33 @@ export default {
         return;
       }
       
-      // Don't hide if clicking on input fields or form elements
-      if (event && event.target && (
-        event.target.tagName === 'INPUT' ||
-        event.target.tagName === 'TEXTAREA' ||
-        event.target.tagName === 'SELECT' ||
-        event.target.closest('.v-input') ||
-        event.target.closest('.v-text-field') ||
-        event.target.closest('.v-select')
-      )) {
+      // ALWAYS hide the context menu when interacting with form elements
+      if (event && event.target && this.isFormElement(event.target)) {
+        console.log('Hiding context menu due to form element interaction');
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+        event.stopPropagation();
+        document.removeEventListener('click', this.hideContextMenu);
         return;
       }
       
+      // Hide context menu for any other clicks
       this.showContextMenu = false;
       this.selectedTooth = null;
       document.removeEventListener('click', this.hideContextMenu);
     },
-    
+
+    // Add this new method to handle clicks on the data table
+    handleDataTableClick() {
+      // When interacting with the data table, always hide the context menu
+      this.showContextMenu = false;
+      this.selectedTooth = null;
+      
+      // Remove context menu event listener
+      document.removeEventListener('click', this.hideContextMenu);
+    },
+
+    // Select dental operation from context menu
     selectOperation(operation) {
       if (this.selectedTooth) {
         this.addCase(this.selectedTooth, operation);
@@ -1440,6 +1298,7 @@ export default {
       this.hideContextMenu();
     },
     
+    // Add new case for the patient
     addCase(toothNumber, operation) {
       // Check if case already exists for this tooth and operation
       const operationName = operation.name || operation.name_ar;
@@ -1901,7 +1760,49 @@ export default {
       } catch (error) {
         return dateString.split(' ')[0] || '';
       }
-    }
+    },
+
+    // Helper method to check if an element is a form element
+    isFormElement(element) {
+      if (!element) return false;
+      
+      // Check the element itself
+      if (element.tagName === 'INPUT' || 
+          element.tagName === 'TEXTAREA' || 
+          element.tagName === 'SELECT' || 
+          element.tagName === 'BUTTON' ||
+          element.tagName === 'FORM') {
+        return true;
+      }
+      
+      // Check classes
+      if (element.classList && (
+          element.classList.contains('v-input') ||
+          element.classList.contains('v-text-field') ||
+          element.classList.contains('v-select') ||
+          element.classList.contains('v-data-table') ||
+          element.classList.contains('price-input') ||
+          element.classList.contains('v-btn') ||
+          element.classList.contains('v-form')
+      )) {
+        return true;
+      }
+      
+      // Check if it's inside a form context
+      if (element.closest && (
+          element.closest('.v-input') ||
+          element.closest('.v-text-field') ||
+          element.closest('.v-select') ||
+          element.closest('.v-data-table') ||
+          element.closest('.price-input') ||
+          element.closest('.v-form') ||
+          element.closest('form')
+      )) {
+        return true;
+      }
+      
+      return false;
+    },
   },
   
   async mounted() {
@@ -1930,6 +1831,44 @@ export default {
       // Load patient data and dental operations
       await this.loadPatientData();
       
+      // Add global handler for input fields to ensure context menu is hidden
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.price-input') || 
+            e.target.closest('.v-text-field__slot') || 
+            e.target.closest('.v-input') || 
+            e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA') {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      });
+      
+      // Add global context menu prevention for form elements
+      document.addEventListener('contextmenu', (e) => {
+        // Always prevent context menu when interacting with form elements
+        if (this.isFormElement(e.target)) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+          console.log('Prevented context menu on form element');
+          return; // Allow the default context menu for form elements
+        }
+        
+        // Only allow context menu on tooth elements
+        if (!e.target.classList.contains('comon')) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      });
+      
+      // Add focus event listener to hide context menu when focusing on form elements
+      document.addEventListener('focus', (e) => {
+        if (this.isFormElement(e.target)) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+          console.log('Hiding context menu due to form element focus');
+        }
+      }, true); // Use capture phase to catch focus events early
+      
       console.log('✅ Component mounted successfully');
       
     } catch (error) {
@@ -1946,7 +1885,44 @@ export default {
       EventBus.$off('tooth_right_click', this.handleToothRightClick);
       EventBus.$off('rightClickTooth', this.handleToothRightClick);
       EventBus.$off('billsReportclose');
+      
+      // Remove global document event listeners
       document.removeEventListener('click', this.hideContextMenu);
+      
+      // Remove the additional event listeners we added
+      const clickHandler = (e) => {
+        if (e.target.closest('.price-input') || 
+            e.target.closest('.v-text-field__slot') || 
+            e.target.closest('.v-input') || 
+            e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA') {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      };
+      
+      const contextMenuHandler = (e) => {
+        if (this.isFormElement(e.target)) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+          return;
+        }
+        if (!e.target.classList.contains('comon')) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      };
+      
+      const focusHandler = (e) => {
+        if (this.isFormElement(e.target)) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      };
+      
+      document.removeEventListener('click', clickHandler);
+      document.removeEventListener('contextmenu', contextMenuHandler);
+      document.removeEventListener('focus', focusHandler, true);
       
       console.log('✅ Component destroyed and cleaned up');
       

@@ -5,8 +5,8 @@
     - Mobile/Touch: Tap on tooth to show categories menu
     - All devices: Left-click toggles tooth selection (color change)
     -->
-    <div>
-        <div class="teeth-svg">
+    <div @contextmenu.prevent="preventGlobalContextMenu">
+        <div class="teeth-svg" @contextmenu.prevent="preventGlobalContextMenu">
 
             <svg version="1.1" class="toomain" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 481 150"
@@ -420,6 +420,8 @@
 
     .comon {
         fill: #fff;
+        cursor: pointer;
+        transition: fill 0.2s ease;
     }
 
     .st39 {
@@ -434,12 +436,17 @@
         fill: aqua;
     }
     
+    /* Add a subtle animation on right-click to provide visual feedback */
+    .comon:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+    
     /* Mobile-friendly touch styles */
     @media (max-width: 768px) or (pointer: coarse) {
         .comon {
             cursor: pointer;
             -webkit-tap-highlight-color: rgba(0, 255, 255, 0.3);
-            tap-highlight-color: rgba(0, 255, 255, 0.3);
         }
         
         .comon:active {
@@ -487,7 +494,70 @@ fill: #000;
     },
   },
         methods: {
+            // Prevent any global context menu that's not on a specific tooth
+            preventGlobalContextMenu(event) {
+                // Check if we're in a form context - if so, completely prevent the event
+                const activeElement = document.activeElement;
+                if (activeElement && this.isFormElement(activeElement)) {
+                    console.log('Form element is active, preventing all context menu events');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+                
+                // Also prevent if the target is not a tooth
+                if (!event.target || !event.target.classList.contains('comon')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                }
+            },
+
             reply_click(id, event) {
+                // CRITICAL: Only proceed if this is EXACTLY a tooth path element
+                if (!event || !event.target) {
+                    console.log('Invalid click - missing event or target');
+                    return false;
+                }
+                
+                const target = event.target;
+                
+                // ABSOLUTE REQUIREMENT: Must be a path element with 'comon' class
+                if (target.tagName !== 'path' || !target.classList.contains('comon')) {
+                    console.log('Not a tooth path element, ignoring click');
+                    return false;
+                }
+                
+                // ABSOLUTE PREVENTION: Check for any form elements anywhere in the page
+                const activeElement = document.activeElement;
+                if (activeElement && this.isFormElement(activeElement)) {
+                    console.log('Form element is active/focused, completely blocking click');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+                
+                // EXTRA PREVENTION: Check if the target or any parent is a form element
+                let currentElement = target;
+                while (currentElement && currentElement !== document.body) {
+                    if (this.isFormElement(currentElement)) {
+                        console.log('Found form context in DOM tree, blocking click');
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        return false;
+                    }
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // FINAL CHECK: Verify this is the tooth we expect
+                if (id && target.getAttribute('id') && target.getAttribute('id') != id) {
+                    console.log('Tooth ID mismatch, ignoring click');
+                    return false;
+                }
+                
                 // Check if this is a mobile device or touch device
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                                 ('ontouchstart' in window) || 
@@ -497,6 +567,13 @@ fill: #000;
                 if (isMobile) {
                     console.log('Mobile click on tooth:', id);
                     
+                    // Double-check that no form element is active
+                    const currentActive = document.activeElement;
+                    if (currentActive && this.isFormElement(currentActive)) {
+                        console.log('Form element is active, canceling mobile context menu');
+                        return;
+                    }
+                    
                     // Create a fake event object for mobile context menu
                     const fakeEvent = event || {
                         clientX: 100,
@@ -505,17 +582,27 @@ fill: #000;
                         stopPropagation: () => {}
                     };
                     
-                    // Emit the tooth right-click event to show context menu
-                    EventBus.$emit("toothRightClick", {
-                        toothId: id,
-                        event: fakeEvent
-                    });
-                    
-                    // Also emit as a component event
-                    this.$emit('tooth-right-clicked', {
-                        toothId: id,
-                        event: fakeEvent
-                    });
+                    // Use setTimeout to ensure the context menu is shown after all other events
+                    setTimeout(() => {
+                        // Triple-check that no form element is active at the time of showing
+                        const finalActive = document.activeElement;
+                        if (finalActive && this.isFormElement(finalActive)) {
+                            console.log('Form element became active, canceling mobile context menu');
+                            return;
+                        }
+                        
+                        // Emit the tooth right-click event to show context menu
+                        EventBus.$emit("toothRightClick", {
+                            toothId: id,
+                            event: fakeEvent
+                        });
+                        
+                        // Also emit as a component event
+                        this.$emit('tooth-right-clicked', {
+                            toothId: id,
+                            event: fakeEvent
+                        });
+                    }, 0);
                     
                     return; // Exit early for mobile, don't toggle tooth selection
                 }
@@ -556,21 +643,119 @@ fill: #000;
             },
 
             right_click(id, event) {
+                // CRITICAL: Only proceed if this is EXACTLY a tooth path element
+                if (!event || !event.target) {
+                    console.log('Invalid right click - missing event or target');
+                    return false;
+                }
+                
+                const target = event.target;
+                
+                // ABSOLUTE REQUIREMENT: Must be a path element with 'comon' class
+                if (target.tagName !== 'path' || !target.classList.contains('comon')) {
+                    console.log('Not a tooth path element, ignoring right click');
+                    return false;
+                }
+                
+                // ABSOLUTE PREVENTION: Check for any form elements anywhere in the page
+                const activeElement = document.activeElement;
+                if (activeElement && this.isFormElement(activeElement)) {
+                    console.log('Form element is active/focused, completely blocking right click');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+                
+                // EXTRA PREVENTION: Check if the target or any parent is a form element
+                let currentElement = target;
+                while (currentElement && currentElement !== document.body) {
+                    if (this.isFormElement(currentElement)) {
+                        console.log('Found form context in DOM tree, blocking right click');
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        return false;
+                    }
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // FINAL CHECK: Verify this is the tooth we expect
+                if (id && target.getAttribute('id') && target.getAttribute('id') != id) {
+                    console.log('Tooth ID mismatch, ignoring right click');
+                    return false;
+                }
+                
+                // All checks passed - this is a valid tooth right-click
                 event.preventDefault();
                 event.stopPropagation();
-                console.log('Right clicked tooth:', id);
+                event.stopImmediatePropagation();
                 
-                // Emit event through EventBus for backward compatibility
-                EventBus.$emit("toothRightClick", {
-                    toothId: id,
-                    event: event
-                });
+                console.log('Valid right click on tooth:', id);
                 
-                // Also emit as a component event
-                this.$emit('tooth-right-clicked', {
-                    toothId: id,
-                    event: event
-                });
+                // Use setTimeout to ensure the context menu is shown after all other events
+                setTimeout(() => {
+                    // Double-check that no form element is active at the time of showing
+                    const currentActive = document.activeElement;
+                    if (currentActive && this.isFormElement(currentActive)) {
+                        console.log('Form element became active, canceling context menu');
+                        return;
+                    }
+                    
+                    // Emit event through EventBus for backward compatibility
+                    EventBus.$emit("toothRightClick", {
+                        toothId: id,
+                        event: event
+                    });
+                    
+                    // Also emit as a component event
+                    this.$emit('tooth-right-clicked', {
+                        toothId: id,
+                        event: event
+                    });
+                }, 0);
+            },
+            
+            // Helper method to check if an element is a form element
+            isFormElement(element) {
+                if (!element) return false;
+                
+                // Check the element itself
+                if (element.tagName === 'INPUT' || 
+                    element.tagName === 'TEXTAREA' || 
+                    element.tagName === 'SELECT' || 
+                    element.tagName === 'BUTTON' ||
+                    element.tagName === 'FORM') {
+                    return true;
+                }
+                
+                // Check classes
+                if (element.classList && (
+                    element.classList.contains('v-input') ||
+                    element.classList.contains('v-text-field') ||
+                    element.classList.contains('v-select') ||
+                    element.classList.contains('v-data-table') ||
+                    element.classList.contains('price-input') ||
+                    element.classList.contains('v-btn') ||
+                    element.classList.contains('v-form')
+                )) {
+                    return true;
+                }
+                
+                // Check if it's inside a form context
+                if (element.closest && (
+                    element.closest('.v-input') ||
+                    element.closest('.v-text-field') ||
+                    element.closest('.v-select') ||
+                    element.closest('.v-data-table') ||
+                    element.closest('.price-input') ||
+                    element.closest('.v-form') ||
+                    element.closest('form')
+                )) {
+                    return true;
+                }
+                
+                return false;
             }
         }
     }
