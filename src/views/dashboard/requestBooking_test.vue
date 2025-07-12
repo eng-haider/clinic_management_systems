@@ -123,12 +123,12 @@
             <br>
             <v-row justify="center">
 
-              <!-- <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
+              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
 
-              </v-col> -->
+              </v-col>
 
               <v-col cols="12" sm="6" xs="12" v-if="owner_item.possib_reserving_period ==null">
                 <v-menu ref="menu1" v-model="menu2" :close-on-content-click="false" :nudge-right="40"
@@ -385,7 +385,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          const response = await axios.delete(`https://apismartclinicv4.tctate.com/api/reservations/${this.book_details.id}`, {
+          const response = await axios.delete(`http://127.0.0.1:8001/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -513,7 +513,6 @@
             // Prepare reservation data for the new API
             const reservationData = {
               patient_id: this.patient ? this.patient.id : null,
-              doctor_id: this.editedItem.doctors ? this.editedItem.doctors.id : null,
               reservation_start_date: reservationStartDate,
               reservation_end_date: reservationStartDate,
               reservation_from_time: fromTime,
@@ -527,6 +526,7 @@
               phone: "",
               withoutBills: 0,
               deliverable: false,
+              doctor_id: this.editedItem.doctors ? this.editedItem.doctors.id : null, // Include doctor ID when selected
               user: {
                 phone: this.patient && this.patient.phone ? 
                   "964" + parseInt(this.patient.phone.replace(/ /g, "")) : "9647700281899",
@@ -537,7 +537,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('https://apismartclinicv4.tctate.com/api/reservations', reservationData, {
+            const response = await axios.post('http://127.0.0.1:8001/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -556,7 +556,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('https://apismartclinicv4.tctate.com/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('http://127.0.0.1:8001/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -617,7 +617,7 @@
           console.log('Fetching reservations from new API...');
           
           // Use the new API endpoint
-          const response = await axios.get('https://apismartclinicv4.tctate.com/api/reservations/formatted', {
+          const response = await axios.get('http://127.0.0.1:8001/api/reservations/formatted', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

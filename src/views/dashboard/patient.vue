@@ -80,39 +80,22 @@
            
 
             <!-- Dental Chart Card (Hidden for secretaries) -->
+            <div v-if="secretaryBillsOnlyMode" class="pa-4 text-center grey--text">
+              <h3>وضع السكرتارية: الأسنان مخفية</h3>
+              <p>Role: {{ $store.state.role }}, PaidAtSecretary: {{ $store.state.AdminInfo?.clinics_info?.paid_at_secretary }}</p>
+              <p>SecretaryBillsOnlyMode: {{ secretaryBillsOnlyMode }}</p>
+            </div>
+
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
               <v-card-text class="text-center">
-                <!-- Context Menu for Tooth Operations -->
-                <div 
-                  ref="contextMenu"
-                  class="tooth-context-menu" 
-                  :style="contextMenuStyle"
-                  v-show="showContextMenu"
-                >
-                 
-                  <ul>
-                    <li 
-                      v-for="operation in dentalOperations" 
-                      :key="operation.id"
-                      @click.stop="selectOperation(operation)"
-                      class="context-menu-item"
-                    >
-                      {{ operation.name || operation.name_ar }}
-                    </li>
-                  </ul>
-                  <div class="context-menu-footer" v-if="!selectedTooth">
-                    <small style="padding: 4px 8px; color: #666; display: block;">
-                      انقر بزر الماوس الأيمن على سن محدد
-                    </small>
-                  </div>
-                </div>
-
-                <!-- Reusable Teeth Component with right-click handling -->
+                <!-- Context menu and right-click are now handled inside teeth component -->
                 <div class="teeth-container">
+               
                   <teeth 
+                    :categories="dentalOperations"
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
-                    @tooth-right-clicked="handleToothRightClick"
+                    @case-added="handleCaseAdded"
                   />
                 </div>
               </v-card-text>
@@ -568,27 +551,20 @@ export default {
         email: '',
         sex: '',
         systemic_conditions: '',
-        birth_date: ''
+birth_date: ''
       },
       
       // Dental Operations (will be loaded from API)
       dentalOperations: [],
       
-      // Context Menu
-      showContextMenu: false,
-      contextMenuStyle: {
-        top: '0px',
-        left: '0px',
-        display: 'none'
-      },
+      // Context menu state is now managed in teeth component
       selectedTooth: null,
       
       // Patient Cases (will be loaded from API)
       patientCases: [],
       
-      // Patient Bills (will be loaded from API)  
+      // Patient Bills (will be loaded from API)
       patientBills: [],
-      
       // Table Headers
       caseHeaders: [
         { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
@@ -780,8 +756,19 @@ export default {
         const role = this.$store.state.role;
         const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
         
+        console.log('🔍 Debug secretaryBillsOnlyMode:', { 
+          role, 
+          paidAtSecretary, 
+          storeState: this.$store.state,
+          adminInfo: this.$store.state.AdminInfo 
+        });
+        
         // If paid_at_secretary is true (1) and user is secretary, show limited mode
-        return role === 'secretary' && (paidAtSecretary == 1 || paidAtSecretary === true);
+        const isSecretaryOnlyMode = role === 'secretary' && (paidAtSecretary == 1 || paidAtSecretary === true);
+        console.log('🔍 Secretary bills only mode result:', isSecretaryOnlyMode);
+        console.log('🔍 Should show teeth component:', !isSecretaryOnlyMode);
+        
+        return isSecretaryOnlyMode;
       } catch (error) {
         console.error('Error checking secretary mode:', error);
         return false;
@@ -790,44 +777,97 @@ export default {
   },
   
   methods: {
-    // Fetch dental operations from API
-    async fetchDentalOperations() {
-      try {
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Dental operations request timeout')), 10000); // 10 seconds timeout
-        });
-
-        const response = await Promise.race([
-          this.$http.get('cases/CaseCategories', {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          }),
-          timeoutPromise
-        ]);
-        
-        this.dentalOperations = response.data.map(category => ({
-          id: category.id,
-          name: category.name_ar,
-          name_en: category.name_en,
-          order: category.order
-        }));
-        
-        console.log('📥 Fetched dental operations:', this.dentalOperations.length);
-      } catch (error) {
-        console.error('❌ Error fetching dental operations:', error);
-        
-        // Fallback to default operations if API fails
-        this.dentalOperations = [
-          { id: 1, name: 'قلع' },
-          { id: 2, name: 'حشوة' },
-          { id: 3, name: 'فحص' }
-        ];
+    // Handle case added from teeth component
+    handleCaseAdded(caseData) {
+      console.log('Case added from teeth component:', caseData);
+      
+      if (!caseData || !caseData.toothNumber || !caseData.operation) {
+        console.error('Invalid case data received:', caseData);
+        return;
       }
+      
+      // Get operation name
+      const operationName = caseData.operation.name || caseData.operation.name_ar;
+      
+      // Create new case object (allowing multiple categories for same tooth)
+      const newCase = {
+        id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
+        server_id: null, // Will be set after saving to server
+        tooth_number: caseData.toothNumber,
+        case_type: operationName,
+        date: new Date().toISOString().substr(0, 10),
+        price: 0,
+        completed: false,
+        notes: '',
+        operation_id: caseData.operation.id,
+        status_id: 42, // Default status (not completed)
+        sessions: [],
+        additionalSessions: [],
+        modified: true // Mark as new/modified for save
+      };
+      
+      // Add to the beginning of the cases array
+      this.patientCases.unshift(newCase);
+      
+      // Force UI update
+      this.$nextTick(() => {
+        this.$forceUpdate();
+      });
+      
+      console.log('New case added:', newCase);
+      
+     
     },
+
+    // Fetch dental operations from API
+  async fetchDentalOperations() {
+    try {
+      console.log('🦷 Fetching dental operations...');
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Dental operations request timeout')), 10000); // 10 seconds timeout
+      });
+
+      const response = await Promise.race([
+        this.$http.get('cases/CaseCategories', {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        }),
+        timeoutPromise
+      ]);
+      
+      console.log('🦷 Raw API response:', response.data);
+      
+      this.dentalOperations = response.data.map(category => ({
+        id: category.id,
+        name: category.name_ar,
+        name_en: category.name_en,
+        order: category.order
+      }));
+      
+      console.log('🦷 Dental operations loaded:', this.dentalOperations.length, this.dentalOperations);
+      
+      // Force reactivity update
+      this.$forceUpdate();
+      
+    } catch (error) {
+      console.error('❌ Error fetching dental operations, using fallback:', error);
+      // Fallback to default operations if API fails
+      this.dentalOperations = [
+        { id: 1, name: 'قلع' },
+        { id: 2, name: 'حشوة' },
+        { id: 3, name: 'فحص' }
+      ];
+      console.log('🦷 Using fallback dental operations:', this.dentalOperations);
+      
+      // Force reactivity update
+      this.$forceUpdate();
+    }
+  },
 
     // Fetch doctors from API
     // async fetchDoctors() {
@@ -1294,15 +1334,41 @@ export default {
 
     // Select dental operation from context menu
     selectOperation(operation) {
-      if (this.selectedTooth) {
-        this.addCase(this.selectedTooth, operation);
+
+   
+      // alert('تم اختيار العملية: ' + (operation.name || operation.name_ar));
+      if (this.selectedTooth && operation) {
+        // Defensive: ensure patientCases is always reactive and not null
+        if (!Array.isArray(this.patientCases)) {
+          this.$set(this, 'patientCases', []);
+        }
+        // Always add a new object (force new reference)
+        const operationName = operation.name || operation.name_ar;
+        const newCase = {
+          id: Date.now() + Math.floor(Math.random() * 10000), // Unique id
+          server_id: null,
+          tooth_number: this.selectedTooth,
+          case_type: operationName,
+          date: new Date().toISOString().substr(0, 10),
+          price: 0,
+          completed: false,
+          notes: '',
+          operation_id: operation.id,
+          status_id: 42,
+          sessions: [],
+          additionalSessions: [],
+          modified: true
+        };
+        this.patientCases.unshift(newCase);
+        // Force update after DOM update
+        this.$nextTick(() => this.$forceUpdate());
+        this.selectedTooth = null;
       }
-      // Hide the context menu immediately when an operation is selected
       this.hideContextMenu();
     },
-    
+
     // Add new case for the patient
-    addCase(toothNumber, operation) {
+   addCase(toothNumber, operation) {
       // Check if case already exists for this tooth and operation
       const operationName = operation.name || operation.name_ar;
       const existingCase = this.patientCases.find(

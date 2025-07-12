@@ -82,60 +82,83 @@ export default {
     this.getAccountsCounts();
   },
   mounted() {
-    this.createCharts(); // Call here if you have initial data
+    this.$nextTick(() => {
+      this.createCharts(); // Call here if you have initial data
+    });
   },
   methods: {
     createCharts() {
-      // Bar Chart
-      const ctxBar = this.$refs.barChart.getContext('2d');
-      if (this.barChart) {
-        this.barChart.destroy(); // Destroy the existing bar chart if it exists
+      // Check if canvas elements exist before creating charts
+      if (!this.$refs.barChart || !this.$refs.pieChart) {
+        console.warn('Canvas elements not found, skipping chart creation');
+        return;
       }
-      this.barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-          labels: this.dataSource.map(item => item.name_ar),
-          datasets: [{
-            label: 'عدد الحالات',
-            data: this.dataSource.map(item => item.case_count),
-            backgroundColor: 'rgba(53, 113, 255, 0.6)',
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            }
-          }
-        }
-      });
 
-      // Pie Chart for Accounts
-      const ctxPie = this.$refs.pieChart.getContext('2d');
-      if (this.pieChart) {
-        this.pieChart.destroy(); // Destroy the existing pie chart if it exists
+      // Check if data exists
+      if (!this.dataSource || this.dataSource.length === 0) {
+        console.warn('No data available for bar chart');
+        return;
       }
-      this.pieChart = new Chart(ctxPie, {
-        type: 'pie',
-        data: {
-          labels: this.accounts_statistic.map(item => item.name),
-          datasets: [{
-            data: this.accounts_statistic.map(item => item.count),
-            backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
+
+      if (!this.accounts_statistic || this.accounts_statistic.length === 0) {
+        console.warn('No data available for pie chart');
+        return;
+      }
+
+      try {
+        // Bar Chart
+        const ctxBar = this.$refs.barChart.getContext('2d');
+        if (this.barChart) {
+          this.barChart.destroy(); // Destroy the existing bar chart if it exists
+        }
+        this.barChart = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: this.dataSource.map(item => item.name_ar),
+            datasets: [{
+              label: 'عدد الحالات',
+              data: this.dataSource.map(item => item.case_count),
+              backgroundColor: 'rgba(53, 113, 255, 0.6)',
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              }
             }
           }
+        });
+
+        // Pie Chart for Accounts
+        const ctxPie = this.$refs.pieChart.getContext('2d');
+        if (this.pieChart) {
+          this.pieChart.destroy(); // Destroy the existing pie chart if it exists
         }
-      });
+        this.pieChart = new Chart(ctxPie, {
+          type: 'pie',
+          data: {
+            labels: this.accounts_statistic.map(item => item.name),
+            datasets: [{
+              data: this.accounts_statistic.map(item => item.count),
+              backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error creating charts:', error);
+      }
 
       // Another Pie Chart (optional)
       const ctxAccounts = this.$refs.accountsChart.getContext('2d');
@@ -193,7 +216,9 @@ export default {
         this.loadingData = false;
         console.log(res.data); // Log the response data for verification
         this.accounts_statistic = res.data; // Ensure this matches your data structure
-        this.createCharts(); // Create charts after fetching data
+        this.$nextTick(() => {
+          this.createCharts(); // Create charts after fetching data
+        });
       })
       .catch(() => {
         this.loadingData = false;
@@ -209,7 +234,9 @@ export default {
       })
       .then(res => {
         this.dataSource = res.data.data;
-        this.createCharts(); // Recreate charts after data fetch
+        this.$nextTick(() => {
+          this.createCharts(); // Recreate charts after data fetch
+        });
       })
       .catch(err => {
         console.error(err);
