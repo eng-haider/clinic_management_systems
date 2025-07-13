@@ -14,23 +14,24 @@ module.exports = {
   },
 
   css: {
-    extract: true,
+    extract: process.env.NODE_ENV === 'production',
     sourceMap: false,
   },
 
   chainWebpack: config => {
-    // Remove prefetch plugins to improve initial load time
+    // Remove prefetch and preload plugins for better control
     config.plugins.delete('prefetch')
+    config.plugins.delete('preload')
     
     // Configure HTML plugin
     config
       .plugin('html')
       .tap((args) => {
-        args[0].title = 'clinic management system';
+        args[0].title = 'Smart Clinic Management System';
         return args;
       });
     
-    // Simple chunk splitting to avoid conflicts
+    // Enhanced chunk splitting for better caching
     config.optimization.splitChunks({
       chunks: 'all',
       cacheGroups: {
@@ -38,13 +39,35 @@ module.exports = {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendor',
           chunks: 'all',
-          priority: 1
+          priority: 10,
+          reuseExistingChunk: true,
+        },
+        vuetify: {
+          test: /[\\/]node_modules[\\/](vuetify|@mdi)[\\/]/,
+          name: 'vuetify',
+          chunks: 'all',
+          priority: 20,
+          reuseExistingChunk: true,
+        },
+        common: {
+          name: 'common',
+          minChunks: 2,
+          chunks: 'all',
+          priority: 5,
+          reuseExistingChunk: true,
         }
       }
     })
+    
+    // Add cache-loader for better build performance
+    config.module
+      .rule('vue')
+      .use('cache-loader')
+      .loader('cache-loader')
+      .before('vue-loader')
   },
 
-  // Performance optimizations
+  // Enhanced performance optimizations
   configureWebpack: {
     performance: {
       hints: false,
@@ -52,13 +75,28 @@ module.exports = {
       maxAssetSize: 512000
     },
     optimization: {
-      minimize: true,
-      runtimeChunk: 'single'
+      minimize: process.env.NODE_ENV === 'production',
+      runtimeChunk: 'single',
+      splitChunks: {
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      },
+    },
+    resolve: {
+      alias: {
+        'vue$': 'vue/dist/vue.runtime.esm.js'
+      }
     },
     plugins: [
+      // Uncomment to analyze bundle size
       // new BundleAnalyzerPlugin(),
       new VuetifyLoaderPlugin({
-        match (originalTag, { kebabTag, camelTag, path, component }) {
+        match (originalTag, { kebabTag, camelTag }) {
           if (kebabTag.startsWith('core-')) {
             return [
               camelTag,

@@ -518,8 +518,6 @@ fill: #000;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-
-.tooth-context-menu li:hover,
 .tooth-context-menu li:active {
   background-color: rgba(0, 123, 255, 0.1);
 }

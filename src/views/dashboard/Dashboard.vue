@@ -82,6 +82,13 @@ export default {
     this.getAccountsCounts();
   },
   mounted() {
+    // Hide global loading when dashboard is mounted
+    setTimeout(() => {
+      if (window.globalLoading) {
+        window.globalLoading.hide();
+      }
+    }, 1000);
+    
     this.$nextTick(() => {
       this.createCharts(); // Call here if you have initial data
     });

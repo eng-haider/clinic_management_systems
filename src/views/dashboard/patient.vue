@@ -139,7 +139,7 @@
                           <v-text-field
                             v-model="item.price"
                             type="number"
-                            placeholder="0"
+                            placeholder="مبلغ الحالة"
                             suffix="IQ"
                             dense
                             hide-details
@@ -147,6 +147,7 @@
                             @input="updateCasePrice(item)"
                             @click.stop="hideContextMenu()"
                             @focus.stop="hideContextMenu()"
+                            :value="item.price || ''"
                           />
                         </template>
 
@@ -796,7 +797,7 @@ birth_date: ''
         tooth_number: caseData.toothNumber,
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: 0,
+        price: null,
         completed: false,
         notes: '',
         operation_id: caseData.operation.id,
@@ -1350,7 +1351,7 @@ birth_date: ''
           tooth_number: this.selectedTooth,
           case_type: operationName,
           date: new Date().toISOString().substr(0, 10),
-          price: 0,
+          price: null,
           completed: false,
           notes: '',
           operation_id: operation.id,
@@ -1385,7 +1386,7 @@ birth_date: ''
         tooth_number: toothNumber,
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: 0,
+        price: null,
         completed: false,
         notes: '',
         operation_id: operation.id,

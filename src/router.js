@@ -1,29 +1,37 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import store from './store'
+import performanceMonitor from './utils/performanceMonitor'
 
 Vue.use(Router)
 
-// Route component imports with simpler chunk naming
+// Enhanced route components with better caching and preloading
 const routeComponents = {
-  // Auth pages
+  // Auth pages - Critical path, smaller chunks
   Login: () => import(/* webpackChunkName: "auth" */ '@/views/pages/Login'),
   Register: () => import(/* webpackChunkName: "auth" */ '@/views/pages/register'),
   
-  // Layouts
+  // Layouts - High priority
   DashboardLayout: () => import(/* webpackChunkName: "layout" */ '@/views/dashboard/Index'),
   PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
   
-  // Main dashboard views - using simpler chunk names
-  Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard'),
-  CaseSheet: () => import(/* webpackChunkName: "casesheet" */ '@/views/dashboard/casesheet'),
-  Cases: () => import(/* webpackChunkName: "cases" */ '@/views/dashboard/cases'),
+  // Core dashboard views - Optimized chunking
+  Dashboard: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/Dashboard'),
+  CaseSheet: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/casesheet'),
+  Cases: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/cases'),
   Patient: () => import(/* webpackChunkName: "patient" */ '@/views/dashboard/patient'),
-  Calendar: () => import(/* webpackChunkName: "calendar" */ '@/views/dashboard/calendar'),
-  Recipe: () => import(/* webpackChunkName: "recipe" */ '@/views/dashboard/Recipe'),
-  Reports: () => import(/* webpackChunkName: "reports" */ '@/views/dashboard/reports'),
-  Accounts: () => import(/* webpackChunkName: "accounts" */ '@/views/dashboard/accounts'),
-  BillsReport: () => import(/* webpackChunkName: "bills" */ '@/views/dashboard/billsReport'),
+  
+  // Secondary views - Separate chunks
+  Calendar: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/calendar'),
+  Recipe: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/Recipe'),
+  Reports: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/reports'),
+  Accounts: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/accounts'),
+  BillsReport: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/billsReport'),
+  
+  // Administrative views - Separate chunk
+  Doctors: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/doctors'),
+  Profile: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/profile'),
+  Store: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/store'),
   
   // Error pages
   Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
@@ -31,10 +39,14 @@ const routeComponents = {
 
 const router = new Router({
   mode: 'history',
-  scrollBehavior() {
-    return new Promise(resolve => {
-      setTimeout(() => resolve({ x: 0, y: 0 }), 300)
-    })
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return new Promise(resolve => {
+        setTimeout(() => resolve({ x: 0, y: 0 }), 150)
+      })
+    }
   },
   routes: [
     {
@@ -85,17 +97,19 @@ const router = new Router({
         {
           path: 'doctors',
           name: 'doctors',
-          component: () => import('@/views/dashboard/doctors')
+          component: routeComponents.Doctors
         },
         {
           path: 'case/:id',
           name: 'case',
-          component: () => import('@/views/dashboard/casex')
+          component: () => import(/* webpackChunkName: "case-detail" */ '@/views/dashboard/casex'),
+          meta: { keepAlive: true }
         },
         {
           path: 'patient/:id',
           name: 'showCases',
-          component: () => import('@/views/dashboard/patient')
+          component: routeComponents.Patient,
+          meta: { keepAlive: true }
         },
 
   // {
@@ -107,27 +121,27 @@ const router = new Router({
         {
           path: 'recipes',
           name: 'recipes',
-          component: () => import('@/views/dashboard/recipes')
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/recipes')
         },
         {
           path: 'conjugations',
           name: 'conjugations',
-          component: () => import('@/views/dashboard/Conjugations')
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/Conjugations')
         },
         {
           path: 'ConjugationsCategories',
           name:'conjugationsCategories',
-          component: () => import('@/views/dashboard/ConjugationsCategories'),
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/ConjugationsCategories'),
         },
         {
           path: 'xx',
           name: 'XX',
-          component: () => import('@/views/dashboard/xx')
+          component: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/xx')
         },
         {
           path: 'store',
           name: 'store',
-          component: () => import('@/views/dashboard/store')
+          component: routeComponents.Store
         },
         {
           path: 'cases',
@@ -137,44 +151,76 @@ const router = new Router({
         {
           path: 'dashboard',
           name: 'dashboard',
-          component: () => import('@/views/dashboard/Dashboard')
+          component: routeComponents.Dashboard
         },
         {
           path:'requestBooking_test',
           name:'requestBooking_test',
-          component: () => import('@/views/dashboard/requestBooking_test'),
-          
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/requestBooking_test'),
         },
-        
         {
           path: 'profile',
           name: 'Profile',
-          component: () => import('@/views/dashboard/profile')
+          component: routeComponents.Profile
         },
         {
           path: 'birthday',
           name: 'birthday',
-          component: () => import('@/views/dashboard/BirthDay')
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/BirthDay')
         },
         {
           path: 'reports',
           name: 'reports',
-          component: () => import('@/views/dashboard/reports')
+          component: routeComponents.Reports
         },
         {
           path: 'waitinglist',
           name: 'showWaitingList',
-          component: () => import('@/views/dashboard/waitinglist')
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/waitinglist')
         }
       ]
     }
   ]
 })
 
-// Update document title
-router.beforeEach((to, from, next) => {
-  document.title = to.name || 'Smart Clinic'
-  next()
-})
+// Enhanced route guards with global loading
+let routeStartTime = null;
+
+router.beforeEach(async (to, from, next) => {
+  // Start timing route transition
+  routeStartTime = performance.now();
+  performanceMonitor.startTiming(`route-${to.name || to.path}`);
+  
+  // Show global loading for all routes
+  if (window.globalLoading) {
+    window.globalLoading.show();
+  }
+  
+  // Update document title
+  document.title = to.meta?.title || to.name || 'Smart Clinic';
+  
+  next();
+});
+
+router.afterEach((to, from) => {
+  // End timing route transition
+  if (routeStartTime) {
+    const duration = performance.now() - routeStartTime;
+    performanceMonitor.endTiming(`route-${to.name || to.path}`, 'routeTransitions');
+    performanceMonitor.trackRouteTransition(from.name || from.path, to.name || to.path, duration);
+  }
+  
+  // Hide global loading after a short delay to show completion
+  setTimeout(() => {
+    if (window.globalLoading) {
+      window.globalLoading.hide();
+    }
+  }, 800);
+  
+  // Optimize for mobile devices with smooth scrolling
+  if (window.innerWidth <= 768) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
 
 export default router

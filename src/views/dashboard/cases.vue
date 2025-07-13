@@ -360,7 +360,7 @@
     import {
         mask
     } from "vue-the-mask";
-    import Axios from "axios";
+    import axios from "@/axios"; // Use the configured axios instance
     export default {
         directives: {
             mask,
@@ -634,7 +634,7 @@
             },
             getclinicDoctor() {
                 this.loading = true;
-                Axios.get("doctors/clinic", {
+                axios.get("doctors/clinic", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -791,7 +791,7 @@
                 }).then(result => {
                     if (result.value) {
                         this.editedItem.case.bills.splice(index, 1);
-                        Axios.delete("bills/" + id, {
+                        axios.delete("bills/" + id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -852,7 +852,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("cases/" + item.id, {
+                        axios.delete("cases/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1028,7 +1028,7 @@
 
                     return this.initialize()
                 }
-                Axios.get("cases/getByDoctor/" + this.searchDocorId, {
+                axios.get("cases/getByDoctor/" + this.searchDocorId, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -1089,7 +1089,7 @@
 
 
 
-                Axios.get("cases/searchv3?filter[status_id]=" + this.search.status_id +
+                axios.get("cases/searchv3?filter[status_id]=" + this.search.status_id +
                         "&filter[case_categores_id]=" + this.search.case_categores_id +
                         "&filter[sessions.note]=" + this.search.note +
                         '&filter[is_paid]=' + this
@@ -1129,8 +1129,11 @@
 
             initialize() {
                 this.loading = true;
+                this.loadingData = true;
+                
                 if (this.isSearching) return; // Prevent initialize from running if a search is active
-                Axios.get(`cases/UserCasesv2?page=${this.current_page}`, {
+                
+                axios.get(`cases/UserCasesv2?page=${this.current_page}`, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -1141,24 +1144,31 @@
                         this.loading = false;
                         this.loadingData = false;
 
-
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
 
-
                         this.desserts = res.data.data;
 
-
+                        // Complete loading
+                        if (window.globalLoading) {
+                            setTimeout(() => {
+                                window.globalLoading.hide();
+                            }, 500);
+                        }
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingData = false;
+                        
+                        // Hide loading on error
+                        if (window.globalLoading) {
+                            window.globalLoading.hide();
+                        }
                     });
             },
 
             getCaseCategories() {
-
-
-                Axios.get("cases/CaseCategories", {
+                axios.get("cases/CaseCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -1388,6 +1398,14 @@
             selected: function () {
                 return this.getMoreitems();
             }
+        },
+        mounted() {
+            // Hide global loading when component is mounted
+            setTimeout(() => {
+                if (window.globalLoading) {
+                    window.globalLoading.hide();
+                }
+            }, 1000);
         },
         created() {
             this.getCaseCategories();

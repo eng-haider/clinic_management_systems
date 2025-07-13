@@ -1,12 +1,29 @@
 <template>
   <div id="app">
+    <!-- Global Loading Spinner -->
+    <GlobalLoadingSpinner 
+      ref="globalLoadingSpinner"
+      :is-visible="showGlobalLoading"
+    />
+    
+    <!-- Main Router View -->
     <router-view class="nav_phone" />
   </div>
 </template>
 
 <script>
+import GlobalLoadingSpinner from '@/components/GlobalLoadingSpinner.vue'
+
 export default {
   name: 'App',
+  components: {
+    GlobalLoadingSpinner
+  },
+  data() {
+    return {
+      showGlobalLoading: false
+    }
+  },
   async created() {
     // Simple version check without loading states
     this.$router.beforeEach(async (to, from, next) => {
@@ -26,6 +43,22 @@ export default {
       }
       next()
     })
+  },
+  mounted() {
+    // Make global loading system available
+    window.globalLoading = {
+      show: () => {
+        this.showGlobalLoading = true
+      },
+      hide: () => {
+        this.showGlobalLoading = false
+      }
+    }
+  },
+  methods: {
+    hideGlobalLoading() {
+      this.showGlobalLoading = false
+    }
   }
 }
 </script>
