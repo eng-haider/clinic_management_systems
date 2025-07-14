@@ -30,11 +30,11 @@
 
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn fab icon @click="langChang()" v-bind="attrs" v-on="on">
-            <v-icon large color="light-blue darken-1">mdi-translate</v-icon>
+          <v-btn fab icon @click="refreshPageData()" v-bind="attrs" v-on="on">
+            <v-icon large color="light-blue darken-1">mdi-refresh</v-icon>
           </v-btn>
         </template>
-        <span>{{ $t("setting.lang") }}</span>
+        <span>{{ $t("setting.refresh") }}</span>
       </v-tooltip>
       <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition">
         <template v-slot:activator="{ attrs, on }">
@@ -44,36 +44,32 @@
         </template>
 
         <v-list dense>
+          <v-list-item v-for="(item, i) in profile" :key="i" :to="item.to">
+            <v-list-item-icon>
+              <v-icon v-text="item.icon"></v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title v-text="item.text"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
 
-         
-          <v-list-item-group v-model="selectedItem" color="primary">
-            <v-list-item v-for="(item, i) in profile" :key="i" :to="item.to">
-              <v-list-item-icon>
-                <v-icon v-text="item.icon"></v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title v-text="item.text"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+          <v-list-item v-if="linkedAccounts.length > 0" @click="switchAccount()">
+            <v-list-item-icon>
+              <v-icon>mdi-account-switch</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>{{ $t('AppBar.switch_account') }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
 
-            <v-list-item v-if="linkedAccounts.length > 0" @click="switchAccount()">
-              <v-list-item-icon>
-                <v-icon>mdi-account-switch</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ $t('AppBar.switch_account') }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item  @click="logout()">
-              <v-list-item-icon>
-                <v-icon v-text="'mdi-logout'"></v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title v-text="$t('AppBar.sign_out')"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
+          <v-list-item @click="logout()">
+            <v-list-item-icon>
+              <v-icon v-text="'mdi-logout'"></v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title v-text="$t('AppBar.sign_out')"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
 
       </v-menu>
@@ -155,6 +151,20 @@
     },
 
     methods: {
+      refreshPageData() {
+        // Emit event to refresh page data
+        this.$emit('refresh-data');
+        
+        // Clear localStorage cache
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('_cache') || key.includes('cache_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Reload current route to refresh data
+        this.$router.go(0);
+      },
       async fetchLinkedAccounts() {
         try {
           const response = await Axios.get("/users/getLinkedAccounts", {

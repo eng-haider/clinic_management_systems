@@ -116,7 +116,7 @@
         <!-- <avatar-picker v-model="showAvatarPicker" :current-avatar="form.avatar" @selected="selectAvatar">
         </avatar-picker> -->
 
-        <v-dialog v-model="password_Dailog" max-width="550px" height="600px" persistent>
+        <v-dialog v-model="password_Dailog" max-width="550px" height="600px" persistent v-track-dialog>
             <v-card pr-5>
                 <v-form v-model="password_form" ref="password_form">
                     <v-container>

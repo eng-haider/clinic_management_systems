@@ -3,7 +3,7 @@
 
 
 
-    <v-dialog v-model="dialog" max-width="900px">
+    <v-dialog v-model="dialog" max-width="900px" v-track-dialog>
 
       <v-card>
         <billsReport :patient="patient" />
@@ -757,7 +757,7 @@
           this.allItem = true;
 
           console.log('Making search API call with params:', this.search);
-          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -778,7 +778,7 @@
             });
         } else {
           console.log('Making general API call without body...');
-          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2?page=' + this.current_page, {}, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -805,7 +805,7 @@
 
         if (this.is_search) {
           // Send search parameters when searching
-          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
               .search, {
                 headers: {
                   "Content-Type": "application/json",
@@ -830,7 +830,7 @@
             });
         } else {
           // Send empty body when not searching
-          this.axios.post('http://127.0.0.1:8001/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",

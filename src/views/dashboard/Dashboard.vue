@@ -39,12 +39,13 @@
           <canvas id="pie-chart" ref="pieChart"></canvas>
         </v-card>
       </v-flex>
+    </v-layout>
 
-      <!-- <v-flex md-6 sm-6 xs12 pt-4>
-        <v-card>
-          <canvas id="accounts-chart" ref="accountsChart"></canvas>
-        </v-card>
-      </v-flex> -->
+    <!-- Loading Test Component for Testing -->
+    <v-layout row wrap v-if="isDevelopment">
+      <v-flex xs12>
+        <LoadingTestComponent />
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
@@ -69,31 +70,113 @@ export default {
         { text: 'رقم الهاتف', align: "start", value: "user.user_phone" },
         { text: 'الوقت', align: "start", value: "reservation_from_time" }
       ],
-      DashbourdCounts: [],
+      DashbourdCounts: {
+        patients: 0,
+        Casesall: 0,
+        Casescompleted: 0,
+        Casesactive: 0
+      },
       dataSource: [],
       loadingData: false,
-      pieChart: null, // Add this line to store the Pie Chart instance
+      pieChart: null,
+      barChart: null,
+      page: 1,
+      pageCount: 0
     };
   },
-  created() {
-    this.getCase_number_stats();
-    this.getDashbourdCounts();
-    this.getBooking();
-    this.getAccountsCounts();
+  computed: {
+    isDevelopment() {
+      return process.env.NODE_ENV === 'development';
+    }
   },
   mounted() {
-    // Hide global loading when dashboard is mounted
-    setTimeout(() => {
-      if (window.globalLoading) {
-        window.globalLoading.hide();
-      }
-    }, 1000);
-    
+    // Charts will be created automatically after data loads via mixin
     this.$nextTick(() => {
-      this.createCharts(); // Call here if you have initial data
+      if (this.dataSource.length > 0 && this.accounts_statistic.length > 0) {
+        this.createCharts();
+      }
     });
   },
   methods: {
+    // Override loadInitialData from mixin
+    async loadInitialData() {
+      // Load all dashboard data concurrently for better performance
+      await Promise.all([
+        this.loadCaseStats(),
+        this.loadDashboardCounts(),
+        this.loadBookingData(),
+        this.loadAccountsCounts()
+      ]);
+      
+      // Create charts after all data is loaded
+      this.$nextTick(() => {
+        this.createCharts();
+      });
+    },
+
+    async loadCaseStats() {
+      try {
+        const response = await this.axios.get("cases/getCaseCategoriesCounts", {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        this.dataSource = response.data.data;
+      } catch (error) {
+        console.error('Error loading case stats:', error);
+      }
+    },
+
+    async loadDashboardCounts() {
+      try {
+        const response = await this.axios.get("cases/getDashbourdCounts", {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        this.DashbourdCounts = response.data;
+      } catch (error) {
+        console.error('Error loading dashboard counts:', error);
+      }
+    },
+
+    async loadBookingData() {
+      try {
+        const today = new Date();
+        const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        
+        const response = await this.axios.get(`https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${this.$store.state.AdminInfo.tctate_token}`
+          }
+        });
+        this.booking = response.data.data;
+      } catch (error) {
+        console.error('Error loading booking data:', error);
+      }
+    },
+
+    async loadAccountsCounts() {
+      try {
+        const response = await this.axios.get(`/patientsAccounsts/dash?page=1`, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        this.accounts_statistic = response.data;
+      } catch (error) {
+        console.error('Error loading accounts data:', error);
+      }
+    },
+
     createCharts() {
       // Check if canvas elements exist before creating charts
       if (!this.$refs.barChart || !this.$refs.pieChart) {
@@ -116,7 +199,7 @@ export default {
         // Bar Chart
         const ctxBar = this.$refs.barChart.getContext('2d');
         if (this.barChart) {
-          this.barChart.destroy(); // Destroy the existing bar chart if it exists
+          this.barChart.destroy();
         }
         this.barChart = new Chart(ctxBar, {
           type: 'bar',
@@ -142,7 +225,7 @@ export default {
         // Pie Chart for Accounts
         const ctxPie = this.$refs.pieChart.getContext('2d');
         if (this.pieChart) {
-          this.pieChart.destroy(); // Destroy the existing pie chart if it exists
+          this.pieChart.destroy();
         }
         this.pieChart = new Chart(ctxPie, {
           type: 'pie',
@@ -166,112 +249,15 @@ export default {
       } catch (error) {
         console.error('Error creating charts:', error);
       }
-
-      // Another Pie Chart (optional)
-      const ctxAccounts = this.$refs.accountsChart.getContext('2d');
-      if (this.accountsChart) {
-        this.accountsChart.destroy(); // Destroy the existing accounts chart if it exists
-      }
-      this.accountsChart = new Chart(ctxAccounts, {
-        type: 'pie',
-        data: {
-          labels: this.accounts_statistic.map(item => item.name),
-          datasets: [{
-            data: this.accounts_statistic.map(item => item.count),
-            backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            }
-          }
-        }
-      });
-    },
-    getBooking() {
-      const today = new Date();
-      const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-      this.axios.get(`https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.$store.state.AdminInfo.tctate_token}`
-        }
-      })
-      .then(res => {
-        this.loadingData = false;
-        this.booking = res.data.data;
-      })
-      .catch(() => {
-        this.loadingData = false;
-      });
-    },
-    getAccountsCounts() {
-     
-      this.axios.get(`/patientsAccounsts/dash?page=${this.current_page}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
-        }
-      })
-      .then(res => {
-        this.loadingData = false;
-        console.log(res.data); // Log the response data for verification
-        this.accounts_statistic = res.data; // Ensure this matches your data structure
-        this.$nextTick(() => {
-          this.createCharts(); // Create charts after fetching data
-        });
-      })
-      .catch(() => {
-        this.loadingData = false;
-      });
-    },
-    getCase_number_stats() {
-      this.axios.get("cases/getCaseCategoriesCounts", {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
-        }
-      })
-      .then(res => {
-        this.dataSource = res.data.data;
-        this.$nextTick(() => {
-          this.createCharts(); // Recreate charts after data fetch
-        });
-      })
-      .catch(err => {
-        console.error(err);
-      });
-    },
-    getDashbourdCounts() {
-      this.axios.get("cases/getDashbourdCounts", {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
-        }
-      })
-      .then(res => {
-        this.DashbourdCounts = res.data;
-      })
-      .catch(() => {
-        this.loadingData = false;
-      });
-    },
+    }
   }
 };
 </script>
 
 <style scoped>
 canvas {
-  width: 100% !important; /* Ensure canvas takes full width */
-  height: 400px !important; /* Set a fixed height for better visibility */
+  width: 100% !important;
+  height: 400px !important;
 }
 .ma {
   display: flex;

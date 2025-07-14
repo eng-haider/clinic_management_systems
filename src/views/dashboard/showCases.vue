@@ -4,7 +4,7 @@
 
 
 
-        <v-dialog v-model="casesheet" max-width="1200px">
+        <v-dialog v-model="casesheet" max-width="1200px" v-track-dialog>
 
             <cases :doctors="doctors" :editedItem="editedItem" :CaseCategories="CaseCategories"></cases>
         </v-dialog>
@@ -620,7 +620,7 @@ Swal.fire({
 
 
             if (this.editedItem.images.length > 0) {
-                this.imageSource = 'https://apismartclinicv2.tctate.com/public/images/' + this.editedItem.images[0].image_url;
+                this.imageSource = 'https://apismartclinicv3.tctate.com/public/images/' + this.editedItem.images[0].image_url;
             }
 
 

@@ -51,8 +51,8 @@
             class="mr-2" 
             rounded
             style="background-color: rgb(59, 106, 117); color: white;"
-            @click="bookAppointment"
-            :disabled="appointmentDialog"
+            @click="bookAppointment()"
+   
           >
             <v-icon left>mdi-calendar-clock</v-icon>
             حجز موعد
@@ -115,7 +115,8 @@
                         :items="patientCases"
                         class="elevation-1"
                         dense
-                        :items-per-page="5"
+                        hide-default-footer
+                        disable-sort
                         @click="handleDataTableClick"
                       >
                         <!-- Tooth Number Column -->
@@ -303,8 +304,6 @@
             </v-flex>
           </v-layout>
 
-       
-
           <!-- Total Amount -->
           <v-row>
             <v-col cols="12" md="2" class="d-none d-sm-flex"></v-col>
@@ -331,20 +330,85 @@
             <div 
               v-for="bill in patientBills" 
               :key="bill.id"
-              class="bill-payment-item"
+              class="bill-payment-item mb-3"
               :class="{ 
                 'paid': bill.is_paid == 1, 
                 'unpaid': bill.is_paid == 0,
                 'new-bill-highlight': bill.isNew
               }"
             >
-              <v-layout row wrap>
-                <v-flex md2 class="d-none d-sm-flex"></v-flex>
+              <!-- Mobile Layout -->
+              <div class="d-flex d-sm-none flex-column mobile-bill-layout">
+                <!-- User Info at the top -->
+                <div class="mobile-user-info-header mb-3">
+                  <v-icon size="14" class="mr-1">mdi-account</v-icon>
+                  <span class="grey--text text--darken-1 font-weight-medium">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
+                </div>
+
+                <!-- Payment Amount -->
+                <div class="mobile-field-container mb-2">
+                  <v-text-field
+                    v-model="bill.price"
+                    label="مبلغ الدفعة"
+                    suffix="IQ"
+                    type="number"
+                    outlined
+                    dense
+                    @input="updateBillPrice(bill)"
+                  />
+                </div>
+
+                <!-- Payment Date and Status Row -->
+                <div class="d-flex mobile-date-status-row mb-2">
+                  <div class="flex-grow-1 mr-2">
+                    <v-text-field
+                      v-model="bill.PaymentDate"
+                      label="التاريخ"
+                      type="date"
+                      outlined
+                      dense
+                      @input="updateBillDate(bill)"
+                    >
+                      <template v-slot:prepend>
+                        <v-icon>mdi-calendar</v-icon>
+                      </template>
+                    </v-text-field>
+                  </div>
+                  
+                  <div class="mobile-status-container">
+                    <v-switch
+                      :input-value="bill.is_paid == 1"
+                      :disabled="!canChangePaymentStatus"
+                      inset
+                      dense
+                      @change="toggleBillPaymentStatus(bill)"
+                    />
+                    <div class="mobile-status-label">
+                      {{ bill.is_paid == 1 ? 'مدفوع' : 'غير مدفوع' }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Delete Button -->
+                <div class="mobile-actions text-center" >
+                  <v-btn
+                    icon
+                    small
+                    color="error"
+                    @click="deleteBill(bill)"
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Desktop Layout -->
+              <v-layout row wrap class="d-none d-sm-flex">
+                <v-flex md2 class="d-none d-md-flex"></v-flex>
                 
                 <!-- Payment Amount -->
-                <v-flex md4 xs4>
+                <v-flex md3 sm4>
                   <v-text-field
-                    v-if="bill.isNew"
                     v-model="bill.price"
                     label="مبلغ الدفعة"
                     suffix="IQ"
@@ -353,44 +417,20 @@
                     dense
                     @input="updateBillPrice(bill)"
                   />
-                  <v-text-field
-                    v-else
-                    v-model="bill.price"
-                    label="مبلغ الدفعة"
-                    suffix="IQ"
-                    type="number"
-                    outlined
-                    dense
-               
-                    @input="updateBillPrice(bill)"
-                  />
-                 <span style="position: relative;
-    bottom: 20px;" class="grey--text text--darken-1">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
+                  <div class="desktop-user-info">
+                    <v-icon size="12" class="mr-1">mdi-account</v-icon>
+                    <span class="grey--text text--darken-1">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
+                  </div>
                 </v-flex>
 
                 <!-- Payment Date -->
-                <v-flex md3 xs4>
+                <v-flex md3 sm4>
                   <v-text-field
-                    v-if="bill.isNew"
                     v-model="bill.PaymentDate"
                     label="التاريخ"
                     type="date"
                     outlined
                     dense
-                    @input="updateBillDate(bill)"
-                  >
-                    <template v-slot:prepend>
-                      <v-icon>mdi-calendar</v-icon>
-                    </template>
-                  </v-text-field>
-                  <v-text-field
-                    v-else
-                    v-model="bill.PaymentDate"
-                    label="التاريخ"
-                    type="date"
-                    outlined
-                    dense
-                   
                     @input="updateBillDate(bill)"
                   >
                     <template v-slot:prepend>
@@ -400,7 +440,7 @@
                 </v-flex>
 
                 <!-- Payment Status -->
-                <v-flex md2 xs2 class="mt-2 text-center">
+                <v-flex md2 sm3 class="mt-2 text-center">
                   <v-switch
                     :input-value="bill.is_paid == 1"
                     :disabled="!canChangePaymentStatus"
@@ -408,22 +448,28 @@
                     style="position: relative; padding-right: 10px; bottom: 21px;"
                     @change="toggleBillPaymentStatus(bill)"
                   />
-                  <div class="caption text-center payment-status-label grey--text" style="    position: relative;
-    bottom: 37px;
-    left: 71px;
-">
+                  <div class="caption text-center payment-status-label grey--text desktop-status-positioning">
                     {{ bill.is_paid == 1 ? 'مدفوع' : 'بانتظار التسديد' }}
                   </div>
                 </v-flex>
 
-             
+                <!-- Delete Button -->
+                <v-flex md1 sm1 class="text-center">
+                  <v-btn
+                    icon
+                    color="error"
                 
-                <v-flex md1 class="d-none d-sm-flex"></v-flex>
+                    @click="deleteBill(bill)"
+                    class="delete-bill-btn"
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </v-flex>
+                
+                <v-flex md1 class="d-none d-md-flex"></v-flex>
               </v-layout>
             </div>
           </div>
-
-        
 
           <!-- Add Bill Button -->
           <div class="v-card__actions justify-center" v-if="canAddBills">
@@ -498,20 +544,21 @@
       :hide-activator="true"
     />
 
-      <div v-if="appointmentDialog && doctors.length > 0">
-            <OwnerBooking 
+    <!-- Appointment Booking Dialog -->
+    <OwnerBooking 
+  
               :patientFound="true" 
               :patientInfo="patientInfo" 
-              :doctors="doctors" 
+              :doctors="doctors"
+              v-if="appointmentDialog"
             />
-      </div>
 
-      <!-- Bill Report Dialog -->
-      <v-dialog v-model="billDialog" max-width="900px">
-        <v-card>
-          <Bill :patient="{ ...patient, bills: patientBills }" />
-        </v-card>
-      </v-dialog>
+    <!-- Bill Report Dialog -->
+    <v-dialog v-model="billDialog" max-width="900px" v-track-dialog>
+      <v-card>
+        <Bill :patient="{ ...patient, bills: patientBills }" />
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -541,6 +588,7 @@ export default {
   data() {
     return {
       saving: false,
+      loadingDoctors: false,
       
       // Patient Data (will be loaded from API)
       patient: {
@@ -630,7 +678,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv2.tctate.com/api/cases/uploude_image",
+        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -778,6 +826,10 @@ birth_date: ''
   },
   
   methods: {
+       generateBill() {
+      this.billDialog = true;
+    },
+
     // Handle case added from teeth component
     handleCaseAdded(caseData) {
       console.log('Case added from teeth component:', caseData);
@@ -871,47 +923,47 @@ birth_date: ''
   },
 
     // Fetch doctors from API
-    // async fetchDoctors() {
-    //   try {
-    //     this.loadingSubMessage = 'تحميل قائمة الأطباء...';
+    async fetchDoctors() {
+      try {
+        this.loadingDoctors = true;
+        console.log('👨‍⚕️ Fetching doctors...');
         
-    //     // Add timeout to prevent hanging
-    //     const timeoutPromise = new Promise((_, reject) => {
-    //       setTimeout(() => reject(new Error('Doctors request timeout')), 10000); // 10 seconds timeout
-    //     });
-
-    //     const response = await Promise.race([
-    //       this.$http.get('doctors', {
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //           Accept: "application/json",
-    //           Authorization: "Bearer " + this.$store.state.AdminInfo.token
-    //         }
-    //       }),
-    //       timeoutPromise
-    //     ]);
+        const response = await this.$http.get('doctors/clinic', {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        });
         
-    //     this.doctors = response.data.map(doctor => ({
-    //       id: doctor.id,
-    //       name: doctor.name,
-    //       name_ar: doctor.name_ar || doctor.name,
-    //       specialty: doctor.specialty,
-    //       phone: doctor.phone,
-    //       email: doctor.email
-    //     }));
+        this.doctors = response.data.data.map(doctor => ({
+          id: doctor.id,
+          name: doctor.name,
+          name_ar: doctor.name_ar || doctor.name,
+          specialty: doctor.specialty,
+          phone: doctor.phone,
+          email: doctor.email
+        }));
         
-    //     console.log('📥 Fetched doctors:', this.doctors.length);
-    //   } catch (error) {
-    //     console.error('❌ Error fetching doctors:', error);
+        console.log('👨‍⚕️ Doctors loaded:', this.doctors.length);
+        this.loadingDoctors = false;
+      } catch (error) {
+        console.error('❌ Error fetching doctors:', error);
+        this.loadingDoctors = false;
         
-    //     // Fallback to default doctor if API fails
-    //     this.doctors = [
-    //       { id: 1, name: 'طبيب افتراضي', name_ar: 'طبيب افتراضي' }
-    //     ];
-    //   }
-    // },
+        // Fallback to default doctor if API fails
+        this.doctors = [
+          { id: 1, name: 'طبيب افتراضي', name_ar: 'طبيب افتراضي' }
+        ];
+      }
+    },
 
     // Load patient data from API
+    // Override loadInitialData from mixin
+    async loadInitialData() {
+      await this.loadPatientData();
+    },
+
     async loadPatientData() {
       try {
         console.log('🔄 Starting loadPatientData...');
@@ -935,21 +987,13 @@ birth_date: ''
         // Load patient data using the new API endpoint
         console.log('📡 Making API request to get patient data...');
         
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Request timeout')), 30000); // 30 seconds timeout
+        const response = await this.$http.get(`https://apismartclinicv4.tctate.com/api/getPatientById/${patientId}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + token
+          }
         });
-
-        const response = await Promise.race([
-          this.$http.get(`https://apismartclinicv4.tctate.com/api/getPatientById/${patientId}`, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + token
-            }
-          }),
-          timeoutPromise
-        ]);
 
         console.log('📡 API response received:', response.status);
         const data = response.data;
@@ -961,7 +1005,6 @@ birth_date: ''
           id: data.id,
           name: data.name,
           phone: data.phone,
-       
           age: data.age,
           address: data.address,
           email: data.email,
@@ -1035,7 +1078,13 @@ birth_date: ''
           await this.fetchDentalOperations();
         } catch (error) {
           console.error('❌ Failed to load dental operations:', error);
-          // Continue with fallback data
+        }
+
+        // Load doctors for appointment booking
+        try {
+          await this.fetchDoctors();
+        } catch (error) {
+          console.error('❌ Failed to load doctors:', error);
         }
 
         console.log('✅ Patient data loaded successfully');
@@ -1539,13 +1588,7 @@ birth_date: ''
       // Optimistically update the UI
       this.$forceUpdate();
       
-      // Show success message
-      this.$swal.fire({
-        title: "نجاح",
-        text: "تمت إضافة دفعة جديدة",
-        icon: "success",
-        confirmButtonText: "موافق"
-      });
+
     },
     
     // Update bill price
@@ -1783,14 +1826,15 @@ birth_date: ''
     
     // Book appointment  
     bookAppointment() {
-      this.appointmentDialog = true;
+     
+        this.appointmentDialog = true;
     },
-    
-    // Generate bill
-    generateBill() {
-      this.billDialog = true;
+
+    // Close appointment dialog
+    closeAppointmentDialog() {
+      this.appointmentDialog = false;
     },
-    
+
     // Save patient edit
     savePatientEdit(data) {
       console.log('Saving patient edit:', data);
@@ -1898,6 +1942,21 @@ birth_date: ''
         this.billDialog = false;
       });
       
+      // Listen for appointment booking events
+      EventBus.$on('appointmentBooked', () => {
+        this.appointmentDialog = false;
+        this.$swal.fire({
+          title: "نجاح",
+          text: "تم حجز الموعد بنجاح",
+          icon: "success",
+          confirmButtonText: "موافق"
+        });
+      });
+
+      EventBus.$on('appointmentCancelled', () => {
+        this.appointmentDialog = false;
+      });
+      
       // Load patient data and dental operations
       await this.loadPatientData();
       
@@ -1956,6 +2015,10 @@ birth_date: ''
       EventBus.$off('rightClickTooth', this.handleToothRightClick);
       EventBus.$off('billsReportclose');
       
+      // Clean up appointment booking event listeners
+      EventBus.$off('appointmentBooked');
+      EventBus.$off('appointmentCancelled');
+
       // Remove global document event listeners
       document.removeEventListener('click', this.hideContextMenu);
       
@@ -2085,5 +2148,48 @@ birth_date: ''
 
 .case-title {
   font-family: Cairo, sans-serif !important;
+}
+
+/* Mobile-specific styles for billing section */
+.mobile-bill-layout {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.mobile-user-info-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 3px solid #1976d2;
+}
+
+.mobile-field-container {
+  position: relative;
+}
+
+.mobile-user-info {
+  position: absolute;
+  bottom: -18px;
+  right: 0;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-actions {
+  margin-top: 8px;
+}
+
+/* Override styles for desktop layout within billing section */
+@media (min-width: 600px) {
+  .desktop-status-positioning {
+    position: relative;
+    bottom: 0;
+    left: 0;
+  }
 }
 </style>

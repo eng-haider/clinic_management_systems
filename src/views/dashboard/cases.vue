@@ -3,7 +3,7 @@
     <div>
 
 
-        <v-dialog v-model="casesheet" max-width="1200px">
+        <v-dialog v-model="casesheet" max-width="1200px" v-track-dialog>
 
             <cases :doctors="doctors" :editedItem="editedItem" :CaseCategories="CaseCategoriess"></cases>
         </v-dialog>
@@ -40,16 +40,33 @@
 
 
                         <v-flex xs12 md1 sm2 pr-4>
-
-                            <v-select dense v-model="search.case_categores_id" :label="$t('type')" clearable
-                                :items="CaseCategories" outlined item-text="name_ar" item-value="id"></v-select>
+                            <v-select 
+                                dense 
+                                v-model="search.case_categores_id" 
+                                :label="$t('type')" 
+                                clearable
+                                :items="CaseCategories" 
+                                outlined 
+                                item-text="name_ar" 
+                                item-value="id"
+                                :loading="loadingCategories"
+                                :disabled="loadingCategories"
+                            ></v-select>
                         </v-flex>
 
-
                         <v-flex xs12 md1 sm2 pr-4>
-
-                            <v-select dense v-model="search.status_id" :label="$t('status')" clearable :items="status"
-                                outlined item-text="name" item-value="id"></v-select>
+                            <v-select 
+                                dense 
+                                v-model="search.status_id" 
+                                :label="$t('status')" 
+                                clearable 
+                                :items="status"
+                                outlined 
+                                item-text="name" 
+                                item-value="id"
+                                :loading="loadingSearch"
+                                :disabled="loadingSearch"
+                            ></v-select>
                         </v-flex>
 
 <!-- 
@@ -106,20 +123,41 @@
 
                         <v-flex xs11 md2 sm2 pr-4
                             v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors')  && doctorsAll.length>2">
-                            <v-select dense v-model="search.doctors" :label="$t('doctor')" :items="doctorsAll" outlined
-                                item-text="name" item-value="id">
+                            <v-select 
+                                dense 
+                                v-model="search.doctors" 
+                                :label="$t('doctor')" 
+                                :items="doctorsAll" 
+                                outlined
+                                item-text="name" 
+                                item-value="id"
+                                :loading="loadingDoctors"
+                                :disabled="loadingDoctors"
+                            >
                             </v-select>
                         </v-flex>
 
                         <v-flex xs3 md1 sm1 pr-4>
-                            <v-btn color="green" style="color:#fff"
-                                @click="page=1;current_page=1;pageCount=0;seachs();">{{ $t("search") }}</v-btn>
+                            <v-btn 
+                                color="green" 
+                                style="color:#fff"
+                                @click="page=1;current_page=1;pageCount=0;seachs();"
+                                :loading="loadingSearch"
+                                :disabled="isLoading"
+                            >
+                                {{ $t("search") }}
+                            </v-btn>
                         </v-flex>
 
-
-
                         <v-flex xs3 md1 sm1 pr-4>
-                            <v-btn color="blue" v-if="allItem" style="color:#fff;" @click="searchCansle()">
+                            <v-btn 
+                                color="blue" 
+                                v-if="allItem" 
+                                style="color:#fff;" 
+                                @click="searchCansle()"
+                                :loading="loadingData"
+                                :disabled="isLoading"
+                            >
                                 {{ $t("cancel_search") }}
                             </v-btn>
                         </v-flex>
@@ -325,7 +363,13 @@
                         @change="() => toggleStatus(item)" color="green" inset></v-switch>
                 </template>
                 <template v-slot:no-data>
-                    <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
+                    <div v-if="loadingData" class="text-center pa-4">
+                        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                        <div class="mt-2">{{ $t("loading") }}</div>
+                    </div>
+                    <div v-else class="text-center pa-4">
+                        <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
+                    </div>
                 </template>
             </v-data-table>
 
@@ -374,6 +418,25 @@
         data() {
             return {
 
+                // Cache configuration
+                cacheConfig: {
+                    cases: {
+                        key: 'cases_cache',
+                        ttl: 5 * 60 * 1000, // 5 minutes
+                    },
+                    doctors: {
+                        key: 'doctors_cache',
+                        ttl: 30 * 60 * 1000, // 30 minutes
+                    },
+                    caseCategories: {
+                        key: 'case_categories_cache',
+                        ttl: 60 * 60 * 1000, // 1 hour
+                    },
+                    search: {
+                        key: 'search_cases_cache',
+                        ttl: 10 * 60 * 1000, // 10 minutes
+                    }
+                },
 
                 status: [{
                         'id': 42,
@@ -420,6 +483,9 @@
                 menu3: false,
                 patientInfo: {},
                 loadingData: true,
+                loadingSearch: false,
+                loadingCategories: false,
+                loadingDoctors: false,
 
                 allItem: false,
                 RecipeInfo: {},
@@ -560,22 +626,64 @@
 
 
         methods: {
-            searchCansle() {
-                this.search = {
-                    case_categores_id: null,
-                    status_id: '',
-                    is_paid: '',
-                    doctors: '',
-                    from_date: "",
-                    to_date: "",
+            // Cache management methods
+            setCache(key, data, ttl = 5 * 60 * 1000) {
+                const cacheItem = {
+                    data: data,
+                    timestamp: Date.now(),
+                    ttl: ttl
+                };
+                try {
+                    localStorage.setItem(key, JSON.stringify(cacheItem));
+                } catch (error) {
+                    console.warn('Failed to set cache:', error);
                 }
-
-                this.initialize();
-                this.allItem = false;
-                this.isSearching = false;
-
-
             },
+
+            getCache(key) {
+                try {
+                    const cached = localStorage.getItem(key);
+                    if (!cached) return null;
+
+                    const cacheItem = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    // Check if cache is expired
+                    if (now - cacheItem.timestamp > cacheItem.ttl) {
+                        localStorage.removeItem(key);
+                        return null;
+                    }
+                    
+                    return cacheItem.data;
+                } catch (error) {
+                    console.warn('Failed to get cache:', error);
+                    return null;
+                }
+            },
+
+            clearCache(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (error) {
+                    console.warn('Failed to clear cache:', error);
+                }
+            },
+
+            clearAllCache() {
+                Object.values(this.cacheConfig).forEach(config => {
+                    this.clearCache(config.key);
+                });
+            },
+
+            // Generate cache key for paginated data
+            generateCacheKey(baseKey, page, searchParams = {}) {
+                const searchString = Object.keys(searchParams)
+                    .sort()
+                    .map(key => `${key}:${searchParams[key]}`)
+                    .join('|');
+                return `${baseKey}_p${page}_${searchString}`;
+            },
+
             toggleStatus(item) {
                 // Toggle item status between 42 and 43
                 item.status.id = item.status.id === 43 ? 42 : 43;
@@ -596,7 +704,14 @@
                     })
                     .then((response) => {
                         response
-                        this.initialize(); // Refresh data if needed
+                        // Clear cache when status changes
+                        this.clearCache(this.cacheConfig.cases.key);
+                        Object.keys(localStorage).forEach(key => {
+                            if (key.includes('cases_cache') || key.includes('search_cases_cache')) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+                        this.initialize();
                     })
                     .catch((error) => {
                         error
@@ -633,6 +748,19 @@
                 }
             },
             getclinicDoctor() {
+                this.loadingDoctors = true;
+                
+                const cached = this.getCache(this.cacheConfig.doctors.key);
+                if (cached) {
+                    this.loadingData = false;
+                    this.loading = false;
+                    this.loadingDoctors = false;
+                    this.doctors = cached.doctors;
+                    this.doctorsAll = cached.doctorsAll;
+                    this.doctorsIdsAll = cached.doctorsIdsAll;
+                    return;
+                }
+
                 this.loading = true;
                 axios.get("doctors/clinic", {
                         headers: {
@@ -644,8 +772,8 @@
                     .then(res => {
                         this.loadingData = false;
                         this.loading = false;
+                        this.loadingDoctors = false;
                         this.doctors = res.data.data;
-
 
                         this.doctorsAll.push({
                             id: 0,
@@ -655,14 +783,30 @@
                             index
                             this.doctorsAll.push(item)
                             this.doctorsIdsAll.push(item.id)
-                        })
+                        });
 
-
-
-
+                        // Cache the response
+                        this.setCache(this.cacheConfig.doctors.key, {
+                            doctors: this.doctors,
+                            doctorsAll: this.doctorsAll,
+                            doctorsIdsAll: this.doctorsIdsAll
+                        }, this.cacheConfig.doctors.ttl);
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingDoctors = false;
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(this.cacheConfig.doctors.key);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.doctors = data.doctors;
+                                this.doctorsAll = data.doctorsAll;
+                                this.doctorsIdsAll = data.doctorsIdsAll;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
                     });
             },
             sumPaybills(bills) {
@@ -860,6 +1004,13 @@
                                 }
                             })
                             .then(() => {
+                                // Clear cache after deletion
+                                this.clearCache(this.cacheConfig.cases.key);
+                                Object.keys(localStorage).forEach(key => {
+                                    if (key.includes('cases_cache') || key.includes('search_cases_cache')) {
+                                        localStorage.removeItem(key);
+                                    }
+                                });
 
                                 this.$swal.fire({
                                     position: "top-end",
@@ -918,7 +1069,7 @@
 
                 }
                 if (this.editedItem.images.length > 0) {
-                    this.imageSource = 'https://apismartclinicv2.tctate.com/public/images/' + this.editedItem.images[0]
+                    this.imageSource = 'https://apismartclinicv3.tctate.com/public/images/' + this.editedItem.images[0]
                         .image_url;
 
                 }
@@ -988,11 +1139,9 @@
                             PaymentDate: ''
                         }],
                         images: [{
-                                img: '',
-                                descrption: ''
-                            }
-
-                        ],
+                            img: '',
+                            descrption: ''
+                        }],
                         notes: ""
                     }
                 };
@@ -1050,8 +1199,9 @@
             },
 
             seachs() {
-
-                this.isSearching = true; // Set the flag to true when search is active
+                this.isSearching = true;
+                this.loadingSearch = true;
+                this.loadingData = true;
 
                 if (this.search.case_categores_id !== null && this.search.case_categores_id == 0) {
                     this.search.case_categores_id = '';
@@ -1087,17 +1237,37 @@
                     this.search.doctors = this.doctorsIdsAll;
                 }
 
-
+                // Generate cache key for search
+                const searchParams = {
+                    status_id: this.search.status_id,
+                    case_categores_id: this.search.case_categores_id,
+                    note: this.search.note,
+                    is_paid: this.search.is_paid,
+                    doctors: this.search.doctors,
+                    from_date: this.search.from_date,
+                    to_date: this.search.to_date
+                };
+                const cacheKey = this.generateCacheKey(this.cacheConfig.search.key, this.current_page, searchParams);
+                
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loading = false;
+                    this.loadingSearch = false;
+                    this.loadingData = false;
+                    this.allItem = true;
+                    this.desserts = cached.data;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    return;
+                }
 
                 axios.get("cases/searchv3?filter[status_id]=" + this.search.status_id +
                         "&filter[case_categores_id]=" + this.search.case_categores_id +
                         "&filter[sessions.note]=" + this.search.note +
-                        '&filter[is_paid]=' + this
-                        .search.is_paid + '&doctors=' + this
-                        .search.doctors +
+                        '&filter[is_paid]=' + this.search.is_paid + 
+                        '&doctors=' + this.search.doctors +
                         "&from_date=" + this.search.from_date +
                         "&to_date=" + this.search.to_date +
-
                         '&page=' + this.current_page, {
                             headers: {
                                 "Content-Type": "application/json",
@@ -1107,31 +1277,220 @@
                         })
                     .then(res => {
                         this.loading = false;
-                        //this.search = null;
+                        this.loadingSearch = false;
+                        this.loadingData = false;
                         this.allItem = true;
-                        // this.desserts = res.data.data;
                         this.desserts = res.data.data;
                         this.last_page = res.data.last_page;
                         this.pageCount = res.data.last_page;
 
-
-
-
-
-
-
-
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.last_page
+                        }, this.cacheConfig.search.ttl);
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingSearch = false;
+                        this.loadingData = false;
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(cacheKey);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.desserts = data.data;
+                                this.last_page = data.last_page;
+                                this.pageCount = data.last_page;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
                     });
+            },
+
+            getCaseCategories() {
+                this.loadingCategories = true;
+                
+                const cached = this.getCache(this.cacheConfig.caseCategories.key);
+                if (cached) {
+                    this.loading = false;
+                    this.loadingCategories = false;
+                    this.CaseCategoriess = cached.CaseCategoriess;
+                    this.CaseCategories = cached.CaseCategories;
+                    return;
+                }
+
+                axios.get("cases/CaseCategories", {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(res => {
+                        this.loading = false;
+                        this.loadingCategories = false;
+                        this.CaseCategoriess = res.data;
+                        this.CaseCategories = []; // Clear existing categories
+
+                        this.CaseCategories.push({
+                            id: 0,
+                            name_ar: this.$t('all'),
+                            name_en: '',
+                            updated_at: '2022-02-02T12:20:30.000000Z'
+                        });
+                        
+                        for (var i = 0; i < this.CaseCategoriess.length; i++) {
+                            this.CaseCategories.push({
+                                id: this.CaseCategoriess[i].id,
+                                name_ar: this.CaseCategoriess[i].name_ar,
+                                name_en: this.CaseCategoriess[i].name_en || '',
+                                updated_at: this.CaseCategoriess[i].updated_at
+                            });
+                        }
+
+                        // Cache the response
+                        this.setCache(this.cacheConfig.caseCategories.key, {
+                            CaseCategoriess: this.CaseCategoriess,
+                            CaseCategories: this.CaseCategories
+                        }, this.cacheConfig.caseCategories.ttl);
+
+                        console.log('Case Categories loaded:', this.CaseCategories);
+                    })
+                    .catch((error) => {
+                        console.error('Error loading case categories:', error);
+                        this.loading = false;
+                        this.loadingCategories = false;
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.CaseCategoriess = data.CaseCategoriess || [];
+                                this.CaseCategories = data.CaseCategories || [];
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
+                    });
+            },
+
+            getDectors() {
+                // Add current user as doctor if not already present
+                const currentUser = this.$store.state.AdminInfo;
+                if (currentUser && currentUser.id) {
+                    const existingDoctor = this.doctors.find(doctor => doctor.id === currentUser.id);
+                    if (!existingDoctor) {
+                        this.doctors.push({
+                            'id': currentUser.id,
+                            'name': currentUser.name
+                        });
+                    }
+                }
+            },
+
+            SaveCase(id) {
+                if (this.editedIndex > -1 && this.editedItem.case.id !== undefined) {
+                    this.axios
+                        .patch("cases/" + this.editedItem.case.id, this.editedItem.case, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                            },
+                        })
+                        .then(() => {
+                            this.loadSave = false;
+                            this.close();
+
+                            // Clear cache after update
+                            this.clearCache(this.cacheConfig.cases.key);
+                            Object.keys(localStorage).forEach(key => {
+                                if (key.includes('cases_cache') || key.includes('search_cases_cache')) {
+                                    localStorage.removeItem(key);
+                                }
+                            });
+
+                            this.initialize();
+
+                            this.$swal.fire({
+                                title: this.$t('updated'),
+                                text: "",
+                                icon: "success",
+                            });
+                        })
+                        .catch(() => {
+                            this.loadSave = false;
+
+                            this.$swal.fire({
+                                title: this.$t('fill_information'),
+                                text: "",
+                                icon: "error",
+                                confirmButtonText: this.$t('close'),
+                            });
+                        });
+                } else {
+                    this.editedItem.case.patient_id = id;
+                    this.axios
+                        .post("cases", this.editedItem.case, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                            },
+                        })
+                        .then(() => {
+                            this.loadSave = false;
+
+                            // Clear cache after creation
+                            this.clearCache(this.cacheConfig.cases.key);
+                            Object.keys(localStorage).forEach(key => {
+                                if (key.includes('cases_cache') || key.includes('search_cases_cache')) {
+                                    localStorage.removeItem(key);
+                                }
+                            });
+
+                            this.initialize();
+                            this.editedIndex = -1;
+                            this.close();
+                            this.$swal.fire({
+                                title: this.$t('Added'),
+                                text: "",
+                                icon: "success",
+                            });
+                        })
+                        .catch((err) => {
+                            err
+                            this.loadSave = false;
+                        });
+                }
             },
 
             initialize() {
                 this.loading = true;
                 this.loadingData = true;
                 
-                if (this.isSearching) return; // Prevent initialize from running if a search is active
+                if (this.isSearching) return;
+                
+                // Generate cache key for current page
+                const cacheKey = this.generateCacheKey(this.cacheConfig.cases.key, this.current_page);
+                
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loading = false;
+                    this.loadingData = false;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    this.desserts = cached.data;
+                    
+                    if (window.globalLoading) {
+                        setTimeout(() => {
+                            window.globalLoading.hide();
+                        }, 500);
+                    }
+                    return;
+                }
                 
                 axios.get(`cases/UserCasesv2?page=${this.current_page}`, {
                         headers: {
@@ -1146,10 +1505,14 @@
 
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
-
                         this.desserts = res.data.data;
 
-                        // Complete loading
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.meta.last_page
+                        }, this.cacheConfig.cases.ttl);
+
                         if (window.globalLoading) {
                             setTimeout(() => {
                                 window.globalLoading.hide();
@@ -1160,137 +1523,53 @@
                         this.loading = false;
                         this.loadingData = false;
                         
-                        // Hide loading on error
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(cacheKey);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.desserts = data.data;
+                                this.last_page = data.last_page;
+                                this.pageCount = data.last_page;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
+                        
                         if (window.globalLoading) {
                             window.globalLoading.hide();
                         }
                     });
             },
 
-            getCaseCategories() {
-                axios.get("cases/CaseCategories", {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                        }
-                    })
-                    .then(res => {
-                        this.loading = false;
-                        //  this.CaseCategories
-                        this.CaseCategoriess = res.data;
-                        this.CaseCategoriess = res.data;
-
-                        this.CaseCategories.push({
-                            id: 0,
-                            name_ar: this.$t('all'),
-                            name_en: '',
-                            updated_at: '2022-02-02T12:20:30.000000Z'
-                        })
-                        for (var i = 0; i < this.CaseCategoriess.length; i++) {
-                            this.CaseCategories.push({
-                                id: this.CaseCategoriess[i].id,
-                                name_ar: this.CaseCategoriess[i].name_ar,
-                                name_en: '',
-                                updated_at: this.CaseCategoriess[i].updated_at
-                            })
-                        }
-
-                        console.log(this.CaseCategories);
-
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
-
-            },
-
-
-
-            SaveCase(id) {
-
-
-                if (this.editedIndex > -1 && this.editedItem.case.id !== undefined) {
-
-
-                    this.axios
-                        .patch("cases/" + this.editedItem.case.id, this.editedItem.case, {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Accept: "application/json",
-                                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                            },
-                        })
-                        .then(() => {
-                            this.loadSave = false;
-                            this.close();
-                            this.initialize();
-
-                            this.$swal.fire({
-                                title: this.$t('updated'),
-                                text: "",
-                                icon: "success",
-
-                            });
-                        })
-                        .catch(() => {
-                            this.loadSave = false;
-
-                            this.$swal.fire({
-                                title: this.$t('fill_information'),
-                                text: "",
-                                icon: "error",
-                                confirmButtonText: this.$t('close'),
-                            });
-                        });
-                } else {
-
-                    this.editedItem.case.patient_id = id;
-                    // alert( this.editedItem.case.patient_id);
-                    this.axios
-                        .post("cases", this.editedItem.case, {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Accept: "application/json",
-                                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                            },
-                        })
-                        .then(() => {
-
-
-                            //cases
-                            this.loadSave = false;
-                            this.initialize();
-                            this.editedIndex = -1;
-                            this.close();
-                            this.$swal.fire({
-                                title: this.$t('Added'),
-                                text: "",
-                                icon: "success",
-
-                            });
-                        })
-                        .catch((err) => {
-                            err
-
-                            this.loadSave = false;
-
-                        });
+            searchCansle() {
+                this.loadingData = true;
+                this.search = {
+                    case_categores_id: null,
+                    status_id: '',
+                    is_paid: '',
+                    doctors: '',
+                    from_date: "",
+                    to_date: "",
+                    note: ""
                 }
 
+                // Clear search cache
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('search_cases_cache')) {
+                        localStorage.removeItem(key);
+                    }
+                });
 
+                this.initialize();
+                this.allItem = false;
+                this.isSearching = false;
             },
 
-
-
-
-
             save() {
-
-                if (this.$refs.form.validate()) {
+                if (this.$refs.form && this.$refs.form.validate()) {
                     this.loadSave = true;
                     if (this.editedIndex > -1) {
-
                         this.axios
                             .patch("patients/" + this.editedItem.id, this.editedItem, {
                                 headers: {
@@ -1301,8 +1580,6 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                /// this.casesheet = true;
-
                                 this.SaveCase();
                                 this.initialize();
                                 this.close();
@@ -1315,7 +1592,6 @@
                             })
                             .catch(() => {
                                 this.loadSave = false;
-
                                 this.$swal.fire({
                                     title: this.$t('fill_information'),
                                     text: "",
@@ -1324,7 +1600,6 @@
                                 });
                             });
                     } else {
-
                         this.axios
                             .post("patients", this.editedItem, {
                                 headers: {
@@ -1334,71 +1609,48 @@
                                 },
                             })
                             .then((res) => {
-                                res
-
                                 this.$swal.fire({
                                     title: this.$t('Added'),
                                     text: "",
                                     icon: "success",
-
                                 });
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,
-                                    this.initialize();
+                                this.initialize();
                                 this.addCase(this.patientInfo);
-
-
-
                             })
                             .catch((err) => {
                                 err
-
                                 this.loadSave = false;
-
                             });
                     }
                 }
-
             },
-            getDectors() {
-                // this.doctors.push({
-                //     'id': this.$store.state.AdminInfo.id,
-                //     'name': this.$store.state.AdminInfo.name
 
-                // })
-            }
-
+            // ...existing code...
         },
+
         watch: {
-            'item.status.id'(newVal) {
-                // Keep `switchState` in sync if `item.status.id` changes elsewhere in the app
-                this.switchState = newVal === 43;
-            },
-            selected: 'search by sub_cat_id',
-
+            page(newPage) {
+                this.current_page = newPage;
+                this.getMoreitems();
+            }
         },
+
         computed: {
-            switchState: {
-                get() {
-                    // Return true if status is 43 ("مكتمله"), false otherwise
-                    return this.item.status.id === 43;
-                },
-                set(value) {
-                    // Update item status based on switch position
-                    this.item.status.id = value ? 43 : 42;
-                    this.changeStatus(this.item);
-                }
+            isLoading() {
+                return this.loadingData || this.loadingSearch || this.loadingCategories || this.loadingDoctors;
             },
+
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
+            },
 
-            }
-
-            ,
             selected: function () {
                 return this.getMoreitems();
             }
         },
+
         mounted() {
             // Hide global loading when component is mounted
             setTimeout(() => {
@@ -1407,78 +1659,48 @@
                 }
             }, 1000);
         },
+
         created() {
+            // Initialize case categories first
             this.getCaseCategories();
-            //changeStatusCloseCase
+            
+            // Initialize doctors
             this.getclinicDoctor();
 
             EventBus.$on("changeStatusCloseCase", (from) => {
-
                 from
-
                 this.casesheet = false;
+                // Clear cache when case status changes
+                this.clearCache(this.cacheConfig.cases.key);
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('cases_cache')) {
+                        localStorage.removeItem(key);
+                    }
+                });
                 this.initialize();
-                ///  this.dialog = true
             });
+
             EventBus.$on("changeStatusCloseField", (from) => {
-
                 from
-
                 this.Recipe = false;
-                //  this.dialog = true
             });
 
+            // Initialize cases data
             this.initialize();
-
+            
+            // Initialize doctors data
             this.getDectors();
-
         },
 
+        beforeDestroy() {
+            // Optional: Clear cache when component is destroyed
+            // this.clearAllCache();
+        }
     }
 </script>
 
 <style>
-    /* #dropzone-external {
-        width: 250px;
-        height: 250px;
-        background-color: rgba(183, 183, 183, 0.1);
-        border-width: 2px;
-        border-style: dashed;
-        padding: 10px;
-    }
-
-    #dropzone-external>* {
-        pointer-events: none;
-    }
-
-    #dropzone-external.dropzone-active {
-        border-style: solid;
-    }
-
-    .widget-container>span {
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 16px;
-    }
-
-    #dropzone-image {
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    #dropzone-text>span {
-        font-weight: 100;
-        opacity: 0.5;
-    }
-
-    #upload-progress {
-        display: flex;
-        margin-top: 10px;
-    }
-
-    .flex-box {
-        display: flex;
-        flex-direction: column;
+    /* #dropzone-external {        width: 250px;        height: 250px;        background-color: rgba(183, 183, 183, 0.1);        border-width: 2px;        border-style: dashed;        padding: 10px;    }    #dropzone-external>* {        pointer-events: none;    }    #dropzone-external.dropzone-active {        border-style: solid;    }    .widget-container>span {        font-size: 22px;        font-weight: bold;        margin-bottom: 16px;    }    #dropzone-image {        max-width: 100%;        max-height: 100%;    }    #dropzone-text>span {        font-weight: 100;        opacity: 0.5;    }    #upload-progress {        display: flex;        margin-top: 10px;    }    .flex-box {        display: flex;        flex-direction: column;
         justify-content: center;
         align-items: center;
     } */

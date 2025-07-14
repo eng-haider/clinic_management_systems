@@ -117,6 +117,7 @@
                 :headers="headers"
                 :items="desserts"
                 :loading="loadingData"
+                loading-text="جاري تحميل البيانات..."
                 :options.sync="tableOptions"
                 :server-items-length="totalItems"
                 :footer-props="{
@@ -128,10 +129,24 @@
                 @click:row="handleRowClick"
             >
                 <template v-slot:progress>
-                    <v-overlay absolute :value="loadingData">
-                        <v-progress-circular indeterminate size="64"></v-progress-circular>
-                    </v-overlay>
+                    <v-progress-linear
+                        color="primary"
+                        indeterminate
+                        height="4"
+                    ></v-progress-linear>
                 </template>
+                
+                <template v-slot:loading>
+                    <div class="text-center pa-4">
+                        <v-progress-circular
+                            indeterminate
+                            color="primary"
+                            size="40"
+                        ></v-progress-circular>
+                        <div class="mt-2">جاري تحميل البيانات...</div>
+                    </div>
+                </template>
+                
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.casesheet") }}
@@ -183,7 +198,7 @@
                         </v-flex>
 
 
-                        <v-flex xs1 md4 sm4></v-flex>
+                        <v-flex xs1 md3 sm3></v-flex>
 
 
 
@@ -372,6 +387,26 @@
 
         data() {
             return {
+                // Cache configuration
+                cacheConfig: {
+                    patients: {
+                        key: 'patients_cache',
+                        ttl: 5 * 60 * 1000, // 5 minutes
+                    },
+                    doctors: {
+                        key: 'doctors_cache',
+                        ttl: 30 * 60 * 1000, // 30 minutes
+                    },
+                    caseCategories: {
+                        key: 'case_categories_cache',
+                        ttl: 60 * 60 * 1000, // 1 hour
+                    },
+                    recipes: {
+                        key: 'recipes_cache',
+                        ttl: 15 * 60 * 1000, // 15 minutes
+                    }
+                },
+
                 // WhatsApp Dialog
                 whatsappDialog: false,
                 whatsappMessage: {
@@ -551,6 +586,60 @@
         },
 
         methods: {
+            // Cache management methods
+            setCache(key, data, ttl = 5 * 60 * 1000) {
+                const cacheItem = {
+                    data: data,
+                    timestamp: Date.now(),
+                    ttl: ttl
+                };
+                try {
+                    localStorage.setItem(key, JSON.stringify(cacheItem));
+                } catch (error) {
+                    console.warn('Failed to set cache:', error);
+                }
+            },
+
+            getCache(key) {
+                try {
+                    const cached = localStorage.getItem(key);
+                    if (!cached) return null;
+
+                    const cacheItem = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    // Check if cache is expired
+                    if (now - cacheItem.timestamp > cacheItem.ttl) {
+                        localStorage.removeItem(key);
+                        return null;
+                    }
+                    
+                    return cacheItem.data;
+                } catch (error) {
+                    console.warn('Failed to get cache:', error);
+                    return null;
+                }
+            },
+
+            clearCache(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (error) {
+                    console.warn('Failed to clear cache:', error);
+                }
+            },
+
+            clearAllCache() {
+                Object.values(this.cacheConfig).forEach(config => {
+                    this.clearCache(config.key);
+                });
+            },
+
+            // Generate cache key for paginated data
+            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '') {
+                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}`;
+            },
+
             // WhatsApp Methods
             openWhatsappDialog(item) {
                 this.selectedPatient = {
@@ -761,6 +850,11 @@
                 };
             },
             getrecipes() {
+                const cached = this.getCache(this.cacheConfig.recipes.key);
+                if (cached) {
+                    this.recipes = cached;
+                    return;
+                }
 
                 Axios.get("getrecipes", {
                         headers: {
@@ -770,16 +864,22 @@
                         }
                     })
                     .then(res => {
-
                         this.recipes = res.data;
-
-
-
-
+                        this.setCache(this.cacheConfig.recipes.key, res.data, this.cacheConfig.recipes.ttl);
                     })
-
-
+                    .catch(() => {
+                        // If API fails, try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(this.cacheConfig.recipes.key);
+                        if (expiredCache) {
+                            try {
+                                this.recipes = JSON.parse(expiredCache).data;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
+                    });
             },
+
             getByDocor() {
                 if (this.searchDocorId === 0) {
                     this.isSearchingDoctor = false;
@@ -790,6 +890,17 @@
                 
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId);
+                
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loadingData = false;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    this.totalItems = cached.total;
+                    this.desserts = cached.data;
+                    return;
+                }
                 
                 this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
@@ -798,6 +909,13 @@
                         this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
+                        
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.meta.last_page,
+                            total: res.data.meta.total
+                        }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
                         this.loadingData = false;
@@ -919,6 +1037,13 @@
                                 }
                             })
                             .then(() => {
+                                // Clear patient cache after deletion
+                                this.clearCache(this.cacheConfig.patients.key);
+                                Object.keys(localStorage).forEach(key => {
+                                    if (key.includes('all_patients') || key.includes('search_patients') || key.includes('doctor_patients')) {
+                                        localStorage.removeItem(key);
+                                    }
+                                });
 
                                 this.$swal.fire({
                                     position: "top-end",
@@ -1067,6 +1192,18 @@
                 
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
+                
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loadingData = false;
+                    this.allItem = true;
+                    this.desserts = cached.data;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    this.totalItems = cached.total;
+                    return;
+                }
                 
                 this.apiRequest(`patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
@@ -1076,6 +1213,13 @@
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
+                        
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.meta.last_page,
+                            total: res.data.meta.total
+                        }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
                         this.loadingData = false;
@@ -1084,6 +1228,13 @@
 
 
             getclinicDoctor() {
+                const cached = this.getCache(this.cacheConfig.doctors.key);
+                if (cached) {
+                    this.doctors = cached.doctors;
+                    this.doctorsAll = cached.doctorsAll;
+                    return;
+                }
+
                 const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
                 this.apiRequest(endpoint)
                     .then(res => {
@@ -1091,12 +1242,28 @@
                         this.loading = false;
                         this.doctors = res.data.data;
                         this.doctorsAll = [{ id: 0, name: ' الكل' }, ...this.doctors];
+                        
+                        // Cache the response
+                        this.setCache(this.cacheConfig.doctors.key, {
+                            doctors: this.doctors,
+                            doctorsAll: this.doctorsAll
+                        }, this.cacheConfig.doctors.ttl);
                     })
                     .catch(() => {
                         this.loading = false;
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(this.cacheConfig.doctors.key);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.doctors = data.doctors;
+                                this.doctorsAll = data.doctorsAll;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
                     });
             },
-
 
             initialize(page = 1) {
                 if (this.isSearching || this.isSearchingDoctor) return;
@@ -1106,6 +1273,18 @@
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage);
+                
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loadingData = false;
+                    this.search = null;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    this.totalItems = cached.total;
+                    this.desserts = cached.data;
+                    return;
+                }
                 
                 this.apiRequest(`patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
@@ -1115,6 +1294,13 @@
                         this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
+                        
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.meta.last_page,
+                            total: res.data.meta.total
+                        }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
                         this.loadingData = false;
@@ -1122,13 +1308,29 @@
             },
 
             getCaseCategories() {
+                const cached = this.getCache(this.cacheConfig.caseCategories.key);
+                if (cached) {
+                    this.CaseCategories = cached;
+                    return;
+                }
+
                 this.apiRequest('cases/CaseCategories')
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
+                        this.setCache(this.cacheConfig.caseCategories.key, res.data, this.cacheConfig.caseCategories.ttl);
                     })
                     .catch(() => {
                         this.loading = false;
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
+                        if (expiredCache) {
+                            try {
+                                this.CaseCategories = JSON.parse(expiredCache).data;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                            }
+                        }
                     });
             },
 
@@ -1215,6 +1417,14 @@
             },
 
             save(eventData) {
+                // Clear patient cache when saving/updating
+                this.clearCache(this.cacheConfig.patients.key);
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('all_patients') || key.includes('search_patients') || key.includes('doctor_patients')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
                 // Handle PatientEditDialog events - the dialog now handles API calls internally
                 if (eventData && typeof eventData === 'object' && eventData.patient) {
                     const patientData = eventData.patient;

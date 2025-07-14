@@ -9,6 +9,13 @@
     >
   
       <ul style="list-style:none; margin:0; padding:0; min-width:150px; max-height:300px; overflow:auto;">
+        <li v-if="!categories || categories.length === 0" style="padding:8px; color:#888;">
+          <div v-if="loadingCategories" style="text-align: center;">
+            <v-progress-circular size="20" width="2" indeterminate></v-progress-circular>
+            <span style="margin-left: 8px;">جاري التحميل...</span>
+          </div>
+          <div v-else>لا توجد عمليات</div>
+        </li>
         <li 
           v-for="cat in categories" 
           :key="cat.id"
@@ -130,6 +137,7 @@
                 <path class="comon st9" id="14" @click="reply_click(14, $event)" @contextmenu.prevent="right_click(14, $event)"
                   :class="[tooth_num.includes(14) || selectedTeeth.includes(14) ?  'activeClass comon st3' : 'comon st3']" d="M133.8,18.4c2.1-1.6,4.8-1,6.8,0.4c4.4,2.9,7.4,7.5,9.6,12.2c0.3,3.7,1.3,8.3-1.6,11.3
         c-3.1,4.4-8.6,7.8-14.1,6.8c-3.7-0.8-7.6-2.3-10.1-5.3C122.8,34.5,125.3,23.6,133.8,18.4z" />
+
 
                 <path class="comon st10" id="12" @click="reply_click(12, $event)" @contextmenu.prevent="right_click(12, $event)"
                   :class="[tooth_num.includes(12) || selectedTeeth.includes(12) ?  'activeClass comon st3' : 'comon st3']" d="M184.3,25.8c3.6-5.1,10.4-8.2,16.6-6c3.9,1.9,7,5.6,7.4,10.1c0.4,5.8,0.3,11.6,0.1,17.3
@@ -599,10 +607,22 @@ fill: #000;
                 },
                 contextTooth: null,
                 selectedTeeth: [], // Track selected teeth for coloring
+                // Cache configuration
+                cacheConfig: {
+                    caseCategories: {
+                        key: 'case_categories_cache',
+                        ttl: 60 * 60 * 1000, // 1 hour
+                    }
+                },
+                loadingCategories: false,
+                localCategories: []
             }
         },
         mounted() {
             document.addEventListener('click', this.hideContextMenu);
+            
+            // Load categories from cache or parent
+            this.loadCategories();
             
             // Add touch support for mobile devices
             this.$nextTick(() => {
@@ -624,6 +644,7 @@ fill: #000;
                 });
             });
         },
+        
         beforeDestroy() {
             document.removeEventListener('click', this.hideContextMenu);
             document.removeEventListener('touchstart', this.hideContextMenu);
@@ -632,8 +653,118 @@ fill: #000;
             textClass() {
                 return this.$vuetify && this.$vuetify.theme.dark ? 'text-dark-mode' : 'text-light-mode';
             },
+            // Use cached categories or prop categories
+            availableCategories() {
+                return this.localCategories.length > 0 ? this.localCategories : this.categories;
+            }
         },
         methods: {
+            // Cache management methods
+            setCache(key, data, ttl = 60 * 60 * 1000) {
+                const cacheItem = {
+                    data: data,
+                    timestamp: Date.now(),
+                    ttl: ttl
+                };
+                try {
+                    localStorage.setItem(key, JSON.stringify(cacheItem));
+                } catch (error) {
+                    console.warn('Failed to set cache:', error);
+                }
+            },
+
+            getCache(key) {
+                try {
+                    const cached = localStorage.getItem(key);
+                    if (!cached) return null;
+
+                    const cacheItem = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    // Check if cache is expired
+                    if (now - cacheItem.timestamp > cacheItem.ttl) {
+                        localStorage.removeItem(key);
+                        return null;
+                    }
+                    
+                    return cacheItem.data;
+                } catch (error) {
+                    console.warn('Failed to get cache:', error);
+                    return null;
+                }
+            },
+
+            clearCache(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (error) {
+                    console.warn('Failed to clear cache:', error);
+                }
+            },
+
+            // Load categories from cache or fetch from API
+            loadCategories() {
+                // First check if categories are passed as props
+                if (this.categories && this.categories.length > 0) {
+                    this.localCategories = this.categories;
+                    return;
+                }
+
+                // Check cache
+                const cached = this.getCache(this.cacheConfig.caseCategories.key);
+                if (cached) {
+                    this.localCategories = cached;
+                    return;
+                }
+
+                // If no cache and no props, fetch from API
+                this.getCaseCategories();
+            },
+
+            getCaseCategories() {
+                this.loadingCategories = true;
+                
+                const cached = this.getCache(this.cacheConfig.caseCategories.key);
+                if (cached) {
+                    this.localCategories = cached;
+                    this.loadingCategories = false;
+                    return;
+                }
+
+                // Make API request
+                const apiRequest = this.$axios || this.$http || window.axios;
+                if (!apiRequest) {
+                    console.warn('No HTTP client available for API request');
+                    this.loadingCategories = false;
+                    return;
+                }
+
+                apiRequest.get('cases/CaseCategories', {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        Authorization: "Bearer " + (this.$store?.state?.AdminInfo?.token || '')
+                    }
+                })
+                .then(res => {
+                    this.localCategories = res.data;
+                    this.setCache(this.cacheConfig.caseCategories.key, res.data, this.cacheConfig.caseCategories.ttl);
+                    this.loadingCategories = false;
+                })
+                .catch(() => {
+                    this.loadingCategories = false;
+                    // Try to use expired cache as fallback
+                    const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
+                    if (expiredCache) {
+                        try {
+                            this.localCategories = JSON.parse(expiredCache).data;
+                        } catch (e) {
+                            console.warn('Failed to parse expired cache');
+                        }
+                    }
+                });
+            },
+
             isFormElement(element) {
                 if (!element) return false;
                 if (element.tagName === 'INPUT' || 
@@ -667,6 +798,7 @@ fill: #000;
                 }
                 return false;
             },
+
             preventGlobalContextMenu(event) {
                 const activeElement = document.activeElement;
                 if (activeElement && this.isFormElement(activeElement)) {
@@ -681,6 +813,7 @@ fill: #000;
                     return false;
                 }
             },
+
             reply_click(id, event) {
                 // Enhanced click handler for teeth with mobile support
                 console.log('Tooth clicked:', id, event);
@@ -730,6 +863,7 @@ fill: #000;
                     }, 10);
                 }
             },
+
             right_click(id, event) {
                 // Enhanced right-click handler for teeth with mobile support
                 event.preventDefault();
@@ -765,6 +899,7 @@ fill: #000;
                     document.addEventListener('touchstart', this.hideContextMenu);
                 }, 100);
             },
+
             hideContextMenu(event) {
                 if (!this.showContextMenu) return;
                 
@@ -779,23 +914,50 @@ fill: #000;
                 document.removeEventListener('click', this.hideContextMenu);
                 document.removeEventListener('touchstart', this.hideContextMenu);
             },
+
             selectCategory(category) {
+              console.log('🦷 Category selected:', category);
+              console.log('🦷 Context tooth:', this.contextTooth);
+              
               if (this.contextTooth && category) {
                 // Emit event for parent to add case row
                 this.$emit('case-added', {
                   toothNumber: this.contextTooth,
                   operation: category
                 });
+                
+                console.log('🦷 case-added event emitted');
               }
+              
               // Always hide menu immediately after selection
               this.showContextMenu = false;
               this.contextTooth = null;
               this.contextMenuStyle.display = 'none';
+              
               // Remove focus from menu to prevent accidental re-opening
               if (document.activeElement) {
                 document.activeElement.blur();
               }
+              
+              // Remove event listeners
+              document.removeEventListener('click', this.hideContextMenu);
+              document.removeEventListener('touchstart', this.hideContextMenu);
             },
         },
+        
+        watch: {
+            // Watch for changes in categories prop
+            categories: {
+                handler(newCategories) {
+                    if (newCategories && newCategories.length > 0) {
+                        this.localCategories = newCategories;
+                        // Cache the new categories
+                        this.setCache(this.cacheConfig.caseCategories.key, newCategories, this.cacheConfig.caseCategories.ttl);
+                    }
+                },
+                deep: true,
+                immediate: true
+            }
+        }
     }
 </script>

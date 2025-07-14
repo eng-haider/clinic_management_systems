@@ -114,7 +114,7 @@
     </v-form>
 
     <!-- Dialog for adding new note -->
-    <v-dialog v-model="dialog" max-width="500px">
+    <v-dialog v-model="dialog" max-width="500px" v-track-dialog>
       <v-card>
         <v-card-title>
           <span class="headline">{{ $t("add_new_note") }}</span>

@@ -1,81 +1,87 @@
 <template>
+  <div>
+    <v-navigation-drawer id="core-navigation-drawer" v-model="drawer"
+      :dark="barColor !== 'rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)'" :expand-on-hover="expandOnHover"
+      :right="$vuetify.rtl" mobile-break-point="960" app width="260" mini-variant-width="85" v-bind="$attrs"
+      :color="barColor" :class="barColor" >
+      <!-- user info ui -->
+      <v-list style="margin-top:27px" nav class="py-0">
 
-
-  <v-navigation-drawer id="core-navigation-drawer" v-model="drawer"
-    :dark="barColor !== 'rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)'" :expand-on-hover="expandOnHover"
-    :right="$vuetify.rtl" mobile-break-point="960" app width="260" mini-variant-width="85" v-bind="$attrs"
-    :color="barColor" :class="barColor" >
-    <!-- user info ui -->
-    <v-list style="margin-top:27px" nav class="py-0">
-
-      <div class="app-sidebar__user active is-expanded">
-        <div class="dropdown user-pro-body text-center">
-  <div class="user-pic" style="position: relative; display: inline-block;">
-    <img 
-      v-if="$store.state.AdminInfo.img_name == null"
-      src="profile.png"
-      class="avatar-xxl rounded-circle mb-1"
-      style="width:100px;height:100px"
-      alt="default"
-    />
-    <img 
-      v-else 
-      :src="Url + '/users/' + $store.state.AdminInfo.img_name"
-      class="avatar-xxl rounded-circle mb-1"
-      style="width:100px;height:100px"
-      alt="default"
-    />
-    <!-- Green point for online status -->
-    <div
-      
-      style="
-        position: absolute;
-        bottom:13px;
-        right: 5px;
-        width: 15px;
-        height: 15px;
-        background-color: green;
-        border-radius: 50%;
-        border: 2px solid white;
-      "
-      title="Online"
-    ></div>
-  </div>
-  <div class="user-info" style="text-align: center;">
-    <h5 class="mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
-    <h5 class="mb-2 app-sidebar__user-name">{{ $store.state.AdminInfo.name }}</h5>
-  </div>
-</div>
-
-      </div>
-      <hr>
-    </v-list>
-    <!--Star Owner Sidbar-->
-    <div>
-      <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
-        :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
-        <v-list-item style="color:#fff !important" link :to="item.to"
-          v-if="$store.state.AdminInfo.Permissions.includes(item.name)">
-          <v-list-item-icon>
-            <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title style="font-size:14px">{{ item.title }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+        <div class="app-sidebar__user active is-expanded">
+          <div class="dropdown user-pro-body text-center">
+            <div class="user-pic" style="position: relative; display: inline-block;">
+              <img 
+                v-if="$store.state.AdminInfo.img_name == null"
+                src="profile.png"
+                class="avatar-xxl rounded-circle mb-1"
+                style="width:100px;height:100px"
+                alt="default"
+              />
+              <img 
+                v-else 
+                :src="Url + '/users/' + $store.state.AdminInfo.img_name"
+                class="avatar-xxl rounded-circle mb-1"
+                style="width:100px;height:100px"
+                alt="default"
+              />
+              <!-- Green point for online status -->
+              <div
+                style="
+                  position: absolute;
+                  bottom:13px;
+                  right: 5px;
+                  width: 15px;
+                  height: 15px;
+                  background-color: green;
+                  border-radius: 50%;
+                  border: 2px solid white;
+                "
+                title="Online"
+              ></div>
+            </div>
+            <div class="user-info" style="text-align: center;">
+              <h5 class="mb-2">{{ $store.state.AdminInfo.clinics_info.name }}</h5>
+              <h5 class="mb-2 app-sidebar__user-name">{{ $store.state.AdminInfo.name }}</h5>
+            </div>
+          </div>
+        </div>
+        <hr>
       </v-list>
+      
+      <!--Star Owner Sidbar-->
+      <div>
+        <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
+          :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
+          <v-list-item style="color:#fff !important" link :to="item.to"
+            v-if="$store.state.AdminInfo.Permissions.includes(item.name)">
+            <v-list-item-icon>
+              <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
+            </v-list-item-icon>
 
-    </div>
-    <!--End Owner Sidbar-->
-  </v-navigation-drawer>
+            <v-list-item-content>
+              <v-list-item-title style="font-size:14px">{{ item.title }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </div>
+      <!--End Owner Sidbar-->
+    </v-navigation-drawer>
+
+    <!-- Mobile Bottom Navigation -->
+    <MobileBottomNav />
+  </div>
 </template>
 
 <script>
   import {
     mapState
   } from "vuex";
+  import MobileBottomNav from './MobileBottomNav.vue';
+
   export default {
+    components: {
+      MobileBottomNav
+    },
 
     data() {
       return {
