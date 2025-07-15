@@ -3,7 +3,8 @@
         <div>
             <br>
             <v-toolbar flat>
-                <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.ConjugationsCategories") }}
+                <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> 
+                  صرفـــــيات العيـــادة
                 </v-toolbar-title>
 
                 <v-divider class="mx-4" inset vertical></v-divider>

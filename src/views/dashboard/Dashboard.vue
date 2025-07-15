@@ -90,12 +90,8 @@ export default {
     }
   },
   mounted() {
-    // Charts will be created automatically after data loads via mixin
-    this.$nextTick(() => {
-      if (this.dataSource.length > 0 && this.accounts_statistic.length > 0) {
-        this.createCharts();
-      }
-    });
+    // Load initial data when component mounts
+    this.loadInitialData();
   },
   methods: {
     // Override loadInitialData from mixin
@@ -116,7 +112,7 @@ export default {
 
     async loadCaseStats() {
       try {
-        const response = await this.axios.get("cases/getCaseCategoriesCounts", {
+        const response = await this.axios.get("https://apismartclinicv3.tctate.com/api/cases/getCaseCategoriesCounts", {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -131,7 +127,7 @@ export default {
 
     async loadDashboardCounts() {
       try {
-        const response = await this.axios.get("cases/getDashbourdCounts", {
+        const response = await this.axios.get("https://apismartclinicv3.tctate.com/api/cases/getDashbourdCounts", {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -263,6 +259,10 @@ canvas {
   display: flex;
   justify-content: center;
 }
+.sssaw {
+  color: #075aa6 !important;
+}
+</style>
 .sssaw {
   color: #075aa6 !important;
 }

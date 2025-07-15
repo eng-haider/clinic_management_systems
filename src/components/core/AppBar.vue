@@ -36,6 +36,10 @@
         </template>
         <span>{{ $t("setting.refresh") }}</span>
       </v-tooltip>
+      
+      <!-- PWA Install Button -->
+      <!-- <InstallButton /> -->
+      
       <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition">
         <template v-slot:activator="{ attrs, on }">
           <v-btn min-width="0" icon v-bind="attrs" v-on="on">
@@ -98,9 +102,13 @@
     mapMutations
   } from "vuex";
   import Axios from "axios";
+  // import InstallButton from '@/components/InstallButton.vue'
 
-  
   export default {
+    components: {
+      // InstallButton
+    },
+    
     props: {
       value: {
         type: Boolean,
@@ -240,3 +248,19 @@
     },
   }
 </script>
+
+<style>
+@media only screen and (max-width: 600px) {
+    .v-btn.reg_owner_btn, .v-btn[type=submit], .v-card-actions .v-btn, form .v-btn:last-of-type {
+        position: relative;
+        z-index: 1001 !important;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .reg_owner_btn, .v-btn:last-child, .v-btn:last-of-type, .v-card {
+        margin-bottom: 20px !important;
+    }
+}
+
+</style>

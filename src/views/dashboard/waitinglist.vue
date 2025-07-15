@@ -75,9 +75,28 @@
 
                 </template>
 
+                <template v-slot:[`item.reservation_time`]="{ item }">
+                    {{ formatReservationTime(item.reservation_from_time) }}
+                </template>
 
+                <template v-slot:[`item.status`]="{ item }">
+                    <v-chip 
+                        :color="item.status === 'waiting' ? 'green' : 'orange'" 
+                        dark 
+                        small>
+                        {{ item.status === 'waiting' ? 'في الانتظار' : 'منتهي' }}
+                    </v-chip>
+                </template>
 
-
+                <template v-slot:[`item.waiting_status`]="{ item }">
+                    <v-switch
+                        :input-value="item.is_waiting"
+                        :label="item.is_waiting ? 'في الانتظار' : 'خارج العيادة'"
+                        @change="() => toggleWaitingStatus(item)"
+                        color="green"
+                        inset
+                    ></v-switch>
+                </template>
 
                 <!-- Custom Actions Column Slot -->
                 <!-- <template v-slot:[`item.actions`]="{ item }">
@@ -241,19 +260,22 @@
                         value: "owner_names"
                     },
 
-
-
-                    
-
                     {
-                        text: 'تاريخ التسجيل',
+                        text: 'وقــت الحجز',
                         align: "date",
-                        value: "date"
+                        value: "reservation_time"
                     },
 
                     {
-                        text: this.$t('Processes'),
-                        value: "actions",
+                        text: 'الحاله',
+                        align: "start",
+                        value: "status"
+                    },
+
+                    {
+                        text: 'حالة الانتظار',
+                        align: "start",
+                        value: "waiting_status",
                         sortable: false
                     }
                 ],
@@ -297,6 +319,33 @@
                         });
                     });
             },
+            toggleWaitingStatus(item) {
+                // Toggle the waiting status
+                const newStatus = !item.is_waiting;
+                
+                this.axios.post(`https://apismartclinicv3.tctate.com/api/reservations/${item.id}/toggle-waiting`, {}, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                    }
+                })
+                .then((response) => {
+                    // Update the item status locally
+                    item.is_waiting = newStatus;
+                    this.$notify({
+                        type: "success",
+                        text: "تم تحديث حالة الانتظار بنجاح"
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error toggling waiting status:', error);
+                    this.$notify({
+                        type: "error",
+                        text: "فشل في تحديث حالة الانتظار"
+                    });
+                });
+            },
             formatDate(date) {
     if (!date) return "—"; // Return a dash if no date is provided
     const normalizedDate = date.includes(' ') ? date.replace(' ', 'T') : date;
@@ -311,9 +360,15 @@
     };
     return new Intl.DateTimeFormat("ar", options).format(dateObject);
 },
-
-
-
+formatReservationTime(time) {
+                if (!time) return "—";
+                // Convert 24-hour format to 12-hour format with Arabic
+                const [hours, minutes] = time.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'م' : 'ص';
+                const displayHour = hour % 12 || 12;
+                return `${displayHour}:${minutes} ${ampm}`;
+            },
 
             getMoreitems() {
 
@@ -419,145 +474,61 @@
                 page
                 if (this.isSearching || this.isSearchingDoctor)
             return; // Prevent initialize from running if a search is active
-            const today = new Date();
-            const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
                 this.loading = true;
+                this.loadingData = true;
 
-                // Fetch data from both APIs concurrently
-                Promise.all([
-                        Axios.get(`patients/getByUserswaitinglist?page=${this.current_page}`, {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Accept: "application/json",
-                                Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                            }
-                        }),
-                        this.axios.get(`https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.$store.state.AdminInfo.tctate_token}`
-        }
-      })
-                    ])
-                    .then(([patientsRes, reservationsRes]) => {
-                        this.loading = false;
-                        this.loadingData = false;
-                        this.search = null;
+                // Fetch data from the new API endpoint
+                this.axios.get(`https://apismartclinicv3.tctate.com/api/reservations/today`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                    }
+                })
+                .then((response) => {
+                    this.loading = false;
+                    this.loadingData = false;
+                    this.search = null;
 
-                        // Update pagination based on the first API
-                        this.last_page = patientsRes.data.meta.last_page;
-                        this.pageCount = patientsRes.data.meta.last_page;
+                    // Map the response data to the expected format
+                    this.desserts = response.data.data.map((item) => ({
+                        id: item.id,
+                        names: item.user ? item.user.full_name : "Unknown",
+                        phones: item.user ? item.user.user_phone : "Unknown",
+                        owner_names: item.owner_name ? item.owner_name : "Unknown",
+                        date: item.reservation_start_date,
+                        reservation_time: item.reservation_from_time,
+                        reservation_from_time: item.reservation_from_time,
+                        status: item.status || 'waiting',
+                        is_waiting: item.is_waiting || false,
+                        created_at: new Date(`${item.reservation_start_date}T${item.reservation_from_time}.000Z`).toISOString(),
+                    }));
 
-                        // Normalize and map data from both APIs
-                        const patientsData = patientsRes.data.data.map((item) => ({
-                            id: item.id,
-                            names: item.name || "Unknown",
-                            phones: item.phone || "Unknown",
-                            owner_names:"Unknown",
-                            date: item.scheduled_at.split(" ")[0], // Extract date
-                            created_at: item.scheduled_at, // Use existing created_at
-                        }));
-                       
-
-                        const reservationsData = reservationsRes.data.data.map((item) => {
-                            // Convert reservation_end_date and reservation_from_time to created_at format
-                            const createdAt = new Date(
-                                    `${item.reservation_start_date}T${item.reservation_from_time}.000Z`)
-                                .toISOString();
-
-                            return {
-                                id: item.id,
-                                names: item.user ? item.user.full_name : "Unknown",
-                                phones: item.user ? item.user.user_phone : "Unknown",
-                                date: item.reservation_start_date,
-                                owner_names: item.owner_name?item.owner_name:"Unknown",
-                                created_at: createdAt, // Newly formatted created_at
-                            };
-                        });
-
-                        // Combine both datasets
-                        this.desserts = [...patientsData, ...reservationsData];
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                    });
+                    // Update pagination if available in response
+                    if (response.data.meta) {
+                        this.last_page = response.data.meta.last_page;
+                        this.pageCount = response.data.meta.last_page;
+                    } else {
+                        this.pageCount = 1;
+                        this.last_page = 1;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error fetching data:', error);
+                    this.loading = false;
+                    this.loadingData = false;
+                });
             },
 
             async getclinicDoctor() {
-
-                if(this.$store.getters.isSecretary){
-                this.loading = true;
-                try {
-                    const response = await Axios.get("doctors/secretary", {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Accept: "application/json",
-                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                        }
-                    });
-                    this.loadingData = false;
-                    this.loading = false;
-                    this.doctors = response.data.data;
-                    this.fetchReservations();
-                } catch (error) {
-                    this.loading = false;
-                }
-
-            }else{
+                // Simplified since we're using the new API
                 this.fetchReservations();
-            }
             },
-            async fetchReservations() {
-                try {
-                    const today = new Date();
-                    const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-                    let allReservations = [];
 
-                    if (this.doctors.length > 1 && this.$store.getters.isSecretary) {
-                        for (let doctor of this.doctors) {
-                            const response = await Axios.get(
-                                `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
-                                {
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        Accept: "application/json",
-                                        Authorization: "Bearer " + doctor.user.tctate_token,
-                                    }
-                                }
-                            );
-                            const reservations = response.data.data.map(reservation => ({
-                                id: reservation.id,
-                                names: reservation.user ? reservation.user.full_name : "Unknown",
-                                phones: reservation.user ? reservation.user.user_phone : "Unknown",
-                                date: reservation.reservation_start_date,
-                                created_at: new Date(`${reservation.reservation_start_date}T${reservation.reservation_from_time}.000Z`).toISOString(),
-                            }));
-                            allReservations = allReservations.concat(reservations);
-                        }
-                    } else {
-                        const response = await Axios.get(
-                            `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
-                            {
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Accept: "application/json",
-                                    Authorization: "Bearer " + this.$store.state.AdminInfo.tctate_token,
-                                }
-                            }
-                        );
-                        allReservations = response.data.data.map(reservation => ({
-                            id: reservation.id,
-                            names: reservation.user ? reservation.user.full_name : "Unknown",
-                            phones: reservation.user ? reservation.user.user_phone : "Unknown",
-                            date: reservation.reservation_start_date,
-                            created_at: new Date(`${reservation.reservation_start_date}T${reservation.reservation_from_time}.000Z`).toISOString(),
-                        }));
-                    }
-                    this.desserts = allReservations;
-                } catch (error) {
-                    console.error('Error fetching reservations:', error);
-                }
+            async fetchReservations() {
+                // This method is now redundant since initialize handles the API call
+                // Keep it for compatibility but make it call initialize
+                this.initialize();
             },
 
             getCaseCategories() {

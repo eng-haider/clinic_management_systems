@@ -354,6 +354,7 @@
                     type="number"
                     outlined
                     dense
+                    :disabled="!canEditBills"
                     @input="updateBillPrice(bill)"
                   />
                 </div>
@@ -367,6 +368,7 @@
                       type="date"
                       outlined
                       dense
+                      :disabled="!canEditBills"
                       @input="updateBillDate(bill)"
                     >
                       <template v-slot:prepend>
@@ -390,7 +392,7 @@
                 </div>
 
                 <!-- Delete Button -->
-                <div class="mobile-actions text-center" >
+                <div class="mobile-actions text-center" v-if="canDeleteBills">
                   <v-btn
                     icon
                     small
@@ -415,6 +417,7 @@
                     type="number"
                     outlined
                     dense
+                    :disabled="!canEditBills"
                     @input="updateBillPrice(bill)"
                   />
                   <div class="desktop-user-info">
@@ -431,6 +434,7 @@
                     type="date"
                     outlined
                     dense
+                    :disabled="!canEditBills"
                     @input="updateBillDate(bill)"
                   >
                     <template v-slot:prepend>
@@ -454,11 +458,10 @@
                 </v-flex>
 
                 <!-- Delete Button -->
-                <v-flex md1 sm1 class="text-center">
+                <v-flex md1 sm1 class="text-center" v-if="canDeleteBills">
                   <v-btn
                     icon
                     color="error"
-                
                     @click="deleteBill(bill)"
                     class="delete-bill-btn"
                   >
@@ -820,6 +823,30 @@ birth_date: ''
         return isSecretaryOnlyMode;
       } catch (error) {
         console.error('Error checking secretary mode:', error);
+        return false;
+      }
+    },
+
+    // Check if current user can edit bills (price and date)
+    canEditBills() {
+      try {
+        const role = this.$store.state.role;
+        // Only doctors and adminDoctors can edit bills, secretaries cannot
+        return role === 'adminDoctor' || role === 'doctor';
+      } catch (error) {
+        console.error('Error checking edit bills permission:', error);
+        return false;
+      }
+    },
+
+    // Check if current user can delete bills
+    canDeleteBills() {
+      try {
+        const role = this.$store.state.role;
+        // Only doctors and adminDoctors can delete bills, secretaries cannot
+        return role === 'adminDoctor' || role === 'doctor';
+      } catch (error) {
+        console.error('Error checking delete bills permission:', error);
         return false;
       }
     }
@@ -1593,6 +1620,17 @@ birth_date: ''
     
     // Update bill price
     updateBillPrice(bill) {
+      // Check if current user can edit bills
+      if (!this.canEditBills) {
+        this.$swal.fire({
+          title: "غير مسموح",
+          text: "لا يمكن للسكرتارية تعديل مبلغ الفاتورة",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
+
       // Find the bill in the array
       const index = this.patientBills.findIndex(b => b.id === bill.id);
       if (index !== -1) {
@@ -1607,6 +1645,17 @@ birth_date: ''
     
     // Update bill date
     updateBillDate(bill) {
+      // Check if current user can edit bills
+      if (!this.canEditBills) {
+        this.$swal.fire({
+          title: "غير مسموح",
+          text: "لا يمكن للسكرتارية تعديل تاريخ الفاتورة",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
+
       // Find the bill in the array
       const index = this.patientBills.findIndex(b => b.id === bill.id);
       if (index !== -1) {
@@ -1619,18 +1668,53 @@ birth_date: ''
       }
     },
     
-    // Toggle bill payment status
-    toggleBillPaymentStatus(bill) {
-      // Find the bill in the array
-      const index = this.patientBills.findIndex(b => b.id === bill.id);
-      if (index !== -1) {
-        // Toggle the payment status locally
-        this.patientBills[index].is_paid = this.patientBills[index].is_paid === 1 ? 0 : 1;
-        // Mark as modified for saving (unless it's already marked as new)
-        if (!this.patientBills[index].isNew) {
-          this.patientBills[index].modified = true;
-        }
+    // Delete bill
+    deleteBill(bill) {
+      // Check if current user can delete bills
+      if (!this.canDeleteBills) {
+        this.$swal.fire({
+          title: "غير مسموح",
+          text: "لا يمكن للسكرتارية حذف الفاتورة",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
       }
+
+      // Show confirmation dialog
+      this.$swal.fire({
+        title: "تأكيد الحذف",
+        text: "هل أنت متأكد من حذف هذه الفاتورة؟",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "نعم، احذف",
+        cancelButtonText: "إلغاء",
+        confirmButtonColor: "#d33"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Find the bill in the array
+          const index = this.patientBills.findIndex(b => b.id === bill.id);
+          if (index !== -1) {
+            // If it's a new bill (not saved to server yet), just remove it
+            if (bill.isNew) {
+              this.patientBills.splice(index, 1);
+            } else {
+              // If it's an existing bill, mark it for deletion
+              this.patientBills[index].deleted = true;
+              this.patientBills[index].modified = true;
+              // Hide it from UI
+              this.patientBills.splice(index, 1);
+            }
+            
+            this.$swal.fire({
+              title: "تم الحذف",
+              text: "تم حذف الفاتورة بنجاح",
+              icon: "success",
+              confirmButtonText: "موافق"
+            });
+          }
+        }
+      });
     },
     
     // Close bill report dialog

@@ -40,10 +40,10 @@
                 <v-card-text class="pt-4">
                     <div class="patient-info mb-3">
                         <p class="subtitle-1 mb-1">
-                            <strong>المريض:</strong> {{ selectedPatient.name }}
+                            <strong>المريض:</strong> {{ selectedPatient ? selectedPatient.name : '' }}
                         </p>
                         <p class="subtitle-2 mb-1">
-                            <strong>الهاتف:</strong> {{ selectedPatient.phone }}
+                            <strong>الهاتف:</strong> {{ selectedPatient ? selectedPatient.phone : '' }}
                         </p>
                     </div>
                     
@@ -356,8 +356,17 @@
             </v-data-table>
 
         </v-container>
-        <v-pagination class="pagination" total-visible="20" v-model="page" color="#c7000b"
-            style="position: relative; top: 20px;" circle="" :length="pageCount">
+        <!-- Add pagination component -->
+        <v-pagination 
+            class="pagination" 
+            total-visible="20" 
+            v-model="page" 
+            color="#c7000b"
+            style="position: relative; top: 20px;" 
+            circle="" 
+            :length="pageCount"
+            @input="handlePaginationChange"
+        >
         </v-pagination>
 
     </div>
@@ -387,6 +396,14 @@
 
         data() {
             return {
+                // Add pagination variables
+                page: 1,
+                pageCount: 0,
+                last_page: 0,
+                
+                // Add timeout variable
+                paginationTimeout: null,
+                
                 // Cache configuration
                 cacheConfig: {
                     patients: {
@@ -407,7 +424,7 @@
                     }
                 },
 
-                // WhatsApp Dialog
+                // WhatsApp Dialog - properly initialize
                 whatsappDialog: false,
                 whatsappMessage: {
                     message: ''
@@ -419,8 +436,11 @@
                 },
                 sendingMessage: false,
 
-                // Server-side pagination
-                tableOptions: {},
+                // Server-side pagination - initialize with default values
+                tableOptions: {
+                    page: 1,
+                    itemsPerPage: 10
+                },
                 totalItems: 0,
 
                 gocase: false,
@@ -429,10 +449,7 @@
 
                 ],
                 bill: false,
-                page: 1,
-                pageCount: 0,
                 current_page: 1,
-                last_page: 0,
                 paymentsCount: 1,
                 booking: false,
                 patientInfo: {},
@@ -586,6 +603,13 @@
         },
 
         methods: {
+            // Add pagination handler
+            handlePaginationChange(newPage) {
+                this.tableOptions.page = newPage;
+                this.page = newPage;
+                this.loadTableData();
+            },
+
             // Cache management methods
             setCache(key, data, ttl = 5 * 60 * 1000) {
                 const cacheItem = {
@@ -667,10 +691,11 @@
             },
 
             setQuickMessage(messageType) {
+                const patientName = this.selectedPatient ? this.selectedPatient.name : 'المريض';
                 const messages = {
-                    'تذكير بالموعد': `مرحباً ${this.selectedPatient.name}،\n\nنذكركم بموعدكم القادم في العيادة.\n\nشكراً لكم`,
-                    'تذكير بالدفع': `مرحباً ${this.selectedPatient.name}،\n\nنذكركم بوجود مستحقات مالية متبقية.\n\nيرجى التواصل معنا لتسوية الحساب.\n\nشكراً لكم`,
-                    'متابعة الحالة': `مرحباً ${this.selectedPatient.name}،\n\nنود الاطمئنان على حالتكم الصحية.\n\nكيف تشعرون بعد العلاج؟\n\nشكراً لكم`
+                    'تذكير بالموعد': `مرحباً ${patientName}،\n\nنذكركم بموعدكم القادم في العيادة.\n\nشكراً لكم`,
+                    'تذكير بالدفع': `مرحباً ${patientName}،\n\nنذكركم بوجود مستحقات مالية متبقية.\n\nيرجى التواصل معنا لتسوية الحساب.\n\nشكراً لكم`,
+                    'متابعة الحالة': `مرحباً ${patientName}،\n\nنود الاطمئنان على حالتكم الصحية.\n\nكيف تشعرون بعد العلاج؟\n\nشكراً لكم`
                 };
                 this.whatsappMessage.message = messages[messageType] || '';
             },
@@ -735,7 +760,13 @@
             // Server-side pagination handler
             handleTableUpdate(options) {
                 this.tableOptions = options;
-                this.loadTableData();
+                // Add a small delay to prevent multiple rapid calls
+                if (this.paginationTimeout) {
+                    clearTimeout(this.paginationTimeout);
+                }
+                this.paginationTimeout = setTimeout(() => {
+                    this.loadTableData();
+                }, 100);
             },
 
             loadTableData() {
@@ -804,30 +835,13 @@
             cropdate(x) {
                 return x.slice(0, 10);
             },
-            getMoreitems() {
-
-                if (this.current_page <= this.last_page) {
-
-                    if (this.isSearchingDoctor) {
-                        this.current_page = this.page;
-                        this.getByDocor();
-                    } else if (this.isSearching) {
-                        this.current_page = this.page;
-                        this.initialize();
-                    } else {
-                        this.current_page = this.page;
-                        this.initialize();
-                    }
-
-                }
-            },
             reset() {
                 this.editedItem = {
                     case: {
                         case_categores_id: "",
                         upper_right: "",
-                        upper_left: "",
                         is_scheduled_today: false, // Default to "No"
+                        upper_left: "",
                         patient_id: "",
                         lower_right: "",
                         lower_left: "",
@@ -883,6 +897,8 @@
             getByDocor() {
                 if (this.searchDocorId === 0) {
                     this.isSearchingDoctor = false;
+                    this.tableOptions.page = 1;
+                    this.page = 1;
                     return this.initialize();
                 }
                 this.isSearchingDoctor = true;
@@ -895,26 +911,26 @@
                 const cached = this.getCache(cacheKey);
                 if (cached) {
                     this.loadingData = false;
-                    this.last_page = cached.last_page;
-                    this.pageCount = cached.last_page;
                     this.totalItems = cached.total;
                     this.desserts = cached.data;
+                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
+                    this.page = currentPage;
                     return;
                 }
                 
                 this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
+                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
+                        this.page = currentPage;
                         
                         // Cache the response
                         this.setCache(cacheKey, {
                             data: res.data.data,
-                            last_page: res.data.meta.last_page,
-                            total: res.data.meta.total
+                            total: res.data.meta.total,
+                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
                         }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
@@ -1190,6 +1206,18 @@
                 this.isSearching = true;
                 this.loadingData = true;
                 
+                // Reset pagination for new search
+                if (this.tableOptions.page === 1) {
+                    // If we're already on page 1, proceed with search
+                    this.performSearch();
+                } else {
+                    // Reset to page 1 and let the table update handler trigger the search
+                    this.tableOptions.page = 1;
+                    this.page = 1;
+                }
+            },
+
+            performSearch() {
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
@@ -1199,9 +1227,9 @@
                     this.loadingData = false;
                     this.allItem = true;
                     this.desserts = cached.data;
-                    this.last_page = cached.last_page;
-                    this.pageCount = cached.last_page;
                     this.totalItems = cached.total;
+                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
+                    this.page = currentPage;
                     return;
                 }
                 
@@ -1210,22 +1238,21 @@
                         this.loadingData = false;
                         this.allItem = true;
                         this.desserts = res.data.data;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
+                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
+                        this.page = currentPage;
                         
                         // Cache the response
                         this.setCache(cacheKey, {
                             data: res.data.data,
-                            last_page: res.data.meta.last_page,
-                            total: res.data.meta.total
+                            total: res.data.meta.total,
+                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
                         }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
                         this.loadingData = false;
                     });
             },
-
 
             getclinicDoctor() {
                 const cached = this.getCache(this.cacheConfig.doctors.key);
@@ -1279,10 +1306,10 @@
                 if (cached) {
                     this.loadingData = false;
                     this.search = null;
-                    this.last_page = cached.last_page;
-                    this.pageCount = cached.last_page;
                     this.totalItems = cached.total;
                     this.desserts = cached.data;
+                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
+                    this.page = currentPage;
                     return;
                 }
                 
@@ -1290,16 +1317,17 @@
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
                         this.totalItems = res.data.meta.total;
                         this.desserts = res.data.data;
+                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
+                        this.last_page = res.data.meta.last_page;
+                        this.page = currentPage;
                         
                         // Cache the response
                         this.setCache(cacheKey, {
                             data: res.data.data,
-                            last_page: res.data.meta.last_page,
-                            total: res.data.meta.total
+                            total: res.data.meta.total,
+                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
                         }, this.cacheConfig.patients.ttl);
                     })
                     .catch(() => {
@@ -1548,22 +1576,27 @@
 
         },
 
-        watch: {
-
-            selected: 'search by sub_cat_id',
-
-        },
         computed: {
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
-
             }
+            // Remove the old selected computed property that was calling getMoreitems
+            // selected: function () {
+            //     return this.getMoreitems();
+            // }
+        },
 
-            ,
-            selected: function () {
-                return this.getMoreitems();
+        watch: {
+            // Add watcher for search to handle pagination reset
+            search: {
+                handler(newVal, oldVal) {
+                    if (newVal !== oldVal && this.isSearching) {
+                        this.performSearch();
+                    }
+                }
             }
         },
+
         mounted() {
          
         },

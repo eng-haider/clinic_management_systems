@@ -6,8 +6,24 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title><%= htmlWebpackPlugin.options.title %></title>
+	
+	<!-- PWA Meta Tags -->
 	<link rel="icon" href="<%= BASE_URL %>logo4.ico">
 	<link rel="manifest" href="manifest.json">
+	<meta name="theme-color" content="#1976d2">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<meta name="apple-mobile-web-app-title" content="Smart Clinic">
+	<link rel="apple-touch-icon" href="<%= BASE_URL %>logo.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="<%= BASE_URL %>logo.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<%= BASE_URL %>logo.png">
+	<link rel="apple-touch-icon" sizes="167x167" href="<%= BASE_URL %>logo.png">
+	
+	<!-- Microsoft Tiles -->
+	<meta name="msapplication-TileColor" content="#1976d2">
+	<meta name="msapplication-TileImage" content="<%= BASE_URL %>logo.png">
+	<meta name="msapplication-config" content="<%= BASE_URL %>browserconfig.xml">
+	
 	<!-- Google Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap" rel="stylesheet">
@@ -37,7 +53,7 @@
 
 	<!-- Loading Screen -->
 	<div id="loading-screen">
-		<img class="centerImg a" src="logov2.png" alt="Loading..." style="height: 275px; width: 275px;" />
+		<img class="centerImg a" src="logomain.png" alt="Loading..." style="height: 275px; width: 275px;" />
 	</div>
 
 	<!-- App Root -->

@@ -123,63 +123,16 @@
             <br>
             <v-row justify="center">
 
-              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
+              <!-- <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
 
-              </v-col>
+              </v-col> -->
 
-              <v-col cols="12" sm="6" xs="12" v-if="owner_item.possib_reserving_period ==null">
-                <v-menu ref="menu1" v-model="menu2" :close-on-content-click="false" :nudge-right="40"
-                  :return-value.sync="editedItem.reservation_from_time" transition="scale-transition" offset-y
-                  max-width="290px" min-width="290px">
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field :rules="[rules.required]" v-model="editedItem.reservation_from_time"
-                      :label="$t('from_time')" prepend-icon="mdi-clock-time-four-outline" readonly required
-                      v-bind="attrs" v-on="on">
-                    </v-text-field>
-                  </template>
-                  <v-time-picker v-if="menu2" v-model="editedItem.reservation_from_time" full-width format="ampm"
-                    @click:minute="$refs.menu1.save(editedItem.reservation_from_time)"></v-time-picker>
-                </v-menu>
+              
 
-                <v-menu ref="menu" :close-on-content-click="false" v-model="menu3" :nudge-right="40"
-                  :return-value.sync="editedItem.reservation_to_time" transition="scale-transition" offset-y
-                  max-width="290px" min-width="290px">
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field v-model="editedItem.reservation_to_time" :label="$t('to_time')"
-                      :rules="[rules.required]" prepend-icon="mdi-clock-time-four-outline" readonly v-bind="attrs"
-                      v-on="on"></v-text-field>
-                  </template>
-                  <v-time-picker v-if="menu3" v-model="editedItem.reservation_to_time" full-width
-                    @click:minute="$refs.menu.save(editedItem.reservation_to_time)"></v-time-picker>
-                </v-menu>
-
-                <div v-if="$store.state.AdminInfo.send_msg ==1">
-                  <v-checkbox 
-                    :disabled="!editedItem.reservation_from_time || !editedItem.reservation_start_date"
-                    v-model="send_msg" 
-                    style="text-align: right;" 
-                    :label="$t('send_reminder_message')"
-                    @change="handleSendMsg"
-                  />
-
-                  <v-textarea 
-                    v-if="send_msg" 
-                    v-model="editedItem.appointmentMessage" 
-                    :label="$t('message')" 
-                    outlined 
-                    rows="3"
-                    auto-grow
-                  />
-                </div>
-
-
-
-              </v-col>
-
-              <v-col cols="12" sm="6" xs="12" v-else>
+              <v-col cols="12" sm="6" xs="12" >
                 <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
 
 
@@ -223,12 +176,33 @@
 <script>
   import axios from 'axios';
   import Multiselect from 'vue-multiselect'
+  import cacheManager from '@/utils/cache';
+
   export default {
     components: {
       Multiselect
     },
     data() {
       return {
+        // Cache configuration
+        cacheConfig: {
+          reservations: {
+            key: 'reservations_cache',
+            ttl: 2 * 60 * 1000, // 2 minutes
+          },
+          patients: {
+            key: 'patients_cache',
+            ttl: 5 * 60 * 1000, // 5 minutes
+          },
+          doctors: {
+            key: 'doctors_cache',
+            ttl: 30 * 60 * 1000, // 30 minutes
+          },
+          ownerItems: {
+            key: 'owner_items_cache',
+            ttl: 60 * 60 * 1000, // 1 hour
+          }
+        },
         dialogInfo: false,
         owner_item: '',
         BookingDetails: false,
@@ -274,6 +248,9 @@
       };
     },
     mounted() {
+      // Initialize cache check
+      console.log('🚀 RequestBooking component mounted - initializing cache system');
+      
       // this.fetchReservations(); 
       this.getclinicDoctor();
       this.getPatient(); // Fetch patients for autocomplete
@@ -285,6 +262,16 @@
       clinicName() {
         return this.$store.state.AdminInfo.clinics_info?.name || '';
       },
+      
+      // Cache status for debugging
+      cacheStatus() {
+        return {
+          reservations: cacheManager.has(this.cacheConfig.reservations.key),
+          patients: cacheManager.has(this.cacheConfig.patients.key),
+          doctors: cacheManager.has(this.cacheConfig.doctors.key),
+          ownerItems: cacheManager.has(this.cacheConfig.ownerItems.key)
+        };
+      }
     },
 
     watch: {
@@ -321,6 +308,18 @@
       asyncFind(query) {
         if (query.length > 2) {
           this.isLoading = true;
+          
+          // Create a cache key for the search query
+          const searchCacheKey = `patient_search_${query}`;
+          
+          // Check cache first
+          const cached = cacheManager.get(searchCacheKey);
+          if (cached) {
+            console.log('✅ Using cached patient search results');
+            this.patients = cached;
+            this.isLoading = false;
+            return;
+          }
 
           axios.get("patients/searchv2/" + query, {
               headers: {
@@ -330,21 +329,44 @@
               }
             })
             .then(res => {
-
               this.isLoading = false;
               this.patients = res.data.data; // Search results
-
+              
+              // Cache the search results for 1 minute
+              cacheManager.set(searchCacheKey, res.data.data, 60 * 1000);
+              console.log('💾 Cached patient search results');
             })
-            .catch(() => {
-              this.loading = false;
+            .catch(error => {
+              this.isLoading = false;
+              console.error('Error searching patients:', error);
+              
+              // Try to use expired cache as fallback
+              const fallbackCache = localStorage.getItem('clinic_app_cache_' + searchCacheKey);
+              if (fallbackCache) {
+                try {
+                  const cacheData = JSON.parse(fallbackCache);
+                  this.patients = cacheData.data;
+                  console.log('📦 Using fallback cache for patient search');
+                } catch (e) {
+                  console.warn('Failed to parse fallback cache');
+                }
+              }
             });
-
-
-
         }
       },
       async getclinicDoctor() {
         if (this.$store.state.role == 'secretary') {
+          console.log('Fetching doctors...');
+          
+          // Check cache first
+          const cached = cacheManager.get(this.cacheConfig.doctors.key);
+          if (cached) {
+            console.log('✅ Using cached doctors');
+            this.doctors = cached;
+            this.fetchReservations();
+            return;
+          }
+          
           this.loading = true;
 
           await axios.get("doctors/secretary", {
@@ -358,13 +380,30 @@
               this.loadingData = false;
               this.loading = false;
               this.doctors = res.data.data;
+              
+              // Cache the doctors data
+              cacheManager.set(this.cacheConfig.doctors.key, res.data.data, this.cacheConfig.doctors.ttl);
+              console.log('💾 Cached doctors data');
+              
               this.fetchReservations();
-
-
-
             })
-            .catch(() => {
+            .catch(error => {
               this.loading = false;
+              console.error('Error fetching doctors:', error);
+              
+              // Try to use expired cache as fallback
+              const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.cacheConfig.doctors.key);
+              if (fallbackCache) {
+                try {
+                  const cacheData = JSON.parse(fallbackCache);
+                  this.doctors = cacheData.data;
+                  console.log('📦 Using fallback cache for doctors');
+                } catch (e) {
+                  console.warn('Failed to parse fallback cache');
+                }
+              }
+              
+              this.fetchReservations();
             });
 
         } else {
@@ -385,13 +424,17 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          const response = await axios.delete(`/reservations/${this.book_details.id}`, {
+          await axios.delete(`/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
               Authorization: "Bearer " + this.$store.state.AdminInfo.token
             }
           });
+
+          // Clear reservations cache to force refresh
+          cacheManager.remove(this.cacheConfig.reservations.key);
+          console.log('🗑️ Cleared reservations cache after deletion');
 
           // Refresh the reservations list
           await this.fetchReservations();
@@ -455,6 +498,17 @@
         return `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
       },
       getOwnerTctateitemsById() {
+        console.log('Fetching owner items...');
+        
+        // Check cache first
+        const cached = cacheManager.get(this.cacheConfig.ownerItems.key);
+        if (cached) {
+          console.log('✅ Using cached owner items');
+          this.item_id = cached.id;
+          this.owner_item = cached;
+          return;
+        }
+        
         this.loading = true
         this.$http({
           method: 'get',
@@ -466,11 +520,42 @@
           }
 
         }).then(response => {
+          this.loading = false;
           this.item_id = response.data.data[0].id;
           this.owner_item = response.data.data[0];
+          
+          // Cache the owner item data
+          cacheManager.set(this.cacheConfig.ownerItems.key, response.data.data[0], this.cacheConfig.ownerItems.ttl);
+          console.log('💾 Cached owner items data');
+        }).catch(error => {
+          this.loading = false;
+          console.error('Error fetching owner items:', error);
+          
+          // Try to use expired cache as fallback
+          const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.cacheConfig.ownerItems.key);
+          if (fallbackCache) {
+            try {
+              const cacheData = JSON.parse(fallbackCache);
+              this.item_id = cacheData.data.id;
+              this.owner_item = cacheData.data;
+              console.log('📦 Using fallback cache for owner items');
+            } catch (e) {
+              console.warn('Failed to parse fallback cache');
+            }
+          }
         });
       },
       getPatient() {
+        console.log('Fetching patients...');
+        
+        // Check cache first
+        const cached = cacheManager.get(this.cacheConfig.patients.key);
+        if (cached) {
+          console.log('✅ Using cached patients');
+          this.patients = cached;
+          return;
+        }
+        
         this.loadingData = true; // Show loading indicator
         axios.get("patients/getByUserIdv3", {
             headers: {
@@ -482,9 +567,26 @@
           .then(res => {
             this.loadingData = false;
             this.patients = res.data.data; // Store fetched patients
+            
+            // Cache the patients data
+            cacheManager.set(this.cacheConfig.patients.key, res.data.data, this.cacheConfig.patients.ttl);
+            console.log('💾 Cached patients data');
           })
-          .catch(() => {
+          .catch(error => {
             this.loadingData = false;
+            console.error('Error fetching patients:', error);
+            
+            // Try to use expired cache as fallback
+            const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.cacheConfig.patients.key);
+            if (fallbackCache) {
+              try {
+                const cacheData = JSON.parse(fallbackCache);
+                this.patients = cacheData.data;
+                console.log('📦 Using fallback cache for patients');
+              } catch (e) {
+                console.warn('Failed to parse fallback cache');
+              }
+            }
           });
       },
       addtime(item) {
@@ -582,6 +684,10 @@
               color: this.getReservationColor(reservationStartDate, fromTime)
             });
 
+            // Clear reservations cache to force refresh on next load
+            cacheManager.remove(this.cacheConfig.reservations.key);
+            console.log('🗑️ Cleared reservations cache after new booking');
+
             // Close dialog and show success message
             this.close();
             this.BookingDetails = false;
@@ -614,7 +720,15 @@
       },
       async fetchReservations() {
         try {
-          console.log('Fetching reservations from new API...');
+          console.log('Fetching reservations...');
+          
+          // Check cache first
+          const cached = cacheManager.get(this.cacheConfig.reservations.key);
+          if (cached) {
+            console.log('✅ Using cached reservations');
+            this.reservations = cached;
+            return;
+          }
           
           // Use the new API endpoint
           const response = await axios.get('https://apismartclinicv4.tctate.com/api/reservations/formatted', {
@@ -630,7 +744,7 @@
           // Check if the response has the expected structure
           if (response.data && response.data.status && response.data.data) {
             // Map the API response to the format expected by the calendar
-            this.reservations = response.data.data.map(reservation => ({
+            const formattedReservations = response.data.data.map(reservation => ({
               name: reservation.user.full_name,
               details: `Appointment with ${reservation.user.full_name}`,
               phone: reservation.user.user_phone,
@@ -641,6 +755,11 @@
               color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
             }));
 
+            this.reservations = formattedReservations;
+            
+            // Cache the formatted reservations
+            cacheManager.set(this.cacheConfig.reservations.key, formattedReservations, this.cacheConfig.reservations.ttl);
+            
             console.log('Formatted reservations:', this.reservations);
           } else {
             console.error('Unexpected API response structure:', response.data);
@@ -648,6 +767,18 @@
           }
         } catch (error) {
           console.error('Error fetching reservations:', error);
+          
+          // Try to use expired cache as fallback
+          const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.cacheConfig.reservations.key);
+          if (fallbackCache) {
+            try {
+              const cacheData = JSON.parse(fallbackCache);
+              this.reservations = cacheData.data;
+              console.log('📦 Using fallback cache for reservations');
+            } catch (e) {
+              console.warn('Failed to parse fallback cache');
+            }
+          }
           
           // Fallback: show user-friendly error message
           this.$swal.fire({
@@ -657,7 +788,9 @@
             confirmButtonText: 'موافق'
           });
           
-          this.reservations = [];
+          if (!this.reservations.length) {
+            this.reservations = [];
+          }
         }
       },
 
@@ -725,7 +858,70 @@
           .catch(() => {
             this.loadingData = false;
           });
-      }
+      },
+      // Cache management methods
+      clearCache(key) {
+        cacheManager.remove(key);
+      },
+
+      clearAllCache() {
+        Object.values(this.cacheConfig).forEach(config => {
+          cacheManager.remove(config.key);
+        });
+        console.log('🧹 Cleared all booking cache');
+      },
+
+      // Force refresh data by clearing cache and refetching
+      forceRefreshData() {
+        this.clearAllCache();
+        this.getclinicDoctor();
+        this.getPatient();
+        this.getOwnerTctateitemsById();
+      },
+      // Check cache validity and refresh if needed
+      async checkAndRefreshCache() {
+        console.log('🔍 Checking cache validity...');
+        
+        // Check each cache type
+        const cacheChecks = [
+          { key: this.cacheConfig.reservations.key, method: 'fetchReservations' },
+          { key: this.cacheConfig.patients.key, method: 'getPatient' },
+          { key: this.cacheConfig.doctors.key, method: 'getclinicDoctor' },
+          { key: this.cacheConfig.ownerItems.key, method: 'getOwnerTctateitemsById' }
+        ];
+        
+        for (const check of cacheChecks) {
+          if (!cacheManager.has(check.key)) {
+            console.log(`⚠️ Cache miss for ${check.key}, refreshing...`);
+            if (check.method === 'fetchReservations') {
+              await this.fetchReservations();
+            } else if (check.method === 'getPatient') {
+              this.getPatient();
+            } else if (check.method === 'getclinicDoctor') {
+              await this.getclinicDoctor();
+            } else if (check.method === 'getOwnerTctateitemsById') {
+              this.getOwnerTctateitemsById();
+            }
+          }
+        }
+      },
+
+      // Handle cache warming - preload data in background
+      async warmupCache() {
+        console.log('🔥 Starting cache warmup...');
+        
+        // Warmup in background without blocking UI
+        setTimeout(() => {
+          this.getPatient();
+          this.getOwnerTctateitemsById();
+        }, 100);
+      },
+
+    },
+    beforeDestroy() {
+      // Optional: Clear cache when component is destroyed if needed
+      // this.clearAllCache();
+      console.log('🧹 RequestBooking component destroyed');
     },
   };
 </script>

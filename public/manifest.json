@@ -1,20 +1,78 @@
 {
-  "name": "Smart Clinic",
+  "name": "Smart Clinic Management System",
   "short_name": "Smart Clinic",
-  "start_url": ".",
+  "description": "Complete clinic management system for healthcare professionals",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#1976d2",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["medical", "health", "productivity", "business"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "logov2.png",
+      "src": "logomain.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "logov2.png",
+      "src": "logomain.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logomain.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logomain.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Access clinic dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "logomain.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "short_name": "Patients",
+      "description": "Manage patients",
+      "url": "/patients",
+      "icons": [
+        {
+          "src": "logomain.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "short_name": "Appointments",
+      "description": "View appointments",
+      "url": "/appointments",
+      "icons": [
+        {
+          "src": "logomain.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

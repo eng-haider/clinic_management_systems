@@ -18,6 +18,22 @@ module.exports = {
     sourceMap: false,
   },
 
+  // PWA Configuration
+  pwa: {
+    name: 'Smart Clinic Management System',
+    short_name: 'Smart Clinic',
+    theme_color: '#1976d2',
+    background_color: '#ffffff',
+    display: 'standalone',
+    scope: '/',
+    start_url: '/',
+    workboxPluginMode: 'InjectManifest',
+    workboxOptions: {
+      swSrc: 'public/sw.js',
+      swDest: 'sw.js',
+    },
+  },
+
   chainWebpack: config => {
     // Remove prefetch and preload plugins for better control
     config.plugins.delete('prefetch')

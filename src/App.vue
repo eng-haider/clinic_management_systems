@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <!-- PWA Install Banner -->
+    <PWAInstall />
+    
     <!-- Global Loading Spinner -->
     <GlobalLoadingSpinner 
       ref="globalLoadingSpinner"
@@ -13,11 +16,13 @@
 
 <script>
 import GlobalLoadingSpinner from '@/components/GlobalLoadingSpinner.vue'
+import PWAInstall from '@/components/PWAInstall.vue'
 
 export default {
   name: 'App',
   components: {
-    GlobalLoadingSpinner
+    GlobalLoadingSpinner,
+    PWAInstall
   },
   data() {
     return {
