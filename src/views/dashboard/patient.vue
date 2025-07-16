@@ -269,11 +269,64 @@
               </v-card-text>
             </v-card>
 
+            <!-- Case Images Section (Hidden for secretaries) -->
+            <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode && patientImages.length > 0">
+              <v-card-title class="subtitle-1">
+                <v-icon left class="primary--text">mdi-image-multiple</v-icon>
+                <span style="font-family: Cairo !important;">صور الحالات</span>
+              </v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col
+                    v-for="(image, index) in patientImages"
+                    :key="image.id"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    lg="2"
+                  >
+                    <v-card class="position-relative">
+                      <a
+                        :href="getImageUrl(image.image_url)"
+                        :data-fancybox="'patient-gallery'"
+                        :data-caption="`صورة المريض ${index + 1}`"
+                        class="patient-image-link"
+                      >
+                        <v-img
+                          :src="getImageUrl(image.image_url)"
+                          :alt="`صورة المريض ${index + 1}`"
+                          aspect-ratio="1"
+                          contain
+                          class="patient-image"
+                          style="cursor: pointer; border-radius: 8px;"
+                        />
+                      </a>
+                      <v-btn
+                        icon
+                        small
+                        color="error"
+                        class="delete-image-btn"
+                        style="position: absolute; top: 5px; right: 5px;"
+                        @click="deleteImage(image)"
+                      >
+                        <v-icon size="16">mdi-delete</v-icon>
+                      </v-btn>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
             <!-- Bills History Card (Always shown) -->
        
           </v-col>
         </v-row>
 
+
+
+
+
+        
         <!-- Image Upload Section (Hidden for secretaries) -->
         <v-row style="height: auto;" v-if="!secretaryBillsOnlyMode">
           <v-col cols="12" md="12">
@@ -562,6 +615,8 @@
         <Bill :patient="{ ...patient, bills: patientBills }" />
       </v-card>
     </v-dialog>
+
+    <!-- Fancybox is handling image viewing now -->
   </v-container>
 </template>
 
@@ -615,6 +670,9 @@ birth_date: ''
       // Patient Cases (will be loaded from API)
       patientCases: [],
       
+      // Patient Images (will be loaded from API)
+      patientImages: [],
+        
       // Patient Bills (will be loaded from API)
       patientBills: [],
       // Table Headers
@@ -695,7 +753,9 @@ birth_date: ''
       },
 
       // Uploaded images tracking
-      uploadedImages: []
+      uploadedImages: [],
+
+      // Fancybox is now handling image viewing
     }
   },
   
@@ -1078,6 +1138,19 @@ birth_date: ''
         }) : [];
         console.log('📋 Cases processed:', this.patientCases.length);
 
+        // Process images data
+        console.log('🖼️ Processing images data...');
+        this.patientImages = data.images ? data.images.map(image => ({
+          id: image.id,
+          image_url: image.image_url,
+          imageable_id: image.imageable_id,
+          imageable_type: image.imageable_type,
+          description: image.descrption,
+          created_at: image.created_at,
+          updated_at: image.updated_at
+        })) : [];
+        console.log('🖼️ Images processed:', this.patientImages.length);
+
         // Process bills data
         console.log('💰 Processing bills data...');
         this.patientBills = data.bills ? data.bills.map(bill => ({
@@ -1117,7 +1190,30 @@ birth_date: ''
         console.log('✅ Patient data loaded successfully');
         console.log('Patient:', this.patient);
         console.log('Cases:', this.patientCases);
+        console.log('Images:', this.patientImages);
         console.log('Bills:', this.patientBills);
+        
+        // Initialize Fancybox after data is loaded
+        this.$nextTick(() => {
+          if (window.$ && window.$.fancybox) {
+            window.$('[data-fancybox]').fancybox({
+              buttons: [
+                "zoom",
+                "share",
+                "slideShow",
+                "fullScreen",
+                "download",
+                "thumbs",
+                "close"
+              ],
+              animationEffect: "zoom",
+              transitionEffect: "slide",
+              loop: true,
+              protect: true,
+              wheel: false
+            });
+          }
+        });
       } catch (error) {
         console.error('❌ Error loading patient data:', error);
         
@@ -1407,6 +1503,31 @@ birth_date: ''
       
       // Remove context menu event listener
       document.removeEventListener('click', this.hideContextMenu);
+    },
+
+    // Toggle bill payment status
+    toggleBillPaymentStatus(bill) {
+      // Check if current user can change payment status
+      if (!this.canChangePaymentStatus) {
+        this.$swal.fire({
+          title: "غير مسموح",
+          text: "ليس لديك صلاحية لتغيير حالة الدفع",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
+
+      // Find the bill in the array
+      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      if (index !== -1) {
+        // Toggle the payment status
+        this.patientBills[index].is_paid = this.patientBills[index].is_paid == 1 ? 0 : 1;
+        // Mark as modified for saving (unless it's already marked as new)
+        if (!this.patientBills[index].isNew) {
+          this.patientBills[index].modified = true;
+        }
+      }
     },
 
     // Select dental operation from context menu
@@ -1724,6 +1845,8 @@ birth_date: ''
     
     // Save patient data
     async savePatientData() {
+      if (this.saving) return; // Prevent multiple saves
+      
       this.saving = true;
       
       try {
@@ -1749,14 +1872,20 @@ birth_date: ''
           await this.saveBills(modifiedBills);
         }
         
-        // Show success without reloading
+        // Show success message
         this.$swal.fire({
           title: "نجاح",
-          text: "تم حفظ بيانات المريض بنجاح",
+          text: "تم حفظ بيانات المراجع بنجاح",
           icon: "success",
-          confirmButtonText: "موافق"
+          timer: 1500, // Auto close after 1.5 seconds
+          showConfirmButton: false // Hide the confirm button
+        }).then(() => {
+          // Navigate to case sheet page immediately
+          this.$router.push({ 
+            name: 'cases', // or whatever your case sheet route name is
+            // You can also use path: '/cases' if you know the exact path
+          });
         });
-        
       } catch (error) {
         console.error('❌ Error saving patient data:', error);
         
@@ -1770,8 +1899,7 @@ birth_date: ''
         this.saving = false;
       }
     },
-    
-    // Save new case to API
+    // Save new case
     async saveNewCase(caseItem) {
       try {
         const requestBody = {
@@ -1783,14 +1911,14 @@ birth_date: ''
             date: caseItem.date
           }],
           bills: [{
-            price: caseItem.price.toString(),
+            price: caseItem.price ? caseItem.price.toString() : "0",
             PaymentDate: caseItem.date,
-            patient_id: this.patient.id.toString()
+            patient_id: this.patient.id ? this.patient.id.toString() : ""
           }],
           images: [],
           notes: caseItem.notes || "",
-          price: caseItem.price.toString(),
-          patient_id: this.patient.id.toString()
+          price: caseItem.price ? caseItem.price.toString() : "0",
+          patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
         const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases', requestBody, {
@@ -2001,103 +2129,136 @@ birth_date: ''
       
       return false;
     },
+
+    // Get full image URL
+    getImageUrl(imageName) {
+      if (!imageName) return '';
+      // Use the base URL from the example API response
+      return `https://apismartclinicv2.tctate.com/case_photo/${imageName}`;
+    },
+
   },
-  
-  async mounted() {
-    try {
-      // Set authorization header for dropzone
-      if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
-        this.dropzoneOptions.headers = {
-          "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
-        };
-      }
-      
-      // Listen for tooth change events from the teeth component
-      EventBus.$on('changetooth', this.handleToothChange);
-      
-      // Listen for tooth right-click events - try multiple event names
-      EventBus.$on('toothRightClick', this.handleToothRightClick);
-      EventBus.$on('tooth-right-click', this.handleToothRightClick);
-      EventBus.$on('tooth_right_click', this.handleToothRightClick);
-      EventBus.$on('rightClickTooth', this.handleToothRightClick);
-      
-      // Listen for bill report close event
-      EventBus.$on('billsReportclose', () => {
-        this.billDialog = false;
-      });
-      
-      // Listen for appointment booking events
-      EventBus.$on('appointmentBooked', () => {
-        this.appointmentDialog = false;
-        this.$swal.fire({
-          title: "نجاح",
-          text: "تم حجز الموعد بنجاح",
-          icon: "success",
-          confirmButtonText: "موافق"
+
+async mounted() {
+  try {
+    // Set authorization header for dropzone
+    if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
+      this.dropzoneOptions.headers = {
+        "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
+      };
+    }
+    
+    // Initialize Fancybox with custom options
+    if (window.$ && window.$.fancybox) {
+      window.$(document).ready(() => {
+        window.$('[data-fancybox]').fancybox({
+          buttons: [
+            "zoom",
+            "share",
+            "slideShow",
+            "fullScreen",
+            "download",
+            "thumbs",
+            "close"
+          ],
+          animationEffect: "zoom",
+          transitionEffect: "slide",
+          loop: true,
+          protect: true,
+          wheel: false
         });
       });
-
-      EventBus.$on('appointmentCancelled', () => {
-        this.appointmentDialog = false;
-      });
-      
-      // Load patient data and dental operations
-      await this.loadPatientData();
-      
-      // Add global handler for input fields to ensure context menu is hidden
-      document.addEventListener('click', (e) => {
-        if (e.target.closest('.price-input') || 
-            e.target.closest('.v-text-field__slot') || 
-            e.target.closest('.v-input') || 
-            e.target.tagName === 'INPUT' ||
-            e.target.tagName === 'TEXTAREA') {
-          this.showContextMenu = false;
-          this.selectedTooth = null;
-        }
-      });
-      
-      // Add global context menu prevention for form elements
-      document.addEventListener('contextmenu', (e) => {
-        // Always prevent context menu when interacting with form elements
-        if (this.isFormElement(e.target)) {
-          this.showContextMenu = false;
-          this.selectedTooth = null;
-          console.log('Prevented context menu on form element');
-          return; // Allow the default context menu for form elements
-        }
-        
-        // Only allow context menu on tooth elements
-        if (!e.target.classList.contains('comon')) {
-          this.showContextMenu = false;
-          this.selectedTooth = null;
-        }
-      });
-      
-      // Add focus event listener to hide context menu when focusing on form elements
-      document.addEventListener('focus', (e) => {
-        if (this.isFormElement(e.target)) {
-          this.showContextMenu = false;
-          this.selectedTooth = null;
-          console.log('Hiding context menu due to form element focus');
-        }
-      }, true); // Use capture phase to catch focus events early
-      
-      console.log('✅ Component mounted successfully');
-      
-    } catch (error) {
-      console.error('❌ Error during component mount:', error);
     }
-  },
+      
+    // Listen for tooth change events from the teeth component
+    EventBus.$on('changetooth', this.handleToothChange);
+    
+    // Listen for tooth right-click events - try multiple event names
+    EventBus.$on('toothRightClick', this.handleToothRightClick);
+    EventBus.$on('tooth-right-click', this.handleToothRightClick);
+    EventBus.$on('tooth_right_click', this.handleToothRightClick);
+    EventBus.$on('rightClickTooth', this.handleToothRightClick);
+    
+    // Listen for bill report close event
+    EventBus.$on('billsReportclose', () => {
+      this.billDialog = false;
+    });
+    
+    // Listen for appointment booking events
+    EventBus.$on('appointmentBooked', () => {
+      this.appointmentDialog = false;
+      this.$swal.fire({
+        title: "نجاح",
+        text: "تم حجز الموعد بنجاح",
+        icon: "success",
+        confirmButtonText: "موافق"
+      });
+    });
+
+    EventBus.$on('appointmentCancelled', () => {
+      this.appointmentDialog = false;
+    });
+    
+    // Load patient data and dental operations
+    await this.loadPatientData();
+    
+    // Add global handler for input fields to ensure context menu is hidden
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.price-input') || 
+          e.target.closest('.v-text-field__slot') || 
+          e.target.closest('.v-input') || 
+          e.target.tagName === 'INPUT' ||
+          e.target.tagName === 'TEXTAREA') {
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+      }
+    });
+    
+    // Add global context menu prevention for form elements
+    document.addEventListener('contextmenu', (e) => {
+      // Always prevent context menu when interacting with form elements
+      if (this.isFormElement(e.target)) {
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+        console.log('Prevented context menu on form element');
+        return; // Allow the default context menu for form elements
+      }
+      
+      // Only allow context menu on tooth elements
+      if (!e.target.classList.contains('comon')) {
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+      }
+    });
+    
+    // Add focus event listener to hide context menu when focusing on form elements
+    document.addEventListener('focus', (e) => {
+      if (this.isFormElement(e.target)) {
+        this.showContextMenu = false;
+        this.selectedTooth = null;
+        console.log('Hiding context menu due to form element focus');
+      }
+    }, true); // Use capture phase to catch focus events early
+    
+    console.log('✅ Component mounted successfully');
+    
+  } catch (error) {
+    console.error('❌ Error during component mount:', error);
+  }
+},
   
   beforeDestroy() {
     try {
+      // Remove Fancybox cleanup
+      
       // Clean up event listeners
       EventBus.$off('changetooth', this.handleToothChange);
+      
+      // Listen for tooth right-click events - try multiple event names
       EventBus.$off('toothRightClick', this.handleToothRightClick);
       EventBus.$off('tooth-right-click', this.handleToothRightClick);
       EventBus.$off('tooth_right_click', this.handleToothRightClick);
       EventBus.$off('rightClickTooth', this.handleToothRightClick);
-      EventBus.$off('billsReportclose');
       
       // Clean up appointment booking event listeners
       EventBus.$off('appointmentBooked');
@@ -2275,5 +2436,28 @@ birth_date: ''
     bottom: 0;
     left: 0;
   }
+}
+</style>
+
+<style>
+/* Custom styling for fancybox gallery */
+.patient-image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Fancybox styling overrides */
+.fancybox-button {
+  background: rgba(30, 30, 30, 0.6);
+}
+
+.fancybox-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.fancybox-caption {
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
 }
 </style>

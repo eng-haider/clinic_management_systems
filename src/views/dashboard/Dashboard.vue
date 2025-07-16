@@ -81,7 +81,8 @@ export default {
       pieChart: null,
       barChart: null,
       page: 1,
-      pageCount: 0
+      pageCount: 0,
+      isLoading: false // Add loading state
     };
   },
   computed: {
@@ -96,18 +97,27 @@ export default {
   methods: {
     // Override loadInitialData from mixin
     async loadInitialData() {
-      // Load all dashboard data concurrently for better performance
-      await Promise.all([
-        this.loadCaseStats(),
-        this.loadDashboardCounts(),
-        this.loadBookingData(),
-        this.loadAccountsCounts()
-      ]);
+      if (this.isLoading) return; // Prevent multiple calls
       
-      // Create charts after all data is loaded
-      this.$nextTick(() => {
-        this.createCharts();
-      });
+      this.isLoading = true;
+      try {
+        // Load all dashboard data concurrently for better performance
+        await Promise.all([
+          this.loadCaseStats(),
+          this.loadDashboardCounts(),
+          this.loadBookingData(),
+          this.loadAccountsCounts()
+        ]);
+        
+        // Create charts after all data is loaded
+        this.$nextTick(() => {
+          this.createCharts();
+        });
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      } finally {
+        this.isLoading = false;
+      }
     },
 
     async loadCaseStats() {

@@ -30,6 +30,41 @@
 
 
 	<!-- Fancybox -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+	<!-- Initialize Fancybox defaults -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			if (typeof $.fancybox !== 'undefined') {
+				// Configure global Fancybox defaults
+				$.fancybox.defaults.buttons = ['zoom', 'share', 'slideShow', 'fullScreen', 'download', 'thumbs', 'close'];
+				$.fancybox.defaults.animationEffect = 'zoom-in-out';
+				$.fancybox.defaults.transitionEffect = 'fade';
+				$.fancybox.defaults.clickContent = 'zoom';
+				$.fancybox.defaults.dblclickContent = 'zoom';
+				$.fancybox.defaults.dblclickSlide = 'zoom';
+				$.fancybox.defaults.zoom = {
+					enabled: true,
+					duration: 300,
+					easing: 'ease-in-out'
+				};
+				
+				// Enable zoom button
+				$(document).on('afterShow.fb', function() {
+					$('.fancybox-button--zoom').removeClass('fancybox-button--disabled');
+					$('.fancybox-button--zoom').attr('disabled', false);
+					$('.fancybox-button--zoom').css({
+						'opacity': '1',
+						'pointer-events': 'auto',
+						'display': 'inline-block',
+						'visibility': 'visible',
+						'background-color': 'rgba(30, 30, 30, 0.6)'
+					});
+				});
+			}
+		});
+	</script>
 	
 	<!-- Custom CSS -->
 	

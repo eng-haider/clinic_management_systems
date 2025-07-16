@@ -18,6 +18,7 @@ import VueRouterUserRoles from "vue-router-user-roles"
 import VueSweetalert2 from "vue-sweetalert2"
 import VueNumber from 'vue-number-animation'
 import VueCurrencyFilter from 'vue-currency-filter'
+import DropzonePlugin from './plugins/dropzone'
 
 // No loading or performance tracking
 
@@ -33,6 +34,9 @@ Vue.use(VueCurrencyFilter, {
   symbolPosition: 'front',
   symbolSpacing: true
 })
+
+// Configure Dropzone before any components are loaded
+Vue.use(DropzonePlugin)
 
 // Global config
 Vue.mixin({
