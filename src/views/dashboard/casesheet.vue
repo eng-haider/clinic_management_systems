@@ -1468,10 +1468,7 @@
                         if (userRole === 'adminDoctor' || userRole === 'admin' || userRole === 'doctor') {
                             // Redirect to patient page for these roles
                             this.$router.push(`/patient/${patientData.id}`);
-                        } else if (!this.$store.getters.isSecretary) {
-                            this.gocase = false;
-                            this.addCase(patientData);
-                        }
+                        } 
                     }
                     
                     this.close();

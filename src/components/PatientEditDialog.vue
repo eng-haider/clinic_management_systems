@@ -109,7 +109,7 @@
                 cols="12" 
                 sm="6" 
                 md="6"
-                v-if="$store.state.role=='secretary' && doctors.length > 1"
+                v-if="($store.state.role=='secretary' || $store.state.role=='accounter') && doctors.length > 1"
               >
                 <v-select 
                   :rules="[rules.required]" 
@@ -270,7 +270,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv2.tctate.com/api/cases/",
+        url: "https://apismartclinicv4.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -392,9 +392,17 @@ export default {
     // Dropzone event handlers
     handleImageSuccess(file, response) {
       console.log('Image uploaded successfully:', response);
-      if (response && response.filename) {
-        this.uploadedImages.push(response.filename);
+
+           if (response) {
+        this.uploadedImages.push({
+          fileName: response.data,
+          originalName: file.name,
+          file: file
+        });
+
       }
+
+     
     },
 
     handleImageError(file, message) {
@@ -423,15 +431,15 @@ export default {
         // Prepare data for saving
         const patientData = { ...this.editedItem };
         
-        // Add uploaded images to patient data
-        patientData.images = this.uploadedImages;
-        
         // Handle doctor assignment for secretaries
         if (this.doctors.length > 1 && this.$store.state.role == 'secretary') {
           patientData.doctors = [patientData.doctors];
         } else {
           delete patientData.doctors;
         }
+
+        // Remove images from patient data (they will be uploaded separately)
+        delete patientData.images;
 
         // Make API call to create/update patient
         this.savePatientToAPI(patientData);
@@ -446,6 +454,9 @@ export default {
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
+
+
+        
         const response = await fetch(url, {
           method: method,
           headers: {
@@ -459,6 +470,12 @@ export default {
         if (response.ok) {
           const result = await response.json();
           
+          // Get patient ID from result (for new patients) or from existing patient data
+          const patientId = result.data?.id || patientData.id;
+        
+          // Upload images if any were uploaded
+         await this.uploadPatientImages(patientId);
+          
           this.$swal.fire({
             position: "top-end",
             icon: "success",
@@ -466,7 +483,7 @@ export default {
             showConfirmButton: false,
             timer: 1500
           });
-
+          
           // Emit save event with patient data
           this.$emit('save', {
             patient: result.data || patientData,
@@ -487,6 +504,50 @@ export default {
         });
       } finally {
         this.loadSave = false;
+      }
+    },
+
+    // Upload patient images using the specified API
+    async uploadPatientImages(patientId) {
+      try {
+      
+        const requestBody = {
+          images: this.uploadedImages.map(image => ({
+            img: image.fileName,
+            descrption: image.originalName || image.fileName,
+            patient_id: patientId
+          })),
+          patient_id:patientId
+        };
+        
+
+        console.log('📸 Uploading patient images:', requestBody);
+
+        const response = await fetch('https://apismartclinicv4.tctate.com/api/cases/uploude_images', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Images uploaded successfully:', result);
+        } else {
+          throw new Error('فشل في رفع الصور');
+        }
+      } catch (error) {
+        console.error('❌ Error uploading images:', error);
+        // Show warning but don't fail the entire operation
+        this.$swal.fire({
+          title: "تحذير",
+          text: "تم حفظ بيانات المريض ولكن فشل في رفع الصور",
+          icon: "warning",
+          confirmButtonText: "موافق",
+        });
       }
     }
   }

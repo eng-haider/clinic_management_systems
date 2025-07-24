@@ -79,12 +79,6 @@
             <!-- Secretary Welcome Message (Only shown for secretaries) -->
            
 
-            <!-- Dental Chart Card (Hidden for secretaries) -->
-            <div v-if="secretaryBillsOnlyMode" class="pa-4 text-center grey--text">
-              <h3>وضع السكرتارية: الأسنان مخفية</h3>
-              <p>Role: {{ $store.state.role }}, PaidAtSecretary: {{ $store.state.AdminInfo?.clinics_info?.paid_at_secretary }}</p>
-              <p>SecretaryBillsOnlyMode: {{ secretaryBillsOnlyMode }}</p>
-            </div>
 
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
               <v-card-text class="text-center">
@@ -134,6 +128,8 @@
                             {{ item.case_type }}
                           </v-chip>
                         </template>
+
+                        
 
                         <!-- Price Column -->
                         <template v-slot:item.price="{ item }">
@@ -739,7 +735,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://apismartclinicv4.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -754,7 +750,9 @@ birth_date: ''
 
       // Uploaded images tracking
       uploadedImages: [],
-
+      
+      // Track new uploaded images that need to be saved
+      newUploadedImages: [],
       // Fancybox is now handling image viewing
     }
   },
@@ -816,13 +814,13 @@ birth_date: ''
 
        
         
-        // If paid_at_secretary is true (1), only secretary can change payment status
+        // If paid_at_secretary is true (1), only secretary/accounter can change payment status
         if (paidAtSecretary == 1 || paidAtSecretary === true) {
-          return role === 'secretary';
+          return role === 'secretary' || role === 'accounter';
         }
-        // If paid_at_secretary is false (0), only secretary can change payment status
+        // If paid_at_secretary is false (0), only secretary/accounter can change payment status
         else {
-          return role === 'secretary';
+          return role === 'secretary' || role === 'accounter';
         }
       } catch (error) {
         console.error('Error checking payment permission:', error);
@@ -834,7 +832,7 @@ birth_date: ''
     canAddBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can create bills, secretaries cannot
+        // Only doctors and adminDoctors can create bills, secretaries/accounters cannot
         return role === 'adminDoctor' || role === 'doctor';
       } catch (error) {
         console.error('Error checking add bills permission:', error);
@@ -875,8 +873,8 @@ birth_date: ''
           adminInfo: this.$store.state.AdminInfo 
         });
         
-        // If paid_at_secretary is true (1) and user is secretary, show limited mode
-        const isSecretaryOnlyMode = role === 'secretary' && (paidAtSecretary == 1 || paidAtSecretary === true);
+        // If paid_at_secretary is true (1) and user is secretary/accounter, show limited mode
+        const isSecretaryOnlyMode = (role === 'secretary' || role === 'accounter') && (paidAtSecretary == 1 || paidAtSecretary === true);
         console.log('🔍 Secretary bills only mode result:', isSecretaryOnlyMode);
         console.log('🔍 Should show teeth component:', !isSecretaryOnlyMode);
         
@@ -891,7 +889,7 @@ birth_date: ''
     canEditBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can edit bills, secretaries cannot
+        // Only doctors and adminDoctors can edit bills, secretaries/accounters cannot
         return role === 'adminDoctor' || role === 'doctor';
       } catch (error) {
         console.error('Error checking edit bills permission:', error);
@@ -903,7 +901,7 @@ birth_date: ''
     canDeleteBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can delete bills, secretaries cannot
+        // Only doctors and adminDoctors can delete bills, secretaries/accounters cannot
         return role === 'adminDoctor' || role === 'doctor';
       } catch (error) {
         console.error('Error checking delete bills permission:', error);
@@ -1705,7 +1703,7 @@ birth_date: ''
     addPayment() {
       // Check if user has permission to create bills
       const role = this.$store.state.role;
-      if (role === 'secretary') {
+      if (role === 'secretary' || role === 'accounter') {
         this.$swal.fire({
           title: "غير مسموح",
           text: "ليس لديك صلاحية لإنشاء فواتير جديدة",
@@ -1871,6 +1869,11 @@ birth_date: ''
         if (modifiedBills.length > 0) {
           await this.saveBills(modifiedBills);
         }
+      
+        // Save uploaded images if any
+        if (this.newUploadedImages.length > 0) {
+          await this.saveUploadedImages();
+        }
         
         // Show success message
         this.$swal.fire({
@@ -1879,12 +1882,17 @@ birth_date: ''
           icon: "success",
           timer: 1500, // Auto close after 1.5 seconds
           showConfirmButton: false // Hide the confirm button
-        }).then(() => {
-          // Navigate to case sheet page immediately
-          this.$router.push({ 
-            name: 'cases', // or whatever your case sheet route name is
-            // You can also use path: '/cases' if you know the exact path
-          });
+        }).then(async () => {
+          // Reload patient data after successful save
+          console.log('🔄 Reloading patient data after save...');
+          try {
+            await this.loadPatientData();
+            console.log('✅ Patient data reloaded successfully');
+          } catch (error) {
+            console.error('❌ Error reloading patient data:', error);
+            // Show a toast or small notification instead of another modal
+            this.$toast.error('تم حفظ البيانات ولكن فشل في إعادة تحميلها');
+          }
         });
       } catch (error) {
         console.error('❌ Error saving patient data:', error);
@@ -1899,6 +1907,47 @@ birth_date: ''
         this.saving = false;
       }
     },
+    
+    // Save uploaded images to the API
+    async saveUploadedImages() {
+
+      console.log(this.newUploadedImages)
+      try {
+        if (this.newUploadedImages.length === 0) {
+
+          return;
+        }
+        
+        const requestBody = {
+          images: this.newUploadedImages.map(image => ({
+            img: image.fileName,
+            descrption: image.originalName || image.fileName,
+            patient_id: this.patient.id.toString()
+          })),
+          patient_id: this.patient.id.toString()
+        };
+        
+        console.log('📸 Saving uploaded images:', requestBody);
+        
+        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases/uploude_images', requestBody, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+          }
+        });
+        
+        console.log('📸 Images saved successfully:', response.data);
+        
+        // Clear the uploaded images array after successful save
+        this.newUploadedImages = [];
+        
+      } catch (error) {
+        console.error('❌ Error saving uploaded images:', error);
+        throw error;
+      }
+    },
+    
     // Save new case
     async saveNewCase(caseItem) {
       try {
@@ -2061,6 +2110,16 @@ birth_date: ''
     // Handle image upload success
     handleImageSuccess(file, response) {
       console.log('Image uploaded successfully:', response);
+      alert('تم رفع الصورة بنجاح: ' + response.filename);
+      // Track the uploaded image for saving later
+      if (response) {
+        this.newUploadedImages.push({
+          fileName: response.data,
+          originalName: file.name,
+          file: file
+        });
+        console.log('📸 Added image to upload queue:', response.filename);
+      }
     },
     
     // Handle image upload error
@@ -2134,7 +2193,49 @@ birth_date: ''
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://apismartclinicv2.tctate.com/case_photo/${imageName}`;
+      return `https://apismartclinicv4.tctate.com/case_photo/${imageName}`;
+    },
+
+    // Delete image from server and local array
+    async deleteImage(image) {
+      try {
+        // Show confirmation dialog
+        const result = await this.$swal.fire({
+          title: "تأكيد الحذف",
+          text: "هل أنت متأكد من حذف هذه الصورة؟",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذف",
+          cancelButtonText: "إلغاء",
+          confirmButtonColor: "#d33"
+        });
+
+        if (result.isConfirmed) {
+          // Remove from local array immediately for better UX
+          const index = this.patientImages.findIndex(img => img.id === image.id);
+          if (index !== -1) {
+            this.patientImages.splice(index, 1);
+          }
+
+          // Call API to delete from server (if needed)
+          // Note: You may need to implement a delete image API endpoint
+          
+          this.$swal.fire({
+            title: "تم الحذف",
+            text: "تم حذف الصورة بنجاح",
+            icon: "success",
+            confirmButtonText: "موافق"
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting image:', error);
+        this.$swal.fire({
+          title: "خطأ",
+          text: "تعذر حذف الصورة",
+          icon: "error",
+          confirmButtonText: "موافق"
+        });
+      }
     },
 
   },
@@ -2145,6 +2246,11 @@ async mounted() {
     if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
       this.dropzoneOptions.headers = {
         "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
+      };
+      
+      // Add patient_id parameter to dropzone options
+      this.dropzoneOptions.params = {
+        patient_id: this.$route.params.id
       };
     }
     

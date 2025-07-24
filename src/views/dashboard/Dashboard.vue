@@ -33,13 +33,13 @@
       </v-flex>
     </v-layout>
 
-    <v-layout row wrap>
+    <!-- <v-layout row wrap>
       <v-flex  md6 sm6 xs12 pt-4>
         <v-card>
           <canvas id="pie-chart" ref="pieChart"></canvas>
         </v-card>
       </v-flex>
-    </v-layout>
+    </v-layout> -->
 
     <!-- Loading Test Component for Testing -->
     <v-layout row wrap v-if="isDevelopment">

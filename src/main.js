@@ -42,8 +42,8 @@ Vue.use(DropzonePlugin)
 Vue.mixin({
   data() {
     return {
-      Url: 'https://apismartclinicv2.tctate.com',
-      http: 'http://'
+      Url: 'https://apismartclinicv4.tctate.com',  // Updated to v4 API
+      http: 'https://'  // Changed to https for security
     }
   }
 })
