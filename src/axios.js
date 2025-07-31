@@ -9,7 +9,7 @@ Vue.config.silent = true
 Vue.config.productionTip = false
 
 // Base URL configuration - Use environment variable or fallback to production
-const baseURL = process.env.VUE_APP_URL || 'https://apismartclinicv4.tctate.com/api/';
+const baseURL = 'https://smartclinicv5.tctate.com/api/';
 
 // Force set the base URL multiple ways to ensure it takes effect
 axios.defaults.baseURL = baseURL;

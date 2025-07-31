@@ -52,12 +52,17 @@
       <div>
         <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
           :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
-          <v-list-item style="color:#fff !important" link :to="item.to"
-            v-if="$store.state.AdminInfo.Permissions.includes(item.name)">
+          <v-list-item 
+            style="color:#fff !important" 
+            link 
+            :to="item.to"
+            v-if="$store.state.AdminInfo.Permissions.includes(item.name)"
+          >
+       
+            
             <v-list-item-icon>
               <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
             </v-list-item-icon>
-
             <v-list-item-content>
               <v-list-item-title style="font-size:14px">{{ item.title }}</v-list-item-title>
             </v-list-item-content>
@@ -139,6 +144,14 @@
             auth: true,
             to: '/ConjugationsCategories',
             name: 'show_conjugations_categories'
+          },
+
+          {
+            title: this.$t("header.CaseCategories"),
+            icon: 'fa-solid fa-list-ul',
+            auth: true,
+            to: '/case-categories',
+            name: 'show_CaseCategories'
           },
 
 

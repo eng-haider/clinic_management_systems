@@ -1321,7 +1321,7 @@
                     return;
                 }
 
-                axios.get("cases/CaseCategories", {
+                axios.get("case-categories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

@@ -198,8 +198,7 @@
                         </v-flex>
 
 
-                        <v-flex xs1 md3 sm3></v-flex>
-
+           
 
 
                         <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="doctor-select">
@@ -210,12 +209,31 @@
                             </v-select>
                         </v-flex>
 
+                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="payment-filter">
+                            <v-select
+                                v-model="fullyPaidFilter"
+                                :items="[
+                                    { text: 'جميع المرضى', value: null },
+                                    { text: 'مدفوع بالكامل', value: true },
+                                    { text: 'غير مدفوع بالكامل', value: false }
+                                ]"
+                                item-text="text"
+                                item-value="value"
+                                label="حالة الدفع"
+                                @change="initialize()"
+                                clearable
+                                dense
+                                outlined
+                                style="width: 100%; max-width: 300px;"
+                            ></v-select>
+                        </v-flex>
+
 
                     </v-layout>
                 </template>
 
 
-                <template v-slot:[`item.names`]="{ item }">
+                <template v-slot:[`item.name`]="{ item }">
 
                     <span @click="editItem(item)">
                         {{item.name}}
@@ -225,7 +243,7 @@
                 </template>
 
 
-                <template v-slot:[`item.phones`]="{ item }">
+                <template v-slot:[`item.phone`]="{ item }">
                     <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone}}</p>
                 </template>
 
@@ -404,6 +422,9 @@
                 // Add timeout variable
                 paginationTimeout: null,
                 
+                // Add fully paid filter
+                fullyPaidFilter: null, // null = all, true = fully paid, false = not fully paid
+                
                 // Cache configuration
                 cacheConfig: {
                     patients: {
@@ -542,11 +563,11 @@
                 headers: [{
                         text: this.$t('datatable.name'),
                         align: "start",
-                        value: "names"
+                        value: "name"
                     }, {
                         text: this.$t('datatable.phone'),
                         align: "start",
-                        value: "phones"
+                        value: "phone"
                     },
 
                     {
@@ -583,12 +604,7 @@
                         sortable: false
                     },
 
-                      !this.$store.getters.isSecretary? {
-                         text: '',
-                        value: "bills",
-                        sortable: false
-                    } : '',
-
+     
                     
                  
                     //booking
@@ -660,8 +676,8 @@
             },
 
             // Generate cache key for paginated data
-            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '') {
-                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}`;
+            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', fullyPaid = null) {
+                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_fp${fullyPaid}`;
             },
 
             // WhatsApp Methods
@@ -895,10 +911,7 @@
             },
 
             getByDocor() {
-                if (this.searchDocorId === 0) {
-                    this.isSearchingDoctor = false;
-                    this.tableOptions.page = 1;
-                    this.page = 1;
+                if (this.searchDocorId == 0) {
                     return this.initialize();
                 }
                 this.isSearchingDoctor = true;
@@ -906,7 +919,7 @@
                 
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId);
+                const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.fullyPaidFilter);
                 
                 const cached = this.getCache(cacheKey);
                 if (cached) {
@@ -936,8 +949,8 @@
                     .catch(() => {
                         this.loadingData = false;
                     });
-            },
-
+            }
+,
             goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
@@ -1300,7 +1313,7 @@
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage);
+                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.fullyPaidFilter);
                 
                 const cached = this.getCache(cacheKey);
                 if (cached) {
@@ -1313,7 +1326,7 @@
                     return;
                 }
                 
-                this.apiRequest(`patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;
@@ -1342,7 +1355,7 @@
                     return;
                 }
 
-                this.apiRequest('cases/CaseCategories')
+                this.apiRequest('case-categories')
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;

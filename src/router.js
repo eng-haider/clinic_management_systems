@@ -32,9 +32,15 @@ const routeComponents = {
   Doctors: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/doctors'),
   Profile: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/profile'),
   Store: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/store'),
+
   
   // Error pages
   Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
+  // Add this to the routeComponents object
+  CaseCategories: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/CaseCategories')
+  
+  // Add this route in the dashboard children array
+
 }
 
 const router = new Router({
@@ -177,6 +183,11 @@ const router = new Router({
           path: 'waitinglist',
           name: 'showWaitingList',
           component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/waitinglist')
+        },
+        {
+          path: 'case-categories',
+          name: 'case-categories',
+          component: routeComponents.CaseCategories
         }
       ]
     }

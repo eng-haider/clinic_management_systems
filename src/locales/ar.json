@@ -183,10 +183,10 @@
 "required_quantity":"التنبيه عند الكميه"
 },
   "header":{
-
     "conjugationsCategories":"اقسام الصرفيات",
     "cases":"الحالات",
     "caseLap":"حالات المختبر",
+    "CaseCategories":"اقسام الحالات",
     "reports":"تصيدير تقرير",
     "waitinglist":"قائمة الانتظار",
     "show_waitinglist":"قائمة الانتظار",

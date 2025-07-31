@@ -720,7 +720,7 @@ if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
             });
         },
         getCaseCategories() {
-            Axios.get("cases/CaseCategories", {
+            Axios.get("case-categories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

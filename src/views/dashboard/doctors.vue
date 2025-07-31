@@ -76,6 +76,20 @@
                                                     </v-text-field>
                                                 </v-col>
 
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-text-field v-model="editedItem.profit_percentage" 
+                                                        type="number"
+                                                        min="0"
+                                                        max="100"
+                                                        step="0.01"
+                                                        style="direction:ltr"
+                                                        :rules="profitRules"
+                                                        label="نسبة الدكتور % (اختياري)" 
+                                                        outlined
+                                                        suffix="%"
+                                                        hint="اتركه فارغاً إذا لم تكن تريد تحديد نسبة ربح">
+                                                    </v-text-field>
+                                                </v-col>
 
                                                 <!-- <v-col class="py-0" cols="12" sm="6" md="6">
                                                     <v-radio-group v-model="editedItem.role" row>
@@ -126,51 +140,19 @@
                 </template>
 
                 <template v-slot:[`item.patients_count`]="{ item }">
-
-
                     {{ item.info.patients_count }}
-
-
                 </template>
 
-
-                <!-- <template v-slot:[`item.all`]="{ item }">
-
-                    <div style="color:blue;font-weight: bold;">
-                        {{ item.all_sum | currency }} <span class="money">د.ع</span> </div>
-
-
-
-
+                <template v-slot:[`item.profit_percentage`]="{ item }">
+                    <v-chip 
+                        v-if="item.info.profit_percentage !== null && item.info.profit_percentage !== undefined"
+                        small 
+                        color="success" 
+                        text-color="white">
+                        {{ item.info.profit_percentage }}%
+                    </v-chip>
+                    <span v-else style="color: #999; font-style: italic;">غير محدد</span>
                 </template>
-
-
-                <template v-slot:[`item.paids`]="{ item }">
-
-
-                    <div style="color:green;font-weight: bold;">
-                        {{ item.paid | currency }} <span style="color: #000;">د.ع</span> </div>
-
-
-
-                </template>
-
-
-                <template v-slot:[`item.rem`]="{ item }">
-
-
-                    <div style="color:red;font-weight: bold;">
-                        {{ (item.all_sum-item.paid ) | currency }} <span style="color: #000;">د.ع</span> </div>
-
-
-
-                </template>
- -->
-
-
-
-
-
 
                 <template v-slot:[`item.actions`]="{ item }">
 
@@ -239,11 +221,9 @@
 
                 editedItem: {
                     name: "",
-
                     password: "",
                     phone: "",
-                    
-                    
+                    profit_percentage: null,
                 },
 
                 bill: false,
@@ -329,39 +309,23 @@
                         value: "patients_count"
                     },
 
-
                     {
                         text: 'عدد الحالات',
                         align: "start",
                         value: "info.cases_count"
                     },
 
-                    // {
-                    //     text: 'مبالغ الحالات',
-                    //     align: "start",
-                    //     value: "all"
-                    // },
+                    {
+                        text: 'نسبة الدكتور %',
+                        align: "start",
+                        value: "profit_percentage"
+                    },
 
-
-                    // {
-                    //     text: 'المبالغ الدفوعه',
-                    //     align: "start",
-                    //     value: "paids"
-                    // },
-                    // {
-                    //     text: 'المبالغ المتبقيه',
-                    //     align: "start",
-                    //     value: "rem"
-                    // },
-
-
-
-
-                    // {
-                    //     text: this.$t('Processes'),
-                    //     value: "actions",
-                    //     sortable: false
-                    // }
+                    {
+                        text: this.$t('Processes'),
+                        value: "actions",
+                        sortable: false
+                    }
                 ],
                 right: null
             }
@@ -369,52 +333,51 @@
 
         methods: {
             save() {
-
-if (this.$refs.form.validate()) {
-    this.loadSave = true;
-   
-    var data = {
-  
-  name: this.editedItem.name,
- password: this.editedItem.password,
-//  role: this.editedItem.role,
- phone: "964" + parseInt(this.editedItem.phone),
-
-
- 
-};
-        this.axios
-            .post("users/adddoctors", data, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-                },
-            })
-            .then((res) => {
-                res
-
-                this.$swal.fire({
-                    title: this.$t('Added'),
-                    text: "",
-                    icon: "success",
-                    confirmButtonText: this.$t('close'),
-                });
-
-                this.patientInfo = res.data.data;
-                this.dialog = false,
-                    this.initialize();
-
-
-                // if (this.$store.state.role !== 'secretary') {
-                //     this.gocase = false;
-                //     this.addCase(this.patientInfo);
-                // }
-
-
-
-
-            })
+                if (this.$refs.form.validate()) {
+                    this.loadSave = true;
+                   
+                    var data = {
+                        name: this.editedItem.name,
+                        password: this.editedItem.password,
+                        phone: "964" + parseInt(this.editedItem.phone),
+                    };
+                    
+                    // Only include profit_percentage if it has a value
+                    if (this.editedItem.profit_percentage !== null && this.editedItem.profit_percentage !== '' && this.editedItem.profit_percentage !== undefined) {
+                        data.profit_percentage = this.editedItem.profit_percentage;
+                    }
+                    
+                    this.axios
+                        .post("users/adddoctors", data, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Accept: "application/json",
+                                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                            },
+                        })
+                        .then((res) => {
+                            res
+                    
+                            // Remove doctors cache from localStorage
+                            localStorage.removeItem('doctors_cache');
+                    
+                            this.$swal.fire({
+                                title: this.$t('Added'),
+                                text: "",
+                                icon: "success",
+                                confirmButtonText: this.$t('close'),
+                            });
+                    
+                            this.patientInfo = res.data.data;
+                            this.dialog = false,
+                                this.initialize();
+                    
+                            // if (this.$store.state.role !== 'secretary') {
+                            //     this.gocase = false;
+                            //     this.addCase(this.patientInfo);
+                            // }
+                        })
+            
             .catch((err) => {
                 err
 

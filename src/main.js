@@ -42,7 +42,7 @@ Vue.use(DropzonePlugin)
 Vue.mixin({
   data() {
     return {
-      Url: 'https://apismartclinicv4.tctate.com',  // Updated to v4 API
+      Url: 'https://smartclinicv5.tctate.com',  // Updated to v4 API
       http: 'https://'  // Changed to https for security
     }
   }

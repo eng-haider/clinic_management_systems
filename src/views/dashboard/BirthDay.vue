@@ -790,7 +790,7 @@
             getCaseCategories() {
 
 
-                Axios.get("cases/CaseCategories", {
+                Axios.get("case-categories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

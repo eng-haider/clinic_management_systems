@@ -94,6 +94,36 @@
                 </div>
               </v-card-text>
 
+
+                <!-- Notes Section -->
+        <v-card class="notes-section mt-4">
+          <v-card-title class="pb-2">
+            <v-icon left>mdi-note-text</v-icon>
+            ملاحظات المراجع
+          </v-card-title>
+          <v-card-text>
+            <v-textarea
+              v-model="patient.notes"
+              label="أضف ملاحظات حول المراجع"
+              placeholder="اكتب ملاحظاتك هنا..."
+              outlined
+              rows="4"
+              counter
+              maxlength="1000"
+              style="direction: rtl; text-align: right;"
+            ></v-textarea>
+          </v-card-text>
+        </v-card>
+
+
+
+
+
+
+
+
+
+              
               <!-- Selected Cases Table -->
               <v-card-text>
                 <div class="selected-teeth-table">
@@ -129,7 +159,10 @@
                           </v-chip>
                         </template>
 
-                        
+                        <!-- Date Column -->
+                        <template v-slot:item.date="{ item }">
+                          <span>{{ item.date }}</span>
+                        </template>
 
                         <!-- Price Column -->
                         <template v-slot:item.price="{ item }">
@@ -157,6 +190,28 @@
                             inset
                             @change="updateCaseStatus(item)"
                           />
+                        </template>
+
+                        <!-- Bills Column -->
+                        <template v-slot:item.bills="{ item }">
+                          <div class="bills-for-case">
+                            <div v-if="getBillsForCase(item.id).length > 0" class="d-flex flex-wrap" style="font-size: 23px;">
+                              <v-chip
+                                v-for="bill in getBillsForCase(item.id)"
+                                :key="bill.id"
+                               
+                                :color="bill.is_paid == 1 ? 'success' : 'warning'"
+                                text-color="white"
+                                class="ma-1"
+                                :title="`الفاتورة رقم ${bill.id} - ${bill.is_paid == 1 ? 'مدفوعة' : 'غير مدفوعة'}`"
+                              >
+                                {{ bill.price }} IQ
+                              </v-chip>
+                            </div>
+                            <span v-else class="grey--text text--darken-1 caption">
+                              لا توجد فواتير
+                            </span>
+                          </div>
                         </template>
 
                         <!-- Notes Column -->
@@ -285,12 +340,12 @@
                       <a
                         :href="getImageUrl(image.image_url)"
                         :data-fancybox="'patient-gallery'"
-                        :data-caption="`صورة المريض ${index + 1}`"
+                        :data-caption="`صورة المراجع ${index + 1}`"
                         class="patient-image-link"
                       >
                         <v-img
                           :src="getImageUrl(image.image_url)"
-                          :alt="`صورة المريض ${index + 1}`"
+                          :alt="`صورة المراجع ${index + 1}`"
                           aspect-ratio="1"
                           contain
                           class="patient-image"
@@ -338,7 +393,7 @@
           </v-col>
         </v-row>
 
-        <!-- Billing Section (Shown to secretaries with limited permissions) -->
+        <!-- Billing Section - Visible to all but only accountants can add bills -->
         <v-card class="cre_bill mt-4">
           <!-- Section Header -->
           <v-layout row wrap>
@@ -352,6 +407,17 @@
               <hr />
             </v-flex>
           </v-layout>
+
+          <!-- Role-based message for non-accountants -->
+          <v-alert
+            v-if="!canAddBills"
+            type="info"
+            outlined
+            class="mx-4 mt-2"
+          >
+            <v-icon left>mdi-information</v-icon>
+            يمكنك عرض الفواتير فقط. إضافة الفواتير متاحة للمحاسبين فقط.
+          </v-alert>
 
           <!-- Total Amount -->
           <v-row>
@@ -394,6 +460,23 @@
                   <span class="grey--text text--darken-1 font-weight-medium">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
                 </div>
 
+                <!-- Case Selection -->
+                <div class="mobile-field-container mb-2">
+                  <v-select
+                    v-model="bill.case_id"
+                    :items="availableCases"
+                    item-text="case_display"
+                    item-value="id"
+                    dense
+                    outlined
+                    placeholder="اختر الحالة"
+                    label="الحالة"
+                    style="min-width: 300px; width: 100%;"
+                    :disabled="!canEditBills"
+                  >
+                  </v-select>
+                </div>
+
                 <!-- Payment Amount -->
                 <div class="mobile-field-container mb-2">
                   <v-text-field
@@ -429,7 +512,7 @@
                   <div class="mobile-status-container">
                     <v-switch
                       :input-value="bill.is_paid == 1"
-                      :disabled="!canChangePaymentStatus"
+                      :disabled="!canEditBills"
                       inset
                       dense
                       @change="toggleBillPaymentStatus(bill)"
@@ -455,10 +538,26 @@
 
               <!-- Desktop Layout -->
               <v-layout row wrap class="d-none d-sm-flex">
-                <v-flex md2 class="d-none d-md-flex"></v-flex>
+                <v-flex md1 class="d-none d-md-flex"></v-flex>
                 
-                <!-- Payment Amount -->
+                <!-- Case Selection -->
                 <v-flex md3 sm4>
+                  <v-select
+                    v-model="bill.case_id"
+                    :items="availableCases"
+                    item-text="case_display"
+                    item-value="id"
+                    dense
+                    outlined
+                    placeholder="اختر الحالة"
+                    style="min-width: 250px; width: 100%;"
+                    :disabled="!canEditBills"
+                  >
+                  </v-select>
+                </v-flex>
+
+                <!-- Payment Amount -->
+                <v-flex md2 sm3>
                   <v-text-field
                     v-model="bill.price"
                     label="مبلغ الدفعة"
@@ -476,7 +575,7 @@
                 </v-flex>
 
                 <!-- Payment Date -->
-                <v-flex md3 sm4>
+                <v-flex md2 sm3>
                   <v-text-field
                     v-model="bill.PaymentDate"
                     label="التاريخ"
@@ -493,10 +592,10 @@
                 </v-flex>
 
                 <!-- Payment Status -->
-                <v-flex md2 sm3 class="mt-2 text-center">
+                <v-flex md2 sm2 class="mt-2 text-center">
                   <v-switch
                     :input-value="bill.is_paid == 1"
-                    :disabled="!canChangePaymentStatus"
+                    :disabled="!canEditBills"
                     inset
                     style="position: relative; padding-right: 10px; bottom: 21px;"
                     @change="toggleBillPaymentStatus(bill)"
@@ -523,17 +622,28 @@
             </div>
           </div>
 
-          <!-- Add Bill Button -->
-          <div class="v-card__actions justify-center" v-if="canAddBills">
-            <v-btn 
-              small 
-              color="primary" 
-              @click="addPayment()"
+          <!-- Add Payment Button - Only for Accountants -->
+          <v-card-actions class="justify-center" v-if="canEditBills">
+            <v-btn
+              color="primary"
+              @click="addPayment"
+              class="add-payment-btn"
             >
-              <i class="fas fa-plus"></i>
-              اضافه دفعه
+              <v-icon left>mdi-plus</v-icon>
+              إضافة دفعة جديدة
             </v-btn>
-          </div>
+          </v-card-actions>
+
+          <!-- Message for non-accountants -->
+          <v-alert
+            v-if="!canEditBills"
+            type="info"
+            outlined
+            class="mx-4 mt-2 mb-4"
+          >
+            <v-icon left>mdi-information</v-icon>
+            يمكنك عرض الفواتير فقط. تعديل الفواتير متاح للمحاسبين فقط.
+          </v-alert>
 
           <!-- Payment Summary -->
           <v-layout row wrap class="pt-5 mt-5">
@@ -566,6 +676,7 @@
           </v-layout>
         </v-card>
 
+      
         <!-- Save Button (Hidden for secretaries when they can't create bills) -->
         <v-card class="cre_bill mt-4" >
           <v-card-actions class="justify-center">
@@ -654,7 +765,8 @@ export default {
         email: '',
         sex: '',
         systemic_conditions: '',
-birth_date: ''
+        birth_date: '',
+        notes: ''
       },
       
       // Dental Operations (will be loaded from API)
@@ -673,23 +785,25 @@ birth_date: ''
       patientBills: [],
       // Table Headers
       caseHeaders: [
-        { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
-        { text: 'النوع', value: 'case_type', align: 'start', width: '5%' },
-        { text: 'التاريخ', value: 'date', align: 'center', width: '10%' },
-        { text: 'السعر', value: 'price', align: 'center', width: '15%' },
-        { text: 'الحالة', value: 'status', align: 'center', width: '15%' },
-        { text: 'ملاحظات', value: 'notes', align: 'start', width: '45%' },
-        { text: 'الإجراءات', value: 'actions', align: 'center', width: '8%' }
-      ],
+          { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
+          { text: 'النوع', value: 'case_type', align: 'start', width: '5%' },
+          { text: 'التاريخ', value: 'date', align: 'center', width: '10%' },
+          { text: 'السعر', value: 'price', align: 'center', width: '12%' },
+          { text: 'الحالة', value: 'status', align: 'center', width: '12%' },
+          { text: '  الفواتير المدفوعة  ', value: 'bills', align: 'center', width: '15%' },
+          { text: 'ملاحظات', value: 'notes', align: 'start', width: '36%' },
+          { text: 'الإجراءات', value: 'actions', align: 'center', width: '8%' }
+        ],
       
       billHeaders: [
         { text: 'رقم الفاتورة', value: 'id', align: 'center', width: '10%' },
+        { text: 'الحالة', value: 'case_id', align: 'center', width: '15%' },
         { text: 'المبلغ', value: 'price', align: 'center', width: '15%' },
         { text: 'تاريخ الدفع', value: 'PaymentDate', align: 'center', width: '15%' },
         { text: 'حالة الدفع', value: 'is_paid', align: 'center', width: '15%' },
-        { text: 'أنشأ بواسطة', value: 'user_name', align: 'start', width: '20%' },
-        { text: 'تاريخ الإنشاء', value: 'created_at', align: 'center', width: '15%' },
-        { text: 'الإجراءات', value: 'actions', align: 'center', width: '10%' }
+        { text: 'أنشأ بواسطة', value: 'user_name', align: 'start', width: '15%' },
+        { text: 'تاريخ الإنشاء', value: 'created_at', align: 'center', width: '10%' },
+        { text: 'الإجراءات', value: 'actions', align: 'center', width: '5%' }
       ],
       
       // Billing Data
@@ -700,6 +814,9 @@ birth_date: ''
         paid: false,
         user_name: ''
       },
+      
+      // Add cases for bill creation
+      availableCases: [],
       
       currentUser: 'حيدر عبد عون',
       
@@ -735,7 +852,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv4.tctate.com/api/cases/uploude_image",
+        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -832,8 +949,8 @@ birth_date: ''
     canAddBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can create bills, secretaries/accounters cannot
-        return role === 'adminDoctor' || role === 'doctor';
+        // Allow accountants to add bills, but not secretaries
+        return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
       } catch (error) {
         console.error('Error checking add bills permission:', error);
         return false;
@@ -864,19 +981,21 @@ birth_date: ''
     secretaryBillsOnlyMode() {
       try {
         const role = this.$store.state.role;
+        
+        // Block secretary completely (this shouldn't be reached due to route guard)
+        if (role === 'secretary') {
+          return true;
+        }
+        
+        // Accountant can only see bills section
+        if (role === 'accounter') {
+          return true;
+        }
+        
         const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
         
-        console.log('🔍 Debug secretaryBillsOnlyMode:', { 
-          role, 
-          paidAtSecretary, 
-          storeState: this.$store.state,
-          adminInfo: this.$store.state.AdminInfo 
-        });
-        
-        // If paid_at_secretary is true (1) and user is secretary/accounter, show limited mode
+        // Original logic for other roles
         const isSecretaryOnlyMode = (role === 'secretary' || role === 'accounter') && (paidAtSecretary == 1 || paidAtSecretary === true);
-        console.log('🔍 Secretary bills only mode result:', isSecretaryOnlyMode);
-        console.log('🔍 Should show teeth component:', !isSecretaryOnlyMode);
         
         return isSecretaryOnlyMode;
       } catch (error) {
@@ -889,8 +1008,8 @@ birth_date: ''
     canEditBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can edit bills, secretaries/accounters cannot
-        return role === 'adminDoctor' || role === 'doctor';
+        // Only accountants can edit bills
+        return role === 'accounter';
       } catch (error) {
         console.error('Error checking edit bills permission:', error);
         return false;
@@ -905,6 +1024,18 @@ birth_date: ''
         return role === 'adminDoctor' || role === 'doctor';
       } catch (error) {
         console.error('Error checking delete bills permission:', error);
+        return false;
+      }
+    },
+
+    // Check if current user can access billing section
+    canAccessBillingSection() {
+      try {
+        const role = this.$store.state.role;
+        // Only accountants can access the billing section
+        return role === 'accounter';
+      } catch (error) {
+        console.error('Error checking billing section access:', error);
         return false;
       }
     }
@@ -968,7 +1099,7 @@ birth_date: ''
       });
 
       const response = await Promise.race([
-        this.$http.get('cases/CaseCategories', {
+        this.$http.get('case-categories', {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -996,9 +1127,7 @@ birth_date: ''
       console.error('❌ Error fetching dental operations, using fallback:', error);
       // Fallback to default operations if API fails
       this.dentalOperations = [
-        { id: 1, name: 'قلع' },
-        { id: 2, name: 'حشوة' },
-        { id: 3, name: 'فحص' }
+       
       ];
       console.log('🦷 Using fallback dental operations:', this.dentalOperations);
       
@@ -1072,11 +1201,10 @@ birth_date: ''
         // Load patient data using the new API endpoint
         console.log('📡 Making API request to get patient data...');
         
-        const response = await this.$http.get(`https://apismartclinicv4.tctate.com/api/getPatientById/${patientId}`, {
+        const response = await this.$http.get(`/getPatientById/${patientId}`, {
           headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + token
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           }
         });
 
@@ -1136,6 +1264,11 @@ birth_date: ''
         }) : [];
         console.log('📋 Cases processed:', this.patientCases.length);
 
+        // Format cases for bill selection
+        if (data.cases && Array.isArray(data.cases)) {
+          this.availableCases = this.formatCasesForSelection(data.cases);
+        }
+
         // Process images data
         console.log('🖼️ Processing images data...');
         this.patientImages = data.images ? data.images.map(image => ({
@@ -1155,7 +1288,7 @@ birth_date: ''
           id: bill.id,
           server_id: bill.id,
           billable_id: bill.billable_id,
-          patient_id: bill.billable_id,
+          patient_id: bill.patient_id,
           price: bill.price,
           PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : '',
           is_paid: bill.is_paid,
@@ -1166,10 +1299,26 @@ birth_date: ''
           user_name: bill.user ? bill.user.name : '',
           created_at: bill.created_at,
           updated_at: bill.updated_at,
+          case_id: bill.billable_id, // Use billable_id as case_id
+          billable: bill.billable, // Store the complete billable object
           isNew: false,
           modified: false
         })) : [];
         console.log('💰 Bills processed:', this.patientBills.length);
+
+        // Create available cases from bills' billable objects and existing cases
+        const casesFromBills = data.bills ? data.bills
+          .filter(bill => bill.billable) // Only bills with billable data
+          .map(bill => bill.billable) : [];
+        
+        const allCases = [...(data.cases || []), ...casesFromBills];
+        
+        // Remove duplicates based on case ID
+        const uniqueCases = allCases.filter((case_item, index, self) => 
+          index === self.findIndex(c => c.id === case_item.id)
+        );
+        
+        this.availableCases = this.formatCasesForSelection(uniqueCases);
 
         // Load dental operations and doctors with individual error handling
         try {
@@ -1216,7 +1365,7 @@ birth_date: ''
         console.error('❌ Error loading patient data:', error);
         
         // More detailed error handling
-        let errorMessage = "تعذر تحميل بيانات المريض. يرجى المحاولة مرة أخرى.";
+        let errorMessage = "تعذر تحميل بيانات المراجع. يرجى المحاولة مرة أخرى.";
         let errorTitle = "خطأ في تحميل البيانات";
         
         if (error.message === 'Request timeout') {
@@ -1226,8 +1375,8 @@ birth_date: ''
           errorMessage = "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.";
           errorTitle = "خطأ في التحقق من الهوية";
         } else if (error.response && error.response.status === 404) {
-          errorMessage = "لم يتم العثور على بيانات المريض. يرجى التحقق من الرابط.";
-          errorTitle = "المريض غير موجود";
+          errorMessage = "لم يتم العثور على بيانات المراجع. يرجى التحقق من الرابط.";
+          errorTitle = "المراجع غير موجود";
         }
         
         this.$swal.fire({
@@ -1703,7 +1852,7 @@ birth_date: ''
     addPayment() {
       // Check if user has permission to create bills
       const role = this.$store.state.role;
-      if (role === 'secretary' || role === 'accounter') {
+      if (role === 'secretary') {
         this.$swal.fire({
           title: "غير مسموح",
           text: "ليس لديك صلاحية لإنشاء فواتير جديدة",
@@ -1713,12 +1862,13 @@ birth_date: ''
         return;
       }
       
-      // Create a new bill object
+      // Create a new bill object with case selection
       const newBill = {
         id: Date.now(), // Temporary ID
         price: 0,
         PaymentDate: new Date().toISOString().substr(0, 10),
         is_paid: 0,
+        case_id: null, // Add case selection
         user_id: this.$store.state.AdminInfo.user_id,
         clinics_id: this.$store.state.AdminInfo.clinics_id,
         isNew: true, // Mark as new bill to be saved
@@ -1733,8 +1883,6 @@ birth_date: ''
       
       // Optimistically update the UI
       this.$forceUpdate();
-      
-
     },
     
     // Update bill price
@@ -1875,6 +2023,11 @@ birth_date: ''
           await this.saveUploadedImages();
         }
         
+        // Save patient notes
+        if (this.patient.notes !== undefined && this.patient.notes !== null) {
+          await this.savePatientNotes();
+        }
+        
         // Show success message
         this.$swal.fire({
           title: "نجاح",
@@ -1899,7 +2052,7 @@ birth_date: ''
         
         this.$swal.fire({
           title: "خطأ",
-          text: "تعذر حفظ بيانات المريض. يرجى المحاولة مرة أخرى.",
+          text: "تعذر حفظ بيانات المراجع. يرجى المحاولة مرة أخرى.",
           icon: "error",
           confirmButtonText: "اغلاق"
         });
@@ -1929,7 +2082,7 @@ birth_date: ''
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1970,7 +2123,7 @@ birth_date: ''
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2001,7 +2154,7 @@ birth_date: ''
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv4.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://smartclinicv5.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2028,18 +2181,19 @@ birth_date: ''
         // Save new bills using POST to create them
         if (newBills.length > 0) {
           const billsData = newBills.map(bill => ({
-            price: bill.price.toString(),
+            price: parseFloat(bill.price) || 0,
             PaymentDate: bill.PaymentDate,
-            patient_id: this.patient.id.toString(),
-            is_paid: bill.is_paid || 0
+            is_paid: bill.is_paid ? 1 : 0,
+            billable_id: bill.case_id,
+            user_id: bill.user_id
           }));
           
           const requestBody = {
             bills: billsData,
-            patient_id: this.patient.id.toString()
+            case_id: newBills[0]?.case_id?.toString() || this.patient.id.toString() // Use selected case_id as patient_id
           };
           
-          const response = await this.$http.post(`https://apismartclinicv4.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://smartclinicv5.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2062,7 +2216,7 @@ birth_date: ''
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://apismartclinicv4.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://smartclinicv5.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2193,7 +2347,48 @@ birth_date: ''
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://apismartclinicv4.tctate.com/case_photo/${imageName}`;
+      return `https://smartclinicv5.tctate.com/case_photo/${imageName}`;
+    },
+
+    // Format cases for selection
+    formatCasesForSelection(cases) {
+      return cases.map(case_item => {
+        // Parse tooth number from JSON array format
+        let toothNumber = 'غير محدد';
+        try {
+          if (case_item.tooth_num) {
+            const parsed = JSON.parse(case_item.tooth_num);
+            toothNumber = Array.isArray(parsed) ? parsed.join(', ') : parsed;
+          }
+        } catch (e) {
+          toothNumber = case_item.tooth_num || 'غير محدد';
+        }
+
+        return {
+          id: case_item.id,
+          case_display: `${case_item.case_categories?.name_ar || 'غير محدد'} - السن ${toothNumber} - ${case_item.price} د.ع`,
+          case_categories: case_item.case_categories,
+          tooth_num: toothNumber,
+          price: case_item.price
+        };
+      });
+    },
+
+    // Get case display name for bills
+    getCaseDisplayName(caseId) {
+      const case_item = this.availableCases.find(c => c.id === caseId);
+      return case_item ? case_item.case_display : 'غير محدد';
+    },
+
+    // Get bills for a specific case
+    getBillsForCase(caseId) {
+      if (!caseId || !this.patientBills) {
+        return [];
+      }
+      return this.patientBills.filter(bill => {
+        // Match both case_id and billable_id for compatibility
+        return bill.case_id === caseId || bill.billable_id === caseId;
+      });
     },
 
     // Delete image from server and local array
@@ -2235,6 +2430,27 @@ birth_date: ''
           icon: "error",
           confirmButtonText: "موافق"
         });
+      }
+    },
+
+    // Save patient notes
+    async savePatientNotes() {
+      try {
+        const response = await this.axios.patch(`patients/${this.patient.id}/notes`, {
+          notes: this.patient.notes
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        
+        console.log('✅ Patient notes saved successfully');
+        return response;
+      } catch (error) {
+        console.error('❌ Error saving patient notes:', error);
+        throw error;
       }
     },
 
@@ -2503,36 +2719,88 @@ async mounted() {
 
 /* Mobile-specific styles for billing section */
 .mobile-bill-layout {
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  margin-bottom: 16px;
+}
+
+.mobile-user-info-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 3px solid #1976d2;
+  margin-bottom: 16px;
+}
+
+.mobile-field-container {
+  position: relative;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.mobile-date-status-row {
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mobile-status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+  padding: 8px;
+}
+
+.mobile-actions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Desktop layout improvements */
+.bill-payment-item {
+  margin-bottom: 20px;
   padding: 16px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #fafafa;
 }
 
-.mobile-user-info-header {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  border-left: 3px solid #1976d2;
+.bill-payment-item .v-flex {
+  padding: 0 8px;
 }
 
-.mobile-field-container {
-  position: relative;
+.bill-payment-item .v-text-field,
+.bill-payment-item .v-select {
+  margin-bottom: 8px;
 }
 
-.mobile-user-info {
-  position: absolute;
-  bottom: -18px;
-  right: 0;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-}
-
-.mobile-actions {
+.desktop-user-info {
   margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Add spacing to the bills container */
+.bills-payment-loop {
+  padding: 16px 0;
+}
+
+/* Improve spacing for the add bill button */
+.v-card__actions.justify-center {
+  padding: 20px 16px;
+  margin-top: 16px;
+}
+
+/* Payment summary spacing */
+.pt-5.mt-5 {
+  padding-top: 24px !important;
+  margin-top: 24px !important;
+  border-top: 2px solid #e0e0e0;
 }
 
 /* Override styles for desktop layout within billing section */
@@ -2541,6 +2809,16 @@ async mounted() {
     position: relative;
     bottom: 0;
     left: 0;
+    margin-top: 8px;
+  }
+  
+  .bill-payment-item .v-layout.row {
+    align-items: flex-start;
+    padding: 8px 0;
+  }
+  
+  .bill-payment-item .v-flex {
+    padding: 0 12px;
   }
 }
 </style>

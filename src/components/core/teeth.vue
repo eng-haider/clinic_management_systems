@@ -739,7 +739,7 @@ fill: #000;
                     return;
                 }
 
-                apiRequest.get('cases/CaseCategories', {
+                apiRequest.get('case-categories', {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
