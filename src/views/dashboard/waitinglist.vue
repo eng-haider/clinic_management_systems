@@ -84,14 +84,14 @@
                         :color="item.status === 'waiting' ? 'green' : 'orange'" 
                         dark 
                         small>
-                        {{ item.status === 'waiting' ? 'في الانتظار' : 'منتهي' }}
+                        {{ item.status === 'waiting' ? $t('waitingList.waiting') : $t('waitingList.finished') }}
                     </v-chip>
                 </template>
 
                 <template v-slot:[`item.waiting_status`]="{ item }">
                     <v-switch
                         :input-value="item.is_waiting"
-                        :label="item.is_waiting ? 'في الانتظار' : 'خارج العيادة'"
+                        :label="item.is_waiting ? $t('waitingList.waiting') : $t('waitingList.out_of_clinic')"
                         @change="() => toggleWaitingStatus(item)"
                         color="green"
                         inset
@@ -102,7 +102,7 @@
                 <!-- <template v-slot:[`item.actions`]="{ item }">
                   
                     <v-switch :input-value="item.waitinglist_status_id === 2"
-                        :label="item.waitinglist_status_id === 2 ? 'تمت الزيارة' : ' منتظر'"
+                        :label="item.waitinglist_status_id === 2 ? $t('waitingList.visit_completed') : $t('waitingList.waiting_status')"
                         @change="() => toggleStatus(item)" color="green" inset></v-switch>
                 </template> -->
 
@@ -177,14 +177,14 @@
                 casesheet: false,
                 CaseCategories: [],
                 rules: {
-                    minPhon: (v) => (v.length == 13 || v.length == 0) || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    required: value => !!value || "مطلوب",
-                    min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
+                    minPhon: (v) => (v.length == 13 || v.length == 0) || this.$t('validation.phone_length'),
+                    required: value => !!value || this.$t('validation.required'),
+                    min: (v) => v.length >= 6 || this.$t('validation.password_min_length'),
                     email: value => {
                         if (value.length > 0) {
                             const pattern =
                                 /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
+                            return pattern.test(value) || this.$t('validation.invalid_email');
                         }
                     },
                 },
@@ -261,19 +261,19 @@
                     },
 
                     {
-                        text: 'وقــت الحجز',
+                        text: this.$t('datatable.reservation_time'),
                         align: "date",
                         value: "reservation_time"
                     },
 
                     {
-                        text: 'الحاله',
+                        text: this.$t('datatable.status'),
                         align: "start",
                         value: "status"
                     },
 
                     {
-                        text: 'حالة الانتظار',
+                        text: this.$t('waitingList.waiting_status_title'),
                         align: "start",
                         value: "waiting_status",
                         sortable: false
@@ -335,14 +335,14 @@
                     item.is_waiting = newStatus;
                     this.$notify({
                         type: "success",
-                        text: "تم تحديث حالة الانتظار بنجاح"
+                        text: this.$t('waitingList.status_updated_success')
                     });
                 })
                 .catch((error) => {
                     console.error('Error toggling waiting status:', error);
                     this.$notify({
                         type: "error",
-                        text: "فشل في تحديث حالة الانتظار"
+                        text: this.$t('waitingList.status_update_failed')
                     });
                 });
             },

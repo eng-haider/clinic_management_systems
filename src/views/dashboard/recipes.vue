@@ -9,14 +9,14 @@
                                 " dark class="mb-2" v-bind="attrs" v-on="on"
             style="color:#fff;font-family: 'Cairo';float:left;    margin-right: 20px;">
             <i class="fas fa-plus"></i>
-            اضافه راجيته
+            {{ $t('recipes.add_recipe') }}
 
         </v-btn>
 
         <v-btn color="primary" @click="RecipeItemDialog = true" dark class="mb-2" v-bind="attrs" v-on="on"
             style="color:#fff;font-family: 'Cairo';float:left">
             <i class="fas fa-plus"></i>
-            عناصر الراجيته
+            {{ $t('recipes.recipe_items') }}
         </v-btn>
 
         <v-dialog v-model="Recipe" max-width="900px">
@@ -42,7 +42,7 @@
 
                 <template v-slot:top>
                     <v-toolbar flat>
-                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;">الراجيتة
+                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;">{{ $t('recipes.title') }}
                         </v-toolbar-title>
 
                         <v-divider class="mx-4" inset vertical></v-divider>
@@ -168,7 +168,7 @@
                         value: "patient_name"
                     },
                     {
-                        text: 'نوع الحاله',
+                        text: this.$t('recipes.case_type'),
                         align: "start",
                         value: "case_categories.name_ar"
                     },
@@ -369,7 +369,7 @@
 
                         this.CaseCategories.push({
                             id: 0,
-                            name_ar: 'الكل',
+                            name_ar: this.$t('recipes.all'),
                             name_en: '',
                             updated_at: '2022-02-02T12:20:30.000000Z'
                         })

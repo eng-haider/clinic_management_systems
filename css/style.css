@@ -2399,7 +2399,83 @@ display: none;
     font-weight: bold !important;
   }
 
+/* Language and Direction Support */
+html[dir="rtl"], body.rtl {
+  direction: rtl;
+  text-align: right;
+}
 
-  
+html[dir="ltr"], body.ltr {
+  direction: ltr;
+  text-align: left;
+}
 
-  
+/* RTL-specific adjustments */
+body.rtl .v-application {
+  direction: rtl;
+}
+
+body.rtl .v-navigation-drawer {
+  right: 0;
+  left: auto;
+}
+
+body.rtl .v-navigation-drawer--right {
+  right: auto;
+  left: 0;
+}
+
+body.rtl .v-app-bar .v-toolbar__content {
+  flex-direction: row-reverse;
+}
+
+body.rtl .v-data-table {
+  direction: rtl;
+}
+
+body.rtl .v-text-field .v-input__control .v-input__slot {
+  direction: rtl;
+  text-align: right;
+}
+
+body.rtl .v-select .v-input__control .v-input__slot {
+  direction: rtl;
+  text-align: right;
+}
+
+/* LTR-specific adjustments */
+body.ltr .v-application {
+  direction: ltr;
+}
+
+body.ltr .v-navigation-drawer {
+  left: 0;
+  right: auto;
+}
+
+body.ltr .v-data-table {
+  direction: ltr;
+}
+
+body.ltr .v-text-field .v-input__control .v-input__slot {
+  direction: ltr;
+  text-align: left;
+}
+
+body.ltr .v-select .v-input__control .v-input__slot {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Font families for different languages */
+body.rtl {
+  font-family: 'Cairo', 'GE_Dinar', Arial, sans-serif;
+}
+
+body.ltr {
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+
+
+

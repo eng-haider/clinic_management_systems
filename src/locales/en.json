@@ -94,7 +94,9 @@
     "MailsPhrases": "MailsPhrases",
     "orders": "orders",
     "reports": "reports",
-    "settingss": "settings"
+    "settingss": "settings",
+    "online_status": "Online",
+    "profile_picture": "Profile picture"
   },
   "dashboard":{
     "Case_number_stats":"Case number stats"
@@ -119,8 +121,16 @@
     "data_create":"Create At",
     "status":"Status",
     "dashbourd":"dashbourd",
-    "description":"Description"
-,    "touth_num":"tooth number"
+    "description":"Description",
+    "touth_num":"tooth number",
+    "date":"Date",
+    "type":"Type",
+    "notes":"Notes",
+    "actions":"Actions",
+    "paid_bills":"Paid Bills",
+    "bill_number":"Bill Number",
+    "case":"Case",
+    "reservation_time":"Reservation Time"
   },
   "addcase":"Add Case",
   "AppBar": {
@@ -138,6 +148,30 @@
   }
  ,
  "rx":"Rx",
+"recipes": {
+  "add_recipe": "Add Recipe",
+  "recipe_items": "Recipe Items", 
+  "title": "Recipes",
+  "case_type": "Case Type",
+  "all": "All"
+},
+"caseCategories": {
+  "title": "Manage Case Categories",
+  "add_new_category": "Add New Category"
+},
+"conjugationsCategories": {
+  "title": "Clinic Dispensary"
+},
+"waitingList": {
+  "waiting": "Waiting",
+  "finished": "Finished",
+  "out_of_clinic": "Out of Clinic",
+  "visit_completed": "Visit Completed",
+  "waiting_status": "Waiting",
+  "waiting_status_title": "Waiting Status",
+  "status_updated_success": "Waiting status updated successfully",
+  "status_update_failed": "Failed to update waiting status"
+},
 
  "store":{
   "addItem":"Add Item",
@@ -152,8 +186,65 @@
     "systemicdisease":"systemic disease",
     "Referencesnameorphonenumber":"patient name or phonenumber",
     "AppointmentBooking":"Appointment Booking",
-    "account":"Account"
+    "account":"Account",
+    "bill":"Bill",
+    "notes":"Patient Notes",
+    "add_notes":"Add notes about the patient",
+    "notes_placeholder":"Write your notes here...",
+    "cases":"Patient Cases",
+    "case_amount":"Case Amount",
+    "bill_number":"Bill Number",
+    "no_bills":"No bills available",
+    "main_case_notes":"Main case notes...",
+    "session_notes":"Session notes",
+    "new_session_notes":"New session notes",
+    "new":"New",
+    "add_session":"Add Session",
+    "case_images":"Case Images",
+    "patient_image":"Patient Image",
+    "bills_view_only_message":"You can only view bills. Editing bills is available for accountants only.",
+    "total_cases_amount":"Total Cases Amount",
+"not_specified":"Not specified",
+"select_case":"Select case",
+"payment_amount":"Payment amount",
+"tooth":"Tooth",
+"awaiting_payment":"Awaiting payment",
+"add_new_payment":"Add new payment",
+"amount_paid":"Amount paid",
+"remaining":"Remaining",
+"save_information":"Save information",
+"payment_date":"Payment date",
+"payment_status":"Payment status",
+"created_by":"Created by",
+"created_at":"Created at",
+"amount":"Amount",
+"upload_case_images":"Click here to upload case images",
+"remove_image":"Remove image",
+"cancel_upload":"Cancel upload",
+"default_doctor":"Default doctor",
+"error_loading_patient_data":"Failed to load patient data. Please try again.",
+"error_loading_data_title":"Error loading data",
+"connection_timeout":"Connection timeout. Please check your internet and try again.",
+"connection_timeout_title":"Connection timeout",
+"session_expired":"Session expired. Please log in again.",
+"authentication_error_title":"Authentication error",
+"patient_not_found":"Patient data not found. Please check the link.",
+"patient_not_found_title":"Patient not found",
+"error_title":"Error",
+"error_saving_patient":"Failed to save patient data. Please try again."
     },
+"doctors": {
+  "title": "Clinic Doctors",
+  "add_new_account": "Add New Account",
+  "add_doctor": "Add Doctor",
+  "password": "Password",
+  "profit_percentage": "Doctor Percentage % (Optional)",
+  "profit_percentage_hint": "Leave empty if you don't want to set a profit percentage",
+  "profit_percentage_title": "Doctor Percentage %",
+  "patients_count": "Patient Count",
+  "cases_count": "Cases Count",
+  "not_specified": "Not specified"
+},
 
 
     "doctor":"Doctor",
@@ -177,8 +268,11 @@
     "profile":"Profile",
     "dashbourd":"Dashboard",
     "requestBooking_test":"Appointments",
-    "Contact":"Contact"
-
+    "Contact":"Contact",
+    "Conjugations":"Clinic Dispensary",
+    "CaseCategories":"Case Categories",
+    "waitinglist":"Waiting List",
+    "recipes":"Recipes"
   }
 
 
@@ -225,5 +319,96 @@
     "add_case": "Add Case",
     "book_appointment": "Book Appointment",
     "edit": "Edit",
-    "Reloading": "Reloading"
+    "Reloading": "Reloading",
+    
+    "teeth": {
+      "search_category": "Search for operation category",
+      "no_results": "No results",
+      "frequent_categories": "Most Used Categories",
+      "add_new_category": "Add New Category",
+      "category_name": "Category Name",
+      "category_name_en": "Category Name in English",
+      "add_category": "Add Category",
+      "cancel": "Cancel",
+      "no_name": "No Name",
+      "cost": "Cost",
+      "currency": "IQD",
+      "start_typing": "Start typing to search",
+      "no_matching_categories": "No categories match your search",
+      "tooth_number": "Tooth Number",
+      "no_categories": "No operation categories available"
+    },
+    
+    "loading": {
+      "loading": "Loading",
+      "saving": "Saving",
+      "deleting": "Deleting",
+      "updating": "Updating",
+      "creating": "Creating",
+      "uploading": "Uploading",
+      "downloading": "Downloading",
+      "please_wait": "Please wait"
+    },
+    
+    "status_messages": {
+      "success": "Operation completed successfully",
+      "error": "An error occurred",
+      "confirm": "Confirm",
+      "operation_success": "Success",
+      "operation_failed": "Operation failed",
+      "are_you_sure": "Are you sure?",
+      "operation_cannot_be_undone": "This operation cannot be undone",
+      "confirm_deletion": "Confirm Deletion",
+      "item_deleted": "Item deleted",
+      "changes_saved": "Changes saved",
+      "data_updated": "Data updated"
+    },
+    
+    "ui": {
+      "close": "Close",
+      "open": "Open",
+      "select": "Select",
+      "clear": "Clear",
+      "reset": "Reset",
+      "apply": "Apply",
+      "submit": "Submit",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Finish",
+      "continue": "Continue",
+      "skip": "Skip",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "loading": "Loading",
+      "search": "Search",
+      "filter": "Filter",
+      "sort": "Sort",
+      "export": "Export",
+      "import": "Import",
+      "print": "Print"
+    },
+    
+    "register": {
+      "welcome_message": "Welcome to Smart Clinic Platform",
+      "signup_instruction": "Enter your information to create a new account on Smart Clinic platform for free",
+      "already_have_account": "Or login if you already have an account",
+      "login_link": "Login"
+    },
+    
+    "validation": {
+      "required": "Required",
+      "phone_length": "Phone number must be 11 digits",
+      "password_min_length": "Password must be at least 6 characters",
+      "invalid_email": "Must be a valid email",
+      "min_length": "Must be more than {count} characters",
+      "max_length": "Must be less than {count} characters",
+      "invalid_phone": "Invalid phone number",
+      "passwords_not_match": "Passwords do not match",
+      "phone_required": "Phone number is required",
+      "phone_length_doctors": "Please enter a valid phone number",
+      "phone_format": "Please enter a valid phone number",
+      "password_required": "Password is required",
+      "password_min_length_doctors": "Password must be at least 8 characters or numbers"
+    }
 }

@@ -101,7 +101,14 @@
     "data_create":"تاريخ الاضافه",
     "status":"الحاله",
     "description":"الوصف",
-    "touth_num":"رقم السن"
+    "touth_num":"رقم السن",
+    "type":"النوع",
+    "notes":"ملاحظات",
+    "actions":"الإجراءات",
+    "paid_bills":"الفواتير المدفوعة",
+    "bill_number":"رقم الفاتورة",
+    "case":"الحالة",
+    "reservation_time":"وقت الحجز"
 
   },
   
@@ -133,7 +140,9 @@
     "orders": "المعاملات",
     "reports": "التقارير",
     "GalleryCats": "اقسام الصور",
-    "settingss": "الاعدادات"
+    "settingss": "الاعدادات",
+    "online_status": "متصل",
+    "profile_picture": "الصورة الشخصية"
   }
 
   
@@ -154,13 +163,94 @@
   }
   ,
   "rx":"راجيتة",
+"recipes": {
+  "add_recipe": "اضافه راجيته",
+  "recipe_items": "عناصر الراجيته",
+  "title": "الراجيتة",
+  "case_type": "نوع الحاله",
+  "all": "الكل"
+},
+"caseCategories": {
+  "title": "إدارة فئات الحالات",
+  "add_new_category": "إضافة فئة جديدة"
+},
+"conjugationsCategories": {
+  "title": "صرفـــــيات العيـــادة"
+},
+"waitingList": {
+  "waiting": "في الانتظار",
+  "finished": "منتهي",
+  "out_of_clinic": "خارج العيادة",
+  "visit_completed": "تمت الزيارة",
+  "waiting_status": "منتظر",
+  "waiting_status_title": "حالة الانتظار",
+  "status_updated_success": "تم تحديث حالة الانتظار بنجاح",
+  "status_update_failed": "فشل في تحديث حالة الانتظار"
+},
 "patients":{
 "addnewpatients":"اضافه مراجع جديد",
 "systemicdisease":"الامراض الجهازيه ",
 "add_to_today_sequence":"اضافه إلى قائمة الانتضار",
 "AppointmentBooking":"حجز موعد",
 "Referencesnameorphonenumber":"اسم المراجع او رقم  الهاتف",
-"account":"الحساب"
+"account":"الحساب",
+"bill":"الفاتورة",
+"notes":"ملاحظات المراجع",
+"add_notes":"أضف ملاحظات حول المراجع",
+"notes_placeholder":"اكتب ملاحظاتك هنا...",
+"cases":"حالات المراجع",
+"case_amount":"مبلغ الحالة",
+"bill_number":"الفاتورة رقم",
+"no_bills":"لا توجد فواتير",
+"main_case_notes":"ملاحظات الحالة الرئيسية...",
+"session_notes":"ملاحظات الجلسة",
+"new_session_notes":"ملاحظات الجلسة الجديدة",
+"new":"جديد",
+"add_session":"إضافة جلسة",
+"case_images":"صور الحالات",
+"patient_image":"صورة المراجع",
+"bills_view_only_message":"يمكنك عرض الفواتير فقط. تعديل الفواتير متاح للمحاسبين فقط.",
+"total_cases_amount":"إجمالي مبلغ الحالات",
+"not_specified":"غير محدد",
+"select_case":"اختر الحالة",
+"payment_amount":"مبلغ الدفعة",
+"tooth":"السن",
+"awaiting_payment":"بانتظار التسديد",
+"add_new_payment":"إضافة دفعة جديدة",
+"amount_paid":"المبلغ المدفوع",
+"remaining":"المتبقي",
+"save_information":"حفظ المعلومات",
+"payment_date":"تاريخ الدفع",
+"payment_status":"حالة الدفع",
+"created_by":"أنشأ بواسطة",
+"created_at":"تاريخ الإنشاء",
+"amount":"المبلغ",
+"upload_case_images":"اضغط هنا لرفع صور الحاله",
+"remove_image":"حذف الصورة",
+"cancel_upload":"إلغاء الرفع",
+"default_doctor":"طبيب افتراضي",
+"error_loading_patient_data":"تعذر تحميل بيانات المراجع. يرجى المحاولة مرة أخرى.",
+"error_loading_data_title":"خطأ في تحميل البيانات",
+"connection_timeout":"انتهت مهلة الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.",
+"connection_timeout_title":"انتهت مهلة الاتصال",
+"session_expired":"انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+"authentication_error_title":"خطأ في التحقق من الهوية",
+"patient_not_found":"لم يتم العثور على بيانات المراجع. يرجى التحقق من الرابط.",
+"patient_not_found_title":"المراجع غير موجود",
+"error_title":"خطأ",
+"error_saving_patient":"تعذر حفظ بيانات المراجع. يرجى المحاولة مرة أخرى."
+},
+"doctors": {
+  "title": "دكاتره العيادة",
+  "add_new_account": "اضافه حساب جديد",
+  "add_doctor": "اضافه دكتور",
+  "password": "الباسورد",
+  "profit_percentage": "نسبة الدكتور % (اختياري)",
+  "profit_percentage_hint": "اتركه فارغاً إذا لم تكن تريد تحديد نسبة ربح",
+  "profit_percentage_title": "نسبة الدكتور %",
+  "patients_count": "عدد المراجعين",
+  "cases_count": "عدد الحالات",
+  "not_specified": "غير محدد"
 },
 
 
@@ -262,6 +352,97 @@
   "edit": "تعديل",
   "delete": "حذف",
   "note":"الملاحظات",
-  "Reloading": "إعادة تحميل"
+  "Reloading": "إعادة تحميل",
+  
+  "teeth": {
+    "search_category": "ابحث عن فئة العملية",
+    "no_results": "لا توجد نتائج",
+    "frequent_categories": "الفئات الأكثر استخداماً",
+    "add_new_category": "إضافة فئة جديدة",
+    "category_name": "اسم الفئة",
+    "category_name_en": "اسم الفئة بالإنجليزية",
+    "add_category": "إضافة الفئة",
+    "cancel": "إلغاء",
+    "no_name": "بدون اسم",
+    "cost": "التكلفة",
+    "currency": "د.ع",
+    "start_typing": "ابدأ الكتابة للبحث",
+    "no_matching_categories": "لا توجد فئات تتطابق مع البحث",
+    "tooth_number": "السن رقم",
+    "no_categories": "لا توجد فئات عمليات"
+  },
+  
+  "loading": {
+    "loading": "جاري التحميل",
+    "saving": "جاري الحفظ",
+    "deleting": "جاري الحذف",
+    "updating": "جاري التحديث",
+    "creating": "جاري الإنشاء",
+    "uploading": "جاري الرفع",
+    "downloading": "جاري التنزيل",
+    "please_wait": "يرجى الانتظار"
+  },
+  
+  "status_messages": {
+    "success": "تمت العملية بنجاح",
+    "error": "حدث خطأ",
+    "confirm": "تأكيد",
+    "operation_success": "تم بنجاح",
+    "operation_failed": "فشلت العملية",
+    "are_you_sure": "هل أنت متأكد؟",
+    "operation_cannot_be_undone": "لا يمكن التراجع عن هذه العملية",
+    "confirm_deletion": "تأكيد الحذف",
+    "item_deleted": "تم حذف العنصر",
+    "changes_saved": "تم حفظ التغييرات",
+    "data_updated": "تم تحديث البيانات"
+  },
+  
+  "ui": {
+    "close": "إغلاق",
+    "open": "فتح",
+    "select": "اختر",
+    "clear": "مسح",
+    "reset": "إعادة تعيين",
+    "apply": "تطبيق",
+    "submit": "إرسال",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "finish": "إنهاء",
+    "continue": "متابعة",
+    "skip": "تخطي",
+    "retry": "إعادة المحاولة",
+    "refresh": "تحديث",
+    "loading": "تحميل",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "export": "تصدير",
+    "import": "استيراد",
+    "print": "طباعة"
+  },
+  
+  "register": {
+    "welcome_message": "أهلا وسهلا بكم في منصة العيادة الذكية",
+    "signup_instruction": "ادخل معلوماتك لإنشاء حساب جديد في منصة العيادة الذكية مجاناً",
+    "already_have_account": "أو قم بتسجيل الدخول إذا كنت تمتلك حساب",
+    "login_link": "تسجيل الدخول"
+  },
+  
+  "validation": {
+    "required": "مطلوب",
+    "phone_length": "رقم الهاتف يجب أن يتكون من 11 رقم",
+    "password_min_length": "كلمة المرور يجب أن تتكون من 6 عناصر أو أكثر",
+    "invalid_email": "يجب أن يكون إيميل صحيح",
+    "min_length": "يجب أن يكون أكثر من {count} أحرف",
+    "max_length": "يجب أن يكون أقل من {count} أحرف",
+    "invalid_phone": "رقم الهاتف غير صحيح",
+    "passwords_not_match": "كلمات المرور غير متطابقة",
+    "phone_required": "يجب ادخال رقم الهاتف",
+    "phone_length_doctors": "يجب ادخال رقم هاتف صحيح",
+    "phone_format": "يجب ادخال رقم هاتف صحيح",
+    "password_required": "يجب ادخال الباسورد",
+    "password_min_length_doctors": "يجب ان لايقل الباسورد عن ٨ احرف او ارقام"
+  }
 }
 

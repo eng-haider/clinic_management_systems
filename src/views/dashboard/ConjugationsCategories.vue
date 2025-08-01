@@ -4,7 +4,7 @@
             <br>
             <v-toolbar flat>
                 <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> 
-                  صرفـــــيات العيـــادة
+                  {{ $t('conjugationsCategories.title') }}
                 </v-toolbar-title>
 
                 <v-divider class="mx-4" inset vertical></v-divider>

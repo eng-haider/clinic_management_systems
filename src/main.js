@@ -4,7 +4,6 @@ import router from './router'
 import vuetify from './plugins/vuetify'
 import i18n from './i18n'
 import store from './store'
-import axios from './axios'
 
 // Essential CSS only
 import 'vuetify/dist/vuetify.min.css'
@@ -92,6 +91,13 @@ const initializeStore = () => {
 async function initializeApp() {
   try {
     await initializeStore()
+    
+    // Set initial language and direction
+    const currentLang = localStorage.getItem("lang") || 'ar';
+    document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = currentLang;
+    document.body.classList.toggle('rtl', currentLang === "ar");
+    document.body.classList.toggle('ltr', currentLang === "en");
     
     new Vue({
       router,

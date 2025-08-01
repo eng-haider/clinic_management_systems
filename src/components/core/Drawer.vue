@@ -15,14 +15,14 @@
                 src="profile.png"
                 class="avatar-xxl rounded-circle mb-1"
                 style="width:100px;height:100px"
-                alt="default"
+                :alt="$t('Drawer.profile_picture')"
               />
               <img 
                 v-else 
                 :src="Url + '/users/' + $store.state.AdminInfo.img_name"
                 class="avatar-xxl rounded-circle mb-1"
                 style="width:100px;height:100px"
-                alt="default"
+                :alt="$t('Drawer.profile_picture')"
               />
               <!-- Green point for online status -->
               <div
@@ -36,7 +36,7 @@
                   border-radius: 50%;
                   border: 2px solid white;
                 "
-                title="Online"
+                :title="$t('Drawer.online_status')"
               ></div>
             </div>
             <div class="user-info" style="text-align: center;">
@@ -91,7 +91,6 @@
     data() {
       return {
         items: [
-
           {
             title: this.$t("header.dashbourd"),
             icon: 'fa-solid fa-chart-line',
@@ -99,9 +98,6 @@
             to: '/',
             name: 'show_dashbourd'
           },
-
-
-
           {
             title: this.$t("header.casesheet"),
             icon: 'fas fa-clipboard',
@@ -109,10 +105,6 @@
             auth: false,
             name: 'show_patients'
           },
-
-
-
-
           {
             title: this.$t("header.showCases"),
             icon: 'fa-light fa-tooth',
@@ -120,8 +112,6 @@
             to: '/cases',
             name: 'show_cases'
           },
-
-
           {
             title: this.$t("header.store"),
             icon: 'fa-light fa-store',
@@ -129,15 +119,6 @@
             to: '/store',
             name: 'show_cases'
           },
-
-          // {
-          //   title: this.$t("header.Conjugations"),
-          //   icon: 'fa-solid fa-microscope',
-          //   auth: true,
-          //   to: '/Conjugations',
-          //   name: 'show_Conjugations'
-          // },
-
           {
             title: this.$t("header.Conjugations"),
             icon: 'fa-sharp fa-solid fa-layer-group',
@@ -145,7 +126,6 @@
             to: '/ConjugationsCategories',
             name: 'show_conjugations_categories'
           },
-
           {
             title: this.$t("header.CaseCategories"),
             icon: 'fa-solid fa-list-ul',
@@ -153,12 +133,6 @@
             to: '/case-categories',
             name: 'show_CaseCategories'
           },
-
-
-
-
-
-
           {
             title: this.$t("header.accounts"),
             icon: 'fa-solid fa-money-bill',
@@ -166,8 +140,6 @@
             to: '/accounts',
             name: 'show_accounts'
           },
-
-
           {
             title: this.$t("header.reports"),
             icon: 'fa-solid fa-file-export',
@@ -175,62 +147,41 @@
             to: '/reports',
             name: 'export_reports'
           },
-
-
           {
-            title: this.$t("Drawer.Booking"),
+            title: this.$t("header.requestBooking"),
             icon: 'fa-solid fa-calendar',
             auth: true,
             to: "/requestBooking_test",
             name: 'show_appointment'
-
-
           },
-
           {
-            title: this.$t("Drawer.recipes"),
+            title: this.$t("header.recipes"),
             icon: 'fa-solid fa-prescription',
             auth: true,
             to: "/recipes",
             name: 'show_recipes'
-
-
           },
-          //recipes
-
           {
-
-
             title: this.$t("header.doctors"),
             icon: 'fa-solid fa-user',
             auth: true,
             to: '/doctors',
             name: 'show_doctors'
           },
-
           {
-
-
             title: this.$t("header.birthDay"),
             icon: 'fa-sharp fa-solid fa-user',
             auth: true,
             to: '/BirthDay',
             name: 'show_doctors'
           },
-
           {
-
-
-title: this.$t("header.waitinglist"),
-icon: 'far fa-clock',
-auth: true,
-to: '/waitinglist',
-name: 'show_waitinglist'
-},
-
-          //waitinglist
-          //BirthDay
-
+            title: this.$t("header.waitinglist"),
+            icon: 'far fa-clock',
+            auth: true,
+            to: '/waitinglist',
+            name: 'show_waitinglist'
+          }
         ],
         right: null,
       }
@@ -280,17 +231,9 @@ name: 'show_waitinglist'
         };
       },
       changeLang() {
-
-
-        this.items[0].title = this.$t("header.casesheet")
-        this.items[1].title = this.$t("header.showCases")
-        this.items[2].title = this.$t("Drawer.dashbourd")
-        this.items[3].title = this.$t("Drawer.Booking")
-        this.items[4].title = this.$t("Drawer.reports")
-        this.items[5].title = this.$t("Drawer.birtBookinghDay")
-        this.items[6].title = this.$t("Drawer.waitinglist")
-
-
+        // The navigation titles will automatically update due to reactivity
+        // when the language changes, as they use this.$t()
+        this.$forceUpdate();
       },
     },
   }

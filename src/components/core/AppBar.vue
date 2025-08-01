@@ -36,6 +36,19 @@
         </template>
         <span>{{ $t("setting.refresh") }}</span>
       </v-tooltip>
+
+      <!-- Language Toggle Button -->
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn fab icon @click="langChang()" v-bind="attrs" v-on="on">
+            <v-icon large :color="$i18n.locale === 'ar' ? 'green' : 'blue'">
+              {{ $i18n.locale === 'ar' ? 'mdi-translate' : 'mdi-translate' }}
+            </v-icon>
+            <span class="language-indicator">{{ $t("lang") }}</span>
+          </v-btn>
+        </template>
+        <span>{{ $i18n.locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية' }}</span>
+      </v-tooltip>
       
       <!-- PWA Install Button -->
       <!-- <InstallButton /> -->
@@ -94,9 +107,39 @@
   .navbar-brand img {
     max-height: 74px !important;
   }
+
+  /* Language toggle button styles */
+  .language-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 10px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 1px 3px;
+    border-radius: 2px;
+    line-height: 1;
+  }
+
+  .v-btn--icon.v-size--default {
+    position: relative;
+  }
+
+@media only screen and (max-width: 600px) {
+    .v-btn.reg_owner_btn, .v-btn[type=submit], .v-card-actions .v-btn, form .v-btn:last-of-type {
+        position: relative;
+        z-index: 1001 !important;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .reg_owner_btn, .v-btn:last-child, .v-btn:last-of-type, .v-card {
+        margin-bottom: 20px !important;
+    }
+}
 </style>
 <script>
-  import Vue from 'vue'
   import {
     mapState,
     mapMutations
@@ -223,19 +266,41 @@
       },
 
       langChang() {
-
-        let authenticate = Promise.resolve({
-          role: "admin"
+        // Toggle language
+        const newLang = this.$i18n.locale === "ar" ? "en" : "ar";
+        
+        // Update i18n locale
+        this.$i18n.locale = newLang;
+        
+        // Save to localStorage
+        localStorage.setItem("lang", newLang);
+        
+        // Update store
+        this.$store.dispatch("UpdateLang", newLang);
+        
+        // Update Vuetify RTL setting
+        this.$vuetify.rtl = newLang === "ar";
+        
+        // Update document direction
+        document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
+        document.documentElement.lang = newLang;
+        
+        // Add CSS class for direction
+        document.body.classList.toggle('rtl', newLang === "ar");
+        document.body.classList.toggle('ltr', newLang === "en");
+        
+        // Show success message
+        this.$swal.fire({
+          title: newLang === "ar" ? "تم تغيير اللغة إلى العربية" : "Language changed to English",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false
         });
-        authenticate.then(user => {
-          Vue.prototype.$user.set(user);
-        })
-        this.$i18n.locale = this.$i18n.locale == "ar" ? "en" : "ar";
-        localStorage.setItem("lang", this.$i18n.locale);
-        this.$store.dispatch("UpdateLang", this.$i18n.locale);
-        this.$vuetify.rtl = localStorage.getItem("lang") == "ar" ? true : false;
-        window.location.reload();
-        //    moment.locale(this.$i18n.locale == "en" ? "en" : "ar-kw");
+        
+        // Reload page to apply all changes
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       },
       ...mapMutations({
         setDrawer: "SET_DRAWER",
@@ -250,6 +315,28 @@
 </script>
 
 <style>
+  .navbar-brand img {
+    max-height: 74px !important;
+  }
+
+  /* Language toggle button styles */
+  .language-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 10px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 1px 3px;
+    border-radius: 2px;
+    line-height: 1;
+  }
+
+  .v-btn--icon.v-size--default {
+    position: relative;
+  }
+
 @media only screen and (max-width: 600px) {
     .v-btn.reg_owner_btn, .v-btn[type=submit], .v-card-actions .v-btn, form .v-btn:last-of-type {
         position: relative;
@@ -262,5 +349,4 @@
         margin-bottom: 20px !important;
     }
 }
-
 </style>

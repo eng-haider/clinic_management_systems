@@ -17,7 +17,7 @@
         <v-col>
           <div class="d-flex flex-column patient-info-container">
             <h2 class="text-h5 font-weight-medium mb-1" style="font-family: Cairo, sans-serif !important;">
-              {{ patient.name || 'جاري التحميل...' }}
+              {{ patient.name || $t('loading.loading') }}...
             </h2>
             <div class="patient-sub-info" v-if="patient.phone">
                <div class="patient-phone d-flex align-center">
@@ -44,7 +44,7 @@
             rounded 
             @click="editPatient"
           >
-            تعديل
+            {{ $t('edit') }}
           </v-btn>
           
           <v-btn 
@@ -55,7 +55,7 @@
    
           >
             <v-icon left>mdi-calendar-clock</v-icon>
-            حجز موعد
+            {{ $t('book_appointment') }}
           </v-btn>
           
           <v-btn 
@@ -65,7 +65,7 @@
             @click="generateBill"
           >
             <v-icon left>mdi-file-document-outline</v-icon>
-            الفاتورة
+            {{ $t('patients.bill') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -99,13 +99,13 @@
         <v-card class="notes-section mt-4">
           <v-card-title class="pb-2">
             <v-icon left>mdi-note-text</v-icon>
-            ملاحظات المراجع
+            {{ $t('patients.notes') }}
           </v-card-title>
           <v-card-text>
             <v-textarea
               v-model="patient.notes"
-              label="أضف ملاحظات حول المراجع"
-              placeholder="اكتب ملاحظاتك هنا..."
+              :label="$t('patients.add_notes')"
+              :placeholder="$t('patients.notes_placeholder')"
               outlined
               rows="4"
               counter
@@ -130,7 +130,7 @@
                   <v-card flat class="teeth-template-card">
                     <v-card-title class="teeth-template-title">
                       <v-icon left>mdi-tooth-outline</v-icon>
-                      <span class="case-title">حالات المراجع</span>
+                      <span class="case-title">{{ $t('patients.cases') }}</span>
                     </v-card-title>
 
                     <v-card-text style="padding-top: 20px;">
@@ -169,7 +169,7 @@
                           <v-text-field
                             v-model="item.price"
                             type="number"
-                            placeholder="مبلغ الحالة"
+                            :placeholder="$t('patients.case_amount')"
                             suffix="IQ"
                             dense
                             hide-details
@@ -185,7 +185,7 @@
                         <template v-slot:item.status="{ item }">
                           <v-switch
                             v-model="item.completed"
-                            :label="item.completed ? 'مكتمله' : 'غير مكتمله'"
+                            :label="item.completed ? $t('completed') : $t('not_completed')"
                             color="green"
                             inset
                             @change="updateCaseStatus(item)"
@@ -203,13 +203,13 @@
                                 :color="bill.is_paid == 1 ? 'success' : 'warning'"
                                 text-color="white"
                                 class="ma-1"
-                                :title="`الفاتورة رقم ${bill.id} - ${bill.is_paid == 1 ? 'مدفوعة' : 'غير مدفوعة'}`"
+                                :title="`${$t('patients.bill_number')} ${bill.id} - ${bill.is_paid == 1 ? $t('paid') : $t('not_paid')}`"
                               >
                                 {{ bill.price }} IQ
                               </v-chip>
                             </div>
                             <span v-else class="grey--text text--darken-1 caption">
-                              لا توجد فواتير
+                              {{ $t('patients.no_bills') }}
                             </span>
                           </div>
                         </template>
@@ -221,7 +221,7 @@
                             <div class="mb-2">
                               <v-textarea
                                 v-model="item.notes"
-                                placeholder="ملاحضات الحالة الرئيسية ..."
+                                :placeholder="$t('patients.main_case_notes')"
                                 rows="1"
                                 auto-grow
                                 no-resize
@@ -242,7 +242,7 @@
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`ملاحظات الجلسة ${index + 1}...`"
+                                  :placeholder="`${$t('patients.session_notes')} ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -271,7 +271,7 @@
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`ملاحظات الجلسة الجديدة ${index + 1}...`"
+                                  :placeholder="`${$t('patients.new_session_notes')} ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -286,7 +286,7 @@
                                   class="ml-2 session-date-chip"
                                   color="green lighten-3"
                                 >
-                                  جديد
+                                  {{ $t('patients.new') }}
                                 </v-chip>
                               </div>
                             </div>
@@ -300,7 +300,7 @@
                             @click="addNote(item)"
                           >
                             <v-icon left size="16">mdi-plus</v-icon>
-                            إضافة جلسة
+                            {{ $t('patients.add_session') }}
                           </v-btn>
                         </template>
 
@@ -324,7 +324,7 @@
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode && patientImages.length > 0">
               <v-card-title class="subtitle-1">
                 <v-icon left class="primary--text">mdi-image-multiple</v-icon>
-                <span style="font-family: Cairo !important;">صور الحالات</span>
+                <span style="font-family: Cairo !important;">{{ $t('patients.case_images') }}</span>
               </v-card-title>
               <v-card-text>
                 <v-row>
@@ -340,12 +340,12 @@
                       <a
                         :href="getImageUrl(image.image_url)"
                         :data-fancybox="'patient-gallery'"
-                        :data-caption="`صورة المراجع ${index + 1}`"
+                        :data-caption="`${$t('patients.patient_image')} ${index + 1}`"
                         class="patient-image-link"
                       >
                         <v-img
                           :src="getImageUrl(image.image_url)"
-                          :alt="`صورة المراجع ${index + 1}`"
+                          :alt="`${$t('patients.patient_image')} ${index + 1}`"
                           aspect-ratio="1"
                           contain
                           class="patient-image"
@@ -401,7 +401,7 @@
               <hr />
             </v-flex>
             <v-flex md2>
-              <p class="se_tit_menu text-center">الفاتوره</p>
+              <p class="se_tit_menu text-center">{{ $t('patients.bill') }}</p>
             </v-flex>
             <v-flex md5>
               <hr />
@@ -416,7 +416,7 @@
             class="mx-4 mt-2"
           >
             <v-icon left>mdi-information</v-icon>
-            يمكنك عرض الفواتير فقط. إضافة الفواتير متاحة للمحاسبين فقط.
+            {{ $t('patients.bills_view_only_message') }}
           </v-alert>
 
           <!-- Total Amount -->
@@ -425,7 +425,7 @@
             <v-col cols="12" md="8">
               <v-text-field
                 :value="totalAmount"
-                label="اجمالي مبلغ الحالات"
+                :label="$t('patients.total_cases_amount')"
                 suffix="IQ"
                 readonly
                 outlined
@@ -439,7 +439,7 @@
           <div class="bills-payment-loop">
             <!-- Debug: Show bills count -->
             <div v-if="patientBills.length === 0" class="text-center pa-4 grey--text">
-              لا توجد فواتير حاليا. انقر على "اضافه دفعه" لإضافة فاتورة جديدة.
+              {{ $t('patients.no_bills_message') }}
             </div>
             
             <div 
@@ -457,7 +457,7 @@
                 <!-- User Info at the top -->
                 <div class="mobile-user-info-header mb-3">
                   <v-icon size="14" class="mr-1">mdi-account</v-icon>
-                  <span class="grey--text text--darken-1 font-weight-medium">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
+                  <span class="grey--text text--darken-1 font-weight-medium">{{ bill.user ? bill.user.name : $t('patients.not_specified') }}</span>
                 </div>
 
                 <!-- Case Selection -->
@@ -469,8 +469,8 @@
                     item-value="id"
                     dense
                     outlined
-                    placeholder="اختر الحالة"
-                    label="الحالة"
+                    :placeholder="$t('patients.select_case')"
+                    :label="$t('patients.case')"
                     style="min-width: 300px; width: 100%;"
                     :disabled="!canEditBills"
                   >
@@ -481,7 +481,7 @@
                 <div class="mobile-field-container mb-2">
                   <v-text-field
                     v-model="bill.price"
-                    label="مبلغ الدفعة"
+                    :label="$t('patients.payment_amount')"
                     suffix="IQ"
                     type="number"
                     outlined
@@ -496,7 +496,7 @@
                   <div class="flex-grow-1 mr-2">
                     <v-text-field
                       v-model="bill.PaymentDate"
-                      label="التاريخ"
+                      :label="$t('date')"
                       type="date"
                       outlined
                       dense
@@ -518,7 +518,7 @@
                       @change="toggleBillPaymentStatus(bill)"
                     />
                     <div class="mobile-status-label">
-                      {{ bill.is_paid == 1 ? 'مدفوع' : 'غير مدفوع' }}
+                      {{ bill.is_paid == 1 ? $t('paid') : $t('not_paid') }}
                     </div>
                   </div>
                 </div>
@@ -549,7 +549,7 @@
                     item-value="id"
                     dense
                     outlined
-                    placeholder="اختر الحالة"
+                    :placeholder="$t('patients.select_case')"
                     style="min-width: 250px; width: 100%;"
                     :disabled="!canEditBills"
                   >
@@ -560,7 +560,7 @@
                 <v-flex md2 sm3>
                   <v-text-field
                     v-model="bill.price"
-                    label="مبلغ الدفعة"
+                    :label="$t('patients.payment_amount')"
                     suffix="IQ"
                     type="number"
                     outlined
@@ -570,7 +570,7 @@
                   />
                   <div class="desktop-user-info">
                     <v-icon size="12" class="mr-1">mdi-account</v-icon>
-                    <span class="grey--text text--darken-1">{{ bill.user ? bill.user.name : 'غير محدد' }}</span>
+                    <span class="grey--text text--darken-1">{{ bill.user ? bill.user.name : $t('patients.not_specified') }}</span>
                   </div>
                 </v-flex>
 
@@ -578,7 +578,7 @@
                 <v-flex md2 sm3>
                   <v-text-field
                     v-model="bill.PaymentDate"
-                    label="التاريخ"
+                    :label="$t('datatable.date')"
                     type="date"
                     outlined
                     dense
@@ -601,7 +601,7 @@
                     @change="toggleBillPaymentStatus(bill)"
                   />
                   <div class="caption text-center payment-status-label grey--text desktop-status-positioning">
-                    {{ bill.is_paid == 1 ? 'مدفوع' : 'بانتظار التسديد' }}
+                    {{ bill.is_paid == 1 ? $t('paid') : $t('patients.awaiting_payment') }}
                   </div>
                 </v-flex>
 
@@ -630,7 +630,7 @@
               class="add-payment-btn"
             >
               <v-icon left>mdi-plus</v-icon>
-              إضافة دفعة جديدة
+              {{ $t('patients.add_new_payment') }}
             </v-btn>
           </v-card-actions>
 
@@ -642,7 +642,7 @@
             class="mx-4 mt-2 mb-4"
           >
             <v-icon left>mdi-information</v-icon>
-            يمكنك عرض الفواتير فقط. تعديل الفواتير متاح للمحاسبين فقط.
+            {{ $t('patients.bills_view_only_message') }}
           </v-alert>
 
           <!-- Payment Summary -->
@@ -650,7 +650,7 @@
             <v-flex md xs></v-flex>
             <v-flex md xs>
               <div style="font-weight: bold;">
-                المبلغ المدفوع :
+                {{ $t('patients.amount_paid') }} :
                 <v-chip
                   label
                   outlined
@@ -661,7 +661,7 @@
                 </v-chip>
               </div>
               <div style="font-weight: bold;">
-                <span style="padding-left: 34px;">المتبقي :</span>
+                <span style="padding-left: 34px;">{{ $t('patients.remaining') }} :</span>
                 <v-chip
                   label
                   outlined
@@ -686,7 +686,7 @@
               :loading="saving"
               @click="savePatientData"
             >
-              حفظ المعلومات
+              {{ $t('patients.save_information') }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -783,28 +783,6 @@ export default {
         
       // Patient Bills (will be loaded from API)
       patientBills: [],
-      // Table Headers
-      caseHeaders: [
-          { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
-          { text: 'النوع', value: 'case_type', align: 'start', width: '5%' },
-          { text: 'التاريخ', value: 'date', align: 'center', width: '10%' },
-          { text: 'السعر', value: 'price', align: 'center', width: '12%' },
-          { text: 'الحالة', value: 'status', align: 'center', width: '12%' },
-          { text: '  الفواتير المدفوعة  ', value: 'bills', align: 'center', width: '15%' },
-          { text: 'ملاحظات', value: 'notes', align: 'start', width: '36%' },
-          { text: 'الإجراءات', value: 'actions', align: 'center', width: '8%' }
-        ],
-      
-      billHeaders: [
-        { text: 'رقم الفاتورة', value: 'id', align: 'center', width: '10%' },
-        { text: 'الحالة', value: 'case_id', align: 'center', width: '15%' },
-        { text: 'المبلغ', value: 'price', align: 'center', width: '15%' },
-        { text: 'تاريخ الدفع', value: 'PaymentDate', align: 'center', width: '15%' },
-        { text: 'حالة الدفع', value: 'is_paid', align: 'center', width: '15%' },
-        { text: 'أنشأ بواسطة', value: 'user_name', align: 'start', width: '15%' },
-        { text: 'تاريخ الإنشاء', value: 'created_at', align: 'center', width: '10%' },
-        { text: 'الإجراءات', value: 'actions', align: 'center', width: '5%' }
-      ],
       
       // Billing Data
       currentPayment: {
@@ -818,7 +796,7 @@ export default {
       // Add cases for bill creation
       availableCases: [],
       
-      currentUser: 'حيدر عبد عون',
+      currentUser: this.$store.state.user?.name || 'User',
       
       // Doctors list for appointment booking
       doctors: [],
@@ -848,21 +826,6 @@ export default {
         case_type: '',
         date_from: '',
         date_to: ''
-      },
-
-      // Dropzone configuration
-      dropzoneOptions: {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
-        thumbnailWidth: 150,
-        maxFilesize: 5,
-        acceptedFiles: "image/*",
-        dictDefaultMessage: '<i class="fas fa-upload"></i> اضغط هنا لرفع صور الحاله',
-        paramName: "file",
-        maxFiles: 10,
-        addRemoveLinks: true,
-        dictRemoveFile: "حذف الصورة",
-        dictCancelUpload: "إلغاء الرفع",
-        autoProcessQueue: true
       },
 
       // Uploaded images tracking
@@ -1038,7 +1001,52 @@ export default {
         console.error('Error checking billing section access:', error);
         return false;
       }
-    }
+    },
+
+    // Table Headers with translations
+    caseHeaders() {
+      return [
+        { text: this.$t('patients.tooth'), value: 'tooth_number', align: 'center', width: '2%' },
+        { text: this.$t('datatable.type'), value: 'case_type', align: 'start', width: '5%' },
+        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
+        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
+        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
+        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
+        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '36%' },
+        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '8%' }
+      ];
+    },
+    
+    billHeaders() {
+      return [
+        { text: this.$t('datatable.bill_number'), value: 'id', align: 'center', width: '10%' },
+        { text: this.$t('datatable.case'), value: 'case_id', align: 'center', width: '15%' },
+        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '15%' },
+        { text: this.$t('patients.payment_date'), value: 'PaymentDate', align: 'center', width: '15%' },
+        { text: this.$t('patients.payment_status'), value: 'is_paid', align: 'center', width: '15%' },
+        { text: this.$t('patients.created_by'), value: 'user_name', align: 'start', width: '15%' },
+        { text: this.$t('patients.created_at'), value: 'created_at', align: 'center', width: '10%' },
+        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '5%' }
+      ];
+    },
+
+    dropzoneOptions() {
+      return {
+        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        thumbnailWidth: 150,
+        maxFilesize: 5,
+        acceptedFiles: "image/*",
+        dictDefaultMessage: `<i class="fas fa-upload"></i> ${this.$t('patients.upload_case_images')}`,
+        paramName: "file",
+        maxFiles: 10,
+        addRemoveLinks: true,
+        dictRemoveFile: this.$t('patients.remove_image'),
+        dictCancelUpload: this.$t('patients.cancel_upload'),
+        autoProcessQueue: true
+      };
+    },
+
+    // ...existing code...
   },
   
   methods: {
@@ -1167,7 +1175,7 @@ export default {
         
         // Fallback to default doctor if API fails
         this.doctors = [
-          { id: 1, name: 'طبيب افتراضي', name_ar: 'طبيب افتراضي' }
+          { id: 1, name: this.$t('patients.default_doctor'), name_ar: this.$t('patients.default_doctor') }
         ];
       }
     },
@@ -1365,25 +1373,25 @@ export default {
         console.error('❌ Error loading patient data:', error);
         
         // More detailed error handling
-        let errorMessage = "تعذر تحميل بيانات المراجع. يرجى المحاولة مرة أخرى.";
-        let errorTitle = "خطأ في تحميل البيانات";
+        let errorMessage = this.$t('patients.error_loading_patient_data');
+        let errorTitle = this.$t('patients.error_loading_data_title');
         
         if (error.message === 'Request timeout') {
-          errorMessage = "انتهت مهلة الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.";
-          errorTitle = "انتهت مهلة الاتصال";
+          errorMessage = this.$t('patients.connection_timeout');
+          errorTitle = this.$t('patients.connection_timeout_title');
         } else if (error.response && error.response.status === 401) {
-          errorMessage = "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.";
-          errorTitle = "خطأ في التحقق من الهوية";
+          errorMessage = this.$t('patients.session_expired');
+          errorTitle = this.$t('patients.authentication_error_title');
         } else if (error.response && error.response.status === 404) {
-          errorMessage = "لم يتم العثور على بيانات المراجع. يرجى التحقق من الرابط.";
-          errorTitle = "المراجع غير موجود";
+          errorMessage = this.$t('patients.patient_not_found');
+          errorTitle = this.$t('patients.patient_not_found_title');
         }
         
         this.$swal.fire({
           title: errorTitle,
           text: errorMessage,
           icon: "error",
-          confirmButtonText: "اغلاق"
+          confirmButtonText: this.$t('close')
         });
       }
     },
@@ -2051,10 +2059,10 @@ export default {
         console.error('❌ Error saving patient data:', error);
         
         this.$swal.fire({
-          title: "خطأ",
-          text: "تعذر حفظ بيانات المراجع. يرجى المحاولة مرة أخرى.",
+          title: this.$t('patients.error_title'),
+          text: this.$t('patients.error_saving_patient'),
           icon: "error",
-          confirmButtonText: "اغلاق"
+          confirmButtonText: this.$t('close')
         });
       } finally {
         this.saving = false;
@@ -2183,7 +2191,7 @@ export default {
           const billsData = newBills.map(bill => ({
             price: parseFloat(bill.price) || 0,
             PaymentDate: bill.PaymentDate,
-            is_paid: bill.is_paid ? 1 : 0,
+            is_paid: bill.is_paid ? 1 :  0,
             billable_id: bill.case_id,
             user_id: bill.user_id
           }));
@@ -2354,19 +2362,19 @@ export default {
     formatCasesForSelection(cases) {
       return cases.map(case_item => {
         // Parse tooth number from JSON array format
-        let toothNumber = 'غير محدد';
+        let toothNumber = this.$t('patients.not_specified');
         try {
           if (case_item.tooth_num) {
             const parsed = JSON.parse(case_item.tooth_num);
             toothNumber = Array.isArray(parsed) ? parsed.join(', ') : parsed;
           }
         } catch (e) {
-          toothNumber = case_item.tooth_num || 'غير محدد';
+          toothNumber = case_item.tooth_num || this.$t('patients.not_specified');
         }
 
         return {
           id: case_item.id,
-          case_display: `${case_item.case_categories?.name_ar || 'غير محدد'} - السن ${toothNumber} - ${case_item.price} د.ع`,
+          case_display: `${case_item.case_categories?.name_ar || this.$t('patients.not_specified')} - ${this.$t('patients.tooth')} ${toothNumber} - ${case_item.price} د.ع`,
           case_categories: case_item.case_categories,
           tooth_num: toothNumber,
           price: case_item.price
@@ -2377,7 +2385,7 @@ export default {
     // Get case display name for bills
     getCaseDisplayName(caseId) {
       const case_item = this.availableCases.find(c => c.id === caseId);
-      return case_item ? case_item.case_display : 'غير محدد';
+      return case_item ? case_item.case_display : this.$t('patients.not_specified');
     },
 
     // Get bills for a specific case

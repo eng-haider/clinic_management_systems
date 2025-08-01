@@ -321,7 +321,7 @@
             return;
           }
 
-          axios.get("patients/searchv2/" + query, {
+          axios.get(this.Url+"/api/patients/searchv2/" + query, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -424,7 +424,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          await axios.delete(`/reservations/${this.book_details.id}`, {
+          await axios.delete(this.Url+`/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -557,7 +557,7 @@
         }
         
         this.loadingData = true; // Show loading indicator
-        axios.get("patients/getByUserIdv3", {
+        axios.get(this.Url+"/api/patients/getByUserIdv3", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -639,7 +639,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('http://127.0.0.1:8003/api/reservations', reservationData, {
+            const response = await axios.post(this.Url+'/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -658,7 +658,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('http://127.0.0.1:8003/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post(this.Url+'/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -731,7 +731,7 @@
           }
           
           // Use the new API endpoint
-          const response = await axios.get('http://127.0.0.1:8003/api/reservations/formatted', {
+          const response = await axios.get(this.Url+'/api/reservations/formatted', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -844,7 +844,7 @@
           return;
         }
         this.loadingData = true;
-        axios.get(`patients/search?query=${query}`, {
+        axios.get(this.Url+`/api/patients/search?query=${query}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

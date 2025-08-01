@@ -3,16 +3,16 @@
     <v-layout row wrap style="height: 100%; background-color: #fff;">
       <v-flex xs12 md7 sm7 class="pdr">
         <v-card style="padding: 45px;" flat>
-          <h1 style="text-align: right;">اهلا وسهلا بكم في منصة العياده الذكية</h1>
+          <h1 style="text-align: right;">{{ $t('register.welcome_message') }}</h1>
           <br />
           <div>
             <div style="color: #504a4a; font-size: 18px; font-weight: bold;">
-              ادخل معلوماتك لانشاء حساب جديد في منصة العياده الذكية مجانا
+              {{ $t('register.signup_instruction') }}
             </div>
             <div style="color: #504a4a; font-size: 13px;">
-              او قم بتجسيل الدخول اذا كنت تمتللك حساب
+              {{ $t('register.already_have_account') }}
               <router-link to="/login" text small color="red" style="font-weight: bold; font-size: 18px;">
-                تسجيل الدخول
+                {{ $t('register.login_link') }}
               </router-link>
             </div>
             <v-form ref="form_signup" v-model="valid">

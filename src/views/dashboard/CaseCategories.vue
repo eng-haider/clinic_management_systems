@@ -4,7 +4,7 @@
       <br>
       <v-toolbar flat>
         <v-toolbar-title style="font-family: 'Cairo', sans-serif;">
-          إدارة فئات الحالات
+          {{ $t('caseCategories.title') }}
         </v-toolbar-title>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
@@ -22,7 +22,7 @@
               @click="editedIndex = -1"
             >
               <i class="fas fa-plus" style="position: relative;left:5px"></i>
-              إضافة فئة جديدة
+              {{ $t('caseCategories.add_new_category') }}
             </v-btn>
           </template>
 

@@ -11,9 +11,12 @@ const theme = {
   info: '#00CAE3',
 };
 
+// Get the language from localStorage and set RTL accordingly
+const currentLang = localStorage.getItem("lang") || 'ar';
+const isRTL = currentLang === 'ar';
+
 export default new Vuetify({
-  // rtl:  localStorage.getItem("lang") ? (localStorage.getItem("lang") == "ar" ? true : false) : true,
-  rtl:true,
+  rtl: isRTL,
   theme: {
     dark: localStorage.getItem('darkMode') === 'true',
     themes: {

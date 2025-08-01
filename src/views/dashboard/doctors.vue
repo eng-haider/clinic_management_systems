@@ -14,7 +14,7 @@
                 hide-default-footer :items="desserts" class="elevation-1 request_table" items-per-page="15">
                 <template v-slot:top>
                     <v-toolbar flat>
-                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> دكاتره العياده
+                        <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("doctors.title") }}
                         </v-toolbar-title>
 
                         <v-divider class="mx-4" inset vertical></v-divider>
@@ -26,7 +26,7 @@
                                 
                                 " dark class="mb-2" v-bind="attrs" v-on="on" style="color:#fff;font-family: 'Cairo'">
                                     <i class="fas fa-plus" style="position: relative;left:5px"></i>
-                                   اضافه حساب جديد
+                                   {{ $t("doctors.add_new_account") }}
                                 </v-btn>
                             </template>
                             <v-form ref="form" v-model="valid">
@@ -72,7 +72,7 @@
                                                         type="password"
                                                         style="direction:ltr"
                                                         :rules="passwordRules"
-                                                        label="الباسورد" outlined>
+                                                        :label="$t('doctors.password')" outlined>
                                                     </v-text-field>
                                                 </v-col>
 
@@ -84,10 +84,10 @@
                                                         step="0.01"
                                                         style="direction:ltr"
                                                         :rules="profitRules"
-                                                        label="نسبة الدكتور % (اختياري)" 
+                                                        :label="$t('doctors.profit_percentage')" 
                                                         outlined
                                                         suffix="%"
-                                                        hint="اتركه فارغاً إذا لم تكن تريد تحديد نسبة ربح">
+                                                        :hint="$t('doctors.profit_percentage_hint')">
                                                     </v-text-field>
                                                 </v-col>
 
@@ -115,7 +115,7 @@
                                         </v-btn>
                                         <v-btn :loading="loadSave" style="color: #fff;" color="green darken-1"
                                             @click="save()">
-                                            حفظ</v-btn>
+                                            {{ $t("save") }}</v-btn>
                                     </v-card-actions>
                                 </v-card>
                             </v-form>
@@ -151,7 +151,7 @@
                         text-color="white">
                         {{ item.info.profit_percentage }}%
                     </v-chip>
-                    <span v-else style="color: #999; font-style: italic;">غير محدد</span>
+                    <span v-else style="color: #999; font-style: italic;">{{ $t('doctors.not_specified') }}</span>
                 </template>
 
                 <template v-slot:[`item.actions`]="{ item }">
@@ -255,26 +255,26 @@
                
                     
                     phoneRules: [
-          (v) => !!v || 'يجب ادخال رقم الهاتف',
-          (v) => v.length > 10 && v.length < 12 || 'يجب ادخال رقم هاتف صحيح',
-          (v) => /^\d+$/.test(v) || 'يجب ادخال رقم هاتف صحيح',
+          (v) => !!v || this.$t('validation.phone_required'),
+          (v) => v.length > 10 && v.length < 12 || this.$t('validation.phone_length_doctors'),
+          (v) => /^\d+$/.test(v) || this.$t('validation.phone_format'),
   
         ],
                     passwordRules: [
-          v => !!v || 'يجب ادخال الباسورد',
-          (v) => v.length >= 6 || 'يجب ان لايقل الباسورد عن ٨ احرف او ارقام',
+          v => !!v || this.$t('validation.password_required'),
+          (v) => v.length >= 6 || this.$t('validation.password_min_length_doctors'),
         //   (v) => /^.*(?=.{3,})(?=.*[a-zA-Z])/.test(v) || 'يجب ان يحتوي على حروف وارقام'
         ],
 
         rules: {
-                    minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    required: value => !!value || "مطلوب",
-                    min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
+                    minPhon: (v) => v.length == 13 || this.$t('validation.phone_length'),
+                    required: value => !!value || this.$t('validation.required'),
+                    min: (v) => v.length >= 6 || this.$t('validation.password_min_length'),
                     email: value => {
                         if (value.length > 0) {
                             const pattern =
                                 /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
+                            return pattern.test(value) || this.$t('validation.invalid_email');
                         }
                     },
                 },
@@ -304,19 +304,19 @@
                     // },
 
                     {
-                        text: 'عدد المراجعين',
+                        text: this.$t('doctors.patients_count'),
                         align: "start",
                         value: "patients_count"
                     },
 
                     {
-                        text: 'عدد الحالات',
+                        text: this.$t('doctors.cases_count'),
                         align: "start",
                         value: "info.cases_count"
                     },
 
                     {
-                        text: 'نسبة الدكتور %',
+                        text: this.$t('doctors.profit_percentage_title'),
                         align: "start",
                         value: "profit_percentage"
                     },
@@ -571,7 +571,7 @@
 
         computed: {
             formTitle() {
-                return this.editedIndex === -1 ? 'اضافه دكتور' : this.$t('update');
+                return this.editedIndex === -1 ? this.$t('doctors.add_doctor') : this.$t('update');
 
             },
         },

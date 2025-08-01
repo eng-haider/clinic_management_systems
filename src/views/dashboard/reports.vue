@@ -10,7 +10,7 @@
   <v-menu v-model="menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
     min-width="auto">
     <template v-slot:activator="{ on, attrs }">
-      <v-text-field v-model="search.from_date" label="من التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+      <v-text-field v-model="search.from_date" :label="$t('from_date')" prepend-icon="mdi-calendar" v-bind="attrs"
         v-on="on"></v-text-field>
     </template>
     <v-date-picker v-model="search.from_date" no-title scrollable>
@@ -27,7 +27,7 @@
   <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
     min-width="auto">
     <template v-slot:activator="{ on, attrs }">
-      <v-text-field v-model="search.to_date" label="الئ التاريخ" prepend-icon="mdi-calendar" v-bind="attrs"
+      <v-text-field v-model="search.to_date" :label="$t('to_date')" prepend-icon="mdi-calendar" v-bind="attrs"
         v-on="on"></v-text-field>
     </template>
     <v-date-picker v-model="search.to_date" no-title scrollable>
@@ -48,7 +48,7 @@
 
 
 <v-flex xs2 md1 sm1 pa-5>
-  <v-btn color="green" style="color:#fff" @click="exportCases()">تصــــــدير</v-btn>
+  <v-btn color="green" style="color:#fff" @click="exportCases()">{{ $t('ui.export') }}</v-btn>
 </v-flex>
 
 
@@ -85,15 +85,15 @@
         patient: {},
 
         rules: {
-                    minPhon: (v) => v.length == 13 || "رقم الهاتف يجب ان يتكون من 11 رقم",
-                    required: value => !!value || "مطلوب",
-                    requiredd: value => !!value || "مطلوب",
-                    min: (v) => v.length >= 6 || "كلمة المرور يجب ان تتكون من 6 عناصر او اكثر",
+                    minPhon: (v) => v.length == 13 || this.$t('validation.phone_length'),
+                    required: value => !!value || this.$t('validation.required'),
+                    requiredd: value => !!value || this.$t('validation.required'),
+                    min: (v) => v.length >= 6 || this.$t('validation.password_min_length'),
                     email: value => {
                         if (value.length > 0) {
                             const pattern =
                                 /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                            return pattern.test(value) || 'يجب ان يكون ايميل صحيح';
+                            return pattern.test(value) || this.$t('validation.invalid_email');
                         }
                     },
                 },
