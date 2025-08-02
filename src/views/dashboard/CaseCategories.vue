@@ -275,7 +275,10 @@ export default {
     async initialize() {
       this.loading = true
       try {
-        const response = await axios.get('/case-categories', {
+        console.log('🔍 Loading categories from API...')
+        console.log('Token:', this.$store.state.AdminInfo.token ? 'Present' : 'Missing')
+        
+        const response = await axios.get('https://smartclinicv5.tctate.com/api/case-categories', {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -283,12 +286,32 @@ export default {
           }
         })
         
-        this.categories = response.data.data || []
+        console.log('📊 API Response:', response.data)
+        
+        // Handle different possible response structures
+        if (response.data && Array.isArray(response.data)) {
+          this.categories = response.data
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          this.categories = response.data.data
+        } else if (response.data && response.data.categories && Array.isArray(response.data.categories)) {
+          this.categories = response.data.categories
+        } else {
+          console.warn('⚠️ Unexpected API response structure:', response.data)
+          this.categories = []
+        }
+        
+        console.log('✅ Categories loaded:', this.categories.length, 'items')
+        
       } catch (error) {
-        console.error('Error loading categories:', error)
+        console.error('❌ Error loading categories:', error)
+        console.error('Error response:', error.response?.data)
+        console.error('Error status:', error.response?.status)
+        
+        this.categories = [] // Ensure categories is always an array
+        
         this.$swal.fire({
           title: 'خطأ',
-          text: 'فشل في تحميل فئات الحالات',
+          text: `فشل في تحميل فئات الحالات: ${error.response?.data?.message || error.message}`,
           icon: 'error',
           confirmButtonText: 'موافق'
         })
@@ -315,7 +338,7 @@ export default {
     async deleteItemConfirm() {
       this.deleteLoading = true
       try {
-        await axios.delete(`/case-categories/${this.editedItem.id}`, {
+        await axios.delete(`https://smartclinicv5.tctate.com/api/case-categories/${this.editedItem.id}`, {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -379,7 +402,7 @@ export default {
         let response
         if (this.editedIndex > -1) {
           // Update existing category
-          response = await axios.put(`/case-categories/${this.editedItem.id}`, categoryData, {
+          response = await axios.put(`https://smartclinicv5.tctate.com/api/case-categories/${this.editedItem.id}`, categoryData, {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -390,7 +413,7 @@ export default {
           Object.assign(this.categories[this.editedIndex], response.data.data)
         } else {
           // Create new category
-          response = await axios.post('/case-categories', categoryData, {
+          response = await axios.post('https://smartclinicv5.tctate.com/api/case-categories', categoryData, {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',

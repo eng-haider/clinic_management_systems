@@ -232,7 +232,7 @@
       },
       async fetchNoteSuggestions() {
         try {
-          const response = await this.axios.get('/getrecipesItem', {
+          const response = await this.axios.get('https://smartclinicv5.tctate.com/api/getrecipesItem', {
               headers: {
                 "Content-Type": "multipart/form-data",
                 Accept: "application/json",

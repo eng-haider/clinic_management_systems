@@ -1,5 +1,36 @@
 <template>
   <v-container fluid>
+    <!-- App Bar with Doctor Filter for Secretary -->
+    <v-app-bar v-if="$store.state.role === 'secretary' && doctors && doctors.length > 1" 
+               color="primary" 
+               dark 
+               dense 
+               flat 
+               class="mb-4">
+      <v-toolbar-title>{{ $t("reservations_calendar") }}</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-select
+        v-model="selectedDoctorFilter"
+        :items="doctorFilterOptions"
+        :label="$t('filter_by_doctor')"
+        item-text="name"
+        item-value="id"
+        outlined
+        dense
+        hide-details
+        clearable
+        style="max-width: 300px; border-radius: 4px;"
+        @change="onDoctorFilterChange"
+      >
+        <template v-slot:prepend-inner>
+          <v-icon>mdi-doctor</v-icon>
+        </template>
+      </v-select>
+      <v-btn icon @click="forceRefreshData" class="ml-2">
+        <v-icon>mdi-refresh</v-icon>
+      </v-btn>
+    </v-app-bar>
+
     <v-row>
   <v-col>
     <v-calendar ref="calendar" v-model="focus" :start="startDate" :end="endDate" :max="endDate" 
@@ -58,7 +89,7 @@
               <v-list-item>
                 <v-list-item-content>
                   <v-list-item-title>
-                    <strong>{{ $t("datatable.doctor") }}:</strong> {{ book_details.owner_name}}
+                    <strong>{{ $t("datatable.doctor") }}:</strong> {{ book_details.owner_name || book_details.doctor_name }}
                   </v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -123,12 +154,12 @@
             <br>
             <v-row justify="center">
 
-              <!-- <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary'  && doctors.length>1 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0">
+              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary' && doctors && doctors.length>1">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
 
-              </v-col> -->
+              </v-col>
 
               
 
@@ -238,6 +269,10 @@
         reservations: [],
         loadingData: false,
 
+        // New data properties for doctor filter
+        selectedDoctorFilter: null, // Selected doctor for filtering
+        doctorFilterOptions: [], // Doctor options for filter dropdown
+
         rules: {
           required: value => !!value || this.$t("field_required"),
           phoneNumber: value => /^\d+$/.test(value) || this.$t('enter_valid_phone_number'),
@@ -271,6 +306,13 @@
           doctors: cacheManager.has(this.cacheConfig.doctors.key),
           ownerItems: cacheManager.has(this.cacheConfig.ownerItems.key)
         };
+      },
+
+      // Current cache key based on selected doctor filter
+      currentReservationsCacheKey() {
+        return this.selectedDoctorFilter 
+          ? `reservations_cache_doctor_${this.selectedDoctorFilter}`
+          : this.cacheConfig.reservations.key;
       }
     },
 
@@ -363,13 +405,14 @@
           if (cached) {
             console.log('✅ Using cached doctors');
             this.doctors = cached;
+            this.setupDoctorFilterOptions();
             this.fetchReservations();
             return;
           }
           
           this.loading = true;
 
-          await axios.get("doctors/secretary", {
+          await axios.get("https://smartclinicv5.tctate.com/api/doctors/secretary", {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -385,6 +428,7 @@
               cacheManager.set(this.cacheConfig.doctors.key, res.data.data, this.cacheConfig.doctors.ttl);
               console.log('💾 Cached doctors data');
               
+              this.setupDoctorFilterOptions();
               this.fetchReservations();
             })
             .catch(error => {
@@ -397,6 +441,7 @@
                 try {
                   const cacheData = JSON.parse(fallbackCache);
                   this.doctors = cacheData.data;
+                  this.setupDoctorFilterOptions();
                   console.log('📦 Using fallback cache for doctors');
                 } catch (e) {
                   console.warn('Failed to parse fallback cache');
@@ -410,6 +455,28 @@
           this.fetchReservations();
         }
 
+      },
+
+      // Setup doctor filter options
+      setupDoctorFilterOptions() {
+        if (this.doctors && this.doctors.length > 0) {
+          this.doctorFilterOptions = [
+            { id: null, name: this.$t('all_doctors') || 'جميع الأطباء' },
+            ...this.doctors
+          ];
+        }
+      },
+
+      // Handle doctor filter change
+      async onDoctorFilterChange(doctorId) {
+        console.log('Doctor filter changed to:', doctorId);
+        this.selectedDoctorFilter = doctorId;
+        
+        // Clear current reservations cache
+        cacheManager.remove(this.currentReservationsCacheKey);
+        
+        // Fetch reservations for selected doctor
+        await this.fetchReservations();
       },
 
       showDeleteConfirmation() {
@@ -473,7 +540,8 @@
         this.book_details.book_time = event.event.startTime;
         this.book_details.user_phone = event.event.phone;
         this.book_details.id = event.event.id;
-        this.book_details.owner_name = event.event.owner_name || 'غير محدد'; // Fallback if owner_name is not available
+        this.book_details.owner_name = event.event.owner_name || event.event.doctor_name || 'غير محدد'; // Use doctor_name as fallback
+        this.book_details.doctor_name = event.event.doctor_name || event.event.owner_name || 'غير محدد'; // Add doctor_name field
 
         this.selectedEvent = event; // Set the selected reservation
         this.dialog = true;
@@ -722,16 +790,24 @@
         try {
           console.log('Fetching reservations...');
           
-          // Check cache first
-          const cached = cacheManager.get(this.cacheConfig.reservations.key);
+          // Check cache first using current cache key
+          const cached = cacheManager.get(this.currentReservationsCacheKey);
           if (cached) {
             console.log('✅ Using cached reservations');
             this.reservations = cached;
             return;
           }
           
-          // Use the new API endpoint
-          const response = await axios.get(this.Url+'/api/reservations/formatted', {
+          // Determine API endpoint based on doctor filter
+          let apiEndpoint = this.Url + '/api/reservations/formatted';
+          if (this.selectedDoctorFilter && this.$store.state.role === 'secretary') {
+            apiEndpoint = this.Url + `/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
+          }
+          
+          console.log('API Endpoint:', apiEndpoint);
+          
+          // Use the API endpoint
+          const response = await axios.get(apiEndpoint, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -745,10 +821,11 @@
           if (response.data && response.data.status && response.data.data) {
             // Map the API response to the format expected by the calendar
             const formattedReservations = response.data.data.map(reservation => ({
-              name: reservation.user.full_name,
-              details: `Appointment with ${reservation.user.full_name}`,
-              phone: reservation.user.user_phone,
-              owner_name: '', // This field might not be in the new API response
+              name: reservation.user?.full_name || reservation.user?.name || 'Unknown Patient',
+              details: `Appointment with ${reservation.user?.full_name || reservation.user?.name || 'Unknown Patient'}`,
+              phone: reservation.user?.user_phone || reservation.user?.phone || '',
+              owner_name: reservation.doctor?.name || '', // Map doctor name
+              doctor_name: reservation.doctor?.name || '', // Add doctor_name field
               id: reservation.id,
               start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
               startTime: reservation.reservation_from_time,
@@ -757,8 +834,8 @@
 
             this.reservations = formattedReservations;
             
-            // Cache the formatted reservations
-            cacheManager.set(this.cacheConfig.reservations.key, formattedReservations, this.cacheConfig.reservations.ttl);
+            // Cache the formatted reservations with current cache key
+            cacheManager.set(this.currentReservationsCacheKey, formattedReservations, this.cacheConfig.reservations.ttl);
             
             console.log('Formatted reservations:', this.reservations);
           } else {
@@ -767,9 +844,10 @@
           }
         } catch (error) {
           console.error('Error fetching reservations:', error);
+          console.error('Full error details:', error.response?.data || error.message);
           
           // Try to use expired cache as fallback
-          const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.cacheConfig.reservations.key);
+          const fallbackCache = localStorage.getItem('clinic_app_cache_' + this.currentReservationsCacheKey);
           if (fallbackCache) {
             try {
               const cacheData = JSON.parse(fallbackCache);
@@ -781,12 +859,12 @@
           }
           
           // Fallback: show user-friendly error message
-          this.$swal.fire({
-            icon: 'error',
-            title: 'خطأ في تحميل المواعيد',
-            text: 'حدث خطأ أثناء تحميل المواعيد. يرجى المحاولة مرة أخرى.',
-            confirmButtonText: 'موافق'
-          });
+          // this.$swal.fire({
+          //   icon: 'error',
+          //   title: 'خطأ في تحميل المواعيد',
+          //   text: 'حدث خطأ أثناء تحميل المواعيد. يرجى المحاولة مرة أخرى.',
+          //   confirmButtonText: 'موافق'
+          // });
           
           if (!this.reservations.length) {
             this.reservations = [];
@@ -868,12 +946,21 @@
         Object.values(this.cacheConfig).forEach(config => {
           cacheManager.remove(config.key);
         });
+        
+        // Also clear doctor-specific caches
+        if (this.doctors && this.doctors.length > 0) {
+          this.doctors.forEach(doctor => {
+            cacheManager.remove(`reservations_cache_doctor_${doctor.id}`);
+          });
+        }
+        
         console.log('🧹 Cleared all booking cache');
       },
 
       // Force refresh data by clearing cache and refetching
       forceRefreshData() {
         this.clearAllCache();
+        this.selectedDoctorFilter = null; // Reset doctor filter
         this.getclinicDoctor();
         this.getPatient();
         this.getOwnerTctateitemsById();
