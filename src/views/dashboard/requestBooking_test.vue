@@ -110,6 +110,9 @@
     </v-card-text>
 
     <v-card-actions>
+      <v-btn color="info" dark @click="viewPatientDetails">
+        <v-icon left>mdi-account-details</v-icon>{{ $t("view_patient_details") || "عرض تفاصيل المريض" }}
+      </v-btn>
       <v-btn color="success" dark @click="chatWithPatient">
         <v-icon left>mdi-whatsapp</v-icon>{{ $t("whatsapp_chat") }}
       </v-btn>
@@ -154,7 +157,7 @@
             <br>
             <v-row justify="center">
 
-              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary' && doctors && doctors.length>1">
+              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary' && doctors && doctors.length>0">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
@@ -248,9 +251,9 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-07-01", // Focus on December by default
-        startDate: "2025-07-01", // Start of December
-        endDate: "2025-08-30", // End of December,
+        focus: "2025-08-01", // Focus on December by default
+        startDate: "2025-08-01", // Start of December
+        endDate: "2025-09-30", // End of December,
 
         valid: true,
 
@@ -531,6 +534,22 @@
         const phone = '+' + this.book_details.user_phone;
         window.open(`https://wa.me/${phone}`, "_blank");
       },
+
+     
+      // Navigate to patient details page
+      viewPatientDetails() {
+        if (this.book_details.patient_id) {
+          this.$router.push(`/patient/${this.book_details.patient_id}`);
+          
+        } else {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'تحذير',
+            text: 'معرف المريض غير متوفر',
+            confirmButtonText: 'موافق'
+          });
+        }
+      },
       openReservationDialog(event) {
         console.log('Opening reservation dialog:', event);
 
@@ -540,6 +559,7 @@
         this.book_details.book_time = event.event.startTime;
         this.book_details.user_phone = event.event.phone;
         this.book_details.id = event.event.id;
+        this.book_details.patient_id = event.event.patient_id; // Add patient_id
         this.book_details.owner_name = event.event.owner_name || event.event.doctor_name || 'غير محدد'; // Use doctor_name as fallback
         this.book_details.doctor_name = event.event.doctor_name || event.event.owner_name || 'غير محدد'; // Add doctor_name field
 
@@ -824,6 +844,7 @@
               name: reservation.user?.full_name || reservation.user?.name || 'Unknown Patient',
               details: `Appointment with ${reservation.user?.full_name || reservation.user?.name || 'Unknown Patient'}`,
               phone: reservation.user?.user_phone || reservation.user?.phone || '',
+              patient_id: reservation.patient_id, // Use patient_id directly from response
               owner_name: reservation.doctor?.name || '', // Map doctor name
               doctor_name: reservation.doctor?.name || '', // Add doctor_name field
               id: reservation.id,

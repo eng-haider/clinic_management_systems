@@ -320,6 +320,7 @@
   "password_min_length": "يجب ان لايقل الباسورد عن ٨ احرف او ارقام",
   "name_required": "يجب ادخال الاسم",
   "required": "مطلوب",
+  "view_patient_details": "عرض تفاصيل المراجع",
   "phone_length": "رقم الهاتف يجب ان يتكون من 11 رقم",
   "invalid_email": "يجب ان يكون ايميل صحيح",
   "write_prescription": "كتابة الوصفة الطبية",

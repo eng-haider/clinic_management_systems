@@ -931,7 +931,7 @@
                     return;
                 }
                 
-                this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.totalItems = res.data.meta.total;

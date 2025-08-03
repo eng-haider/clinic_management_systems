@@ -128,7 +128,7 @@
                       <v-divider class="my-2"></v-divider>
                       <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ (accounts_statistic.all_sum-accounts_statistic.item_cost_sum * doctorPercentage / 100) | currency }}
+                        {{ doctorTotalAmount | currency }}
                       </div>
                     </div>
 
@@ -592,16 +592,16 @@
         // If a doctor is selected, use their profit_percentage
         if (this.search.DocorId && this.search.DocorId !== 0 && this.selectedDoctorData) {
           const percentage = this.selectedDoctorData.profit_percentage;
-          return percentage && !isNaN(percentage) ? parseFloat(percentage) : null;
+          console.log('🔍 Selected doctor percentage:', percentage, 'for doctor:', this.selectedDoctorData.name);
+          return percentage && !isNaN(percentage) ? parseFloat(percentage) : 0;
         }
         
-        // Fallback to clinic default (keep existing logic for backward compatibility)
-        const doctorMoney = this.$store.state.AdminInfo.clinics_info?.doctor_mony;
-        return doctorMoney && !isNaN(doctorMoney) ? parseFloat(doctorMoney) : null;
+        // If no doctor is selected, don't show percentage
+        return null;
       },
       
       showDoctorPercentage() {
-        return this.doctorPercentage !== null;
+        return this.doctorPercentage !== null && this.doctorPercentage > 0;
       },
       
       doctorPaidAmount() {
@@ -613,16 +613,26 @@
         if (!this.showDoctorPercentage) return 0;
         const remaining = this.accounts_statistic.all_sum - this.accounts_statistic.paid;
         return (remaining * this.doctorPercentage) / 100;
+      },
+
+      // Calculate doctor's share of total cases amount (after deducting item costs)
+      doctorTotalAmount() {
+        if (!this.showDoctorPercentage) return 0;
+        const netAmount = this.accounts_statistic.all_sum - this.accounts_statistic.item_cost_sum;
+        return (netAmount * this.doctorPercentage) / 100;
       }
     },
     watch: {
       selected: 'search by sub_cat_id',
       // Add watcher for doctor selection
       'search.DocorId': function(newVal) {
+        console.log('🔍 Doctor selection changed to:', newVal);
         if (newVal && newVal !== 0) {
           this.selectedDoctorData = this.doctorsAll.find(doctor => doctor.id === newVal);
+          console.log('🔍 Selected doctor data:', this.selectedDoctorData);
         } else {
           this.selectedDoctorData = null;
+          console.log('🔍 No doctor selected');
         }
       }
     },
@@ -634,7 +644,7 @@
 
           return this.initialize()
         }
-        this.axios.get("patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
+        this.axios.get("https://smartclinicv5.tctate.com/api/patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -662,7 +672,7 @@
           });
       },
       Export() {
-        this.axios.get('/patientsAccounstsv2/export', {
+        this.axios.get('https://smartclinicv5.tctate.com/api/patientsAccounstsv2/export', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -770,7 +780,7 @@
           this.allItem = true;
 
           console.log('Making search API call with params:', this.search);
-          this.axios.post('/patientsAccounstsv2?page=' + this.current_page, this.search, {
+          this.axios.post('https://smartclinicv5.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -818,7 +828,7 @@
 
         if (this.is_search) {
           // Send search parameters when searching
-          this.axios.post('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
+          this.axios.post('https://smartclinicv5.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
               .search, {
                 headers: {
                   "Content-Type": "application/json",
@@ -843,7 +853,7 @@
             });
         } else {
           // Send empty body when not searching
-          this.axios.post('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
+          this.axios.post('https://smartclinicv5.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -907,7 +917,7 @@
       getCase_number_stats() {
 
         this.axios
-          .get("cases/getCaseCategoriesCounts", {
+          .get("https://smartclinicv5.tctate.com/api/cases/getCaseCategoriesCounts", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
