@@ -1044,14 +1044,49 @@ export default {
         dictCancelUpload: this.$t('patients.cancel_upload'),
         autoProcessQueue: true
       };
-    },
-
-    // ...existing code...
+    }
   },
   
   methods: {
-       generateBill() {
-      this.billDialog = true;
+    // Clear cache and reload data
+    async clearCacheAndReload() {
+      try {
+        // Clear service worker cache
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(name => caches.delete(name))
+          );
+          console.log('🗑️ All caches cleared');
+        }
+
+        // Clear localStorage cache if any
+        localStorage.removeItem('dental_operations_cache');
+        localStorage.removeItem('case_categories_cache');
+
+        // Force reload dental operations
+        this.dentalOperations = [];
+        await this.fetchDentalOperations();
+        
+        // Force reload patient data
+        await this.loadPatientData();
+        
+        this.$swal.fire({
+          title: "تم التحديث",
+          text: "تم تحديث البيانات بنجاح",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('❌ Error clearing cache:', error);
+        this.$swal.fire({
+          title: "خطأ",
+          text: "فشل في تحديث البيانات",
+          icon: "error",
+          confirmButtonText: "موافق"
+        });
+      }
     },
 
     // Handle case added from teeth component
@@ -1111,7 +1146,12 @@ export default {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+          },
+          params: {
+            _t: Date.now() // Add timestamp to prevent caching
           }
         }),
         timeoutPromise

@@ -42,7 +42,8 @@
           <!-- !outside ensures the day is from the current month -->
           <div class="day-number"></div>
           <v-chip v-for="event in events" :key="event.start" :color="getEventColor(event)" class="ma-1" label>
-            <strong>{{ event.name }}</strong>
+            <strong>{{ formatTime(event.startTime) }}</strong> 
+            {{ event.name }}
           </v-chip>
         </div>
       </template>
@@ -339,6 +340,14 @@
     },
    
     methods: {
+      // Extract first name from doctor's full name
+      getDoctorFirstName(doctorName) {
+        if (!doctorName) return '';
+        // Split by space and return first part
+        const nameParts = doctorName.trim().split(' ');
+        return nameParts[0] || '';
+      },
+
        formatEventDetails(event) {
     const time = this.formatTime(event.startTime); // Format the time
     return `${time} ${event.name}`; // Combine time and name
@@ -366,7 +375,7 @@
             return;
           }
 
-          axios.get(this.Url+"/api/patients/searchv2/" + query, {
+          axios.get("https://smartclinicv5.tctate.com/api/patients/searchv2/" + query, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -494,7 +503,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          await axios.delete(this.Url+`/api/reservations/${this.book_details.id}`, {
+          await axios.delete(`https://smartclinicv5.tctate.com/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -645,7 +654,7 @@
         }
         
         this.loadingData = true; // Show loading indicator
-        axios.get(this.Url+"/api/patients/getByUserIdv3", {
+        axios.get("https://smartclinicv5.tctate.com/api/patients/getByUserIdv3", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -727,7 +736,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post(this.Url+'/api/reservations', reservationData, {
+            const response = await axios.post('https://smartclinicv5.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -746,7 +755,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post(this.Url+'/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -762,10 +771,19 @@
             }
 
             // Add the new reservation to the local list
+            const patientName = reservationData.user.name;
+            const doctorName = this.editedItem.doctors ? this.editedItem.doctors.name : '';
+            const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor') && doctorName
+              ? `${patientName} | ${this.getDoctorFirstName(doctorName)}`
+              : patientName;
+              
             this.reservations.push({
-              name: reservationData.user.name,
-              details: `Appointment with ${reservationData.user.name}`,
+              name: displayName,
+              details: `Appointment with ${patientName}`,
               phone: reservationData.user.phone,
+              patient_id: this.patient ? this.patient.id : null,
+              owner_name: doctorName,
+              doctor_name: doctorName,
               id: response.data.id || Date.now(),
               start: `${reservationStartDate} ${fromTime}`,
               startTime: fromTime,
@@ -790,7 +808,9 @@
             });
 
             this.resetForm();
-            this.fetchReservations(); // Refresh the calendar
+            
+            // Force refresh reservations to get complete data from server
+            this.fetchReservations(); // Refresh the calendar with server data
 
           } catch (error) {
             console.error('Error creating reservation:', error);
@@ -819,9 +839,9 @@
           }
           
           // Determine API endpoint based on doctor filter
-          let apiEndpoint = this.Url + '/api/reservations/formatted';
+          let apiEndpoint = 'https://smartclinicv5.tctate.com/api/reservations/formatted';
           if (this.selectedDoctorFilter && this.$store.state.role === 'secretary') {
-            apiEndpoint = this.Url + `/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
+            apiEndpoint =`https://smartclinicv5.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
           }
           
           console.log('API Endpoint:', apiEndpoint);
@@ -840,18 +860,38 @@
           // Check if the response has the expected structure
           if (response.data && response.data.status && response.data.data) {
             // Map the API response to the format expected by the calendar
-            const formattedReservations = response.data.data.map(reservation => ({
-              name: reservation.user?.full_name || reservation.user?.name || 'Unknown Patient',
-              details: `Appointment with ${reservation.user?.full_name || reservation.user?.name || 'Unknown Patient'}`,
-              phone: reservation.user?.user_phone || reservation.user?.phone || '',
-              patient_id: reservation.patient_id, // Use patient_id directly from response
-              owner_name: reservation.doctor?.name || '', // Map doctor name
-              doctor_name: reservation.doctor?.name || '', // Add doctor_name field
-              id: reservation.id,
-              start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
-              startTime: reservation.reservation_from_time,
-              color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
-            }));
+            const formattedReservations = response.data.data.map(reservation => {
+              // Debug: log reservation structure to understand doctor data
+              console.log('🔍 Reservation data:', reservation);
+              
+              // Try multiple possible doctor field locations
+              const doctorName = reservation.doctor?.name || 
+                                reservation.owner?.name || 
+                                reservation.doctor_name || 
+                                reservation.owner_name || 
+                                '';
+              
+              console.log('👨‍⚕️ Found doctor name:', doctorName);
+              
+              // Format the display name with doctor info for secretary/admin roles
+              const patientName = reservation.user?.full_name || reservation.user?.name || 'Unknown Patient';
+              const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor') && doctorName
+                ? `${patientName}| ${this.getDoctorFirstName(doctorName)}`
+                : patientName;
+              
+              return {
+                name: displayName,
+                details: `Appointment with ${patientName}`,
+                phone: reservation.user?.user_phone || reservation.user?.phone || '',
+                patient_id: reservation.patient_id, // Use patient_id directly from response
+                owner_name: doctorName, // Map doctor name
+                doctor_name: doctorName, // Add doctor_name field
+                id: reservation.id,
+                start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
+                startTime: reservation.reservation_from_time,
+                color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
+              };
+            });
 
             this.reservations = formattedReservations;
             
@@ -943,7 +983,7 @@
           return;
         }
         this.loadingData = true;
-        axios.get(this.Url+`/api/patients/search?query=${query}`, {
+        axios.get(`https://smartclinicv5.tctate.com/api/patients/search?query=${query}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -1051,6 +1091,13 @@
 
   .calendar-day .v-chip {
     font-size: 12px;
+  }
+
+  .doctor-name {
+    font-size: 10px;
+    opacity: 0.9;
+    font-weight: normal;
+    margin-left: 4px;
   }
 
 

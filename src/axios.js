@@ -38,6 +38,11 @@ if (axios.defaults.baseURL !== baseURL) {
 axios.defaults.headers.get['Accepts'] = 'application/json'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
+// Cache-busting headers to prevent caching issues
+axios.defaults.headers.common['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+axios.defaults.headers.common['Pragma'] = 'no-cache'
+axios.defaults.headers.common['Expires'] = '0'
+
 // Request timeout (30 seconds)
 axios.defaults.timeout = 30000;
 // Request interceptor for authentication and performance monitoring
@@ -48,6 +53,12 @@ axios.interceptors.request.use(
     console.log('🔗 Full URL:', (config.baseURL || '') + (config.url || ''));
     console.log('🏠 BaseURL:', config.baseURL);
     console.log('🎯 Endpoint:', config.url);
+    
+    // Add cache-busting parameter for GET requests
+    if (config.method && config.method.toLowerCase() === 'get') {
+      config.params = config.params || {};
+      config.params._t = Date.now();
+    }
     
     // If we detect localhost, throw an error to catch it
     const fullUrl = (config.baseURL || '') + (config.url || '');
