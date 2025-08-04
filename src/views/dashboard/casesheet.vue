@@ -740,7 +740,7 @@
                 this.sendingMessage = true;
 
                 try {
-                    const response = await this.apiRequest('whatsapp/storeNow', 'post', {
+                    await this.apiRequest('whatsapp/storeNow', 'post', {
                         patient_id: this.selectedPatient.id,
                         message: this.whatsappMessage.message.trim()
                     });
@@ -914,43 +914,70 @@
                 if (this.searchDocorId == 0) {
                     return this.initialize();
                 }
+                
+                // Clear doctor search cache before performing new search
+                this.clearDoctorSearchCache();
+                
                 this.isSearchingDoctor = true;
                 this.loadingData = true;
                 
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.fullyPaidFilter);
                 
-                const cached = this.getCache(cacheKey);
-                if (cached) {
-                    this.loadingData = false;
-                    this.totalItems = cached.total;
-                    this.desserts = cached.data;
-                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
-                    this.page = currentPage;
-                    return;
-                }
-                
+                // Don't use cache for doctor search - always fetch fresh data
                 this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
-                        this.totalItems = res.data.meta.total;
-                        this.desserts = res.data.data;
-                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
-                        this.page = currentPage;
                         
-                        // Cache the response
-                        this.setCache(cacheKey, {
-                            data: res.data.data,
-                            total: res.data.meta.total,
-                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
-                        }, this.cacheConfig.patients.ttl);
+                        if (res.data && res.data.data) {
+                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                            this.desserts = res.data.data;
+                            this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
+                            this.page = currentPage;
+                            
+                            // Cache the fresh response
+                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.fullyPaidFilter);
+                            this.setCache(cacheKey, {
+                                data: res.data.data,
+                                total: this.totalItems,
+                                pageCount: this.pageCount
+                            }, this.cacheConfig.patients.ttl);
+                        } else {
+                            // No data found
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                            this.page = 1;
+                        }
                     })
-                    .catch(() => {
+                    .catch((error) => {
                         this.loadingData = false;
+                        console.error('Doctor search error:', error);
+                        
+                        // Show error message to user
+                        this.$swal.fire({
+                            title: "خطأ في البحث",
+                            text: "حدث خطأ أثناء البحث عن مرضى الطبيب. يرجى المحاولة مرة أخرى.",
+                            icon: "error",
+                            confirmButtonText: "اغلاق",
+                        });
+                        
+                        // Reset to empty results
+                        this.desserts = [];
+                        this.totalItems = 0;
+                        this.pageCount = 0;
                     });
-            }
-,
+            },
+
+            clearDoctorSearchCache() {
+                // Clear all doctor search-related cache keys
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('doctor_patients')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            },
+
             goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
@@ -1045,8 +1072,6 @@
                 this.$htmlToPaper('printMe');
             },
             deleteItem(item) {
-
-
                 Swal.fire({
                     title: this.$t('sure_process'),
                     text: "",
@@ -1058,7 +1083,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("patients/" + item.id, {
+                        Axios.delete("https://smartclinicv5.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1066,14 +1091,6 @@
                                 }
                             })
                             .then(() => {
-                                // Clear patient cache after deletion
-                                this.clearCache(this.cacheConfig.patients.key);
-                                Object.keys(localStorage).forEach(key => {
-                                    if (key.includes('all_patients') || key.includes('search_patients') || key.includes('doctor_patients')) {
-                                        localStorage.removeItem(key);
-                                    }
-                                });
-
                                 this.$swal.fire({
                                     position: "top-end",
                                     icon: "success",
@@ -1082,7 +1099,8 @@
                                     timer: 1500
                                 });
 
-                                this.initialize();
+                                // Clear all cache and refresh data
+                                this.refreshAllData();
                             })
                             .catch(() => {
                                 this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
@@ -1216,6 +1234,9 @@
 
             },
             seachs() {
+                // Clear all search-related cache before performing new search
+                this.clearSearchCache();
+                
                 this.isSearching = true;
                 this.loadingData = true;
                 
@@ -1230,40 +1251,63 @@
                 }
             },
 
+            clearSearchCache() {
+                // Clear all search-related cache keys
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('search_patients')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            },
+
             performSearch() {
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
                 
-                const cached = this.getCache(cacheKey);
-                if (cached) {
-                    this.loadingData = false;
-                    this.allItem = true;
-                    this.desserts = cached.data;
-                    this.totalItems = cached.total;
-                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
-                    this.page = currentPage;
-                    return;
-                }
-                
+                // Don't use cache for search - always fetch fresh data
                 this.apiRequest(`patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
-                        this.desserts = res.data.data;
-                        this.totalItems = res.data.meta.total;
-                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
-                        this.page = currentPage;
                         
-                        // Cache the response
-                        this.setCache(cacheKey, {
-                            data: res.data.data,
-                            total: res.data.meta.total,
-                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
-                        }, this.cacheConfig.patients.ttl);
+                        // Check if response has data
+                        if (res.data && res.data.data) {
+                            this.desserts = res.data.data;
+                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                            this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
+                            this.page = currentPage;
+                            
+                            // Cache the fresh response
+                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
+                            this.setCache(cacheKey, {
+                                data: res.data.data,
+                                total: res.data.meta ? res.data.meta.total : res.data.data.length,
+                                pageCount: this.pageCount
+                            }, this.cacheConfig.patients.ttl);
+                        } else {
+                            // No data found
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                            this.page = 1;
+                        }
                     })
-                    .catch(() => {
+                    .catch((error) => {
                         this.loadingData = false;
+                        console.error('Search error:', error);
+                        
+                        // Show error message to user
+                        this.$swal.fire({
+                            title: "خطأ في البحث",
+                            text: "حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.",
+                            icon: "error",
+                            confirmButtonText: "اغلاق",
+                        });
+                        
+                        // Reset to empty results
+                        this.desserts = [];
+                        this.totalItems = 0;
+                        this.pageCount = 0;
                     });
             },
 
@@ -1305,8 +1349,14 @@
                     });
             },
 
-            initialize(page = 1) {
-                if (this.isSearching || this.isSearchingDoctor) return;
+            initialize() {
+                if (this.isSearching || this.isSearchingDoctor) {
+                    // Reset search states when initializing
+                    this.isSearching = false;
+                    this.isSearchingDoctor = false;
+                    this.search = '';
+                    this.searchDocorId = '';
+                }
                 
                 this.loadingData = true;
                 
@@ -1330,21 +1380,51 @@
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;
-                        this.totalItems = res.data.meta.total;
-                        this.desserts = res.data.data;
-                        this.pageCount = Math.ceil(res.data.meta.total / itemsPerPage);
-                        this.last_page = res.data.meta.last_page;
-                        this.page = currentPage;
                         
-                        // Cache the response
-                        this.setCache(cacheKey, {
-                            data: res.data.data,
-                            total: res.data.meta.total,
-                            pageCount: Math.ceil(res.data.meta.total / itemsPerPage)
-                        }, this.cacheConfig.patients.ttl);
+                        if (res.data && res.data.data) {
+                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                            this.desserts = res.data.data;
+                            this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
+                            this.last_page = res.data.meta ? res.data.meta.last_page : 1;
+                            this.page = currentPage;
+                            
+                            // Cache the response
+                            this.setCache(cacheKey, {
+                                data: res.data.data,
+                                total: this.totalItems,
+                                pageCount: this.pageCount
+                            }, this.cacheConfig.patients.ttl);
+                        } else {
+                            // No data found
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                            this.page = 1;
+                        }
                     })
-                    .catch(() => {
+                    .catch((error) => {
                         this.loadingData = false;
+                        console.error('Initialize error:', error);
+                        
+                        // Try to use expired cache as fallback
+                        const expiredCache = localStorage.getItem(cacheKey);
+                        if (expiredCache) {
+                            try {
+                                const data = JSON.parse(expiredCache).data;
+                                this.desserts = data.data || [];
+                                this.totalItems = data.total || 0;
+                                this.pageCount = data.pageCount || 0;
+                            } catch (e) {
+                                console.warn('Failed to parse expired cache');
+                                this.desserts = [];
+                                this.totalItems = 0;
+                                this.pageCount = 0;
+                            }
+                        } else {
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                        }
                     });
             },
 
@@ -1458,21 +1538,13 @@
             },
 
             save(eventData) {
-                // Clear patient cache when saving/updating
-                this.clearCache(this.cacheConfig.patients.key);
-                Object.keys(localStorage).forEach(key => {
-                    if (key.includes('all_patients') || key.includes('search_patients') || key.includes('doctor_patients')) {
-                        localStorage.removeItem(key);
-                    }
-                });
-
                 // Handle PatientEditDialog events - the dialog now handles API calls internally
                 if (eventData && typeof eventData === 'object' && eventData.patient) {
                     const patientData = eventData.patient;
                     const isEditing = eventData.isEditing;
                     
-                    // Update local data
-                    this.initialize();
+                    // Clear all cache and refresh data
+                    this.refreshAllData();
                     
                     // Handle redirection based on user role
                     const userRole = this.$store.getters.userRole;
@@ -1515,7 +1587,7 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                this.initialize();
+                                this.refreshAllData();
                                 this.close();
 
                                 this.$swal.fire({
@@ -1526,15 +1598,51 @@
                                     timer: 1500
                                 });
                             })
-                            .catch(() => {
+                            .catch((error) => {
                                 this.loadSave = false;
 
-                                this.$swal.fire({
-                                    title: "تاكد من ملى المعلومات",
-                                    text: "",
-                                    icon: "error",
-                                    confirmButtonText: "اغلاق",
-                                });
+                                // Check if it's a phone duplication error
+                                if (error.response && error.response.status === 422 && 
+                                    error.response.data && error.response.data.errors && 
+                                    error.response.data.errors.phone) {
+                                    
+                                    // Show specific message for phone duplication
+                                    this.$swal.fire({
+                                        title: "رقم الهاتف موجود مسبقاً",
+                                        text: "يوجد مريض آخر بنفس رقم الهاتف. يرجى استخدام رقم هاتف مختلف.",
+                                        icon: "warning",
+                                        confirmButtonText: "اغلاق",
+                                    });
+                                } else if (error.response && error.response.status === 422 && 
+                                          error.response.data && error.response.data.errors) {
+                                    
+                                    // Handle other validation errors
+                                    const errors = error.response.data.errors;
+                                    let errorMessage = "يرجى التحقق من المعلومات المدخلة:\n\n";
+                                    
+                                    Object.keys(errors).forEach(field => {
+                                        if (Array.isArray(errors[field])) {
+                                            errors[field].forEach(message => {
+                                                errorMessage += `• ${message}\n`;
+                                            });
+                                        }
+                                    });
+                                    
+                                    this.$swal.fire({
+                                        title: "خطأ في البيانات",
+                                        text: errorMessage,
+                                        icon: "error",
+                                        confirmButtonText: "اغلاق",
+                                    });
+                                } else {
+                                    // Generic error message
+                                    this.$swal.fire({
+                                        title: "تأكد من ملء المعلومات",
+                                        text: "يرجى المحاولة مرة أخرى",
+                                        icon: "error",
+                                        confirmButtonText: "اغلاق",
+                                    });
+                                }
                             });
                     } else {
                         this.axios
@@ -1551,7 +1659,7 @@
 
                                 this.patientInfo = res.data.data;
                                 this.dialog = false;
-                                this.initialize();
+                                this.refreshAllData();
 
                                 // Check user role and redirect accordingly
                                 const userRole = this.$store.getters.userRole;
@@ -1571,18 +1679,84 @@
                                     });
                                 }
                             })
-                            .catch(() => {
+                            .catch((error) => {
                                 this.loadSave = false;
 
-                                this.$swal.fire({
-                                    title: "حدث خطأ أثناء الإضافة",
-                                    text: "",
-                                    icon: "error",
-                                    confirmButtonText: "اغلاق",
-                                });
+                                // Check if it's a phone duplication error
+                                if (error.response && error.response.status === 422 && 
+                                    error.response.data && error.response.data.errors && 
+                                    error.response.data.errors.phone) {
+                                    
+                                    // Show specific message for phone duplication
+                                    this.$swal.fire({
+                                        title: "رقم الهاتف موجود مسبقاً",
+                                        text: "يوجد مريض بنفس رقم الهاتف. يرجى استخدام رقم هاتف مختلف أو البحث عن المريض الموجود.",
+                                        icon: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonText: "البحث عن المريض",
+                                        cancelButtonText: "إغلاق",
+                                        confirmButtonColor: "#3085d6",
+                                        cancelButtonColor: "#d33",
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            // Search for the patient with this phone number
+                                            this.search = patientData.phone;
+                                            this.close();
+                                            this.seachs();
+                                        }
+                                    });
+                                } else if (error.response && error.response.status === 422 && 
+                                          error.response.data && error.response.data.errors) {
+                                    
+                                    // Handle other validation errors
+                                    const errors = error.response.data.errors;
+                                    let errorMessage = "يرجى التحقق من المعلومات المدخلة:\n\n";
+                                    
+                                    Object.keys(errors).forEach(field => {
+                                        if (Array.isArray(errors[field])) {
+                                            errors[field].forEach(message => {
+                                                errorMessage += `• ${message}\n`;
+                                            });
+                                        }
+                                    });
+                                    
+                                    this.$swal.fire({
+                                        title: "خطأ في البيانات",
+                                        text: errorMessage,
+                                        icon: "error",
+                                        confirmButtonText: "اغلاق",
+                                    });
+                                } else {
+                                    // Generic error message
+                                    this.$swal.fire({
+                                        title: "حدث خطأ أثناء الإضافة",
+                                        text: "يرجى المحاولة مرة أخرى أو التواصل مع الدعم الفني",
+                                        icon: "error",
+                                        confirmButtonText: "اغلاق",
+                                    });
+                                }
                             });
                     }
-            }
+            },
+
+            // Method to refresh all data and clear cache
+            refreshAllData() {
+                // Clear all cache
+                this.clearAllCache();
+                
+                // Reset search states
+                this.isSearching = false;
+                this.isSearchingDoctor = false;
+                this.search = '';
+                this.searchDocorId = '';
+                
+                // Reset pagination
+                this.tableOptions.page = 1;
+                this.page = 1;
+                
+                // Reload data
+                this.initialize();
+            },
 
         },
 
