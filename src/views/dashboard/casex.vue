@@ -335,7 +335,7 @@
 
 <script>
 
-    import teeth from '../../components/core/teeth.vue';
+    import teeth from '../../components/core/teeth_v2.vue';
     import {
         EventBus
     } from "./event-bus.js";

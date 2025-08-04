@@ -1,9 +1,27 @@
 <template>
+  <div class="teeth-container">
+    <!-- Color Selection Panel -->
+    <div class="color-selection-panel">
+      <h3>{{ $t('selectColor') || 'Select Color' }}</h3>
+      <div class="color-options">
+        <div 
+          v-for="(color, index) in colorOptions"
+          :key="index"
+          :class="['color-option', { active: selectedColorIndex === index }]"
+          :style="{ backgroundColor: color.value }"
+          @click="selectColor(index)"
+          :title="color.name"
+        >
+          <i v-if="selectedColorIndex === index" class="mdi mdi-check"></i>
+        </div>
+      </div>
+    </div>
+
    <div class="modal-content">
     <div class="teeth-diagram">
        
 
-    <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" width="1792px" height="539px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1792 539" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g><path style="opacity:1" fill="#1e1e1e" d="M 494.5,-0.5 C 495.167,-0.5 495.833,-0.5 496.5,-0.5C 481.665,52.1739 474.331,105.841 474.5,160.5C 493.86,149.524 512.86,150.191 531.5,162.5C 531.83,134.296 529.33,106.296 524,78.5C 516.722,51.8366 508.556,25.5033 499.5,-0.5C 500.167,-0.5 500.833,-0.5 501.5,-0.5C 501.628,1.08979 502.295,2.42312 503.5,3.5C 504.874,2.2887 506.374,1.2887 508,0.5C 508.772,0.644803 509.439,0.978136 510,1.5C 512.742,6.51257 514.742,11.8459 516,17.5C 520.342,45.3073 525.008,72.974 530,100.5C 532.509,122.456 534.509,144.456 536,166.5C 541.166,171.335 545.166,177.001 548,183.5C 555.249,206.339 550.083,225.839 532.5,242C 506.611,258.451 483.111,255.617 462,233.5C 445.417,207.299 448.417,183.632 471,162.5C 471.897,107.124 479.73,52.7906 494.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#fcfcfc" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#1c1c1c" d="M 588.5,-0.5 C 591.167,-0.5 593.833,-0.5 596.5,-0.5C 600.608,3.11352 603.775,7.44685 606,12.5C 625.35,64.2713 638.35,117.605 645,172.5C 648.163,176.156 650.829,180.156 653,184.5C 660.84,209.655 653.674,229.155 631.5,243C 606.67,252.499 586.837,246.333 572,224.5C 562.854,205.197 565.187,187.531 579,171.5C 578.951,137.955 580.117,104.455 582.5,71C 581.285,56.8254 579.952,42.6587 578.5,28.5C 579.015,21.7103 580.182,15.0437 582,8.5C 583.643,5.03865 585.81,2.03865 588.5,-0.5 Z"/></g>
@@ -276,51 +294,337 @@
     <g><path style="opacity:1" fill="#fdfdfd" d="M 1240.5,356.5 C 1260.64,369.718 1280.81,369.718 1301,356.5C 1299.28,377.238 1296.61,397.904 1293,418.5C 1287.51,444.441 1282.35,470.441 1277.5,496.5C 1278.73,501.466 1280.4,506.299 1282.5,511C 1280.52,519.403 1275.52,521.736 1267.5,518C 1262.33,512.835 1258.83,506.668 1257,499.5C 1255.08,491.218 1253.41,482.885 1252,474.5C 1248.08,435.16 1244.24,395.826 1240.5,356.5 Z"/></g>
         </svg>
     </div>
-</div>
-    </template>
+    </div>
+  </div>
+</template>
     
     <script>
-    export default {
-        mounted() {
-            // Get all paths in the SVG
+export default {
+    props: {
+        tooth_num: {
+            type: Array,
+            default: () => []
+        },
+        id: Number,
+        categories: {
+            type: Array,
+            default: () => []
+        }
+    },
+    data() {
+        return {
+            selectedTeeth: [],
+            clickedPaths: new Map(), // Track clicked paths with their colors
+            selectedColorIndex: 0, // Currently selected color
+            colorOptions: [
+                { name: 'Blue', value: '#2196F3' },
+                { name: 'Red', value: '#F44336' },
+                { name: 'Green', value: '#4CAF50' },
+                { name: 'Orange', value: '#FF9800' }
+            ]
+        };
+    },
+    watch: {
+        tooth_num: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal && newVal.length > 0) {
+                    this.selectedTeeth = [...newVal];
+                    this.updatePathColors();
+                }
+            }
+        }
+    },
+    mounted() {
+        // Get all paths in the SVG
+        const paths = this.$el.querySelectorAll('#toothSvg path');
+
+        // Add click event listener to each path
+        paths.forEach((path, index) => {
+            // Add click event listener
+            path.addEventListener('click', (event) => {
+                this.handlePathClick(path, index, event);
+            });
+        });
+        
+        // Initial update if tooth_num prop is set
+        this.updatePathColors();
+    },
+    methods: {
+        selectColor(colorIndex) {
+            this.selectedColorIndex = colorIndex;
+        },
+        
+        handlePathClick(path, index, event) {
+            const currentColor = this.colorOptions[this.selectedColorIndex];
+            
+            // Toggle path selection with the current color
+            if (this.clickedPaths.has(index)) {
+                // If already selected, remove it
+                this.clickedPaths.delete(index);
+                path.classList.remove('clicked-path');
+                // Reset to original fill
+                path.style.fill = '';
+                path.style.stroke = '';
+                path.style.strokeWidth = '';
+            } else {
+                // Add with current selected color
+                this.clickedPaths.set(index, currentColor);
+                path.classList.add('clicked-path');
+                // Apply the selected color
+                path.style.fill = currentColor.value;
+                path.style.stroke = this.getDarkerShade(currentColor.value);
+                path.style.strokeWidth = '2px';
+            }
+            
+            // Update selected teeth array with the indices
+            this.selectedTeeth = Array.from(this.clickedPaths.keys());
+            
+            // Emit tooth selection change event
+            this.$emit('tooth-selection-changed', {
+                selectedPaths: Array.from(this.clickedPaths.keys()),
+                pathElement: path,
+                index: index,
+                color: currentColor,
+                pathColors: Object.fromEntries(this.clickedPaths)
+            });
+            
+            // Emit case-added event for compatibility
+            this.$emit('case-added', {
+                selectedTeeth: this.selectedTeeth,
+                pathIndex: index,
+                color: currentColor
+            });
+
+            // Prevent event bubbling
+            event.stopPropagation();
+        },
+        
+        getDarkerShade(hexColor) {
+            // Convert hex to RGB, darken by 20%, and convert back
+            const hex = hexColor.replace('#', '');
+            const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 50);
+            const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 50);
+            const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 50);
+            return `rgb(${r}, ${g}, ${b})`;
+        },
+        
+        updatePathColors() {
             const paths = this.$el.querySelectorAll('#toothSvg path');
-    
-            // Add click event listener to each path
-            paths.forEach((path) => {
-                // Add click event listener
-                path.addEventListener('click', (event) => {
-                    // Check if the path is already clicked (blue)
-                    if (path.classList.contains('clicked-path')) {
-                        // If clicked, revert to original color
-                        path.classList.remove('clicked-path');
-                    } else {
-                        // If not clicked, make it blue
-                        path.classList.add('clicked-path');
+            
+            // Reset all paths
+            paths.forEach((path, index) => {
+                path.classList.remove('clicked-path', 'selected-tooth');
+                path.style.fill = '';
+                path.style.stroke = '';
+                path.style.strokeWidth = '';
+                this.clickedPaths.delete(index);
+            });
+            
+            // Apply colors based on tooth_num prop (external selection)
+            if (this.tooth_num && this.tooth_num.length > 0) {
+                const defaultColor = this.colorOptions[2]; // Green for external selection
+                this.tooth_num.forEach(toothNum => {
+                    if (toothNum < paths.length) {
+                        const path = paths[toothNum];
+                        if (path) {
+                            path.classList.add('selected-tooth');
+                            path.style.fill = defaultColor.value;
+                            path.style.stroke = this.getDarkerShade(defaultColor.value);
+                            path.style.strokeWidth = '2px';
+                            this.clickedPaths.set(toothNum, defaultColor);
+                        }
                     }
-    
-                    // Prevent event bubbling
-                    event.stopPropagation();
                 });
+            }
+        },
+        
+        clearSelection() {
+            this.clickedPaths.clear();
+            this.selectedTeeth = [];
+            const paths = this.$el.querySelectorAll('#toothSvg path');
+            paths.forEach(path => {
+                path.classList.remove('clicked-path', 'selected-tooth');
+                path.style.fill = '';
+                path.style.stroke = '';
+                path.style.strokeWidth = '';
             });
         },
-    };
-    </script>
+        
+        getSelectedTeeth() {
+            return Array.from(this.clickedPaths.keys());
+        },
+        
+        getTeethWithColors() {
+            return Object.fromEntries(this.clickedPaths);
+        }
+    }
+};
+</script>
 
 
 
-<style>
-/* Adding a simple hover effect for better user experience */
+<style scoped>
+/* Container styling */
+.teeth-container {
+  width: 100%;
+  padding: 20px;
+}
+
+/* Color Selection Panel */
+.color-selection-panel {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.color-selection-panel h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.color-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-option {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.color-option:hover {
+  /* Removed transform to prevent layout shifts */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.color-option.active {
+  border-color: #333;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+}
+
+.color-option i {
+  color: white;
+  font-size: 20px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Make the SVG responsive */
+.teeth-diagram {
+  width: 100%;
+  overflow: visible; /* Changed from overflow-x: auto to show full SVG */
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#toothSvg {
+  width: 100%;
+  height: auto;
+  min-width: 100%; /* Ensure it takes at least full width */
+  display: block; /* Remove any inline spacing */
+}
+
+/* Base path styling */
+svg path {
+    transition: fill 0.2s ease, opacity 0.2s ease;
+    cursor: pointer;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.1));
+}
+
+/* Hover effect for better user experience - no position changes */
 svg path:hover {
     cursor: pointer;
     opacity: 0.8;
-    fill: red;
+    /* Removed transform to prevent position shifts */
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
 }
 
-
-/* Class for clicked paths */
+/* Class for clicked paths - user interactive selection */
 .clicked-path {
-    fill: blue !important;
+    stroke-width: 3px !important;
+    filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.3)) !important;
 }
 
+/* Class for teeth selected via prop (external selection) */
+.selected-tooth {
+    stroke-width: 2px !important;
+    filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.2)) !important;
+}
 
+/* Hover states for selected paths - no position changes */
+svg path.clicked-path:hover,
+svg path.selected-tooth:hover {
+    opacity: 0.9;
+    /* Removed transform to prevent position shifts */
+}
+
+/* Modal content styling */
+.modal-content {
+  background: #fafafa;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .teeth-container {
+    padding: 15px;
+  }
+  
+  .color-selection-panel {
+    padding: 10px;
+  }
+  
+  .color-option {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .color-option i {
+    font-size: 16px;
+  }
+  
+  .teeth-diagram {
+    padding: 15px;
+  }
+  
+  #toothSvg {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .teeth-container {
+    padding: 10px;
+  }
+  
+  .color-options {
+    gap: 8px;
+  }
+  
+  .color-option {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .teeth-diagram {
+    padding: 10px;
+  }
+}
 </style>

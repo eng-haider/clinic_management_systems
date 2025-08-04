@@ -728,7 +728,7 @@
 </template>
 
 <script>
-import teeth from '@/components/core/teeth.vue';
+import teeth from '@/components/core/teeth_v2.vue';
 import OwnerBooking from './sub_components/ownerBookinfDed.vue';
 import Bill from './sub_components/billsReport.vue';
 import PatientEditDialog from '@/components/PatientEditDialog.vue';
