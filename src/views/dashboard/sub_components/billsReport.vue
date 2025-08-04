@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 <div class="clinic-logo">
-                    <v-icon size="80" color="primary">mdi-hospital-building</v-icon>
+                    <img :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
                     <div class="clinic-name">{{ $store.state.AdminInfo.clinics_info.name }} </div>
                 </div>
             </div>
@@ -59,7 +59,9 @@
             <div class="bill-summary">
                 <div class="summary-row">
                     <div class="summary-label">إجمالي الفاتورة:</div>
-                    <div class="summary-value">{{ totalBill | currency }} <span class="money">د.ع</span></div>
+                    <div class="summary-value">
+                        {{ formatCurrency(totalBill) }} <span class="money">د.ع</span>
+                    </div>
                 </div>
                 <div class="summary-row">
                     <div class="summary-label">المبلغ المدفوع:</div>
@@ -137,7 +139,7 @@
                 if (this.patient.cases && this.patient.cases.length > 0) {
                     items = this.patient.cases.map(item => ({
                         case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
-                        tooth_number: item.tooth_num || item.upper_right || item.upper_left || item.lower_right || item.lower_left || '-',
+                        tooth_number: this.formatToothNumbers(item.tooth_num),
                         price_formatted: `${this.$options.filters.currency(item.price || 0)} د.ع`,
                         date: this.cropdate(item.created_at),
                         price: item.price || 0
@@ -173,11 +175,13 @@
             },
 
             totalBill() {
-                if (this.patient.cases && this.patient.cases.length > 0) {
-                    return this.patient.cases.reduce((total, item) => total + (parseFloat(item.price) || 0), 0);
-                } else {
-                    return parseFloat(this.patient.price) || 0;
+                // Sum only the case prices from patient.cases
+                if (this.patient && this.patient.cases && this.patient.cases.length > 0) {
+                    return this.patient.cases.reduce((total, caseItem) => {
+                        return total + (parseFloat(caseItem.price) || 0);
+                    }, 0);
                 }
+                return 0;
             },
 
             totalPaid() {
@@ -208,7 +212,44 @@
             }
         },
 
+        mounted() {
+            // Component mounted - ready to display bill report
+        },
+
         methods: {
+            parseToArray(toothNum) {
+                // Check if it's a string that looks like an array, parse it
+                if (typeof toothNum === 'string') {
+                    try {
+                        return JSON.parse(toothNum);
+                    } catch (e) {
+                        return [toothNum]; // Return the value as-is if it's not a valid array string
+                    }
+                }
+                // If it's already an array, return it
+                return Array.isArray(toothNum) ? toothNum : [toothNum];
+            },
+
+            formatToothNumbers(toothNum) {
+                if (!toothNum) return '-';
+                
+                try {
+                    const toothArray = this.parseToArray(toothNum);
+                    if (Array.isArray(toothArray) && toothArray.length > 0) {
+                        return toothArray.join(' - ');
+                    }
+                    return toothNum.toString();
+                } catch (error) {
+                    console.error('Error formatting tooth numbers:', error);
+                    return toothNum ? toothNum.toString() : '-';
+                }
+            },
+
+            formatCurrency(amount) {
+                if (!amount) return '0';
+                return parseFloat(amount);
+            },
+
             cropdate(x) {
                 if (!x) return '';
                 return x.slice(0, 10);
@@ -217,6 +258,12 @@
             getCurrentDate() {
                 const today = new Date();
                 return today.toISOString().slice(0, 10);
+            },
+
+            getLogoUrl() {
+                // Get the current window location origin to build the correct URL
+                const origin = window.location.origin;
+                return `${origin}/111.png`;
             },
 
             printReport() {
@@ -269,6 +316,23 @@
 .info-value {
     font-weight: 500;
     color: #555;
+}
+
+.clinic-logo {
+    text-align: center;
+}
+
+.clinic-logo-image {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.clinic-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
 }
 
 .bill-table {

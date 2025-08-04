@@ -37,7 +37,9 @@ export default new Vuex.Store({
         Permissions: [],
         dir: '',
         send_msg: 1,
-        clinics_info: ''
+        clinics_info: '',
+        doctor_info: null,
+        show_lap: 0
     }
  
   },
@@ -61,6 +63,12 @@ export default new Vuex.Store({
     userPermissions: state => state.AdminInfo.Permissions || [],
     hasPermission: (state) => (permission) => {
       return state.AdminInfo.Permissions.includes(permission);
+    },
+    canShowLapCases: state => {
+      // Check both permission and doctor show_lap field
+      const hasPermission = state.AdminInfo.Permissions.includes('show_lap_cases');
+      const showLap = state.AdminInfo.show_lap === 1;
+      return hasPermission && showLap;
     }
   },
   mutations: {
@@ -83,9 +91,7 @@ export default new Vuex.Store({
       state.role = role;
       state.AdminInfo.role = role;
       console.log('Role set successfully. State:', { role: state.role, adminInfoRole: state.AdminInfo.role });
-    },
-
-    clearAuth(state) {
+    },      clearAuth(state) {
         state.AdminInfo = {
           id: '',
           user_id: '',
@@ -102,7 +108,9 @@ export default new Vuex.Store({
           Permissions: [],
           dir: '',
           send_msg: 1,
-          clinics_info: ''
+          clinics_info: '',
+          doctor_info: null,
+          show_lap: 0
         }
       },
 
@@ -143,6 +151,8 @@ export default new Vuex.Store({
         state.AdminInfo.tctate_token = userData.tctate_token
         state.AdminInfo.token = userData.token
         state.AdminInfo.clinics_info = userData.clinics_info
+        state.AdminInfo.doctor_info = userData.doctor_info
+        state.AdminInfo.show_lap = userData.show_lap || 0
       },
 
       updatePermissions(state, permissions) {
@@ -216,8 +226,15 @@ export default new Vuex.Store({
       localStorage.setItem('tokinn', token);
       localStorage.setItem('tctate_token', tctateToken);
       
-      // Process permissions array
-      const Permissions = userData.Permissions.map(permission => permission.name);
+      // Process permissions array - handle both objects and strings
+      const Permissions = userData.Permissions.map(permission => {
+        // If it's an object with a name property, return the name
+        if (typeof permission === 'object' && permission.name) {
+          return permission.name;
+        }
+        // If it's already a string, return it as is
+        return permission;
+      });
       
       // Prepare user data for commit
       const processedUserData = {
@@ -235,7 +252,9 @@ export default new Vuex.Store({
         Permissions: Permissions,
         dir: dir,
         send_msg: userData.send_msg,
-        clinics_info: loginResponse.clinic_info || userData.Clinics
+        clinics_info: loginResponse.clinic_info || userData.Clinics,
+        doctor_info: userData.doctor,
+        show_lap: userData.doctor ? userData.doctor.show_lap : 0
       };
       
       // Commit to store

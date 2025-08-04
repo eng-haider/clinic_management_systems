@@ -37,7 +37,7 @@
         </v-col>
 
         <!-- Action Buttons (Hidden for secretaries) -->
-        <v-col cols="auto" class="pa-4 text-right" v-if="!secretaryBillsOnlyMode">
+        <v-col cols="auto" class="pa-4 text-right">
           <v-btn 
             class="mr-2" 
             color="primary" 
@@ -608,7 +608,7 @@
     <!-- Bill Report Dialog -->
     <v-dialog v-model="billDialog" max-width="900px" v-track-dialog>
       <v-card>
-        <Bill :patient="{ ...patient, bills: patientBills }" />
+        <Bill :patient="completePatientData" />
       </v-card>
     </v-dialog>
 
@@ -735,7 +735,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv4.tctate.com/api/cases/uploude_image",
+        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -907,6 +907,16 @@ birth_date: ''
         console.error('Error checking delete bills permission:', error);
         return false;
       }
+    },
+
+    // Complete patient object with all nested data for Bill component
+    completePatientData() {
+      return {
+        ...this.patient,
+        cases: this.patientCases,
+        bills: this.patientBills,
+        images: this.patientImages
+      };
     }
   },
   
@@ -1072,7 +1082,7 @@ birth_date: ''
         // Load patient data using the new API endpoint
         console.log('📡 Making API request to get patient data...');
         
-        const response = await this.$http.get(`https://apismartclinicv4.tctate.com/api/getPatientById/${patientId}`, {
+        const response = await this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1929,7 +1939,7 @@ birth_date: ''
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1970,7 +1980,7 @@ birth_date: ''
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://apismartclinicv4.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2001,7 +2011,7 @@ birth_date: ''
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv4.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2039,7 +2049,7 @@ birth_date: ''
             patient_id: this.patient.id.toString()
           };
           
-          const response = await this.$http.post(`https://apismartclinicv4.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2062,7 +2072,7 @@ birth_date: ''
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://apismartclinicv4.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://apismartclinicv3.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2193,7 +2203,7 @@ birth_date: ''
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://apismartclinicv4.tctate.com/case_photo/${imageName}`;
+      return `https://apismartclinicv3.tctate.com/case_photo/${imageName}`;
     },
 
     // Delete image from server and local array

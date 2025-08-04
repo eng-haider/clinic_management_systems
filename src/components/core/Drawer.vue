@@ -53,7 +53,7 @@
         <v-list dense nav style=" font-family: 'cairo' " v-for="(item, i) in items" :key="i" class="my-0 py-0"
           :class="$i18n.locale == 'ar' ? 'pr-0' : 'pl-0'">
           <v-list-item style="color:#fff !important" link :to="item.to"
-            v-if="$store.state.AdminInfo.Permissions.includes(item.name)">
+            v-if="hasItemPermission(item)">
             <v-list-item-icon>
               <v-icon style="color:#fff !important">{{ item.icon }}</v-icon>
             </v-list-item-icon>
@@ -74,7 +74,8 @@
 
 <script>
   import {
-    mapState
+    mapState,
+    mapGetters
   } from "vuex";
   import MobileBottomNav from './MobileBottomNav.vue';
 
@@ -154,6 +155,13 @@
             name: 'show_accounts'
           },
 
+          {
+            title: this.$t("header.caseLap") || "حالات المختبر",
+            icon: 'fa-solid fa-flask',
+            auth: true,
+            to: '/case-lap',
+            name: 'show_lap_cases'
+          },
 
           {
             title: this.$t("header.reports"),
@@ -228,6 +236,7 @@ name: 'show_waitinglist'
       ...mapState(["setLogo"]),
       ...mapState(["barColor"]),
       ...mapState(["tile"]),
+      ...mapGetters(['canShowLapCases']),
 
       drawer: {
         get() {
@@ -259,6 +268,14 @@ name: 'show_waitinglist'
 
     },
     methods: {
+      hasItemPermission(item) {
+        // Special case for show_lap_cases - check both permission and doctor show_lap field
+        if (item.name === 'show_lap_cases') {
+          return this.canShowLapCases;
+        }
+        // For all other permissions, check the regular way
+        return this.$store.state.AdminInfo.Permissions.includes(item.name);
+      },
       mapItem(item) {
         return {
           ...item,
