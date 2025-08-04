@@ -17,11 +17,87 @@
       </div>
     </div>
 
-   <div class="modal-content">
-    <div class="teeth-diagram">
+    <!-- Context Menu for Categories -->
+    <div 
+        v-if="showContextMenu"
+        class="context-menu"
+        :style="contextMenuStyle"
+        @click.stop
+    >
+        <div class="context-menu-header">
+            <span>Select Category</span>
+            <button @click="hideContextMenu" class="close-btn">&times;</button>
+        </div>
+        
+        <!-- Search and Add Category Section -->
+        <div class="category-search-section">
+            <div class="search-input-container">
+                <input 
+                    v-model="categorySearchTerm"
+                    type="text"
+                    placeholder="Search categories..."
+                    class="category-search-input"
+                    @input="filterCategories"
+                    ref="categorySearchInput"
+                >
+                <i class="mdi mdi-magnify search-icon"></i>
+            </div>
+            <button 
+                v-if="categorySearchTerm && !filteredCategories.length"
+                @click="addNewCategory"
+                class="add-category-btn"
+            >
+                <i class="mdi mdi-plus"></i>
+                Add "{{ categorySearchTerm }}"
+            </button>
+        </div>
+
+        <div class="context-menu-items">
+            <div v-if="!categories || categories.length === 0" class="no-categories">
+                No categories available
+            </div>
+            <template v-else>
+                <div 
+                    v-for="(category, index) in filteredCategories"
+                    :key="`category-${index}`"
+                    class="category-item"
+                    @click="selectCategory(category, index)"
+                >
+                    <span class="category-name">{{ category.name || category }}</span>
+                    <div 
+                        class="category-color-indicator"
+                        :style="{ backgroundColor: getCategoryColor(index) }"
+                    ></div>
+                </div>
+                <div class="category-item remove-category" @click="removeCategory()">
+                    <span class="category-name">Remove Category</span>
+                    <i class="mdi mdi-close"></i>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Category Indicators -->
+    <div class="category-indicators">
+        <div 
+            v-for="(indicator, toothIndex) in categoryIndicators"
+            :key="`indicator-${toothIndex}`"
+            class="category-indicator"
+            :style="indicator.style"
+            :title="indicator.categoryName"
+        >
+            <div 
+                class="indicator-dot"
+                :style="{ backgroundColor: indicator.color }"
+            ></div>
+        </div>
+    </div>
+
+    <div class="modal-content">
+      <div class="teeth-diagram">
        
 
-    <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1792 539" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1792 539" style="width: 100%; height: auto; max-height: 300px;">
     <g><path style="opacity:1" fill="#1e1e1e" d="M 494.5,-0.5 C 495.167,-0.5 495.833,-0.5 496.5,-0.5C 481.665,52.1739 474.331,105.841 474.5,160.5C 493.86,149.524 512.86,150.191 531.5,162.5C 531.83,134.296 529.33,106.296 524,78.5C 516.722,51.8366 508.556,25.5033 499.5,-0.5C 500.167,-0.5 500.833,-0.5 501.5,-0.5C 501.628,1.08979 502.295,2.42312 503.5,3.5C 504.874,2.2887 506.374,1.2887 508,0.5C 508.772,0.644803 509.439,0.978136 510,1.5C 512.742,6.51257 514.742,11.8459 516,17.5C 520.342,45.3073 525.008,72.974 530,100.5C 532.509,122.456 534.509,144.456 536,166.5C 541.166,171.335 545.166,177.001 548,183.5C 555.249,206.339 550.083,225.839 532.5,242C 506.611,258.451 483.111,255.617 462,233.5C 445.417,207.299 448.417,183.632 471,162.5C 471.897,107.124 479.73,52.7906 494.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#fcfcfc" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#1c1c1c" d="M 588.5,-0.5 C 591.167,-0.5 593.833,-0.5 596.5,-0.5C 600.608,3.11352 603.775,7.44685 606,12.5C 625.35,64.2713 638.35,117.605 645,172.5C 648.163,176.156 650.829,180.156 653,184.5C 660.84,209.655 653.674,229.155 631.5,243C 606.67,252.499 586.837,246.333 572,224.5C 562.854,205.197 565.187,187.531 579,171.5C 578.951,137.955 580.117,104.455 582.5,71C 581.285,56.8254 579.952,42.6587 578.5,28.5C 579.015,21.7103 580.182,15.0437 582,8.5C 583.643,5.03865 585.81,2.03865 588.5,-0.5 Z"/></g>
@@ -295,6 +371,24 @@
         </svg>
     </div>
     </div>
+
+
+
+    <!-- Category Indicators -->
+    <div class="category-indicators">
+        <div 
+            v-for="(indicator, toothIndex) in categoryIndicators"
+            :key="`indicator-${toothIndex}`"
+            class="category-indicator"
+            :style="indicator.style"
+            :title="indicator.categoryName"
+        >
+            <div 
+                class="indicator-dot"
+                :style="{ backgroundColor: indicator.color }"
+            ></div>
+        </div>
+    </div>
   </div>
 </template>
     
@@ -321,7 +415,22 @@ export default {
                 { name: 'Red', value: '#F44336' },
                 { name: 'Green', value: '#4CAF50' },
                 { name: 'Orange', value: '#FF9800' }
-            ]
+            ],
+            // Context menu properties
+            showContextMenu: false,
+            contextMenuStyle: {},
+            currentContextTooth: null,
+            currentContextPath: null,
+            // Category tracking
+            toothCategories: new Map(),
+            categoryIndicators: {},
+            categoryColors: [
+                '#FF5722', '#9C27B0', '#3F51B5', '#00BCD4', 
+                '#4CAF50', '#FFEB3B', '#FF9800', '#795548'
+            ],
+            // Search functionality
+            categorySearchTerm: '',
+            filteredCategories: []
         };
     },
     watch: {
@@ -333,29 +442,62 @@ export default {
                     this.updatePathColors();
                 }
             }
+        },
+        categories: {
+            immediate: true,
+            handler(newVal) {
+                this.filteredCategories = newVal || [];
+            }
         }
     },
     mounted() {
-        // Get all paths in the SVG
-        const paths = this.$el.querySelectorAll('#toothSvg path');
+        this.$nextTick(() => {
+            // Get all paths in the SVG
+            const paths = this.$el.querySelectorAll('#toothSvg path');
+            console.log(`Found ${paths.length} teeth paths`);
 
-        // Add click event listener to each path
-        paths.forEach((path, index) => {
-            // Add click event listener
-            path.addEventListener('click', (event) => {
-                this.handlePathClick(path, index, event);
+            // Add click and right-click event listeners to each path
+            paths.forEach((path, index) => {
+                // Add a tooth number attribute for identification
+                path.setAttribute('data-tooth-number', index);
+                path.style.cursor = 'pointer';
+
+                // Add click event listener
+                path.addEventListener('click', (event) => {
+                    this.handlePathClick(path, index, event);
+                });
+
+                // Add right-click (context menu) event listener
+                path.addEventListener('contextmenu', (event) => {
+                    this.handlePathRightClick(path, index, event);
+                });
             });
+            
+            // Hide context menu when clicking elsewhere
+            document.addEventListener('click', this.hideContextMenu);
+            
+            // Update indicator positions on window resize
+            window.addEventListener('resize', this.updateIndicatorPositions);
+            
+            // Initial update if tooth_num prop is set
+            this.updatePathColors();
         });
-        
-        // Initial update if tooth_num prop is set
-        this.updatePathColors();
     },
+
+    beforeDestroy() {
+        // Clean up event listeners
+        document.removeEventListener('click', this.hideContextMenu);
+        window.removeEventListener('resize', this.updateIndicatorPositions);
+    },
+
     methods: {
         selectColor(colorIndex) {
             this.selectedColorIndex = colorIndex;
         },
         
         handlePathClick(path, index, event) {
+            console.log('Path clicked:', index, 'Current color index:', this.selectedColorIndex);
+            
             const currentColor = this.colorOptions[this.selectedColorIndex];
             
             // Toggle path selection with the current color
@@ -367,6 +509,7 @@ export default {
                 path.style.fill = '';
                 path.style.stroke = '';
                 path.style.strokeWidth = '';
+                console.log('Removed color from tooth:', index);
             } else {
                 // Add with current selected color
                 this.clickedPaths.set(index, currentColor);
@@ -375,6 +518,7 @@ export default {
                 path.style.fill = currentColor.value;
                 path.style.stroke = this.getDarkerShade(currentColor.value);
                 path.style.strokeWidth = '2px';
+                console.log('Applied color to tooth:', index, currentColor);
             }
             
             // Update selected teeth array with the indices
@@ -398,6 +542,204 @@ export default {
 
             // Prevent event bubbling
             event.stopPropagation();
+        },
+
+        handlePathRightClick(path, index, event) {
+            // Prevent default context menu
+            event.preventDefault();
+            event.stopPropagation();
+
+            console.log('Right click detected on tooth:', index);
+            console.log('Categories available:', this.categories);
+
+            // Store current tooth and path for category assignment
+            this.currentContextTooth = index;
+            this.currentContextPath = path;
+
+            // Show context menu regardless of categories (we'll show a message if no categories)
+            this.showContextMenuAt(event.clientX, event.clientY);
+        },
+
+        showContextMenuAt(x, y) {
+            // Adjust position to ensure menu stays within viewport
+            const menuWidth = 250; // Approximate menu width (increased for search)
+            const menuHeight = Math.min((this.filteredCategories.length + 3) * 45, 400); // Max height
+            
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let adjustedX = x;
+            let adjustedY = y;
+
+            // Adjust X position if menu would overflow right edge
+            if (x + menuWidth > viewportWidth) {
+                adjustedX = x - menuWidth;
+            }
+
+            // Adjust Y position if menu would overflow bottom edge
+            if (y + menuHeight > viewportHeight) {
+                adjustedY = y - menuHeight;
+            }
+
+            // Update context menu style and show it
+            this.contextMenuStyle = {
+                top: `${adjustedY}px`,
+                left: `${adjustedX}px`,
+                display: 'block',
+                position: 'fixed',
+                zIndex: 1000
+            };
+            
+            this.showContextMenu = true;
+            
+            // Focus on search input after menu is shown
+            this.$nextTick(() => {
+                if (this.$refs.categorySearchInput) {
+                    this.$refs.categorySearchInput.focus();
+                }
+            });
+        },
+
+        hideContextMenu() {
+            this.showContextMenu = false;
+            this.currentContextTooth = null;
+            this.currentContextPath = null;
+            this.categorySearchTerm = '';
+            this.filteredCategories = this.categories || [];
+        },
+
+        filterCategories() {
+            if (!this.categorySearchTerm) {
+                this.filteredCategories = this.categories || [];
+                return;
+            }
+
+            const searchTerm = this.categorySearchTerm.toLowerCase();
+            this.filteredCategories = (this.categories || []).filter(category => {
+                const categoryName = (category.name || category).toLowerCase();
+                return categoryName.includes(searchTerm);
+            });
+        },
+
+        addNewCategory() {
+            if (!this.categorySearchTerm.trim()) return;
+
+            const newCategory = {
+                name: this.categorySearchTerm.trim(),
+                id: Date.now(), // Simple ID generation
+                isNew: true
+            };
+
+            // Emit event to parent to add new category
+            this.$emit('category-added', newCategory);
+
+            // Add to local list temporarily
+            this.filteredCategories.push(newCategory);
+            
+            // Select the new category immediately
+            const categoryIndex = this.filteredCategories.length - 1;
+            this.selectCategory(newCategory, categoryIndex);
+        },
+
+        selectCategory(category, categoryIndex) {
+            if (this.currentContextTooth === null) return;
+
+            const toothIndex = this.currentContextTooth;
+            const categoryName = category.name || category;
+            const categoryColor = this.getCategoryColor(categoryIndex);
+
+            // Store category for this tooth
+            this.toothCategories.set(toothIndex, {
+                category: category,
+                categoryIndex: categoryIndex,
+                categoryName: categoryName,
+                color: categoryColor
+            });
+
+            // Update visual indicator
+            this.updateCategoryIndicator(toothIndex, categoryName, categoryColor);
+
+            // Emit category selection event
+            this.$emit('category-selected', {
+                toothIndex: toothIndex,
+                category: category,
+                categoryIndex: categoryIndex,
+                categoryName: categoryName,
+                color: categoryColor
+            });
+
+            // Hide context menu
+            this.hideContextMenu();
+        },
+
+        removeCategory() {
+            if (this.currentContextTooth === null) return;
+
+            const toothIndex = this.currentContextTooth;
+
+            // Remove category for this tooth
+            this.toothCategories.delete(toothIndex);
+
+            // Remove visual indicator
+            this.removeCategoryIndicator(toothIndex);
+
+            // Emit category removal event
+            this.$emit('category-removed', {
+                toothIndex: toothIndex
+            });
+
+            // Hide context menu
+            this.hideContextMenu();
+        },
+
+        getCategoryColor(categoryIndex) {
+            return this.categoryColors[categoryIndex % this.categoryColors.length];
+        },
+
+        updateCategoryIndicator(toothIndex, categoryName, color) {
+            // Get the position of the tooth path
+            const paths = this.$el.querySelectorAll('#toothSvg path');
+            const toothPath = paths[toothIndex];
+            
+            if (!toothPath) return;
+
+            // Get SVG container and tooth path bounding box
+            const svgElement = this.$el.querySelector('#toothSvg');
+            const svgRect = svgElement.getBoundingClientRect();
+            const pathRect = toothPath.getBoundingClientRect();
+
+            // Calculate indicator position relative to the SVG
+            const indicatorStyle = {
+                position: 'absolute',
+                top: `${pathRect.top - svgRect.top - 10}px`,
+                left: `${pathRect.left - svgRect.left + (pathRect.width / 2) - 5}px`,
+                zIndex: 10
+            };
+
+            // Store indicator data
+            this.$set(this.categoryIndicators, toothIndex, {
+                style: indicatorStyle,
+                categoryName: categoryName,
+                color: color
+            });
+        },
+
+        removeCategoryIndicator(toothIndex) {
+            this.$delete(this.categoryIndicators, toothIndex);
+        },
+
+        // Recalculate indicator positions when SVG size changes
+        updateIndicatorPositions() {
+            Object.keys(this.categoryIndicators).forEach(toothIndex => {
+                const categoryData = this.toothCategories.get(parseInt(toothIndex));
+                if (categoryData) {
+                    this.updateCategoryIndicator(
+                        parseInt(toothIndex), 
+                        categoryData.categoryName, 
+                        categoryData.color
+                    );
+                }
+            });
         },
         
         getDarkerShade(hexColor) {
@@ -457,6 +799,31 @@ export default {
         
         getTeethWithColors() {
             return Object.fromEntries(this.clickedPaths);
+        },
+
+        getTeethWithCategories() {
+            return Object.fromEntries(this.toothCategories);
+        },
+
+        // Public method to programmatically set category for a tooth
+        setCategoryForTooth(toothIndex, category, categoryIndex) {
+            const categoryName = category.name || category;
+            const categoryColor = this.getCategoryColor(categoryIndex);
+
+            this.toothCategories.set(toothIndex, {
+                category: category,
+                categoryIndex: categoryIndex,
+                categoryName: categoryName,
+                color: categoryColor
+            });
+
+            this.updateCategoryIndicator(toothIndex, categoryName, categoryColor);
+        },
+
+        // Public method to remove category from a tooth
+        removeCategoryFromTooth(toothIndex) {
+            this.toothCategories.delete(toothIndex);
+            this.removeCategoryIndicator(toothIndex);
         }
     }
 };
@@ -522,14 +889,226 @@ export default {
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Make the SVG responsive */
+/* Make the SVG fully responsive */
 .teeth-diagram {
   width: 100%;
-  overflow: visible; /* Changed from overflow-x: auto to show full SVG */
   background: white;
   border-radius: 10px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+#toothSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: default;
+}
+
+#toothSvg path {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#toothSvg path:hover {
+  opacity: 0.8;
+}
+
+.clicked-path,
+.selected-tooth {
+  filter: brightness(1.1);
+}
+
+/* Context Menu Styles */
+.context-menu {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
+  min-width: 250px;
+  max-width: 300px;
+  max-height: 400px;
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+}
+
+.context-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.context-menu-header span {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+/* Search Section */
+.category-search-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.search-input-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.category-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 35px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.category-search-input:focus {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 16px;
+}
+
+.add-category-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+
+.add-category-btn:hover {
+  background: #45a049;
+}
+
+.context-menu-items {
+  padding: 8px 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.no-categories {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.category-item:hover {
+  background: #f8f9fa;
+}
+
+.category-item.remove-category {
+  color: #dc3545;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 4px;
+}
+
+.category-item.remove-category:hover {
+  background: #fff5f5;
+}
+
+.category-name {
+  flex: 1;
+}
+
+.category-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+/* Category Indicators */
+.category-indicators {
+  position: relative;
+  pointer-events: none;
+}
+
+.category-indicator {
+  pointer-events: auto;
+  cursor: help;
+}
+
+.indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 #toothSvg {
