@@ -104,12 +104,14 @@
               </v-col>
 
               <!-- Doctor Selection (only for secretaries with multiple doctors) -->
-              <!-- <v-col 
+              <v-col 
                 class="py-0" 
                 cols="12" 
                 sm="6" 
                 md="6"
-                v-if="($store.state.role=='secretary' || $store.state.role=='accounter') && doctors.length > 1"
+                v-if="($store.state.role=='secretary' || $store.state.role=='accounter') && doctors.length > 1
+                && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0
+                "
               >
                 <v-select 
                   :rules="[rules.required]" 
@@ -120,7 +122,7 @@
                   item-text="name"
                   item-value="id"
                 />
-              </v-col> -->
+              </v-col>
             </v-row>
 
             <!-- Systemic Conditions -->
@@ -431,10 +433,9 @@ export default {
         // Prepare data for saving
         const patientData = { ...this.editedItem };
         
-        // Handle doctor assignment for secretaries
-        if (this.doctors.length > 1 && this.$store.state.role == 'secretary') {
-          patientData.doctors = [patientData.doctors];
-        } else {
+        // Handle doctor assignment - send as doctor_id
+        if (patientData.doctors) {
+          patientData.doctor_id = patientData.doctors;
           delete patientData.doctors;
         }
 
