@@ -33,18 +33,44 @@
 
     <v-row>
   <v-col>
-    <v-calendar ref="calendar" v-model="focus" :start="startDate" :end="endDate" :max="endDate" 
-      :events="reservations" type="month" :event-color="getEventColor" @click:date="openBookingDialog"
-      @click:event="openReservationDialog">
-      <!-- This will show only the days of the current month -->
-      <template v-slot:day="{ date, outside, events }">
-        <div v-if="!outside" class="calendar-day">
-          <!-- !outside ensures the day is from the current month -->
-          <div class="day-number"></div>
-          <v-chip v-for="event in events" :key="event.start" :color="getEventColor(event)" class="ma-1" label>
-            <strong>{{ formatTime(event.startTime) }}</strong> 
-            {{ event.name }}
-          </v-chip>
+    <v-calendar 
+      ref="calendar" 
+      v-model="focus" 
+      :start="startDate" 
+      :end="endDate" 
+      :max="endDate" 
+      :events="reservations" 
+      type="month" 
+      :event-color="getEventColor" 
+      @click:date="openBookingDialog"
+      @click:event="openReservationDialog"
+      :event-more="false"
+      :event-overlap-mode="'stack'"
+      :event-height="18"
+      :event-margin-bottom="1"
+    >
+      <!-- Custom event template to ensure all events show -->
+      <template v-slot:event="{ event, eventParsed }">
+        <div
+          class="v-event"
+          :style="{
+            backgroundColor: getEventColor(event),
+            color: 'white',
+            height: '22px',
+            marginBottom: '2px',
+            padding: '3px 6px',
+            fontSize: '12px',
+            fontWeight: '500',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: '1.3'
+          }"
+          @click="openReservationDialog({ event, eventParsed })"
+        >
+          <strong>{{ formatTime(event.startTime) }}</strong> {{ event.name }}
         </div>
       </template>
     </v-calendar>
@@ -1100,10 +1126,72 @@
     margin-left: 4px;
   }
 
-
   .highlight-day {
     background-color: #ffeb3b;
     border-radius: 50%;
+  }
+
+  /* Increase calendar day height to show all events */
+  :deep(.v-calendar-weekly__day) {
+    min-height: 250px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Ensure past days also have proper height */
+  :deep(.v-calendar-weekly__day.v-past) {
+    min-height: 250px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Make sure the calendar container is flexible */
+  :deep(.v-calendar-weekly__week) {
+    min-height: 250px !important;
+  }
+
+  /* Adjust event container within days */
+  :deep(.v-calendar-weekly__day-container) {
+    min-height: 230px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  /* Style for individual events with larger font */
+  :deep(.v-event) {
+    margin-bottom: 2px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    padding: 3px 6px !important;
+    border-radius: 4px !important;
+    height: auto !important;
+    min-height: 22px !important;
+  }
+
+  /* Larger font for event text */
+  :deep(.v-event-summary) {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+  }
+
+  /* Remove height restrictions on event containers */
+  :deep(.v-calendar-weekly__events) {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Increase the overall calendar month view height */
+  :deep(.v-calendar-monthly) {
+    height: auto !important;
+    min-height: 800px !important;
+  }
+
+  /* Ensure month view days are tall enough */
+  :deep(.v-calendar-monthly__day) {
+    min-height: 120px !important;
+    height: auto !important;
+    max-height: none !important;
   }
 </style>
 
