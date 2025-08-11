@@ -435,7 +435,8 @@ export default {
         
         // Handle doctor assignment - send as doctor_id
         if (patientData.doctors) {
-          patientData.doctor_id = patientData.doctors;
+
+           patientData.doctor_id =this.isEditing ?  typeof patientData.doctors === 'object' ? patientData.doctors.id : patientData.doctors : patientData.doctors;
           delete patientData.doctors;
         }
 
