@@ -1,22 +1,5 @@
 <template>
   <div class="teeth-container">
-    <!-- Color Selection Panel -->
-    <div class="color-selection-panel">
-      <h3>{{ $t('selectColor') || 'Select Color' }}</h3>
-      <div class="color-options">
-        <div 
-          v-for="(color, index) in colorOptions"
-          :key="index"
-          :class="['color-option', { active: selectedColorIndex === index }]"
-          :style="{ backgroundColor: color.value }"
-          @click="selectColor(index)"
-          :title="color.name"
-        >
-          <i v-if="selectedColorIndex === index" class="mdi mdi-check"></i>
-        </div>
-      </div>
-    </div>
-
     <!-- Context Menu for Categories -->
     <div 
         v-if="showContextMenu"
@@ -77,29 +60,46 @@
         </div>
     </div>
 
-    <!-- Category Indicators -->
-    <div class="category-indicators">
-        <div 
-            v-for="(indicator, toothIndex) in categoryIndicators"
-            :key="`indicator-${toothIndex}`"
-            class="category-indicator"
-            :style="indicator.style"
-            :title="indicator.categoryName"
-        >
-            <div 
-                class="indicator-dot"
-                :style="{ backgroundColor: indicator.color }"
-            ></div>
-        </div>
-    </div>
-
     <div class="modal-content">
-      <div class="teeth-diagram">
-       
+        <div class="teeth-diagram">
+            <!-- Category Indicators -->
+            <div class="category-indicators">
+                <div 
+                    v-for="(indicator, toothIndex) in categoryIndicators"
+                    :key="`indicator-${toothIndex}`"
+                    class="category-indicator"
+                    :style="indicator.style"
+                    :title="indicator.categoryName"
+                >
+                    <div 
+                        class="indicator-dot"
+                        :style="{ backgroundColor: indicator.color }"
+                    ></div>
+                </div>
+            </div>
 
-    <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1792 539" style="width: 100%; height: auto; max-height: 300px;">
-    <g><path style="opacity:1" fill="#1e1e1e" d="M 494.5,-0.5 C 495.167,-0.5 495.833,-0.5 496.5,-0.5C 481.665,52.1739 474.331,105.841 474.5,160.5C 493.86,149.524 512.86,150.191 531.5,162.5C 531.83,134.296 529.33,106.296 524,78.5C 516.722,51.8366 508.556,25.5033 499.5,-0.5C 500.167,-0.5 500.833,-0.5 501.5,-0.5C 501.628,1.08979 502.295,2.42312 503.5,3.5C 504.874,2.2887 506.374,1.2887 508,0.5C 508.772,0.644803 509.439,0.978136 510,1.5C 512.742,6.51257 514.742,11.8459 516,17.5C 520.342,45.3073 525.008,72.974 530,100.5C 532.509,122.456 534.509,144.456 536,166.5C 541.166,171.335 545.166,177.001 548,183.5C 555.249,206.339 550.083,225.839 532.5,242C 506.611,258.451 483.111,255.617 462,233.5C 445.417,207.299 448.417,183.632 471,162.5C 471.897,107.124 479.73,52.7906 494.5,-0.5 Z"/></g>
-    <g><path style="opacity:1" fill="#fcfcfc" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z"/></g>
+            <!-- Tooth Numbers Overlay -->
+            <div class="tooth-numbers-container">
+                <div 
+                    v-for="(number, index) in toothNumbers"
+                    :key="`tooth-number-${index}`"
+                    class="tooth-number"
+                    :style="number.style"
+                >
+                    {{ number.label }}
+                </div>
+            </div>
+
+            <!-- Top teeth numbers with dotted lines -->
+            <div class="teeth-numbers-grid top-teeth">
+              <div v-for="n in 16" :key="'top-' + n" class="tooth-number-item">
+                <div class="tooth-number">{{ n }}</div>
+                <div class="dotted-line"></div>
+              </div>
+            </div>
+            <!-- Enlarged Dental Chart SVG -->
+            <svg id="toothSvg" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1792 539" style="width: 100%; height: auto; max-height: 600px;">
+    <h1 style="color:red">1</h1><g><path style="opacity:1" fill="#fcfcfc" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#1c1c1c" d="M 588.5,-0.5 C 591.167,-0.5 593.833,-0.5 596.5,-0.5C 600.608,3.11352 603.775,7.44685 606,12.5C 625.35,64.2713 638.35,117.605 645,172.5C 648.163,176.156 650.829,180.156 653,184.5C 660.84,209.655 653.674,229.155 631.5,243C 606.67,252.499 586.837,246.333 572,224.5C 562.854,205.197 565.187,187.531 579,171.5C 578.951,137.955 580.117,104.455 582.5,71C 581.285,56.8254 579.952,42.6587 578.5,28.5C 579.015,21.7103 580.182,15.0437 582,8.5C 583.643,5.03865 585.81,2.03865 588.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#181818" d="M 1176.5,-0.5 C 1179.17,-0.5 1181.83,-0.5 1184.5,-0.5C 1188.73,3.95723 1191.56,9.29056 1193,15.5C 1193.59,34.2218 1192.75,52.8884 1190.5,71.5C 1192.91,104.786 1194.07,138.119 1194,171.5C 1196.57,174.319 1198.91,177.319 1201,180.5C 1210.65,202.411 1206.82,221.577 1189.5,238C 1166.26,252.689 1145.09,250.189 1126,230.5C 1112.72,210.614 1113.38,191.28 1128,172.5C 1134.67,119.163 1147,67.1634 1165,16.5C 1167.85,10.1127 1171.69,4.44608 1176.5,-0.5 Z"/></g>
     <g><path style="opacity:1" fill="#1a1a1a" d="M 1271.5,-0.5 C 1272.17,-0.5 1272.83,-0.5 1273.5,-0.5C 1263.16,29.0363 1254.32,59.0363 1247,89.5C 1243.09,113.719 1241.25,138.052 1241.5,162.5C 1243.03,161.237 1244.7,160.237 1246.5,159.5C 1246.5,160.167 1246.5,160.833 1246.5,161.5C 1242.56,163.766 1239.23,166.766 1236.5,170.5C 1242.23,177.233 1248.56,183.233 1255.5,188.5C 1265.43,180.804 1275.43,180.637 1285.5,188C 1286.83,188.667 1288.17,188.667 1289.5,188C 1295.04,182.297 1300.7,176.797 1306.5,171.5C 1307.17,171.5 1307.5,171.833 1307.5,172.5C 1301.37,179.131 1295.04,185.631 1288.5,192C 1291.94,197.803 1292.27,203.636 1289.5,209.5C 1289.5,208.833 1289.17,208.5 1288.5,208.5C 1290.7,191.864 1283.37,184.031 1266.5,185C 1253.48,191.21 1250.31,200.71 1257,213.5C 1261.5,219.059 1267.34,221.392 1274.5,220.5C 1275.79,220.263 1276.79,220.596 1277.5,221.5C 1273.92,222.589 1270.26,222.755 1266.5,222C 1262.58,219.89 1258.58,218.057 1254.5,216.5C 1256.03,215.075 1255.7,214.409 1253.5,214.5C 1253.8,213.85 1254.14,213.183 1254.5,212.5C 1250.53,205.662 1250.53,198.829 1254.5,192C 1248.17,185.667 1241.83,179.333 1235.5,173C 1234.83,172.333 1234.17,172.333 1233.5,173C 1223.01,187.374 1220.68,203.041 1226.5,220C 1228.2,224.582 1230.54,228.749 1233.5,232.5C 1234.6,233.605 1235.27,234.938 1235.5,236.5C 1232.54,233.94 1230.04,230.94 1228,227.5C 1216.82,204.94 1219.82,184.607 1237,166.5C 1238.59,142.43 1240.92,118.43 1244,94.5C 1245.49,84.389 1247.49,74.389 1250,64.5C 1251.11,42.9988 1255.28,22.1654 1262.5,2C 1265.16,-0.0999584 1267.33,0.400042 1269,3.5C 1270.09,2.30665 1270.93,0.973316 1271.5,-0.5 Z"/></g>
@@ -368,31 +368,56 @@
     <g><path style="opacity:1" fill="#919191" d="M 1187.5,353.5 C 1187.56,352.957 1187.89,352.624 1188.5,352.5C 1189.8,355.645 1189.8,358.645 1188.5,361.5C 1188.81,358.615 1188.47,355.948 1187.5,353.5 Z"/></g>
     <g><path style="opacity:1" fill="#fdfdfd" d="M 472.5,357.5 C 491.742,369.322 511.076,369.322 530.5,357.5C 530.833,359.833 531.167,362.167 531.5,364.5C 528.264,405.601 524.097,446.601 519,487.5C 517.05,497.018 513.717,506.018 509,514.5C 504.752,519.596 499.585,520.763 493.5,518C 489.392,513.046 489.559,508.213 494,503.5C 494.818,500.893 495.318,498.226 495.5,495.5C 489.691,468.22 484.191,440.887 479,413.5C 476.223,394.895 474.056,376.228 472.5,357.5 Z"/></g>
     <g><path style="opacity:1" fill="#fdfdfd" d="M 1240.5,356.5 C 1260.64,369.718 1280.81,369.718 1301,356.5C 1299.28,377.238 1296.61,397.904 1293,418.5C 1287.51,444.441 1282.35,470.441 1277.5,496.5C 1278.73,501.466 1280.4,506.299 1282.5,511C 1280.52,519.403 1275.52,521.736 1267.5,518C 1262.33,512.835 1258.83,506.668 1257,499.5C 1255.08,491.218 1253.41,482.885 1252,474.5C 1248.08,435.16 1244.24,395.826 1240.5,356.5 Z"/></g>
-        </svg>
-    </div>
-    </div>
-
-
-
-    <!-- Category Indicators -->
-    <div class="category-indicators">
-        <div 
-            v-for="(indicator, toothIndex) in categoryIndicators"
-            :key="`indicator-${toothIndex}`"
-            class="category-indicator"
-            :style="indicator.style"
-            :title="indicator.categoryName"
-        >
-            <div 
-                class="indicator-dot"
-                :style="{ backgroundColor: indicator.color }"
-            ></div>
+            </svg>
+            
+            <!-- Bottom teeth numbers with dotted lines -->
+            <div class="teeth-numbers-grid bottom-teeth">
+              <div v-for="n in 16" :key="'bottom-' + n" class="tooth-number-item">
+                <div class="dotted-line"></div>
+                <div class="tooth-number">{{ n }}</div>
+              </div>
+            </div>
+        </div>
+        
+        <!-- Color Selection Panel - Moved to Bottom Left -->
+        <div class="color-selection-panel">
+            <h4>{{ $t('selectColor') || 'Colors' }}</h4>
+            <div class="color-options">
+                <div 
+                    v-for="(color, index) in colorOptions"
+                    :key="index"
+                    :class="['color-option', { active: selectedColorIndex === index }]"
+                    :style="{ backgroundColor: color.value }"
+                    @click="selectColor(index)"
+                    :title="color.name"
+                >
+                    <i v-if="selectedColorIndex === index" class="mdi mdi-check"></i>
+                </div>
+            </div>
         </div>
     </div>
   </div>
 </template>
     
     <script>
+/*
+ * DENTAL CHART COMPONENT WITH TWO SEPARATE FUNCTIONALITIES:
+ * 
+ * 1. COLOR SELECTION SYSTEM (Left-click):
+ *    - Uses handlePathClick() method
+ *    - Directly modifies tooth path fill colors
+ *    - Stores colors in clickedPaths Map
+ *    - Used for visual tooth coloring
+ * 
+ * 2. CATEGORY SELECTION SYSTEM (Right-click):
+ *    - Uses handlePathRightClick() and selectCategory() methods
+ *    - NEVER modifies tooth path colors
+ *    - Only shows indicator dots above teeth
+ *    - Stores categories in toothCategories Map
+ *    - Used for assigning case categories
+ * 
+ * IMPORTANT: Category selection should NEVER change tooth path colors!
+ */
 export default {
     props: {
         tooth_num: {
@@ -430,7 +455,11 @@ export default {
             ],
             // Search functionality
             categorySearchTerm: '',
-            filteredCategories: []
+            filteredCategories: [],
+            // Resize throttling
+            resizeTimeout: null,
+            // Tooth numbering
+            toothNumbers: []
         };
     },
     watch: {
@@ -476,11 +505,22 @@ export default {
             // Hide context menu when clicking elsewhere
             document.addEventListener('click', this.hideContextMenu);
             
-            // Update indicator positions on window resize
-            window.addEventListener('resize', this.updateIndicatorPositions);
+            // Add resize event listener with throttling
+            const throttledResize = () => {
+                if (this.resizeTimeout) {
+                    clearTimeout(this.resizeTimeout);
+                }
+                this.resizeTimeout = setTimeout(() => {
+                    this.updateIndicatorPositions();
+                }, 150);
+            };
+            window.addEventListener('resize', throttledResize);
             
             // Initial update if tooth_num prop is set
             this.updatePathColors();
+            
+            // Initialize tooth number indicators for all teeth
+            this.initializeToothNumberIndicators();
         });
     },
 
@@ -488,6 +528,11 @@ export default {
         // Clean up event listeners
         document.removeEventListener('click', this.hideContextMenu);
         window.removeEventListener('resize', this.updateIndicatorPositions);
+        
+        // Clear timeout
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+        }
     },
 
     methods: {
@@ -548,9 +593,13 @@ export default {
             // Prevent default context menu
             event.preventDefault();
             event.stopPropagation();
+            event.stopImmediatePropagation(); // Prevent any other event handlers
 
             console.log('Right click detected on tooth:', index);
             console.log('Categories available:', this.categories);
+
+            // IMPORTANT: This is for category selection only - NO color changes!
+            // Explicitly ensure no path color modifications occur
 
             // Store current tooth and path for category assignment
             this.currentContextTooth = index;
@@ -648,24 +697,55 @@ export default {
             const categoryName = category.name || category;
             const categoryColor = this.getCategoryColor(categoryIndex);
 
-            // Store category for this tooth
+            // CRITICAL: Get the tooth path and ensure NO color changes occur
+            const paths = this.$el.querySelectorAll('#toothSvg path');
+            const toothPath = paths[toothIndex];
+            
+            if (toothPath) {
+                // Explicitly prevent any color modifications during category selection
+                // Do NOT modify path.style.fill, path.style.stroke, or any path styling
+                console.log('Category selection - ensuring NO path color changes for tooth:', toothIndex);
+            }
+
+            // Create a clean, non-reactive copy of the category for events
+            const cleanCategory = {
+                id: category.id || category._id,
+                name: category.name || category,
+                description: category.description || '',
+                isNew: category.isNew || false
+            };
+
+            // Store category for this tooth (also use clean data)
             this.toothCategories.set(toothIndex, {
-                category: category,
+                category: cleanCategory,
                 categoryIndex: categoryIndex,
                 categoryName: categoryName,
                 color: categoryColor
             });
 
-            // Update visual indicator
+            // IMPORTANT: Only update visual indicator dot, never modify tooth path colors
             this.updateCategoryIndicator(toothIndex, categoryName, categoryColor);
 
+            // Ensure the tooth path color is not affected by category selection
+            // The category system only uses indicator dots, not path fill colors
+            
             // Emit category selection event
             this.$emit('category-selected', {
                 toothIndex: toothIndex,
-                category: category,
+                category: cleanCategory,
                 categoryIndex: categoryIndex,
                 categoryName: categoryName,
                 color: categoryColor
+            });
+
+            // Emit case-added event for data table compatibility
+            this.$emit('case-added', {
+                toothNumber: toothIndex,  // Changed from toothIndex to toothNumber
+                operation: cleanCategory,  // Changed from category to operation
+                selectedTeeth: [toothIndex],
+                categoryName: categoryName,
+                categoryColor: categoryColor,
+                type: 'category'
             });
 
             // Hide context menu
@@ -697,30 +777,72 @@ export default {
         },
 
         updateCategoryIndicator(toothIndex, categoryName, color) {
-            // Get the position of the tooth path
-            const paths = this.$el.querySelectorAll('#toothSvg path');
-            const toothPath = paths[toothIndex];
+            // IMPORTANT: This method only creates visual indicator dots
+            // It does NOT modify tooth path colors - tooth paths remain unchanged
             
-            if (!toothPath) return;
+            // Remove existing indicator for this tooth first
+            this.removeCategoryIndicator(toothIndex);
 
-            // Get SVG container and tooth path bounding box
-            const svgElement = this.$el.querySelector('#toothSvg');
-            const svgRect = svgElement.getBoundingClientRect();
-            const pathRect = toothPath.getBoundingClientRect();
+            // Wait for next tick to ensure DOM is updated
+            this.$nextTick(() => {
+                // Get the position of the tooth path
+                const paths = this.$el.querySelectorAll('#toothSvg path');
+                const toothPath = paths[toothIndex];
+                
+                if (!toothPath) {
+                    console.warn(`Tooth path not found for index: ${toothIndex}`);
+                    return;
+                }
 
-            // Calculate indicator position relative to the SVG
-            const indicatorStyle = {
-                position: 'absolute',
-                top: `${pathRect.top - svgRect.top - 10}px`,
-                left: `${pathRect.left - svgRect.left + (pathRect.width / 2) - 5}px`,
-                zIndex: 10
-            };
+                // Get SVG container and tooth path bounding box
+                const svgElement = this.$el.querySelector('#toothSvg');
+                const teethDiagram = this.$el.querySelector('.teeth-diagram');
+                
+                if (!svgElement || !teethDiagram) {
+                    console.warn('SVG element or teeth diagram not found');
+                    return;
+                }
 
-            // Store indicator data
-            this.$set(this.categoryIndicators, toothIndex, {
-                style: indicatorStyle,
-                categoryName: categoryName,
-                color: color
+                const diagramRect = teethDiagram.getBoundingClientRect();
+                const pathRect = toothPath.getBoundingClientRect();
+
+                // Calculate indicator position using fixed positioning for two rows
+                const paddingFromTooth = 15; // Padding between tooth and indicator dot
+                
+                // Get SVG dimensions for positioning calculation
+                const svgRect = svgElement.getBoundingClientRect();
+                const svgHeight = svgRect.height;
+                const middleY = svgRect.top + (svgHeight * 0.4); // Slightly above middle for better detection
+                
+                // Determine if tooth is in upper or lower jaw based on Y position
+                const toothCenterY = pathRect.top + (pathRect.height / 2);
+                const isUpperJaw = toothCenterY < middleY;
+                
+                console.log(`Tooth ${toothIndex}: Center Y = ${toothCenterY}, Middle Y = ${middleY}, Upper Jaw = ${isUpperJaw}`);
+                
+                let indicatorTop;
+                if (isUpperJaw) {
+                    // Upper jaw teeth - position indicator ABOVE the tooth (top row)
+                    indicatorTop = svgRect.top - diagramRect.top - paddingFromTooth - 15; // Fixed top row position
+                } else {
+                    // Lower jaw teeth - position indicator BELOW the tooth (bottom row)  
+                    indicatorTop = svgRect.bottom - diagramRect.top + paddingFromTooth; // Fixed bottom row position
+                }
+                
+                const indicatorStyle = {
+                    position: 'absolute',
+                    top: `${indicatorTop}px`,
+                    left: `${pathRect.left - diagramRect.left + (pathRect.width / 2) - 8}px`, // Centered on tooth
+                    zIndex: 15
+                };
+
+                // Store indicator data using Vue.set for reactivity
+                // This only affects the indicator dot, NOT the tooth path itself
+                this.$set(this.categoryIndicators, toothIndex, {
+                    style: indicatorStyle,
+                    categoryName: categoryName,
+                    color: color
+                });
             });
         },
 
@@ -728,17 +850,25 @@ export default {
             this.$delete(this.categoryIndicators, toothIndex);
         },
 
+        // Clear all category indicators
+        clearAllCategoryIndicators() {
+            Object.keys(this.categoryIndicators).forEach(toothIndex => {
+                this.$delete(this.categoryIndicators, toothIndex);
+            });
+        },
+
         // Recalculate indicator positions when SVG size changes
         updateIndicatorPositions() {
-            Object.keys(this.categoryIndicators).forEach(toothIndex => {
-                const categoryData = this.toothCategories.get(parseInt(toothIndex));
-                if (categoryData) {
-                    this.updateCategoryIndicator(
-                        parseInt(toothIndex), 
-                        categoryData.categoryName, 
-                        categoryData.color
-                    );
-                }
+            // Clear all indicators first
+            this.clearAllCategoryIndicators();
+            
+            // Re-add all indicators with updated positions
+            this.toothCategories.forEach((categoryData, toothIndex) => {
+                this.updateCategoryIndicator(
+                    toothIndex, 
+                    categoryData.categoryName, 
+                    categoryData.color
+                );
             });
         },
         
@@ -765,7 +895,7 @@ export default {
             
             // Apply colors based on tooth_num prop (external selection)
             if (this.tooth_num && this.tooth_num.length > 0) {
-                const defaultColor = this.colorOptions[2]; // Green for external selection
+                const defaultColor = this.colorOptions['#fff']; // Green for external selection
                 this.tooth_num.forEach(toothNum => {
                     if (toothNum < paths.length) {
                         const path = paths[toothNum];
@@ -824,6 +954,33 @@ export default {
         removeCategoryFromTooth(toothIndex) {
             this.toothCategories.delete(toothIndex);
             this.removeCategoryIndicator(toothIndex);
+        },
+
+        // Debug method to check for duplicate indicators
+        debugIndicators() {
+            console.log('Category Indicators:', this.categoryIndicators);
+            console.log('Tooth Categories:', Object.fromEntries(this.toothCategories));
+            
+            // Check for duplicates in DOM
+            const indicatorElements = this.$el.querySelectorAll('.indicator-dot');
+            console.log('DOM indicator dots count:', indicatorElements.length);
+            
+            // Group indicators by position to find duplicates
+            const positions = {};
+            indicatorElements.forEach((dot, index) => {
+                const rect = dot.getBoundingClientRect();
+                const position = `${Math.round(rect.top)},${Math.round(rect.left)}`;
+                if (!positions[position]) {
+                    positions[position] = [];
+                }
+                positions[position].push(index);
+            });
+            
+            Object.entries(positions).forEach(([position, indices]) => {
+                if (indices.length > 1) {
+                    console.warn(`Duplicate indicators found at position ${position}:`, indices);
+                }
+            });
         }
     }
 };
@@ -838,34 +995,46 @@ export default {
   padding: 20px;
 }
 
-/* Color Selection Panel */
-.color-selection-panel {
-  background: #f5f5f5;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+/* Modal content styling */
+.modal-content {
+  background: #fafafa;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
 }
 
-.color-selection-panel h3 {
-  margin: 0 0 15px 0;
+/* Color Selection Panel - Moved to Bottom Left */
+.color-selection-panel {
+position: absolute;
+    top: 360px;
+    left: -57px;
+    border-radius: 10px;
+    padding: 12px;
+    z-index: 10;
+    width: 220px;
+}
+
+.color-selection-panel h4 {
+  margin: 0 0 10px 0;
   color: #333;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .color-options {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .color-option {
-  width: 50px;
-  height: 50px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -874,18 +1043,17 @@ export default {
 }
 
 .color-option:hover {
-  /* Removed transform to prevent layout shifts */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .color-option.active {
   border-color: #333;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px #333;
 }
 
 .color-option i {
   color: white;
-  font-size: 20px;
+  font-size: 14px;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
@@ -897,6 +1065,7 @@ export default {
   padding: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   position: relative;
+  overflow: visible;
 }
 
 #toothSvg {
@@ -1078,22 +1247,29 @@ export default {
 
 /* Category Indicators */
 .category-indicators {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
+  z-index: 10;
 }
 
 .category-indicator {
   pointer-events: auto;
   cursor: help;
+  padding: 4px; /* Add padding around the indicator */
 }
 
 .indicator-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px; /* Slightly larger for better visibility */
+  height: 14px;
   border-radius: 50%;
   border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.2); /* Enhanced shadow */
   animation: pulse 2s infinite;
+  margin: 2px; /* Add margin for additional spacing */
 }
 
 @keyframes pulse {
@@ -1118,9 +1294,57 @@ export default {
   display: block; /* Remove any inline spacing */
 }
 
+/* Tooth numbers grid system */
+.teeth-numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 59.675px;
+  padding: 0 50px;
+  position: relative;
+}
+
+.teeth-numbers-grid.top-teeth {
+  bottom: 34px;
+}
+
+.teeth-numbers-grid.bottom-teeth {
+  top: 20px;
+}
+
+.tooth-number-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.teeth-numbers-grid.bottom-teeth .tooth-number-item {
+  flex-direction: column-reverse; /* Numbers below dotted lines for bottom row */
+}
+
+.tooth-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  min-width: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  padding: 2px 4px;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dotted-line {
+  width: 2px;
+  height: 20px;
+  border-left: 2px dotted #666;
+  margin: 2px 0;
+}
+
 /* Base path styling */
 svg path {
-    transition: fill 0.2s ease, opacity 0.2s ease;
+    transition: opacity 0.2s ease; /* Removed fill transition to prevent color changes */
     cursor: pointer;
     filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.1));
 }
@@ -1156,7 +1380,7 @@ svg path.selected-tooth:hover {
 .modal-content {
   background: #fafafa;
   border-radius: 15px;
-  overflow: hidden;
+
 }
 
 /* Responsive design */
@@ -1204,6 +1428,28 @@ svg path.selected-tooth:hover {
   
   .teeth-diagram {
     padding: 10px;
+  }
+  
+  .teeth-numbers-grid {
+    gap: 30px; /* Reduce gap for mobile */
+    padding: 0 20px;
+  }
+  
+  .tooth-number {
+    font-size: 12px;
+    min-width: 16px;
+    padding: 1px 2px;
+  }
+  
+  .dotted-line {
+    height: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .teeth-numbers-grid {
+    gap: 45px; /* Medium gap for tablets */
+    padding: 0 30px;
   }
 }
 </style>

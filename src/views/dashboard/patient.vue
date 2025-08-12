@@ -85,7 +85,7 @@
                 <!-- Context menu and right-click are now handled inside teeth component -->
                 <div class="teeth-container">
                
-                  <teeth 
+                  <teeth_v2 
                     :categories="dentalOperations"
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
@@ -728,7 +728,8 @@
 </template>
 
 <script>
-import teeth from '@/components/core/teeth_v2.vue';
+import teeth from '@/components/core/teeth.vue';
+import teeth_v2 from '@/components/core/teeth_v2.vue';
 import OwnerBooking from './sub_components/ownerBookinfDed.vue';
 import Bill from './sub_components/billsReport.vue';
 import PatientEditDialog from '@/components/PatientEditDialog.vue';
@@ -744,6 +745,7 @@ export default {
   mixins: [LazyLoadingMixin],
   components: {
     teeth,
+    teeth_v2,
     OwnerBooking,
     Bill,
     PatientEditDialog,
@@ -838,6 +840,18 @@ export default {
   },
   
   computed: {
+     teethComponent() {
+      try {
+        const teethV2 = this.$store.state.AdminInfo?.clinics_info?.teeth_v2;
+        console.log('🦷 Teeth component version check:', { teethV2, clinicsInfo: this.$store.state.AdminInfo?.clinics_info });
+   return () => import('@/components/core/teeth_v2.vue');
+      } catch (error) {
+        console.error('❌ Error determining teeth component:', error);
+        // Default to original teeth component
+        return () => import('@/components/core/teeth.vue');
+      }
+    },
+
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
       return this.patientCases.map(case_item => case_item.tooth_number);
