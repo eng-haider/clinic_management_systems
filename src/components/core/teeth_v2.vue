@@ -701,6 +701,7 @@ export default {
         selectCategory(category, categoryIndex) {
             if (this.currentContextTooth === null) return;
 
+            alert('Category selected: ' + (category.name || category));
             const toothIndex = this.currentContextTooth;
             const categoryName = category.name || category;
             const categoryColor = this.getCategoryColor(categoryIndex);
@@ -724,12 +725,12 @@ export default {
             };
 
             // Store category for this tooth (also use clean data)
-            this.toothCategories.set(toothIndex, {
-                category: cleanCategory,
-                categoryIndex: categoryIndex,
-                categoryName: categoryName,
-                color: categoryColor
-            });
+            // this.toothCategories.set(toothIndex, {
+            //     category: cleanCategory,
+            //     categoryIndex: categoryIndex,
+            //     categoryName: categoryName,
+            //     color: categoryColor
+            // });
 
             // IMPORTANT: Only update visual indicator dot, never modify tooth path colors
             this.updateCategoryIndicator(toothIndex, categoryName, categoryColor);
@@ -738,23 +739,23 @@ export default {
             // The category system only uses indicator dots, not path fill colors
             
             // Emit category selection event
-            this.$emit('category-selected', {
-                toothIndex: toothIndex,
-                category: cleanCategory,
-                categoryIndex: categoryIndex,
-                categoryName: categoryName,
-                color: categoryColor
-            });
+            // this.$emit('category-selected', {
+            //     toothIndex: toothIndex,
+            //     category: cleanCategory,
+            //     categoryIndex: categoryIndex,
+            //     categoryName: categoryName,
+            //     color: categoryColor
+            // });
 
             // Emit case-added event for data table compatibility
-            this.$emit('case-added', {
-                toothNumber: toothIndex,  // Changed from toothIndex to toothNumber
-                operation: cleanCategory,  // Changed from category to operation
-                selectedTeeth: [toothIndex],
-                categoryName: categoryName,
-                categoryColor: categoryColor,
-                type: 'category'
-            });
+            // this.$emit('case-added', {
+            //     toothNumber: toothIndex,  // Changed from toothIndex to toothNumber
+            //     operation: cleanCategory,  // Changed from category to operation
+            //     selectedTeeth: [toothIndex],
+            //     categoryName: categoryName,
+            //     categoryColor: categoryColor,
+            //     type: 'category'
+            // });
 
             // Hide context menu
             this.hideContextMenu();
@@ -1306,8 +1307,8 @@ position: absolute;
 .teeth-numbers-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
-  gap: 59.675px;
-  padding: 0 50px;
+  gap: 50px; /* Reduced from 59.675px for better spacing */
+  padding: 0 45px; /* Slightly reduced padding */
   position: relative;
 }
 
@@ -1324,6 +1325,7 @@ position: absolute;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-width: 0; /* Allow items to shrink on smaller screens */
 }
 
 .teeth-numbers-grid.bottom-teeth .tooth-number-item {
@@ -1392,6 +1394,47 @@ svg path.selected-tooth:hover {
 }
 
 /* Responsive design */
+/* iPad and large tablets (portrait) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .teeth-numbers-grid {
+    gap: 35px; /* Compact gap for iPad */
+    padding: 0 25px;
+  }
+  
+  .tooth-number {
+    font-size: 13px;
+    min-width: 18px;
+    padding: 2px 3px;
+  }
+  
+  .dotted-line {
+    height: 18px;
+  }
+}
+
+/* Smaller iPads and tablets (9.7", 10.5") */
+@media (min-width: 769px) and (max-width: 834px) {
+  .teeth-numbers-grid {
+    gap: 28px; /* Even more compact for smaller iPads */
+    padding: 0 20px;
+  }
+  
+  .tooth-number {
+    font-size: 12px;
+    min-width: 17px;
+    padding: 2px 3px;
+  }
+}
+
+/* iPad Pro and extra large tablets */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .teeth-numbers-grid {
+    gap: 45px; /* Medium gap for larger tablets */
+    padding: 0 35px;
+  }
+}
+
+/* Standard tablets */
 @media (max-width: 768px) {
   .teeth-container {
     padding: 15px;
@@ -1418,8 +1461,14 @@ svg path.selected-tooth:hover {
     width: 100%;
     height: auto;
   }
+  
+  .teeth-numbers-grid {
+    gap: 30px; /* Compact gap for smaller tablets */
+    padding: 0 20px;
+  }
 }
 
+/* Mobile phones */
 @media (max-width: 480px) {
   .teeth-container {
     padding: 10px;
@@ -1439,8 +1488,8 @@ svg path.selected-tooth:hover {
   }
   
   .teeth-numbers-grid {
-    gap: 30px; /* Reduce gap for mobile */
-    padding: 0 20px;
+    gap: 20px; /* Very compact gap for mobile */
+    padding: 0 15px;
   }
   
   .tooth-number {
@@ -1454,10 +1503,21 @@ svg path.selected-tooth:hover {
   }
 }
 
-@media (max-width: 768px) {
+/* Landscape orientation for tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
   .teeth-numbers-grid {
-    gap: 45px; /* Medium gap for tablets */
-    padding: 0 30px;
+    gap: 25px; /* Extra compact for landscape mode */
+    padding: 0 20px;
+  }
+  
+  .tooth-number {
+    font-size: 12px;
+    min-width: 17px;
+    padding: 1px 3px;
+  }
+  
+  .dotted-line {
+    height: 16px;
   }
 }
 </style>
