@@ -93,7 +93,14 @@
             <!-- Top teeth numbers with dotted lines -->
             <div class="teeth-numbers-grid top-teeth">
               <div v-for="(toothNum, index) in topTeethNumbers" :key="'top-' + toothNum" class="tooth-number-item">
-                <div class="tooth-number" :data-tooth-index="index" :data-tooth-number="toothNum">{{ toothNum }}</div>
+                <div 
+                  class="tooth-number" 
+                  :class="{ active: isToothActive(toothNum) }"
+                  :data-tooth-index="index" 
+                  :data-tooth-number="toothNum"
+                >
+                  {{ toothNum }}
+                </div>
                 <div class="dotted-line"></div>
               </div>
             </div>
@@ -375,7 +382,14 @@
             <div class="teeth-numbers-grid bottom-teeth">
               <div v-for="(toothNum, index) in bottomTeethNumbers" :key="'bottom-' + toothNum" class="tooth-number-item">
                 <div class="dotted-line"></div>
-                <div class="tooth-number" :data-tooth-index="index" :data-tooth-number="toothNum">{{ toothNum }}</div>
+                <div 
+                  class="tooth-number" 
+                  :class="{ active: isToothActive(toothNum) }"
+                  :data-tooth-index="index" 
+                  :data-tooth-number="toothNum"
+                >
+                  {{ toothNum }}
+                </div>
               </div>
             </div>
         </div>
@@ -427,6 +441,10 @@ export default {
         },
         id: Number,
         categories: {
+            type: Array,
+            default: () => []
+        },
+        patientCases: {
             type: Array,
             default: () => []
         }
@@ -542,6 +560,46 @@ export default {
     },
 
     methods: {
+        // Helper method to get all tooth numbers that map to a display tooth number
+        getToothNumbersMapping(displayToothNumber) {
+            const mappings = {
+                28: [35, 48, 75, 74, 123, 82, 54],
+                27: [72, 73, 122, 81, 53, 45, 33],
+                26: [70, 71, 133, 80, 52, 27, 42],
+                25: [101, 100, 118, 99, 102, 104],
+                24: [24, 62, 63, 117, 84, 51, 23],
+                23: [93, 94, 115, 96, 59, 11],
+                22: [91, 92, 114, 110, 58, 38],
+                21: [139, 138, 135, 137, 141, 142],
+                11: [89, 90, 113, 95, 57, 17],
+                12: [87, 88, 112, 108, 56, 15],
+                13: [85, 86, 111, 106, 55, 13],
+                14: [83, 61, 120, 105, 60, 12],
+                15: [100, 119, 103, 49, 69],
+                16: [68, 97, 98, 48, 121, 79],
+                17: [66, 67, 132, 78, 50, 25],
+                18: [64, 65, 131, 77, 76, 24],
+                38: [3, 4, 124, 126, 1, 29],
+                37: [5, 6, 125, 2, 30, 7],
+                36: [8, 9, 128, 127, 31, 8],
+                35: [10, 14, 129, 107, 39, 9],
+                34: [15, 16, 130, 109, 40, 10],
+                33: [18, 19, 32, 41, 46],
+                32: [20, 21, 134, 116, 43, 47],
+                31: [22, 136, 44, 34],
+                41: [140, 143, 144, 36],
+                42: [145, 146, 147, 37],
+                43: [148, 149, 150, 35],
+                44: [151, 152, 153, 4],
+                45: [154, 155, 156, 5],
+                46: [157, 158, 159, 6],
+                47: [160, 161, 162, 7],
+                48: [163, 164, 165, 8]
+            };
+            
+            return mappings[displayToothNumber] || [];
+        },
+
         selectColor(colorIndex) {
             this.selectedColorIndex = colorIndex;
         },
@@ -708,6 +766,10 @@ export default {
             const categoryColor = this.getCategoryColor(categoryIndex);
 
             // CRITICAL: Get the tooth path and ensure NO color changes occur
+            if (!this.$el || typeof this.$el.querySelectorAll !== 'function') {
+                console.error('DOM not ready for category selection');
+                return;
+            }
             const paths = this.$el.querySelectorAll('#toothSvg path');
             const toothPath = paths[toothIndex];
             
@@ -760,11 +822,7 @@ export default {
 
         // Add method to get actual tooth number from path index
         getToothNumberFromIndex(pathIndex) {
-            // Map path indices to actual tooth numbers
-            // This mapping depends on your SVG structure
-            // You may need to adjust this based on how your SVG paths are ordered
-            
-            // Assuming the SVG paths are ordered as: top teeth (18-11), then bottom teeth (41-48)
+      
             const allToothNumbers = [
                 ...this.topTeethNumbers, // Reverse to match SVG order if needed
                 ...this.bottomTeethNumbers
@@ -772,7 +830,7 @@ export default {
             
             let actualToothNumber = allToothNumbers[pathIndex] || pathIndex; // Fallback to index if mapping fails
             
-            // Map specific tooth numbers to 28 as they form one tooth
+          alert(`Tooth index: ${pathIndex}, Actual tooth number: ${actualToothNumber}`);
             const toothNumbersToMapTo28 = [35, 48, 75, 74, 123, 82,54];
             if (toothNumbersToMapTo28.includes(actualToothNumber)) {
                 actualToothNumber = 28;
@@ -951,7 +1009,66 @@ export default {
                 actualToothNumber = 31;
             }
 
-            // Return the actual tooth number
+          const toothNumbersToMapTo41 = [226, 225, 265,
+                222, 224,227,34];
+            if (toothNumbersToMapTo41.includes(actualToothNumber)) {
+                actualToothNumber = 41;
+            } 
+
+
+
+                 const toothNumbersToMapTo42 = [219, 218, 259,
+                215, 217,220];
+            if (toothNumbersToMapTo42.includes(actualToothNumber)) {
+                actualToothNumber = 42;
+            } 
+           
+
+
+              const toothNumbersToMapTo43 = [190, 189, 242,
+                186, 188,191,34];
+            if (toothNumbersToMapTo43.includes(actualToothNumber)) {
+                actualToothNumber = 43;
+            } 
+           
+
+
+               const toothNumbersToMapTo44 = [255, 254, 268,
+                252, 253,256];
+            if (toothNumbersToMapTo44.includes(actualToothNumber)) {
+                actualToothNumber = 44;
+            } 
+           
+
+
+              const toothNumbersToMapTo45 = [249, 248, 261,
+                246, 247,250,34,245];
+            if (toothNumbersToMapTo45.includes(actualToothNumber)) {
+                actualToothNumber = 45;
+            } 
+
+
+               const toothNumbersToMapTo46 = [159, 158, 179,
+                156, 157,258];
+            if (toothNumbersToMapTo46.includes(actualToothNumber)) {
+                actualToothNumber = 46;
+            }
+
+
+
+            const toothNumbersToMapTo47 = [153, 152, 178,
+                150, 151,154];
+            if (toothNumbersToMapTo47.includes(actualToothNumber)) {
+                actualToothNumber = 47;
+            } 
+          
+
+               const toothNumbersToMapTo48 = [147, 146, 183,
+                144, 145,148];
+            if (toothNumbersToMapTo48.includes(actualToothNumber)) {
+                actualToothNumber = 48;
+            } 
+          
             
 
             return actualToothNumber;
@@ -1089,6 +1206,11 @@ export default {
         },
         
         updatePathColors() {
+            // Check if component is mounted and DOM element exists
+            if (!this.$el || typeof this.$el.querySelectorAll !== 'function') {
+                return;
+            }
+            
             const paths = this.$el.querySelectorAll('#toothSvg path');
             
             // Reset all paths
@@ -1161,6 +1283,46 @@ export default {
         removeCategoryFromTooth(toothIndex) {
             this.toothCategories.delete(toothIndex);
             this.removeCategoryIndicator(toothIndex);
+        },
+
+        // Check if a tooth number has an active category
+        isToothActive(toothNumber) {
+            // Check manually assigned categories
+            const categories = Array.from(this.toothCategories.values());
+            const hasManualCategory = categories.some(categoryData => 
+                categoryData && categoryData.toothNumber === toothNumber
+            );
+            
+            // Get all tooth numbers that could map to this display tooth number
+            const mappedNumbers = this.getToothNumbersMapping(toothNumber);
+            const allPossibleNumbers = [toothNumber, ...mappedNumbers];
+            
+            // Check existing patient cases from API
+            const hasExistingCase = this.patientCases.some(patientCase => {
+                // Check tooth_number field (number format)
+                if (patientCase.tooth_number) {
+                    const caseToothNumber = parseInt(patientCase.tooth_number);
+                    return allPossibleNumbers.includes(caseToothNumber);
+                }
+                
+                // Check tooth_num field (stringified array format)
+                if (patientCase.tooth_num) {
+                    try {
+                        // Parse the tooth_num string (e.g., "[42]" -> [42])
+                        const toothNumbers = JSON.parse(patientCase.tooth_num);
+                        if (Array.isArray(toothNumbers)) {
+                            return toothNumbers.some(num => allPossibleNumbers.includes(num));
+                        }
+                    } catch (e) {
+                        // If parsing fails, try to handle as comma-separated string
+                        const toothNumbers = patientCase.tooth_num.replace(/[[\]]/g, '').split(',').map(num => parseInt(num.trim()));
+                        return toothNumbers.some(num => allPossibleNumbers.includes(num));
+                    }
+                }
+                return false;
+            });
+            
+            return hasManualCategory || hasExistingCase;
         },
 
         // Debug method to check for duplicate indicators
@@ -1541,6 +1703,16 @@ position: absolute;
   padding: 2px 4px;
   border: 1px solid #ddd;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Active state for tooth numbers */
+.tooth-number.active {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196F3;
+  color: #1976D2;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
 }
 
 .dotted-line {

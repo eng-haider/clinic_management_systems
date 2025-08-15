@@ -89,6 +89,7 @@
                     :categories="dentalOperations"
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
+                    :patientCases="patientCases" 
                     @case-added="handleCaseAdded"
                   />
                 </div>
