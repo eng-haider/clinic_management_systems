@@ -433,8 +433,10 @@ export default {
     },
     data() {
         return {
-            topTeethNumbers: [28, 27, 26, 25, 24, 23, 22, 21, 11, 12, 13, 14, 15, 16, 17, 18],
-            bottomTeethNumbers: [38, 37, 36, 35, 34, 33, 32, 31, 41, 42, 43, 44, 45, 46, 47, 48],
+            topTeethNumbers:[28, 27, 26, 25, 24, 23, 22, 21, 11, 12, 13, 14, 15, 16, 17, 18],
+            bottomTeethNumbers: [38, 37, 36, 35, 34, 33, 32, 31, 41, 42, 43, 44, 45, 46, 47, 48]
+,
+            // ...existing code...
             toothNumbers: [],
             selectedTeeth: [],
             clickedPaths: new Map(), // Track clicked paths with their colors
@@ -701,7 +703,6 @@ export default {
         selectCategory(category, categoryIndex) {
             if (this.currentContextTooth === null) return;
 
-            alert('Category selected: ' + (category.name || category));
             const toothIndex = this.currentContextTooth;
             const categoryName = category.name || category;
             const categoryColor = this.getCategoryColor(categoryIndex);
@@ -724,47 +725,243 @@ export default {
                 isNew: category.isNew || false
             };
 
+            // Get the actual tooth number from the arrays
+            const actualToothNumber = this.getToothNumberFromIndex(toothIndex);
+
             // Store category for this tooth (also use clean data)
-            // this.toothCategories.set(toothIndex, {
-            //     category: cleanCategory,
-            //     categoryIndex: categoryIndex,
-            //     categoryName: categoryName,
-            //     color: categoryColor
-            // });
+            this.toothCategories.set(toothIndex, {
+                category: cleanCategory,
+                categoryIndex: categoryIndex,
+                categoryName: categoryName,
+                color: categoryColor,
+                toothNumber: actualToothNumber
+            });
 
             // IMPORTANT: Only update visual indicator dot, never modify tooth path colors
             this.updateCategoryIndicator(toothIndex, categoryName, categoryColor);
 
-            // Ensure the tooth path color is not affected by category selection
-            // The category system only uses indicator dots, not path fill colors
-            
-            // Emit category selection event
-            // this.$emit('category-selected', {
-            //     toothIndex: toothIndex,
-            //     category: cleanCategory,
-            //     categoryIndex: categoryIndex,
-            //     categoryName: categoryName,
-            //     color: categoryColor
-            // });
+            // Emit case-added event for data table compatibility with proper tooth number
 
-            // Emit case-added event for data table compatibility
-            // this.$emit('case-added', {
-            //     toothNumber: toothIndex,  // Changed from toothIndex to toothNumber
-            //     operation: cleanCategory,  // Changed from category to operation
-            //     selectedTeeth: [toothIndex],
-            //     categoryName: categoryName,
-            //     categoryColor: categoryColor,
-            //     type: 'category'
-            // });
+            
+            this.$emit('case-added', {
+                toothNumber: actualToothNumber,  // Use actual tooth number (11, 12, 21, etc.)
+                operation: cleanCategory,  // The selected category/operation
+                selectedTeeth: [actualToothNumber], // Array with actual tooth number
+                categoryName: categoryName,
+                categoryColor: categoryColor,
+                type: 'category',
+                pathIndex: toothIndex, // Keep original index for internal tracking
+                timestamp: new Date().toISOString()
+            });
 
             // Hide context menu
             this.hideContextMenu();
+        },
+
+        // Add method to get actual tooth number from path index
+        getToothNumberFromIndex(pathIndex) {
+            // Map path indices to actual tooth numbers
+            // This mapping depends on your SVG structure
+            // You may need to adjust this based on how your SVG paths are ordered
+            
+            // Assuming the SVG paths are ordered as: top teeth (18-11), then bottom teeth (41-48)
+            const allToothNumbers = [
+                ...this.topTeethNumbers, // Reverse to match SVG order if needed
+                ...this.bottomTeethNumbers
+            ];
+            
+            let actualToothNumber = allToothNumbers[pathIndex] || pathIndex; // Fallback to index if mapping fails
+            
+            // Map specific tooth numbers to 28 as they form one tooth
+            const toothNumbersToMapTo28 = [35, 48, 75, 74, 123, 82,54];
+            if (toothNumbersToMapTo28.includes(actualToothNumber)) {
+                actualToothNumber = 28;
+            }
+            
+            // Map specific tooth numbers to 27 as they form one tooth
+            const toothNumbersToMapTo27 = [72, 73, 122, 81, 53, 45, 33];
+            if (toothNumbersToMapTo27.includes(actualToothNumber)) {
+                actualToothNumber = 27;
+            }
+
+          
+            // Map specific tooth numbers to 26 as they form one tooth
+            const toothNumbersToMapTo26 = [70, 71, 133, 80, 52, 27, 42];
+            if (toothNumbersToMapTo26.includes(actualToothNumber)) {
+                actualToothNumber = 26;
+            }
+
+            // Map specific tooth numbers to 25 as they form one tooth
+            const toothNumbersToMapTo25 = [101, 100, 118, 99, 102, 104];
+            if (toothNumbersToMapTo25.includes(actualToothNumber)) {
+                actualToothNumber = 25;
+            }
+
+            // Map specific tooth numbers to 24 as they form one tooth
+            const toothNumbersToMapTo24 = [24, 62, 63,
+                117, 84, 51,23];
+            if (toothNumbersToMapTo24.includes(actualToothNumber)) {
+                actualToothNumber = 24;
+            }
+
+
+              // Map specific tooth numbers to 24 as they form one tooth
+            const toothNumbersToMapTo23 = [93, 94, 115,
+                96, 59, 11];
+            if (toothNumbersToMapTo23.includes(actualToothNumber)) {
+                actualToothNumber = 23;
+            }
+
+
+               // Map specific tooth numbers to 24 as they form one tooth
+            const toothNumbersToMapTo22 = [91, 92, 114,
+                110, 58, 38];
+            if (toothNumbersToMapTo22.includes(actualToothNumber)) {
+                actualToothNumber = 22;
+            }
+
+
+                     // Map specific tooth numbers to 24 as they form one tooth
+            const toothNumbersToMapTo21 = [139, 138, 135,
+                137, 141, 142];
+            if (toothNumbersToMapTo21.includes(actualToothNumber)) {
+                actualToothNumber = 21;
+            }
+
+
+            // Map specific tooth numbers to 11 as they form one tooth
+            const toothNumbersToMapTo11 = [89, 90, 113,
+                95, 57, 17];
+            if (toothNumbersToMapTo11.includes(actualToothNumber)) {
+                actualToothNumber = 11;
+            }
+
+
+            // Map specific tooth numbers to 12 as they form one tooth
+            const toothNumbersToMapTo12 = [87, 88, 112,
+                108, 56, 15];
+            if (toothNumbersToMapTo12.includes(actualToothNumber)) {
+                actualToothNumber = 12;
+            }
+
+
+            // Map specific tooth numbers to 13 as they form one tooth
+            const toothNumbersToMapTo13 = [85, 86, 111,
+                106, 55, 21];       
+            if (toothNumbersToMapTo13.includes(actualToothNumber)) {
+                actualToothNumber = 13;
+            }
+
+            // Map specific tooth numbers to 14 as they form one tooth
+            const toothNumbersToMapTo14 = [60, 61, 116,
+                14, 50, 12,26];
+            if (toothNumbersToMapTo14.includes(actualToothNumber)) {
+                actualToothNumber = 14;
+            }
+
+
+            // Map specific tooth numbers to 15 as they form one tooth
+            const toothNumbersToMapTo15 = [128, 127, 125,
+                126, 130,131];
+            if (toothNumbersToMapTo15.includes(actualToothNumber)) {
+                actualToothNumber = 15;
+            }
+
+            // Map specific tooth numbers to 16 as they form one tooth
+            const toothNumbersToMapTo16 = [68, 69, 121,
+                79, 49, 32,41];
+            if (toothNumbersToMapTo16.includes(actualToothNumber)) {
+                actualToothNumber = 16;
+            }
+
+            // Map specific tooth numbers to 17 as they form one tooth
+            const toothNumbersToMapTo17 = [66, 67, 120,
+                78, 28, 44, 34];
+            if (toothNumbersToMapTo17.includes(actualToothNumber)) {
+                actualToothNumber = 17;
+            }
+
+
+            // Map specific tooth numbers to 18 as they form one tooth
+            const toothNumbersToMapTo18 = [64, 65, 119,
+                77, 47, 17, 47];
+            if (toothNumbersToMapTo18.includes(actualToothNumber)) {
+                actualToothNumber = 18;
+            }
+
+
+
+                const toothNumbersToMapTo38 = [184, 176, 175,
+                173, 174,177];
+            if (toothNumbersToMapTo38.includes(actualToothNumber)) {
+                actualToothNumber = 38;
+            }
+
+
+
+
+               const toothNumbersToMapTo37 = [170, 169, 181,
+                167, 168,171];
+            if (toothNumbersToMapTo37.includes(actualToothNumber)) {
+                actualToothNumber = 37;
+            }
+
+            // Map specific tooth numbers to 36 as they form one tooth
+            const toothNumbersToMapTo36 = [164, 163, 165,
+                162, 161,180];
+            if (toothNumbersToMapTo36.includes(actualToothNumber)) {
+                actualToothNumber = 36;
+            }
+
+
+               const toothNumbersToMapTo35 = [210, 209, 263,
+                207, 208,211];
+            if (toothNumbersToMapTo35.includes(actualToothNumber)) {
+                actualToothNumber = 35;
+            }
+
+
+                 const toothNumbersToMapTo34 = [204, 203, 269,
+                201, 202,205];
+            if (toothNumbersToMapTo34.includes(actualToothNumber)) {
+                actualToothNumber = 34;
+            }
+
+
+
+                 const toothNumbersToMapTo33 = [243, 197, 196,
+                193, 195,198];
+            if (toothNumbersToMapTo33.includes(actualToothNumber)) {
+                actualToothNumber = 33;
+            }
+
+
+               const toothNumbersToMapTo32 = [233, 239, 260,
+                236, 238,241];
+            if (toothNumbersToMapTo32.includes(actualToothNumber)) {
+                actualToothNumber = 32;
+            }
+
+
+
+
+               const toothNumbersToMapTo31 = [32, 232, 266,
+                229, 231,234];
+            if (toothNumbersToMapTo31.includes(actualToothNumber)) {
+                actualToothNumber = 31;
+            }
+
+            // Return the actual tooth number
+            
+
+            return actualToothNumber;
         },
 
         removeCategory() {
             if (this.currentContextTooth === null) return;
 
             const toothIndex = this.currentContextTooth;
+            const actualToothNumber = this.getToothNumberFromIndex(toothIndex);
 
             // Remove category for this tooth
             this.toothCategories.delete(toothIndex);
@@ -773,8 +970,9 @@ export default {
             this.removeCategoryIndicator(toothIndex);
 
             // Emit category removal event
-            this.$emit('category-removed', {
-                toothIndex: toothIndex
+            this.$emit('case-removed', {
+                toothIndex: toothIndex,
+                toothNumber: actualToothNumber
             });
 
             // Hide context menu
