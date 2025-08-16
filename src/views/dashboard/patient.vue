@@ -1048,6 +1048,10 @@ export default {
   },
   
   methods: {
+
+        generateBill() {
+      this.billDialog = true;
+    },
     // Clear cache and reload data
     async clearCacheAndReload() {
       try {
