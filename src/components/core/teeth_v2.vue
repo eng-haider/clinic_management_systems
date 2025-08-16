@@ -565,27 +565,27 @@ export default {
             const mappings = {
                 28: [35, 48, 75, 74, 123, 82, 54],
                 27: [72, 73, 122, 81, 53, 45, 33],
-                26: [70, 71, 133, 80, 52, 27, 42],
+                26: [70, 71, 133, 80, 52, 42],
                 25: [101, 100, 118, 99, 102, 104],
                 24: [24, 62, 63, 117, 84, 51, 23],
-                23: [93, 94, 115, 96, 59, 11],
+                23: [93, 94, 115, 96, 59],
                 22: [91, 92, 114, 110, 58, 38],
                 21: [139, 138, 135, 137, 141, 142],
-                11: [89, 90, 113, 95, 57, 17],
+                11: [89, 90, 113, 95, 57],
                 12: [87, 88, 112, 108, 56, 15],
                 13: [85, 86, 111, 106, 55, 13],
                 14: [83, 61, 120, 105, 60, 12],
                 15: [100, 119, 103, 49, 69],
-                16: [68, 97, 98, 48, 121, 79],
-                17: [66, 67, 132, 78, 50, 25],
+                16: [68, 69, 121, 79, 49, 41],
+                17: [66, 67, 120, 78, 44, 34],
                 18: [64, 65, 131, 77, 76, 24],
                 38: [3, 4, 124, 126, 1, 29],
                 37: [5, 6, 125, 2, 30, 7],
                 36: [8, 9, 128, 127, 31, 8],
                 35: [10, 14, 129, 107, 39, 9],
                 34: [15, 16, 130, 109, 40, 10],
-                33: [18, 19, 32, 41, 46],
-                32: [20, 21, 134, 116, 43, 47],
+                33: [243, 197, 196, 193, 195, 198],
+                32: [233, 239, 260, 236, 238, 241],
                 31: [22, 136, 44, 34],
                 41: [140, 143, 144, 36],
                 42: [145, 146, 147, 37],
@@ -654,6 +654,7 @@ export default {
         },
 
         handlePathRightClick(path, index, event) {
+        
             // Prevent default context menu
             event.preventDefault();
             event.stopPropagation();
@@ -790,6 +791,16 @@ export default {
             // Get the actual tooth number from the arrays
             const actualToothNumber = this.getToothNumberFromIndex(toothIndex);
 
+            // Debug logging for tooth 26 specifically
+            if (actualToothNumber === 26) {
+                console.log(`Selecting category for tooth 26:`, {
+                    toothIndex,
+                    actualToothNumber,
+                    categoryName,
+                    categoryColor
+                });
+            }
+
             // Store category for this tooth (also use clean data)
             this.toothCategories.set(toothIndex, {
                 category: cleanCategory,
@@ -830,7 +841,6 @@ export default {
             
             let actualToothNumber = allToothNumbers[pathIndex] || pathIndex; // Fallback to index if mapping fails
             
-          alert(`Tooth index: ${pathIndex}, Actual tooth number: ${actualToothNumber}`);
             const toothNumbersToMapTo28 = [35, 48, 75, 74, 123, 82,54];
             if (toothNumbersToMapTo28.includes(actualToothNumber)) {
                 actualToothNumber = 28;
@@ -844,7 +854,7 @@ export default {
 
           
             // Map specific tooth numbers to 26 as they form one tooth
-            const toothNumbersToMapTo26 = [70, 71, 133, 80, 52, 27, 42];
+            const toothNumbersToMapTo26 = [70, 71, 133, 80, 52, 42];
             if (toothNumbersToMapTo26.includes(actualToothNumber)) {
                 actualToothNumber = 26;
             }
@@ -863,9 +873,9 @@ export default {
             }
 
 
-              // Map specific tooth numbers to 24 as they form one tooth
+              // Map specific tooth numbers to 23 as they form one tooth
             const toothNumbersToMapTo23 = [93, 94, 115,
-                96, 59, 11];
+                96, 59];
             if (toothNumbersToMapTo23.includes(actualToothNumber)) {
                 actualToothNumber = 23;
             }
@@ -889,7 +899,7 @@ export default {
 
             // Map specific tooth numbers to 11 as they form one tooth
             const toothNumbersToMapTo11 = [89, 90, 113,
-                95, 57, 17];
+                95, 57];
             if (toothNumbersToMapTo11.includes(actualToothNumber)) {
                 actualToothNumber = 11;
             }
@@ -905,14 +915,14 @@ export default {
 
             // Map specific tooth numbers to 13 as they form one tooth
             const toothNumbersToMapTo13 = [85, 86, 111,
-                106, 55, 21];       
+                106, 55];       
             if (toothNumbersToMapTo13.includes(actualToothNumber)) {
                 actualToothNumber = 13;
             }
 
             // Map specific tooth numbers to 14 as they form one tooth
             const toothNumbersToMapTo14 = [60, 61, 116,
-                14, 50, 12,26];
+                14, 50, 12];
             if (toothNumbersToMapTo14.includes(actualToothNumber)) {
                 actualToothNumber = 14;
             }
@@ -927,14 +937,14 @@ export default {
 
             // Map specific tooth numbers to 16 as they form one tooth
             const toothNumbersToMapTo16 = [68, 69, 121,
-                79, 49, 32,41];
+                79, 49, 41];
             if (toothNumbersToMapTo16.includes(actualToothNumber)) {
                 actualToothNumber = 16;
             }
 
             // Map specific tooth numbers to 17 as they form one tooth
             const toothNumbersToMapTo17 = [66, 67, 120,
-                78, 28, 44, 34];
+                78, 44, 34];
             if (toothNumbersToMapTo17.includes(actualToothNumber)) {
                 actualToothNumber = 17;
             }
@@ -1287,11 +1297,14 @@ export default {
 
         // Check if a tooth number has an active category
         isToothActive(toothNumber) {
-            // Check manually assigned categories
+            // Check manually assigned categories - look through all stored categories to find matching tooth number
             const categories = Array.from(this.toothCategories.values());
-            const hasManualCategory = categories.some(categoryData => 
-                categoryData && categoryData.toothNumber === toothNumber
-            );
+            const hasManualCategory = categories.some(categoryData => {
+                if (!categoryData) return false;
+                
+                // Check if the stored tooth number matches the display tooth number
+                return categoryData.toothNumber === toothNumber;
+            });
             
             // Get all tooth numbers that could map to this display tooth number
             const mappedNumbers = this.getToothNumbersMapping(toothNumber);
@@ -1321,6 +1334,11 @@ export default {
                 }
                 return false;
             });
+            
+            // Debug logging for tooth 26 specifically
+            if (toothNumber === 26) {
+                // Tooth 26 debugging can be enabled if needed
+            }
             
             return hasManualCategory || hasExistingCase;
         },

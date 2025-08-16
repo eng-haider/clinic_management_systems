@@ -113,6 +113,18 @@ async function initializeApp() {
         navigator.serviceWorker.register('/sw.js')
           .then(registration => {
             console.log('SW registered: ', registration);
+            
+            // Check for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New SW installed, refreshing page...');
+                  // Automatically refresh the page when new service worker is installed
+                  window.location.reload();
+                }
+              });
+            });
           })
           .catch(registrationError => {
             console.log('SW registration failed: ', registrationError);
