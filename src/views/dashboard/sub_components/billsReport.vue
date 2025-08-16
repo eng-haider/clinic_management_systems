@@ -116,6 +116,12 @@
                         sortable: false
                     },
                     {
+                        text: 'اسم الطبيب',
+                        value: 'doctor_name',
+                        align: 'right',
+                        sortable: false
+                    },
+                    {
                         text: 'السعر',
                         value: 'price_formatted',
                         align: 'right',
@@ -135,42 +141,89 @@
             billItems() {
                 let items = [];
                 
+                // Debug logging
+                console.log('Patient data:', this.patient);
+                
                 // Add case items
                 if (this.patient.cases && this.patient.cases.length > 0) {
-                    items = this.patient.cases.map(item => ({
-                        case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
-                        tooth_number: this.formatToothNumbers(item.tooth_num),
-                        price_formatted: `${this.$options.filters.currency(item.price || 0)} د.ع`,
-                        date: this.cropdate(item.created_at),
-                        price: item.price || 0
-                    }));
+                    console.log('Cases found:', this.patient.cases);
+                    items = this.patient.cases.map(item => {
+                        console.log('Processing case item:', item);
+                        console.log('Tooth data available:', {
+                            tooth_num: item.tooth_num,
+                            tooth_number: item.tooth_number,
+                            toothNumber: item.toothNumber,
+                            teeth: item.teeth
+                        });
+                        console.log('Date data available:', {
+                            created_at: item.created_at,
+                            date: item.date,
+                            updated_at: item.updated_at,
+                            PaymentDate: item.PaymentDate
+                        });
+                        
+                        const toothData = item.tooth_num || item.tooth_number || item.toothNumber || item.teeth;
+                        const dateData = item.created_at || item.date || item.updated_at || item.PaymentDate;
+                        
+                        return {
+                            case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
+                            tooth_number: this.formatToothNumbers(toothData),
+                            doctor_name: this.getDoctorName(item),
+                            price_formatted: `${this.$options.filters.currency(item.price || 0)} د.ع`,
+                            date: this.formatDate(dateData),
+                            price: item.price || 0
+                        };
+                    });
                 }
                 
                 // Add payment items from bills array
                 if (this.patient.bills && this.patient.bills.length > 0) {
-                    const paymentItems = this.patient.bills.map(bill => ({
-                        case_type: bill.is_paid ? 'دفعة مالية' : 'فاتورة غير مدفوعة',
-                        tooth_number: '-',
-                        price_formatted: `${this.$options.filters.currency(bill.price || 0)} د.ع`,
-                        date: this.cropdate(bill.PaymentDate || bill.created_at),
-                        price: bill.price || 0,
-                        is_payment: true,
-                        is_paid: bill.is_paid
-                    }));
+                    const paymentItems = this.patient.bills.map(bill => {
+                        console.log('Processing bill item:', bill);
+                        console.log('Bill date data:', {
+                            PaymentDate: bill.PaymentDate,
+                            created_at: bill.created_at,
+                            date: bill.date,
+                            updated_at: bill.updated_at
+                        });
+                        
+                        const billDate = bill.PaymentDate || bill.created_at || bill.date || bill.updated_at;
+                        
+                        return {
+                            case_type: bill.is_paid ? 'دفعة مالية' : 'فاتورة غير مدفوعة',
+                            tooth_number: '-',
+                            doctor_name: this.getDoctorName(bill) || '-',
+                            price_formatted: `${this.$options.filters.currency(bill.price || 0)} د.ع`,
+                            date: this.formatDate(billDate),
+                            price: bill.price || 0,
+                            is_payment: true,
+                            is_paid: bill.is_paid
+                        };
+                    });
                     items = items.concat(paymentItems);
                 }
                 
                 // If no cases but has direct price (fallback)
                 if (items.length === 0 && this.patient.price) {
+                    const patientDate = this.patient.PaymentDate || this.patient.created_at || this.patient.date || this.patient.updated_at;
+                    console.log('Fallback patient date data:', {
+                        PaymentDate: this.patient.PaymentDate,
+                        created_at: this.patient.created_at,
+                        date: this.patient.date,
+                        updated_at: this.patient.updated_at
+                    });
+                    
                     items = [{
                         case_type: 'فاتورة مباشرة',
                         tooth_number: '-',
+                        doctor_name: this.getDoctorName(this.patient) || '-',
                         price_formatted: `${this.$options.filters.currency(this.patient.price || 0)} د.ع`,
-                        date: this.cropdate(this.patient.PaymentDate || this.patient.created_at),
+                        date: this.formatDate(patientDate),
                         price: this.patient.price || 0
                     }];
                 }
                 
+                console.log('Final bill items:', items);
                 return items;
             },
 
@@ -233,16 +286,105 @@
             formatToothNumbers(toothNum) {
                 if (!toothNum) return '-';
                 
+                // Debug logging to see what data we're getting
+                console.log('formatToothNumbers input:', toothNum, 'type:', typeof toothNum);
+                
                 try {
-                    const toothArray = this.parseToArray(toothNum);
-                    if (Array.isArray(toothArray) && toothArray.length > 0) {
-                        return toothArray.join(' - ');
+                    // Handle different tooth number formats
+                    let toothArray;
+                    
+                    if (typeof toothNum === 'string') {
+                        // Try to parse as JSON array first
+                        try {
+                            toothArray = JSON.parse(toothNum);
+                        } catch (e) {
+                            // If not JSON, check if it's comma-separated or single value
+                            if (toothNum.includes(',')) {
+                                toothArray = toothNum.split(',').map(t => t.trim());
+                            } else if (toothNum.includes('-')) {
+                                toothArray = toothNum.split('-').map(t => t.trim());
+                            } else {
+                                toothArray = [toothNum];
+                            }
+                        }
+                    } else if (Array.isArray(toothNum)) {
+                        toothArray = toothNum;
+                    } else {
+                        toothArray = [toothNum];
                     }
-                    return toothNum.toString();
+                    
+                    // Filter out empty values and format
+                    if (Array.isArray(toothArray) && toothArray.length > 0) {
+                        const filteredArray = toothArray.filter(tooth => tooth && tooth.toString().trim() !== '');
+                        if (filteredArray.length > 0) {
+                            const result = filteredArray.join(' - ');
+                            console.log('formatToothNumbers result:', result);
+                            return result;
+                        }
+                    }
+                    
+                    const fallback = toothNum ? toothNum.toString() : '-';
+                    console.log('formatToothNumbers fallback:', fallback);
+                    return fallback;
                 } catch (error) {
-                    console.error('Error formatting tooth numbers:', error);
+                    console.error('Error formatting tooth numbers:', error, 'Input:', toothNum);
                     return toothNum ? toothNum.toString() : '-';
                 }
+            },
+
+            getDoctorName(item) {
+                if (!item) return null;
+                
+                console.log('getDoctorName input:', item);
+                
+                // Try different possible doctor field names
+                if (item.doctor && item.doctor.name) {
+                    console.log('Found doctor.name:', item.doctor.name);
+                    return item.doctor.name;
+                }
+                if (item.doctor_name) {
+                    console.log('Found doctor_name:', item.doctor_name);
+                    return item.doctor_name;
+                }
+                if (item.doctorName) {
+                    console.log('Found doctorName:', item.doctorName);
+                    return item.doctorName;
+                }
+                if (item.user && item.user.name) {
+                    console.log('Found user.name:', item.user.name);
+                    return item.user.name;
+                }
+                if (item.created_by && item.created_by.name) {
+                    console.log('Found created_by.name:', item.created_by.name);
+                    return item.created_by.name;
+                }
+                if (item.doctor_id) {
+                    console.log('Found doctor_id:', item.doctor_id);
+                    if (this.$store.state.doctors) {
+                        const doctor = this.$store.state.doctors.find(d => d.id === item.doctor_id);
+                        if (doctor) {
+                            console.log('Found doctor from store:', doctor.name);
+                            return doctor.name;
+                        }
+                    }
+                    // Try to get from AdminInfo doctors list
+                    if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.doctors) {
+                        const doctor = this.$store.state.AdminInfo.doctors.find(d => d.id === item.doctor_id);
+                        if (doctor) {
+                            console.log('Found doctor from AdminInfo:', doctor.name);
+                            return doctor.name;
+                        }
+                    }
+                }
+                
+                // Fallback to store current user if available
+                if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.name) {
+                    console.log('Using fallback AdminInfo.name:', this.$store.state.AdminInfo.name);
+                    return this.$store.state.AdminInfo.name;
+                }
+                
+                console.log('No doctor name found');
+                return null;
             },
 
             formatCurrency(amount) {
@@ -250,14 +392,66 @@
                 return parseFloat(amount);
             },
 
+            formatDate(dateValue) {
+                console.log('formatDate input:', dateValue, 'type:', typeof dateValue);
+                
+                if (!dateValue) {
+                    console.log('No date value provided, returning current date');
+                    return this.getCurrentDate();
+                }
+                
+                try {
+                    let date;
+                    
+                    // Handle different date formats
+                    if (typeof dateValue === 'string') {
+                        // If it's already in YYYY-MM-DD format, return as is
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                            console.log('Date already in YYYY-MM-DD format:', dateValue);
+                            return dateValue;
+                        }
+                        
+                        // Try to parse as ISO string or other formats
+                        date = new Date(dateValue);
+                    } else if (dateValue instanceof Date) {
+                        date = dateValue;
+                    } else {
+                        // Try to convert to string first then parse
+                        date = new Date(dateValue.toString());
+                    }
+                    
+                    // Check if date is valid
+                    if (isNaN(date.getTime())) {
+                        console.log('Invalid date, using current date');
+                        return this.getCurrentDate();
+                    }
+                    
+                    // Format as YYYY-MM-DD
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const formattedDate = `${year}-${month}-${day}`;
+                    
+                    console.log('Formatted date:', formattedDate);
+                    return formattedDate;
+                    
+                } catch (error) {
+                    console.error('Error formatting date:', error, 'Input:', dateValue);
+                    return this.getCurrentDate();
+                }
+            },
+
             cropdate(x) {
-                if (!x) return '';
-                return x.slice(0, 10);
+                // Keep the old method for compatibility but use formatDate internally
+                return this.formatDate(x);
             },
             
             getCurrentDate() {
                 const today = new Date();
-                return today.toISOString().slice(0, 10);
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             },
 
             getLogoUrl() {

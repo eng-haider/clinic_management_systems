@@ -2120,7 +2120,7 @@ birth_date: ''
     // Handle image upload success
     handleImageSuccess(file, response) {
       console.log('Image uploaded successfully:', response);
-      alert('تم رفع الصورة بنجاح: ' + response.filename);
+     
       // Track the uploaded image for saving later
       if (response) {
         this.newUploadedImages.push({
