@@ -59,42 +59,7 @@
               ></v-text-field>
             </v-flex>
 
-            <v-flex xs12 md3 sm6 pr-4>
-              <v-text-field
-                dense
-                outlined
-                v-model="search.doctorName"
-                :label="$t('doctor_name') || 'اسم الطبيب'"
-                clearable
-                @input="applyFilters"
-              ></v-text-field>
-            </v-flex>
-
-            <v-flex xs12 md3 sm6 pr-4>
-              <v-menu v-model="dateMenu" :close-on-content-click="false" :nudge-right="40"
-                transition="scale-transition" offset-y min-width="auto">
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field 
-                    dense 
-                    outlined 
-                    v-model="search.date" 
-                    :label="$t('date') || 'التاريخ'"
-                    v-bind="attrs" 
-                    v-on="on"
-                    clearable
-                    @click:clear="search.date = null; applyFilters()"
-                  ></v-text-field>
-                </template>
-                <v-date-picker 
-                  v-model="search.date" 
-                  no-title 
-                  scrollable
-                  @change="dateMenu = false; applyFilters()"
-                >
-                  <v-spacer></v-spacer>
-                </v-date-picker>
-              </v-menu>
-            </v-flex>
+       
           </v-layout>
         </template>
 
@@ -124,13 +89,44 @@
         </template>
 
         <template v-slot:item.status="{ item }">
-          <v-chip 
-            :color="getStatusColor(item.status)" 
-            dark 
-            small
-          >
-            {{ getStatusText(item.status) }}
-          </v-chip>
+          <div class="d-flex align-center">
+            <v-chip 
+              :color="getStatusColor(item.status)" 
+              dark 
+              small
+              class="mr-2"
+            >
+              {{ getStatusText(item.status) }}
+            </v-chip>
+            <v-menu offset-y>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  icon
+                  x-small
+                  v-bind="attrs"
+                  v-on="on"
+                  :disabled="updating"
+                >
+                  <v-icon small>mdi-chevron-down</v-icon>
+                </v-btn>
+              </template>
+              <v-list dense>
+                <v-list-item
+                  v-for="status in statusOptions"
+                  :key="status.value"
+                  @click="quickStatusUpdate(item, status.value)"
+                  :disabled="item.status === status.value || updating"
+                >
+                  <v-list-item-content>
+                    <v-list-item-title>{{ status.text }}</v-list-item-title>
+                  </v-list-item-content>
+                  <v-list-item-icon v-if="item.status === status.value">
+                    <v-icon small color="primary">mdi-check</v-icon>
+                  </v-list-item-icon>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
         </template>
 
         <template v-slot:item.created_at="{ item }">
@@ -166,6 +162,86 @@
         </template>
       </v-data-table>
     </v-container>
+
+    <!-- Edit Status Dialog -->
+    <v-dialog v-model="editDialog" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">تعديل حالة المختبر</span>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="closeEditDialog">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text>
+          <v-form ref="editForm" v-if="editingCase">
+            <v-row>
+              <v-col cols="12">
+                <div class="mb-4">
+                  <strong>رقم الحالة:</strong> {{ editingCase.case_id }}
+                </div>
+                <div class="mb-4" v-if="editingCase.Patient">
+                  <strong>المريض:</strong> {{ editingCase.Patient.name }}
+                </div>
+              </v-col>
+
+              <v-col cols="12">
+                <v-select
+                  v-model="editForm.status"
+                  :items="statusOptions"
+                  item-text="text"
+                  item-value="value"
+                  label="الحالة"
+                  outlined
+                  dense
+                  :rules="[v => !!v || 'الحالة مطلوبة']"
+                  required
+                ></v-select>
+              </v-col>
+
+          
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editForm.price"
+                  label="السعر"
+                  type="number"
+                  step="0.01"
+                  outlined
+                  dense
+                  suffix="دينار"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="editForm.note"
+                  label="الملاحظات"
+                  outlined
+                  dense
+                  rows="3"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" text @click="closeEditDialog" :disabled="updating">
+            إلغاء
+          </v-btn>
+          <v-btn 
+            color="primary" 
+            @click="updateLapCaseStatus" 
+            :loading="updating"
+            :disabled="updating"
+          >
+            حفظ التغييرات
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Case Details Dialog -->
     <v-dialog v-model="detailsDialog" max-width="800px">
@@ -280,8 +356,11 @@ export default {
       filteredCases: [],
       loadingData: false,
       detailsDialog: false,
+      editDialog: false,
       dateMenu: false,
       selectedCase: null,
+      editingCase: null,
+      updating: false,
       totalItems: 0,
       itemsPerPage: 15,
       options: {},
@@ -290,6 +369,12 @@ export default {
         patientName: '',
         doctorName: '',
         date: null
+      },
+      editForm: {
+        status: '',
+        stage: '',
+        price: '',
+        note: ''
       },
       headers: [
         {
@@ -351,11 +436,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['userPermissions', 'isAuthenticated']),
+    ...mapGetters(['userPermissions', 'isAuthenticated', 'canShowLapCases']),
     hasLapCasesPermission() {
-      return this.userPermissions.some(permission => 
-        permission.name === 'show_lap_cases'
-      )
+      return this.canShowLapCases
     }
   },
   watch: {
@@ -368,10 +451,10 @@ export default {
   },
   async mounted() {
     try {
-    //   if (!this.hasLapCasesPermission) {
-    //     this.$router.push({ name: 'statistics' })
-    //     return
-    //   }
+      if (!this.hasLapCasesPermission) {
+        this.$router.push({ name: 'statistics' })
+        return
+      }
       // Automatically load data when component mounts
       await this.fetchLapCases()
     } catch (error) {
@@ -467,15 +550,160 @@ export default {
     },
     
     editCase(item) {
-      // Navigate to case edit page or open edit dialog
-      // For now, just show a message
-      console.log('Edit case:', item.id)
-      this.$swal.fire({
-        icon: 'info',
-        title: 'معلومات',
-        text: 'ميزة التعديل قيد التطوير',
-        confirmButtonText: 'موافق'
-      })
+      this.editingCase = item
+      this.editForm = {
+        status: item.status || '',
+        stage: item.stage || '',
+        price: item.price || '',
+        note: item.note || ''
+      }
+      this.editDialog = true
+    },
+
+    closeEditDialog() {
+      this.editDialog = false
+      this.editingCase = null
+      this.editForm = {
+        status: '',
+        stage: '',
+        price: '',
+        note: ''
+      }
+      if (this.$refs.editForm) {
+        this.$refs.editForm.resetValidation()
+      }
+    },
+
+    async quickStatusUpdate(item, newStatus) {
+      if (item.status === newStatus) {
+        return
+      }
+
+      this.updating = true
+      try {
+        const response = await this.$http.patch(
+          `lap-cases/${item.id}/status`,
+          { status: newStatus }
+        )
+
+        if (response.data && response.data.success) {
+          // Update the local data
+          const updatedCase = response.data.data
+          const index = this.lapCases.findIndex(c => c.id === item.id)
+          
+          if (index !== -1) {
+            this.$set(this.lapCases, index, updatedCase)
+            this.applyFilters()
+          }
+
+          // Show quick success notification
+          this.$swal.fire({
+            icon: 'success',
+            title: 'تم التحديث',
+            text: `تم تغيير الحالة إلى: ${this.getStatusText(newStatus)}`,
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+          })
+        }
+      } catch (error) {
+        console.error('Error in quick status update:', error)
+        
+        let errorMessage = 'فشل في تحديث الحالة'
+        if (error.response && error.response.status === 401) {
+          errorMessage = 'غير مخول للقيام بهذا الإجراء'
+        }
+
+        this.$swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: errorMessage,
+          confirmButtonText: 'موافق'
+        })
+      } finally {
+        this.updating = false
+      }
+    },
+
+    async updateLapCaseStatus() {
+      if (!this.$refs.editForm.validate()) {
+        return
+      }
+
+      this.updating = true
+      try {
+        const updateData = {
+          status: this.editForm.status
+        }
+
+        // Only include optional fields if they have values
+        if (this.editForm.stage && this.editForm.stage.trim()) {
+          updateData.stage = this.editForm.stage.trim()
+        }
+        
+        if (this.editForm.price && parseFloat(this.editForm.price) > 0) {
+          updateData.price = parseFloat(this.editForm.price)
+        }
+        
+        if (this.editForm.note && this.editForm.note.trim()) {
+          updateData.note = this.editForm.note.trim()
+        }
+
+        console.log('Updating lap case:', this.editingCase.id, updateData)
+        
+        const response = await this.$http.patch(
+          `lap-cases/${this.editingCase.id}/status`,
+          updateData
+        )
+
+        if (response.data && response.data.success) {
+          // Update the local data
+          const updatedCase = response.data.data
+          const index = this.lapCases.findIndex(c => c.id === this.editingCase.id)
+          
+          if (index !== -1) {
+            // Update the case in the original array
+            this.$set(this.lapCases, index, updatedCase)
+            // Reapply filters to update the filtered view
+            this.applyFilters()
+          }
+
+          this.$swal.fire({
+            icon: 'success',
+            title: 'تم بنجاح',
+            text: 'تم تحديث حالة المختبر بنجاح',
+            confirmButtonText: 'موافق'
+          })
+
+          this.closeEditDialog()
+        } else {
+          throw new Error('Failed to update lap case')
+        }
+      } catch (error) {
+        console.error('Error updating lap case:', error)
+        
+        let errorMessage = 'حدث خطأ أثناء تحديث الحالة'
+        
+        if (error.response) {
+          if (error.response.status === 401) {
+            errorMessage = 'غير مخول للقيام بهذا الإجراء'
+          } else if (error.response.status === 404) {
+            errorMessage = 'لم يتم العثور على الحالة'
+          } else if (error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message
+          }
+        }
+
+        this.$swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: errorMessage,
+          confirmButtonText: 'موافق'
+        })
+      } finally {
+        this.updating = false
+      }
     },
     
     getStatusColor(status) {

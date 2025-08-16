@@ -5,6 +5,29 @@ import vuetify from './plugins/vuetify'
 import i18n from './i18n'
 import store from './store'
 
+// Fix for chunk loading errors - override webpack's public path at runtime
+/* eslint-disable */
+if (typeof __webpack_public_path__ !== 'undefined') {
+  // Set public path to current origin to fix chunk loading from wrong domain
+  __webpack_public_path__ = window.location.origin + '/';
+}
+
+// Also handle dynamic imports that might fail
+const originalImport = window.__webpack_require__ && window.__webpack_require__.e;
+if (originalImport) {
+  window.__webpack_require__.e = function(chunkId) {
+    return originalImport.call(this, chunkId).catch(error => {
+      // If chunk loading fails, try loading from current origin
+      console.warn('Chunk loading failed, retrying from current origin:', error);
+      
+      // Update public path and retry
+      __webpack_public_path__ = window.location.origin + '/';
+      return originalImport.call(this, chunkId);
+    });
+  };
+}
+/* eslint-enable */
+
 // Essential CSS only
 import 'vuetify/dist/vuetify.min.css'
 import '@fortawesome/fontawesome-free/css/all.css'
@@ -110,7 +133,7 @@ async function initializeApp() {
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js?v2')
           .then(registration => {
             console.log('SW registered: ', registration);
           })

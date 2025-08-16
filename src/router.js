@@ -27,6 +27,7 @@ const routeComponents = {
   Reports: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/reports'),
   Accounts: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/accounts'),
   BillsReport: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/billsReport'),
+  CaseLap: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/CaseLap'),
   
   // Administrative views - Separate chunk
   Doctors: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/doctors'),
@@ -185,9 +186,13 @@ const router = new Router({
           component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/waitinglist')
         },
         {
-          path: 'case-categories',
-          name: 'case-categories',
-          component: routeComponents.CaseCategories
+          path: 'case-lap',
+          name: 'caseLap',
+          component: routeComponents.CaseLap,
+          meta: { 
+            requiresPermission: 'show_lap_cases',
+            title: 'حالات المختبر'
+          }
         }
       ]
     }
@@ -205,6 +210,27 @@ router.beforeEach(async (to, from, next) => {
   // Show global loading for all routes
   if (window.globalLoading) {
     window.globalLoading.show();
+  }
+  
+  // Check permissions if route requires them
+  if (to.meta?.requiresPermission) {
+    const userPermissions = store.getters.userPermissions || [];
+    const hasPermission = userPermissions.some(permission => 
+      permission === to.meta.requiresPermission
+    );
+    
+    // Special case for show_lap_cases - also check doctor show_lap field
+    if (to.meta.requiresPermission === 'show_lap_cases') {
+      const canShowLapCases = store.getters.canShowLapCases;
+      if (!canShowLapCases) {
+        next({ name: 'statistics' });
+        return;
+      }
+    } else if (!hasPermission) {
+      // Redirect to dashboard if user doesn't have permission
+      next({ name: 'statistics' });
+      return;
+    }
   }
   
   // Update document title

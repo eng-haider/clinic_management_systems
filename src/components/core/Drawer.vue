@@ -79,7 +79,8 @@
 
 <script>
   import {
-    mapState
+    mapState,
+    mapGetters
   } from "vuex";
   import MobileBottomNav from './MobileBottomNav.vue';
 
@@ -140,6 +141,15 @@
             to: '/accounts',
             name: 'show_accounts'
           },
+
+          {
+            title: this.$t("header.caseLap") || "حالات المختبر",
+            icon: 'fa-solid fa-flask',
+            auth: true,
+            to: '/case-lap',
+            name: 'show_lap_cases'
+          },
+
           {
             title: this.$t("header.reports"),
             icon: 'fa-solid fa-file-export',
@@ -192,6 +202,7 @@
       ...mapState(["setLogo"]),
       ...mapState(["barColor"]),
       ...mapState(["tile"]),
+      ...mapGetters(['canShowLapCases']),
 
       drawer: {
         get() {
@@ -223,6 +234,14 @@
 
     },
     methods: {
+      hasItemPermission(item) {
+        // Special case for show_lap_cases - check both permission and doctor show_lap field
+        if (item.name === 'show_lap_cases') {
+          return this.canShowLapCases;
+        }
+        // For all other permissions, check the regular way
+        return this.$store.state.AdminInfo.Permissions.includes(item.name);
+      },
       mapItem(item) {
         return {
           ...item,

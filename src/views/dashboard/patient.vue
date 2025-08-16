@@ -37,7 +37,7 @@
         </v-col>
 
         <!-- Action Buttons (Hidden for secretaries) -->
-        <v-col cols="auto" class="pa-4 text-right" v-if="!secretaryBillsOnlyMode">
+        <v-col cols="auto" class="pa-4 text-right">
           <v-btn 
             class="mr-2" 
             color="primary" 
@@ -719,7 +719,7 @@
     <!-- Bill Report Dialog -->
     <v-dialog v-model="billDialog" max-width="900px" v-track-dialog>
       <v-card>
-        <Bill :patient="{ ...patient, bills: patientBills }" />
+        <Bill :patient="completePatientData" />
       </v-card>
     </v-dialog>
 
@@ -2312,7 +2312,7 @@ export default {
     // Handle image upload success
     handleImageSuccess(file, response) {
       console.log('Image uploaded successfully:', response);
-      alert('تم رفع الصورة بنجاح: ' + response.filename);
+     
       // Track the uploaded image for saving later
       if (response) {
         this.newUploadedImages.push({

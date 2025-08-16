@@ -582,7 +582,7 @@
                         value: "created_at"
                     } : '',
 
-                    this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' ? {
+                    this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' || this.$store.getters.userRole == 'accounter' ? {
                         text: this.$t('datatable.doctor'),
                         align: "start",
                         value: "doctor"
