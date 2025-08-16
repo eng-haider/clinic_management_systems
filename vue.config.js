@@ -15,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: '[name].[contenthash].css?v2',
-      chunkFilename: '[name].[contenthash].css?v2'
+      filename: '[name].[contenthash].css',
+      chunkFilename: '[name].[contenthash].css'
     } : false,
     sourceMap: false,
   },
@@ -50,33 +50,8 @@ module.exports = {
         return args;
       });
     
-    // Enhanced chunk splitting for better caching
-    config.optimization.splitChunks({
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
-          chunks: 'all',
-          priority: 10,
-          reuseExistingChunk: true,
-        },
-        vuetify: {
-          test: /[\\/]node_modules[\\/](vuetify|@mdi)[\\/]/,
-          name: 'vuetify',
-          chunks: 'all',
-          priority: 20,
-          reuseExistingChunk: true,
-        },
-        common: {
-          name: 'common',
-          minChunks: 2,
-          chunks: 'all',
-          priority: 5,
-          reuseExistingChunk: true,
-        }
-      }
-    })
+    // Disable chunk splitting
+    config.optimization.delete('splitChunks');
     
     // Add cache-loader for better build performance
     config.module
@@ -89,8 +64,8 @@ module.exports = {
   // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js?v2' : '[name].js?v2',
-      chunkFilename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js?v2' : '[name].js?v2'
+      filename: process.env.NODE_ENV === 'production' ? 'bundle.js' : 'bundle.js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? 'bundle.js' : 'bundle.js'
     },
     performance: {
       hints: false,
@@ -99,16 +74,7 @@ module.exports = {
     },
     optimization: {
       minimize: process.env.NODE_ENV === 'production',
-      runtimeChunk: 'single',
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-        },
-      },
+      // No chunk splitting
     },
     resolve: {
       alias: {
