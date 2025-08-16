@@ -130,10 +130,10 @@ async function initializeApp() {
       render: h => h(App)
     }).$mount('#app')
     
-    // Register service worker for PWA
+    // Register service worker for PWA - simplified without auto-refresh
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v2')
+        navigator.serviceWorker.register('/sw.js')
           .then(registration => {
             console.log('SW registered: ', registration);
           })

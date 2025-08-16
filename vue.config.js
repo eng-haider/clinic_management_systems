@@ -15,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: '[name].[contenthash].css?v2',
-      chunkFilename: '[name].[contenthash].css?v2'
+      filename: '[name].[contenthash].css',
+      chunkFilename: '[name].[contenthash].css'
     } : false,
     sourceMap: false,
   },
@@ -89,8 +89,8 @@ module.exports = {
   // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js?v2' : '[name].js?v2',
-      chunkFilename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js?v2' : '[name].js?v2'
+      filename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js' : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js' : '[name].js'
     },
     performance: {
       hints: false,
