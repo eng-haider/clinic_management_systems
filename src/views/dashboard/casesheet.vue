@@ -1260,12 +1260,13 @@
                 });
             },
 
+
             performSearch() {
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Don't use cache for search - always fetch fresh data
-                this.apiRequest(`patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
