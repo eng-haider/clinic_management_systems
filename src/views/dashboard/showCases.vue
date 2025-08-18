@@ -620,7 +620,7 @@ Swal.fire({
 
 
             if (this.editedItem.images.length > 0) {
-                this.imageSource = 'https://smartclinicv3.tctate.com/back/public/public/images/' + this.editedItem.images[0].image_url;
+                this.imageSource = 'https://apismartclinicv3.tctate.com/public/images/' + this.editedItem.images[0].image_url;
             }
 
 

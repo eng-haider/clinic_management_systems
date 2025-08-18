@@ -480,52 +480,42 @@
                 return `${origin}/111.png`;
             },
 
-            printReport() {
-                // Create a new window for printing only the bill content
-                const printWindow = window.open('', '_blank', 'width=800,height=600');
-                
-                // Get the bill card HTML content
-                const billContent = document.querySelector('.bill-card').outerHTML;
-                
-                // Create the print HTML
-                const printHTML = `
-                    <!DOCTYPE html>
-                    <html dir="rtl">
-                    <head>
-                        <meta charset="utf-8">
-                        <title>تقرير الحساب</title>
-                        <style>
-                            * {
-                                margin: 0;
-                                padding: 0;
-                                box-sizing: border-box;
-                            }
-                            
-                            body {
-                                font-family: 'Cairo', Arial, sans-serif;
-                                direction: rtl;
-                                background: white;
-                                padding: 15px;
-                                font-size: 12px;
-                                line-height: 1.4;
-                            }
-                            
+            async printReport() {
+                try {
+                    // Get the bill card element
+                    const billElement = document.querySelector('.bill-card');
+                    if (!billElement) {
+                        this.$swal.fire({
+                            icon: 'error',
+                            title: 'خطأ في الطباعة',
+                            text: 'لا يمكن العثور على التقرير المطلوب طباعته'
+                        });
+                        return;
+                    }
+
+                    // Use the PWA-friendly print utility with A5 paper size
+                    await this.$print.printWithIframe(billElement, {
+                        paperSize: this.$paperSizes.A5, // Changed from A4 to A5
+                        title: 'تقرير الحساب',
+                        customStyles: `
                             .bill-card {
                                 width: 100%;
                                 max-width: none;
                                 margin: 0;
-                                padding: 0;
+                                padding: 15px;
                                 background: white;
                                 border: none;
                                 box-shadow: none;
+                                font-family: 'Cairo', Arial, sans-serif;
+                                direction: rtl;
                             }
                             
                             .patient-header {
                                 display: flex;
                                 justify-content: space-between;
                                 flex-wrap: nowrap;
-                                margin-bottom: 20px;
-                                padding-bottom: 15px;
+                                margin-bottom: 15px;
+                                padding-bottom: 10px;
                                 border-bottom: 2px solid #333;
                                 align-items: flex-start;
                             }
@@ -538,15 +528,15 @@
                             .patient-info {
                                 display: flex;
                                 align-items: center;
-                                gap: 10px;
-                                margin-bottom: 8px;
-                                font-size: 12px;
+                                gap: 8px;
+                                margin-bottom: 6px;
+                                font-size: 11px;
                             }
                             
                             .info-label {
                                 font-weight: bold;
                                 white-space: nowrap;
-                                min-width: 80px;
+                                min-width: 70px;
                             }
                             
                             .info-value {
@@ -560,29 +550,30 @@
                             }
                             
                             .clinic-logo-image {
-                                width: 80px;
-                                height: 80px;
+                                width: 60px;
+                                height: 60px;
                                 object-fit: contain;
-                                margin-bottom: 10px;
+                                margin-bottom: 8px;
                             }
                             
                             .clinic-name {
                                 font-weight: bold;
-                                font-size: 14px;
+                                font-size: 12px;
                             }
                             
                             table {
                                 width: 100%;
                                 border-collapse: collapse;
-                                margin: 20px 0;
-                                font-size: 11px;
+                                margin: 15px 0;
+                                font-size: 10px;
                             }
                             
                             th, td {
-                                padding: 8px 6px;
+                                padding: 6px 4px;
                                 text-align: right;
-                                border: 1px solid #ddd;
+                                border: 1px solid #333;
                                 white-space: nowrap;
+                                font-size: 9px;
                             }
                             
                             th {
@@ -591,26 +582,27 @@
                             }
                             
                             .bill-summary {
-                                margin: 20px 0;
-                                padding: 15px;
+                                margin: 15px 0;
+                                padding: 10px;
                                 background-color: #f9f9f9;
-                                border: 1px solid #ddd;
-                                border-radius: 5px;
+                                border: 1px solid #333;
+                                border-radius: 3px;
                             }
                             
                             .summary-row {
                                 display: flex;
                                 justify-content: space-between;
-                                margin-bottom: 8px;
-                                padding: 5px 0;
+                                margin-bottom: 6px;
+                                padding: 3px 0;
+                                font-size: 10px;
                             }
                             
                             .summary-row.remaining {
                                 border-top: 2px solid #333;
-                                margin-top: 10px;
-                                padding-top: 10px;
+                                margin-top: 8px;
+                                padding-top: 8px;
                                 font-weight: bold;
-                                font-size: 1.1em;
+                                font-size: 11px;
                             }
                             
                             .summary-label {
@@ -620,90 +612,47 @@
                             .signature-section {
                                 display: flex;
                                 justify-content: space-between;
-                                margin-top: 30px;
-                                padding-top: 20px;
-                                border-top: 1px solid #ddd;
-                                gap: 30px;
+                                margin-top: 20px;
+                                padding-top: 15px;
+                                border-top: 1px solid #333;
+                                gap: 20px;
                             }
                             
                             .signature-box {
                                 text-align: center;
                                 flex: 1;
-                                max-width: 200px;
+                                max-width: 150px;
                             }
                             
                             .signature-label {
                                 font-weight: bold;
-                                margin-bottom: 25px;
+                                margin-bottom: 20px;
+                                font-size: 10px;
                             }
                             
                             .signature-line {
                                 border-bottom: 2px solid #333;
-                                height: 40px;
+                                height: 30px;
                                 width: 100%;
                             }
                             
-                            /* Hide v-divider elements */
-                            .v-divider {
-                                display: none;
+                            /* Hide v-divider elements and buttons */
+                            .v-divider,
+                            .v-btn,
+                            button {
+                                display: none !important;
                             }
-                            
-                            @media print {
-                                body {
-                                    padding: 10px;
-                                    font-size: 10px;
-                                }
-                                
-                                .patient-info {
-                                    font-size: 10px;
-                                }
-                                
-                                table {
-                                    font-size: 9px;
-                                }
-                                
-                                th, td {
-                                    padding: 4px 3px;
-                                }
-                                
-                                .clinic-logo-image {
-                                    width: 60px;
-                                    height: 60px;
-                                }
-                                
-                                .signature-section {
-                                    margin-top: 20px;
-                                    padding-top: 15px;
-                                }
-                                
-                                .signature-line {
-                                    height: 30px;
-                                }
-                                
-                                @page {
-                                    size: A4 portrait;
-                                    margin: 1cm;
-                                }
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        ${billContent}
-                    </body>
-                    </html>
-                `;
-                
-                // Write the HTML to the new window
-                printWindow.document.write(printHTML);
-                printWindow.document.close();
-                
-                // Wait for content to load, then print and close
-                printWindow.onload = function() {
-                    setTimeout(() => {
-                        printWindow.print();
-                        printWindow.close();
-                    }, 250);
-                };
+                        `
+                    });
+
+                } catch (error) {
+                    console.error('Print error:', error);
+                    this.$swal.fire({
+                        icon: 'error',
+                        title: 'خطأ في الطباعة',
+                        text: 'حدث خطأ أثناء محاولة الطباعة. يرجى المحاولة مرة أخرى.'
+                    });
+                }
             },
 
             close() {

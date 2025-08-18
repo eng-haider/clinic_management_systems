@@ -323,7 +323,7 @@
                 // Toggle the waiting status
                 const newStatus = !item.is_waiting;
                 
-                this.axios.post(`https://smartclinicv3.tctate.com/back/public/api/reservations/${item.id}/toggle-waiting`, {}, {
+                this.axios.post(`https://apismartclinicv3.tctate.com/api/reservations/${item.id}/toggle-waiting`, {}, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
@@ -478,7 +478,7 @@ formatReservationTime(time) {
                 this.loadingData = true;
 
                 // Fetch data from the new API endpoint
-                this.axios.get(`https://smartclinicv3.tctate.com/back/public/api/reservations/today`, {
+                this.axios.get(`https://apismartclinicv3.tctate.com/api/reservations/today`, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",

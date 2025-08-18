@@ -42,6 +42,7 @@ import VueSweetalert2 from "vue-sweetalert2"
 import VueNumber from 'vue-number-animation'
 import VueCurrencyFilter from 'vue-currency-filter'
 import DropzonePlugin from './plugins/dropzone'
+import PrintPlugin from './utils/print'
 
 // No loading or performance tracking
 
@@ -60,12 +61,13 @@ Vue.use(VueCurrencyFilter, {
 
 // Configure Dropzone before any components are loaded
 Vue.use(DropzonePlugin)
+Vue.use(PrintPlugin)
 
 // Global config
 Vue.mixin({
   data() {
     return {
-      Url: 'https://smartclinicv3.tctate.com/back/public',  // Updated to v4 API
+      Url: 'https://apismartclinicv3.tctate.com',  // Updated to v4 API
       http: 'https://'  // Changed to https for security
     }
   }

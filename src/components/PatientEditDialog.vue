@@ -272,7 +272,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image",
+        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -467,7 +467,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://smartclinicv3.tctate.com/back/public/api/patients";
+        const apiUrl = "https://apismartclinicv3.tctate.com/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
@@ -540,7 +540,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://smartclinicv3.tctate.com/back/public/api/cases/uploude_images', {
+        const response = await fetch('https://apismartclinicv3.tctate.com/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -639,7 +639,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('https://smartclinicv3.tctate.com/back/public/api/reservations', reservationData, {
+            const response = await axios.post('https://apismartclinicv3.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -658,7 +658,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('https://smartclinicv3.tctate.com/back/public/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://apismartclinicv3.tctate.com/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -731,7 +731,7 @@
           }
           
           // Use the new API endpoint
-          const response = await axios.get('https://smartclinicv3.tctate.com/back/public/api/reservations/formatted', {
+          const response = await axios.get('https://apismartclinicv3.tctate.com/api/reservations/formatted', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

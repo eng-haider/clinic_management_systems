@@ -244,13 +244,74 @@
           console.error('Error fetching note suggestions:', error);
         }
       },
-      printContent() {
-        const printContent = this.$refs.printSection;
-        const originalContent = document.body.innerHTML;
-        document.body.innerHTML = printContent.innerHTML;
-        window.print();
-        document.body.innerHTML = originalContent;
-        window.location.reload();
+      async printContent() {
+        try {
+          const printSection = this.$refs.printSection;
+          if (!printSection) {
+            this.$swal.fire({
+              icon: 'error',
+              title: 'خطأ في الطباعة',
+              text: 'لا يمكن العثور على المحتوى المطلوب طباعته'
+            });
+            return;
+          }
+
+          // Show the print section temporarily
+          printSection.style.display = 'block';
+          
+          // Use the new PWA-friendly print utility with A5 paper size
+          await this.$print.printWithIframe(printSection, {
+            paperSize: this.$paperSizes.A5,
+            title: 'وصفة طبية',
+            customStyles: `
+              .print-section {
+                padding: 15px;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-family: 'Cairo', Arial, sans-serif;
+                direction: rtl;
+              }
+              
+              .prescription-header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 15px;
+              }
+              
+              .prescription-content {
+                margin: 15px 0;
+                line-height: 1.6;
+              }
+              
+              .prescription-footer {
+                margin-top: 30px;
+                border-top: 1px solid #ccc;
+                padding-top: 15px;
+              }
+              
+              @media print {
+                .print-section {
+                  border: none;
+                  border-radius: 0;
+                  padding: 10px;
+                }
+              }
+            `
+          });
+
+          // Hide the print section again
+          printSection.style.display = 'none';
+          
+        } catch (error) {
+          console.error('Print error:', error);
+          this.$swal.fire({
+            icon: 'error',
+            title: 'خطأ في الطباعة',
+            text: 'حدث خطأ أثناء محاولة الطباعة. يرجى المحاولة مرة أخرى.'
+          });
+        }
       },
       async exportAsImage() {
         const printSection = this.$refs.printSection;
