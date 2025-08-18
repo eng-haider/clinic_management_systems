@@ -1,15 +1,4 @@
 // webpack.config.js
 
-module.exports = {
-  "rules": {
-    "no-mixed-spaces-and-tabs": 0, // disable rule
-  },
-    module: {
-    
-      rules: [
-        {
-        
-        },
-      ],
-    }
-  }
+// Remove all custom rules and chunk logic, let Vue CLI/Webpack handle everything
+module.exports = {}

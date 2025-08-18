@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 <div class="clinic-logo">
-                    <img :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
+                    <img style="width:100px;height:100px" :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
                     <div class="clinic-name">{{ $store.state.AdminInfo.clinics_info.name }} </div>
                 </div>
             </div>
@@ -176,7 +176,8 @@
                     });
                 }
                 
-                // Add payment items from bills array
+                // Remove payment items from bills array - commented out
+                /*
                 if (this.patient.bills && this.patient.bills.length > 0) {
                     const paymentItems = this.patient.bills.map(bill => {
                         console.log('Processing bill item:', bill);
@@ -202,6 +203,7 @@
                     });
                     items = items.concat(paymentItems);
                 }
+                */
                 
                 // If no cases but has direct price (fallback)
                 if (items.length === 0 && this.patient.price) {
@@ -337,6 +339,18 @@
                 
                 console.log('getDoctorName input:', item);
                 
+                // First check if item has doctors array (from cases)
+                if (item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0) {
+                    console.log('Found doctors array:', item.doctors);
+                    return item.doctors[0].name; // Get first doctor's name
+                }
+                
+                // Check if item has a single doctors object (from patient level)
+                if (item.doctors && !Array.isArray(item.doctors) && item.doctors.name) {
+                    console.log('Found doctors object:', item.doctors);
+                    return item.doctors.name;
+                }
+                
                 // Try different possible doctor field names
                 if (item.doctor && item.doctor.name) {
                     console.log('Found doctor.name:', item.doctor.name);
@@ -375,6 +389,12 @@
                             return doctor.name;
                         }
                     }
+                }
+                
+                // Check if this is patient data and has doctors object at root level
+                if (this.patient && this.patient.doctors && this.patient.doctors.name) {
+                    console.log('Found patient.doctors.name:', this.patient.doctors.name);
+                    return this.patient.doctors.name;
                 }
                 
                 // Fallback to store current user if available
@@ -461,7 +481,229 @@
             },
 
             printReport() {
-                window.print();
+                // Create a new window for printing only the bill content
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                
+                // Get the bill card HTML content
+                const billContent = document.querySelector('.bill-card').outerHTML;
+                
+                // Create the print HTML
+                const printHTML = `
+                    <!DOCTYPE html>
+                    <html dir="rtl">
+                    <head>
+                        <meta charset="utf-8">
+                        <title>تقرير الحساب</title>
+                        <style>
+                            * {
+                                margin: 0;
+                                padding: 0;
+                                box-sizing: border-box;
+                            }
+                            
+                            body {
+                                font-family: 'Cairo', Arial, sans-serif;
+                                direction: rtl;
+                                background: white;
+                                padding: 15px;
+                                font-size: 12px;
+                                line-height: 1.4;
+                            }
+                            
+                            .bill-card {
+                                width: 100%;
+                                max-width: none;
+                                margin: 0;
+                                padding: 0;
+                                background: white;
+                                border: none;
+                                box-shadow: none;
+                            }
+                            
+                            .patient-header {
+                                display: flex;
+                                justify-content: space-between;
+                                flex-wrap: nowrap;
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 2px solid #333;
+                                align-items: flex-start;
+                            }
+                            
+                            .patient-details {
+                                flex: 1;
+                                max-width: 65%;
+                            }
+                            
+                            .patient-info {
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                            }
+                            
+                            .info-label {
+                                font-weight: bold;
+                                white-space: nowrap;
+                                min-width: 80px;
+                            }
+                            
+                            .info-value {
+                                font-weight: 500;
+                            }
+                            
+                            .clinic-logo {
+                                text-align: center;
+                                flex-shrink: 0;
+                                max-width: 30%;
+                            }
+                            
+                            .clinic-logo-image {
+                                width: 80px;
+                                height: 80px;
+                                object-fit: contain;
+                                margin-bottom: 10px;
+                            }
+                            
+                            .clinic-name {
+                                font-weight: bold;
+                                font-size: 14px;
+                            }
+                            
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 20px 0;
+                                font-size: 11px;
+                            }
+                            
+                            th, td {
+                                padding: 8px 6px;
+                                text-align: right;
+                                border: 1px solid #ddd;
+                                white-space: nowrap;
+                            }
+                            
+                            th {
+                                background-color: #f5f5f5;
+                                font-weight: bold;
+                            }
+                            
+                            .bill-summary {
+                                margin: 20px 0;
+                                padding: 15px;
+                                background-color: #f9f9f9;
+                                border: 1px solid #ddd;
+                                border-radius: 5px;
+                            }
+                            
+                            .summary-row {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 8px;
+                                padding: 5px 0;
+                            }
+                            
+                            .summary-row.remaining {
+                                border-top: 2px solid #333;
+                                margin-top: 10px;
+                                padding-top: 10px;
+                                font-weight: bold;
+                                font-size: 1.1em;
+                            }
+                            
+                            .summary-label {
+                                font-weight: bold;
+                            }
+                            
+                            .signature-section {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-top: 30px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ddd;
+                                gap: 30px;
+                            }
+                            
+                            .signature-box {
+                                text-align: center;
+                                flex: 1;
+                                max-width: 200px;
+                            }
+                            
+                            .signature-label {
+                                font-weight: bold;
+                                margin-bottom: 25px;
+                            }
+                            
+                            .signature-line {
+                                border-bottom: 2px solid #333;
+                                height: 40px;
+                                width: 100%;
+                            }
+                            
+                            /* Hide v-divider elements */
+                            .v-divider {
+                                display: none;
+                            }
+                            
+                            @media print {
+                                body {
+                                    padding: 10px;
+                                    font-size: 10px;
+                                }
+                                
+                                .patient-info {
+                                    font-size: 10px;
+                                }
+                                
+                                table {
+                                    font-size: 9px;
+                                }
+                                
+                                th, td {
+                                    padding: 4px 3px;
+                                }
+                                
+                                .clinic-logo-image {
+                                    width: 60px;
+                                    height: 60px;
+                                }
+                                
+                                .signature-section {
+                                    margin-top: 20px;
+                                    padding-top: 15px;
+                                }
+                                
+                                .signature-line {
+                                    height: 30px;
+                                }
+                                
+                                @page {
+                                    size: A4 portrait;
+                                    margin: 1cm;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${billContent}
+                    </body>
+                    </html>
+                `;
+                
+                // Write the HTML to the new window
+                printWindow.document.write(printHTML);
+                printWindow.document.close();
+                
+                // Wait for content to load, then print and close
+                printWindow.onload = function() {
+                    setTimeout(() => {
+                        printWindow.print();
+                        printWindow.close();
+                    }, 250);
+                };
             },
 
             close() {
@@ -628,24 +870,130 @@
 
 /* Print styles */
 @media print {
+    /* Remove all the complex print styles since we're using a separate window */
     .v-toolbar {
         display: none !important;
     }
+}
+
+/* Mobile-specific print overrides */
+@media print and (max-width: 768px) {
+    /* Even more aggressive mobile print styles */
+    body {
+        zoom: 0.75 !important;
+        -webkit-transform: scale(0.75) !important;
+        transform: scale(0.75) !important;
+        transform-origin: top left !important;
+    }
     
     .bill-card {
-        box-shadow: none !important;
-        border: 1px solid #ddd !important;
+        font-size: 8px !important;
+        padding: 8px !important;
+        zoom: 1 !important;
+        transform: none !important;
     }
     
     .patient-header {
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 8px !important;
+        padding-bottom: 6px !important;
+    }
+    
+    .patient-info {
+        font-size: 8px !important;
+        gap: 3px !important;
+    }
+    
+    .info-label {
+        min-width: 50px !important;
+        font-size: 8px !important;
+    }
+    
+    .clinic-logo-image {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .clinic-name {
+        font-size: 7px !important;
+    }
+    
+    .bill-table {
+        margin: 6px 0 !important;
+        font-size: 7px !important;
+    }
+    
+    .bill-table >>> th,
+    .bill-table >>> td {
+        padding: 1px !important;
+        font-size: 7px !important;
+        line-height: 1 !important;
+    }
+    
+    /* Even more compact columns for mobile */
+    .bill-table >>> th:first-child,
+    .bill-table >>> td:first-child {
+        width: 32% !important;
+    }
+    
+    .bill-table >>> th:nth-child(2),
+    .bill-table >>> td:nth-child(2) {
+        width: 10% !important;
+    }
+    
+    .bill-table >>> th:nth-child(3),
+    .bill-table >>> td:nth-child(3) {
+        width: 16% !important;
+    }
+    
+    .bill-table >>> th:nth-child(4),
+    .bill-table >>> td:nth-child(4) {
+        width: 21% !important;
+    }
+    
+    .bill-table >>> th:nth-child(5),
+    .bill-table >>> td:nth-child(5) {
+        width: 21% !important;
+    }
+    
+    .bill-summary {
+        padding: 4px !important;
+        font-size: 8px !important;
+        margin: 6px 0 !important;
+    }
+    
+    .summary-row {
+        font-size: 8px !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .summary-row.remaining {
+        font-size: 9px !important;
+        margin-top: 4px !important;
+        padding-top: 4px !important;
+    }
+    
+    .signature-section {
+        margin-top: 10px !important;
+        padding-top: 6px !important;
+        gap: 15px !important;
+    }
+    
+    .signature-box {
+        width: 100px !important;
+    }
+    
+    .signature-label {
+        font-size: 7px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .signature-line {
+        height: 15px !important;
     }
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
+/* Mobile responsive - only for screen */
+@media screen and (max-width: 768px) {
     .patient-header {
         flex-direction: column;
         gap: 10px;
@@ -663,6 +1011,30 @@
     
     .signature-box {
         width: 100%;
+    }
+    
+    /* Mobile table styles - only for screen view */
+    .bill-table {
+        overflow-x: auto !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    .bill-table >>> .v-data-table__wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .bill-table >>> th,
+    .bill-table >>> td {
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        min-width: 80px !important;
+    }
+    
+    .v-card {
+        overflow-x: auto !important;
     }
 }
 </style>

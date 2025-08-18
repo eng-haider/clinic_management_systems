@@ -215,6 +215,24 @@
                 </template>
 
 
+                <template v-slot:[`item.rx_id`]="{ item }">
+                    <span @click="editItem(item)">
+                        {{ item.rx_id || '-' }}
+                    </span>
+                </template>
+
+                <template v-slot:[`item.lap_status`]="{ item }" v-if="$store.getters.userRole === 'admin' || $store.getters.userRole === 'doctor' || $store.getters.userRole === 'adminDoctor'">
+                    <v-chip
+                        :color="getLapStatusColor(item)"
+                        text-color="white"
+                        small
+                        v-if="getLapCaseStatus(item)"
+                    >
+                        {{ getLapCaseStatusText(item) }}
+                    </v-chip>
+                    <span v-else class="grey--text">-</span>
+                </template>
+
                 <template v-slot:[`item.names`]="{ item }">
 
                     <span @click="editItem(item)">
@@ -555,6 +573,18 @@
                         value: "age"
                     },
 
+                    {
+                        text: 'RX ID',
+                        align: "start",
+                        value: "rx_id"
+                    },
+
+                    (this.$store.getters.userRole === 'admin' || this.$store.getters.userRole === 'doctor' || this.$store.getters.userRole === 'adminDoctor') ? {
+                        text: 'حالة المختبر',
+                        align: "start",
+                        value: "lap_status"
+                    } : '',
+
                     this.$store.getters.isSecretary ? {
                         text: this.$t('datatable.data_create'),
                         align: "start",
@@ -603,6 +633,48 @@
         },
 
         methods: {
+            // Helper method to get lap case status
+            getLapCaseStatus(item) {
+                if (item.lap_case && Array.isArray(item.lap_case) && item.lap_case.length > 0) {
+                    // Get the latest lap case entry
+                    const latestLapCase = item.lap_case[item.lap_case.length - 1];
+                    return latestLapCase.status || null;
+                }
+                return null;
+            },
+
+            // Helper method to get lap case status display text
+            getLapCaseStatusText(item) {
+                const status = this.getLapCaseStatus(item);
+                if (!status) return '-';
+                
+                const statusMap = {
+                    'pending': 'في الانتظار',
+                    'in_progress': 'قيد التنفيذ',
+                    'completed': 'مكتمل',
+                    'cancelled': 'ملغي',
+                    'on_hold': 'متوقف'
+                };
+                
+                return statusMap[status] || status;
+            },
+
+            // Helper method to get lap case status color
+            getLapStatusColor(item) {
+                const status = this.getLapCaseStatus(item);
+                if (!status) return 'grey';
+                
+                const colorMap = {
+                    'pending': 'orange',
+                    'in_progress': 'blue',
+                    'completed': 'green',
+                    'cancelled': 'red',
+                    'on_hold': 'grey'
+                };
+                
+                return colorMap[status] || 'grey';
+            },
+
             // Add pagination handler
             handlePaginationChange(newPage) {
                 this.tableOptions.page = newPage;

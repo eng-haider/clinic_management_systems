@@ -136,7 +136,7 @@
                 <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
 
 
-                <div v-if="$store.state.AdminInfo.send_msg ==1">
+                <div >
                   <v-checkbox 
                     :disabled="!editedItem.reservation_from_time || !editedItem.reservation_start_date" 
                     v-model="send_msg"
@@ -217,9 +217,9 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-07-01", // Focus on December by default
-        startDate: "2025-07-01", // Start of December
-        endDate: "2025-08-30", // End of December,
+        focus: "2025-08-01", // Focus on December by default
+        startDate: "2025-08-01", // Start of December
+        endDate: "2025-09-30", // End of December,
 
         valid: true,
 
@@ -639,7 +639,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('https://apismartclinicv3.tctate.com/api/reservations', reservationData, {
+            const response = await axios.post('https://smartclinicv3.tctate.com/back/public/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -650,7 +650,7 @@
             console.log('Booking response:', response.data);
 
             // Send WhatsApp message if the switch is enabled and message exists
-            if (this.send_msg && this.editedItem.appointmentMessage && this.patient) {
+            if (  this.editedItem.appointmentMessage && this.patient) {
               try {
                 const whatsappData = {
                   patient_id: this.patient.id,
@@ -658,7 +658,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('https://apismartclinicv3.tctate.com/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://smartclinicv3.tctate.com/back/public/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -731,7 +731,7 @@
           }
           
           // Use the new API endpoint
-          const response = await axios.get('https://apismartclinicv3.tctate.com/api/reservations/formatted', {
+          const response = await axios.get('https://smartclinicv3.tctate.com/back/public/api/reservations/formatted', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

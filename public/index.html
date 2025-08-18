@@ -7,6 +7,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title><%= htmlWebpackPlugin.options.title %></title>
 	
+	<!-- Cache busting meta tags -->
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+	
 	<!-- PWA Meta Tags -->
 	<link rel="icon" href="<%= BASE_URL %>logo4.ico">
 	<link rel="manifest" href="manifest.json?v2">

@@ -4,6 +4,8 @@ const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
+  transpileDependencies: [],
+  
   // Disable source maps in production
   productionSourceMap: false,
   parallel: true,
@@ -11,12 +13,17 @@ module.exports = {
   devServer: {
     hot: false,
     liveReload: true,
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
   },
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: '[name].[contenthash].css',
-      chunkFilename: '[name].[contenthash].css'
+      filename: 'css/[name].css',
+      chunkFilename: 'css/[name].css'
     } : false,
     sourceMap: false,
   },
@@ -34,47 +41,57 @@ module.exports = {
     workboxOptions: {
       swSrc: 'public/sw.js',
       swDest: 'sw.js',
+      skipWaiting: true,
+      clientsClaim: true
     },
   },
 
+  // Disable code splitting and chunk files
   chainWebpack: config => {
     // Remove prefetch and preload plugins for better control
     config.plugins.delete('prefetch')
     config.plugins.delete('preload')
     
     // Configure HTML plugin
-    config
-      .plugin('html')
-      .tap((args) => {
-        args[0].title = 'Smart Clinic Management System';
-        return args;
-      });
-    
-    // Disable chunk splitting
-    config.optimization.delete('splitChunks');
-    
-    // Add cache-loader for better build performance
-    config.module
-      .rule('vue')
-      .use('cache-loader')
-      .loader('cache-loader')
-      .before('vue-loader')
+    config.plugin('html').tap((args) => {
+      args[0].title = 'Smart Clinic Management System';
+      return args;
+    });
   },
 
-  // Enhanced performance optimizations
+  // Enhanced performance optimizations with proper chunk configuration
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? 'bundle.js' : 'bundle.js',
-      chunkFilename: process.env.NODE_ENV === 'production' ? 'bundle.js' : 'bundle.js'
+      filename: 'js/[name].[hash].js',
+      chunkFilename: 'js/[name].[hash].js'
+    },
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            // Remove custom filename to prevent conflict
+            // filename: 'vendors.[contenthash].js'
+          }
+        }
+      },
+      runtimeChunk: false,
+      minimize: true,
+      concatenateModules: false,
+      providedExports: false,
+      usedExports: false,
+      sideEffects: false,
+      removeAvailableModules: false,
+      removeEmptyChunks: false,
+      mergeDuplicateChunks: false
     },
     performance: {
       hints: false,
-      maxEntrypointSize: 512000,
-      maxAssetSize: 512000
-    },
-    optimization: {
-      minimize: process.env.NODE_ENV === 'production',
-      // No chunk splitting
+      maxEntrypointSize: 5048000,
+      maxAssetSize: 5048000
     },
     resolve: {
       alias: {
@@ -96,6 +113,9 @@ module.exports = {
       })
     ],
   },
+
+  // Public path configuration
+  publicPath: process.env.NODE_ENV === 'production' ? './' : '/'
 }
 
 

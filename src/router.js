@@ -5,37 +5,52 @@ import performanceMonitor from './utils/performanceMonitor'
 
 Vue.use(Router)
 
-// Enhanced route components with better caching and preloading
+// Static imports - no chunking
+import Login from '@/views/pages/Login'
+import Register from '@/views/pages/register'
+import DashboardLayout from '@/views/dashboard/Index'
+import PagesLayout from '@/views/pages/Index'
+import Dashboard from '@/views/dashboard/Dashboard'
+import CaseSheet from '@/views/dashboard/casesheet'
+import Cases from '@/views/dashboard/cases'
+import Patient from '@/views/dashboard/patient'
+import Calendar from '@/views/dashboard/calendar'
+import Recipe from '@/views/dashboard/Recipe'
+import Reports from '@/views/dashboard/reports'
+import Accounts from '@/views/dashboard/accounts'
+import BillsReport from '@/views/dashboard/billsReport'
+import CaseLap from '@/views/dashboard/CaseLap'
+import Doctors from '@/views/dashboard/doctors'
+import Profile from '@/views/dashboard/profile'
+import Store from '@/views/dashboard/store'
+import Error from '@/views/pages/Error'
+import Recipes from '@/views/dashboard/recipes'
+import Conjugations from '@/views/dashboard/Conjugations'
+import ConjugationsCategories from '@/views/dashboard/ConjugationsCategories'
+import XX from '@/views/dashboard/xx'
+import RequestBookingTest from '@/views/dashboard/requestBooking_test'
+import BirthDay from '@/views/dashboard/BirthDay'
+import WaitingList from '@/views/dashboard/waitinglist'
+
 const routeComponents = {
-  // Auth pages - Critical path, smaller chunks
-  Login: () => import(/* webpackChunkName: "auth" */ '@/views/pages/Login'),
-  Register: () => import(/* webpackChunkName: "auth" */ '@/views/pages/register'),
-  
-  // Layouts - High priority
-  DashboardLayout: () => import(/* webpackChunkName: "layout" */ '@/views/dashboard/Index'),
-  PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
-  
-  // Core dashboard views - Optimized chunking
-  Dashboard: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/Dashboard'),
-  CaseSheet: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/casesheet'),
-  Cases: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/cases'),
-  Patient: () => import(/* webpackChunkName: "patient" */ '@/views/dashboard/patient'),
-  
-  // Secondary views - Separate chunks
-  Calendar: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/calendar'),
-  Recipe: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/Recipe'),
-  Reports: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/reports'),
-  Accounts: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/accounts'),
-  BillsReport: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/billsReport'),
-  CaseLap: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/CaseLap'),
-  
-  // Administrative views - Separate chunk
-  Doctors: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/doctors'),
-  Profile: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/profile'),
-  Store: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/store'),
-  
-  // Error pages
-  Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
+  Login,
+  Register,
+  DashboardLayout,
+  PagesLayout,
+  Dashboard,
+  CaseSheet,
+  Cases,
+  Patient,
+  Calendar,
+  Recipe,
+  Reports,
+  Accounts,
+  BillsReport,
+  CaseLap,
+  Doctors,
+  Profile,
+  Store,
+  Error,
 }
 
 const router = new Router({
@@ -103,7 +118,7 @@ const router = new Router({
         {
           path: 'case/:id',
           name: 'case',
-          component: () => import(/* webpackChunkName: "case-detail" */ '@/views/dashboard/casex'),
+          component: routeComponents.Casex,
           meta: { keepAlive: true }
         },
         {
@@ -122,7 +137,7 @@ const router = new Router({
         {
           path: 'recipes',
           name: 'recipes',
-          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/recipes')
+          component: Recipes
         },
         {
           path: 'conjugations',

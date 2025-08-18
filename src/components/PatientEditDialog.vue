@@ -272,16 +272,19 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
-        dictDefaultMessage: '<i class="fas fa-upload"></i> اضغط هنا لرفع صور الحاله',
+        dictDefaultMessage: this.isMobileDevice ? 
+          '<i class="fas fa-camera"></i> اضغط هنا لفتح الكاميرا' : 
+          '<i class="fas fa-upload"></i> اضغط هنا لرفع صور الحاله',
         paramName: "file",
         maxFiles: 10,
         addRemoveLinks: true,
         dictRemoveFile: "حذف الصورة",
-        dictCancelUpload: "إلغاء الرفع"
+        dictCancelUpload: "إلغاء الرفع",
+        capture: this.isMobileDevice ? "environment" : false
       },
 
       // Validation rules
@@ -316,6 +319,10 @@ export default {
 
     formTitle() {
       return this.isEditing ? this.$t('update') : this.$t('patients.addnewpatients');
+    },
+
+    isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
   },
 
@@ -351,6 +358,9 @@ export default {
         "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
       };
     }
+    
+    // Update dropzone options based on device type
+    this.updateDropzoneForDevice();
   },
 
   methods: {
@@ -361,6 +371,11 @@ export default {
         this.$refs.myVueDropzone.removeAllFiles();
       }
       this.$emit('input', true);
+      
+      // Update dropzone for device type after dialog opens
+      this.$nextTick(() => {
+        this.updateDropzoneForDevice();
+      });
     },
 
     closeDialog() {
@@ -452,7 +467,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://apismartclinicv3.tctate.com/api/patients";
+        const apiUrl = "https://smartclinicv3.tctate.com/back/public/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
@@ -525,7 +540,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://apismartclinicv3.tctate.com/api/cases/uploude_images', {
+        const response = await fetch('https://smartclinicv3.tctate.com/back/public/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -551,7 +566,28 @@ export default {
           confirmButtonText: "موافق",
         });
       }
-    }
+    },
+
+    updateDropzoneForDevice() {
+      if (this.isMobileDevice) {
+        // For mobile devices, configure to open camera
+        this.dropzoneOptions.acceptedFiles = "image/*";
+        this.dropzoneOptions.capture = "environment";
+        this.dropzoneOptions.dictDefaultMessage = '<i class="fas fa-camera"></i> اضغط هنا لفتح الكاميرا';
+        
+        // Add click handler to open camera directly
+        this.$nextTick(() => {
+          if (this.$refs.myVueDropzone) {
+            const dropzoneElement = this.$refs.myVueDropzone.$el;
+            const fileInput = dropzoneElement.querySelector('input[type="file"]');
+            if (fileInput) {
+              fileInput.setAttribute('capture', 'environment');
+              fileInput.setAttribute('accept', 'image/*');
+            }
+          }
+        });
+      }
+    },
   }
 }
 </script>

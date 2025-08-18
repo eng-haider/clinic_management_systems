@@ -735,7 +735,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -1082,7 +1082,7 @@ birth_date: ''
         // Load patient data using the new API endpoint
         console.log('📡 Making API request to get patient data...');
         
-        const response = await this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
+        const response = await this.$http.get(`https://smartclinicv3.tctate.com/back/public/api/getPatientById/${patientId}`, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1939,7 +1939,7 @@ birth_date: ''
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://smartclinicv3.tctate.com/back/public/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1980,7 +1980,7 @@ birth_date: ''
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://smartclinicv3.tctate.com/back/public/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2011,7 +2011,7 @@ birth_date: ''
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://smartclinicv3.tctate.com/back/public/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2049,7 +2049,7 @@ birth_date: ''
             patient_id: this.patient.id.toString()
           };
           
-          const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://smartclinicv3.tctate.com/back/public/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2072,7 +2072,7 @@ birth_date: ''
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://apismartclinicv3.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://smartclinicv3.tctate.com/back/public/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2202,8 +2202,8 @@ birth_date: ''
     // Get full image URL
     getImageUrl(imageName) {
       if (!imageName) return '';
-      // Use the base URL from the example API response
-      return `https://apismartclinicv3.tctate.com/case_photo/${imageName}`;
+      // Use the correct base URL that matches your API
+      return `https://smartclinicv3.tctate.com/back/public/case_photo/${imageName}`;
     },
 
     // Delete image from server and local array

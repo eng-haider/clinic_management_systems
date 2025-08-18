@@ -569,9 +569,9 @@
             return {
                 oldDoctors: {},
                 recipes: [],
-                UP_url: 'https://apismartclinicv3.tctate.com/public/api/cases/uploude_image',
+                UP_url: 'https://smartclinicv3.tctate.com/back/public/public/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url: 'https://apismartclinicv3.tctate.com/api/cases/uploude_image',
+                    url: 'https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image',
                     thumbnailWidth: 150,
                     maxFilesize: 5.5,
 
