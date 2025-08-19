@@ -185,6 +185,16 @@ const router = new Router({
           name: 'showWaitingList',
           component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/waitinglist')
         },
+
+
+ {
+          path: 'case-categories',
+          name: 'showWaitingList',
+          component: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/CaseCategories')
+        },
+
+       
+
         {
           path: 'case-lap',
           name: 'caseLap',
