@@ -868,7 +868,7 @@
 
       getclinicDoctor() {
         this.loadingData = true;
-        this.axios.get("https://smartclinicv3.tctate.com/back/public/api/doctors/clinic", {
+        this.axios.get("https://apismartclinicv3.tctate.com/api/doctors/clinic", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

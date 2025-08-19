@@ -67,7 +67,7 @@ Vue.use(PrintPlugin)
 Vue.mixin({
   data() {
     return {
-      Url: 'https://smartclinicv3.tctate.com/back/public',  // Updated to v4 API
+      Url: 'https://apismartclinicv3.tctate.com',  // Updated to v4 API
       http: 'https://'  // Changed to https for security
     }
   }
