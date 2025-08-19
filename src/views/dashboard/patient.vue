@@ -112,11 +112,29 @@
                         hide-default-footer
                         disable-sort
                         @click="handleDataTableClick"
+                        :item-class="getRowClass"
                       >
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip small color="primary" text-color="white">
+                            <div v-if="Array.isArray(item.tooth_numbers) && item.tooth_numbers.length > 1" 
+                                 class="multiple-teeth-chips">
+                              <v-chip 
+                                v-for="(toothNum, index) in item.tooth_numbers" 
+                                :key="index"
+                                small 
+                                color="primary" 
+                                text-color="white"
+                                class="ma-1"
+                                @click="selectToothInTemplate(toothNum)"
+                                style="cursor: pointer;"
+                              >
+                                {{ toothNum }}
+                              </v-chip>
+                            </div>
+                            <v-chip v-else small color="primary" text-color="white"
+                                    @click="selectToothInTemplate(item.tooth_number)"
+                                    style="cursor: pointer;">
                               {{ item.tooth_number }}
                             </v-chip>
                           </div>
@@ -124,9 +142,17 @@
 
                         <!-- Case Type Column -->
                         <template v-slot:item.case_type="{ item }">
-                          <v-chip small color="purple" text-color="white">
-                            {{ item.case_type }}
-                          </v-chip>
+                          <div class="case-type-cell">
+                            <v-chip small color="purple" text-color="white" class="mb-1">
+                              {{ item.case_type }}
+                            </v-chip>
+                            <div v-if="Array.isArray(item.tooth_numbers) && item.tooth_numbers.length > 1" 
+                                 class="multiple-teeth-indicator">
+                              <v-chip x-small color="orange" text-color="white">
+                                {{ item.tooth_numbers.length }} أسنان
+                              </v-chip>
+                            </div>
+                          </div>
                         </template>
 
                         
@@ -735,7 +761,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -760,7 +786,15 @@ birth_date: ''
   computed: {
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      return this.patientCases.map(case_item => case_item.tooth_number);
+      const allTeeth = [];
+      this.patientCases.forEach(case_item => {
+        if (case_item.tooth_numbers && Array.isArray(case_item.tooth_numbers)) {
+          allTeeth.push(...case_item.tooth_numbers);
+        } else if (case_item.tooth_number) {
+          allTeeth.push(case_item.tooth_number);
+        }
+      });
+      return [...new Set(allTeeth)]; // Remove duplicates
     },
     
     totalAmount() {
@@ -934,20 +968,84 @@ birth_date: ''
         return;
       }
       
-      // Get operation name
+      // Get operation name and ID
       const operationName = caseData.operation.name || caseData.operation.name_ar;
+      const operationId = caseData.operation.id;
       
-      // Create new case object (allowing multiple categories for same tooth)
+      // Check for special case categories that require multiple teeth
+      let teethToSelect = [caseData.toothNumber]; // Default: single tooth
+      let toothNumbers = [caseData.toothNumber];
+      
+      if (operationId === 56) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 56);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل للأسنان الأمامية العلوية. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Case category 56: select teeth 24,23,22,21,11,12,13,14
+        teethToSelect = [24, 23, 22, 21, 11, 12, 13, 14];
+        toothNumbers = [24, 23, 22, 21, 11, 12, 13, 14];
+        console.log('🦷 Special case category 56 detected - selecting upper front teeth:', teethToSelect);
+        
+        // Show notification for upper front teeth case
+        this.$swal.fire({
+          title: "حالة أسنان متعددة",
+          text: `تم إضافة الحالة "${operationName}" للأسنان الأمامية العلوية: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (operationId === 57) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 57);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل للأسنان العلوية الممتدة. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Case category 57: select teeth 25,24,23,22,21,11,12,13,14,15
+        teethToSelect = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15];
+        toothNumbers = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15];
+        console.log('🦷 Special case category 57 detected - selecting extended upper teeth:', teethToSelect);
+        
+        // Show notification for extended upper teeth case
+        this.$swal.fire({
+          title: "حالة أسنان متعددة",
+          text: `تم إضافة الحالة "${operationName}" للأسنان العلوية الممتدة: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      }
+      
+      // Create new case object with multiple teeth support
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
         server_id: null, // Will be set after saving to server
-        tooth_number: caseData.toothNumber,
+        tooth_number: teethToSelect[0], // Primary tooth for backward compatibility
+        tooth_numbers: toothNumbers, // Array of all teeth for this case
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
         completed: false,
         notes: '',
-        operation_id: caseData.operation.id,
+        operation_id: operationId,
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
@@ -962,7 +1060,7 @@ birth_date: ''
         this.$forceUpdate();
       });
       
-      console.log('New case added:', newCase);
+      console.log('New case added with teeth:', newCase.tooth_numbers);
       
      
     },
@@ -1068,7 +1166,9 @@ birth_date: ''
         console.log('🆔 Patient ID from route:', patientId);
         
         if (!patientId) {
-          throw new Error('Patient ID not found in route');
+          console.error('❌ Patient ID not found in route');
+          this.$router.push('/dashboard');
+          return;
         }
 
         // Check if we have token
@@ -1076,23 +1176,42 @@ birth_date: ''
         console.log('🔑 Token available:', !!token);
         
         if (!token) {
-          throw new Error('No authentication token found');
+          console.error('❌ No authentication token found');
+          this.$router.push('/login');
+          return;
         }
 
         // Load patient data using the new API endpoint
         console.log('📡 Making API request to get patient data...');
         
-        const response = await this.$http.get(`https://apismartclinicv3.tctate.com/api/getPatientById/${patientId}`, {
+        // Use dynamic URL from store if available
+        const baseUrl = this.$store.state.AdminInfo?.api_url || this.Url || 'https://smartclinicv3.tctate.com/back/public';
+        const apiUrl = `${baseUrl}/api/getPatientById/${patientId}`;
+        
+        console.log('📡 API URL:', apiUrl);
+        
+        const response = await this.$http.get(apiUrl, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
             Authorization: "Bearer " + token
-          }
+          },
+          timeout: 30000 // 30 second timeout
         });
 
         console.log('📡 API response received:', response.status);
+        
+        if (!response.data) {
+          throw new Error('No data received from server');
+        }
+        
         const data = response.data;
         console.log('📊 Patient data structure:', Object.keys(data));
+        
+        // Validate required data
+        if (!data.id || !data.name) {
+          throw new Error('Invalid patient data received');
+        }
         
         // Set patient basic info
         console.log('👤 Processing patient basic info...');
@@ -1114,21 +1233,31 @@ birth_date: ''
         // Process cases data
         console.log('📋 Processing cases data...');
         this.patientCases = data.cases ? data.cases.map(caseItem => {
-          // Parse tooth number from JSON array format
+          // Parse tooth number(s) from JSON array format
           let toothNumber = null;
+          let toothNumbers = [];
+          
           try {
             if (caseItem.tooth_num) {
               const parsed = JSON.parse(caseItem.tooth_num);
-              toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
+              if (Array.isArray(parsed)) {
+                toothNumbers = parsed;
+                toothNumber = parsed[0]; // For backwards compatibility
+              } else {
+                toothNumber = parsed;
+                toothNumbers = [parsed];
+              }
             }
           } catch (e) {
             toothNumber = caseItem.tooth_num;
+            toothNumbers = [caseItem.tooth_num];
           }
 
           return {
             id: caseItem.id,
             server_id: caseItem.id,
             tooth_number: toothNumber,
+            tooth_numbers: toothNumbers, // Array of all teeth for this case
             case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
             date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
             price: caseItem.price,
@@ -1939,7 +2068,7 @@ birth_date: ''
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://smartclinicv3.tctate.com/back/public/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -1961,9 +2090,14 @@ birth_date: ''
     // Save new case
     async saveNewCase(caseItem) {
       try {
+        // Prepare tooth_num - if it's multiple teeth, use the array, otherwise create array with single tooth
+        const toothNums = caseItem.tooth_numbers && caseItem.tooth_numbers.length > 1 
+          ? caseItem.tooth_numbers.map(num => parseInt(num))
+          : [parseInt(caseItem.tooth_number)];
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
-          tooth_num: [parseInt(caseItem.tooth_number)],
+          tooth_num: toothNums,
           status_id: caseItem.completed ? 43 : 42,
           sessions: [{
             note: caseItem.notes || "",
@@ -1980,7 +2114,7 @@ birth_date: ''
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://smartclinicv3.tctate.com/back/public/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2001,17 +2135,22 @@ birth_date: ''
     // Update existing case
     async updateExistingCase(caseItem) {
       try {
+        // Prepare tooth_num - if it's multiple teeth, create proper JSON string array
+        const toothNumString = caseItem.tooth_numbers && caseItem.tooth_numbers.length > 1
+          ? JSON.stringify(caseItem.tooth_numbers.map(num => parseInt(num)))
+          : `[${parseInt(caseItem.tooth_number)}]`;
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
           images: [],
-          tooth_num: `[${caseItem.tooth_number}]`,
+          tooth_num: toothNumString,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://smartclinicv3.tctate.com/back/public/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2049,7 +2188,7 @@ birth_date: ''
             patient_id: this.patient.id.toString()
           };
           
-          const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://smartclinicv3.tctate.com/back/public/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2072,7 +2211,7 @@ birth_date: ''
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://apismartclinicv3.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://smartclinicv3.tctate.com/back/public/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2203,7 +2342,7 @@ birth_date: ''
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the correct base URL that matches your API
-      return `https://apismartclinicv3.tctate.com/case_photo/${imageName}`;
+      return `https://smartclinicv3.tctate.com/back/public/case_photo/${imageName}`;
     },
 
     // Delete image from server and local array
@@ -2248,9 +2387,37 @@ birth_date: ''
       }
     },
 
+    // Select a specific tooth in the tooth template
+    selectToothInTemplate(toothNumber) {
+      console.log('🦷 Selecting tooth in template:', toothNumber);
+      
+      // Find the teeth component and trigger tooth selection
+      const teethComponent = this.$children.find(child => child.$options.name === 'teeth');
+      if (teethComponent && teethComponent.selectTooth) {
+        teethComponent.selectTooth(toothNumber);
+      }
+      
+      // Alternative: Emit event or use refs if available
+      this.$nextTick(() => {
+        // Try to find tooth element and highlight it
+        const toothElement = document.querySelector(`[data-tooth="${toothNumber}"]`);
+        if (toothElement) {
+          toothElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toothElement.classList.add('highlighted-tooth');
+          
+          // Remove highlight after 2 seconds
+          setTimeout(() => {
+            toothElement.classList.remove('highlighted-tooth');
+          }, 2000);
+        }
+      });
+    },
+
   },
 
 async mounted() {
+  console.log('🚀 Starting component mount...');
+  
   try {
     // Set authorization header for dropzone
     if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
@@ -2359,7 +2526,23 @@ async mounted() {
     console.log('✅ Component mounted successfully');
     
   } catch (error) {
-    console.error('❌ Error during component mount:', error);
+    console.error('❌ Critical error during component mount:', error);
+    
+    // Show error to user and try to recover
+    this.$swal.fire({
+      title: "خطأ في تحميل الصفحة",
+      text: "حدث خطأ أثناء تحميل صفحة المريض. يرجى إعادة تحميل الصفحة أو العودة للصفحة الرئيسية.",
+      icon: "error",
+      confirmButtonText: "إعادة تحميل",
+      showCancelButton: true,
+      cancelButtonText: "العودة للرئيسية"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.reload();
+      } else {
+        this.$router.push('/dashboard');
+      }
+    });
   }
 },
   
@@ -2551,6 +2734,66 @@ async mounted() {
     position: relative;
     bottom: 0;
     left: 0;
+  }
+}
+
+/* Multiple teeth styling */
+.multiple-teeth-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 150px;
+}
+
+.tooth-number-cell {
+  min-width: 60px;
+}
+
+.case-type-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.multiple-teeth-indicator {
+  font-size: 11px;
+}
+
+/* Special row styling for multi-tooth cases */
+.multi-tooth-case-row {
+  background-color: #e8f5e8 !important;
+  border-left: 4px solid #4caf50 !important;
+}
+
+.multiple-teeth-row {
+  background-color: #fff3e0 !important;
+  border-left: 4px solid #ff9800 !important;
+}
+
+.multi-tooth-case-row:hover,
+.multiple-teeth-row:hover {
+  background-color: #f3e5f5 !important;
+}
+
+.highlighted-tooth {
+  animation: highlight-pulse 0.5s ease-in-out 3;
+  border: 2px solid #ff5722 !important;
+  box-shadow: 0 0 10px rgba(255, 87, 34, 0.5) !important;
+}
+
+@keyframes highlight-pulse {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
+  }
+  50% { 
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.8);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
   }
 }
 </style>

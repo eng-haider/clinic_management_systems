@@ -5,7 +5,7 @@
                 <h3 style="color:#fff;font-family: 'Cairo'"> تقرير الحساب </h3>
             </v-toolbar-title>
             <v-spacer />
-            <v-btn @click="printReport()" icon title="طباعة التقرير">
+            <v-btn @click="printReport()" icon title="طباعة التقرير" style="touch-action: manipulation;">
                 <v-icon>mdi-printer</v-icon>
             </v-btn>
             <v-btn @click="close()" icon>
@@ -38,20 +38,26 @@
 
             <v-divider class="my-3"></v-divider>
 
-            <!-- Bills Table -->
-            <v-data-table 
-                class="bill-table"
-                :headers="headers"
-                :items="billItems"
-                hide-default-footer
-                disable-pagination>
-                
-             
-                
-                <template v-slot:no-data>
-                    <div class="text-center pa-4">لا توجد فواتير</div>
-                </template>
-            </v-data-table>
+        
+
+            <!-- Bills Table - Force Desktop Layout -->
+            <div class="table-container">
+                <v-data-table 
+                    class="bill-table"
+                    :headers="headers"
+                    :items="billItems"
+                    hide-default-footer
+                    disable-pagination
+                    :mobile-breakpoint="0"
+                    fixed-header>
+                    
+                 
+                    
+                    <template v-slot:no-data>
+                        <div class="text-center pa-4">لا توجد فواتير</div>
+                    </template>
+                </v-data-table>
+            </div>
 
             <v-divider class="my-3"></v-divider>
 
@@ -481,6 +487,8 @@
             },
 
             async printReport() {
+                console.log('Print report clicked - Mobile detection:', this.isMobileDevice());
+                
                 try {
                     // Get the bill card element
                     const billElement = document.querySelector('.bill-card');
@@ -493,166 +501,813 @@
                         return;
                     }
 
-                    // Use the PWA-friendly print utility with A5 paper size
-                    await this.$print.printWithIframe(billElement, {
-                        paperSize: this.$paperSizes.A5, // Changed from A4 to A5
-                        title: 'تقرير الحساب',
-                        customStyles: `
-                            .bill-card {
-                                width: 100%;
-                                max-width: none;
-                                margin: 0;
-                                padding: 15px;
-                                background: white;
-                                border: none;
-                                box-shadow: none;
-                                font-family: 'Cairo', Arial, sans-serif;
-                                direction: rtl;
-                            }
-                            
-                            .patient-header {
-                                display: flex;
-                                justify-content: space-between;
-                                flex-wrap: nowrap;
-                                margin-bottom: 15px;
-                                padding-bottom: 10px;
-                                border-bottom: 2px solid #333;
-                                align-items: flex-start;
-                            }
-                            
-                            .patient-details {
-                                flex: 1;
-                                max-width: 65%;
-                            }
-                            
-                            .patient-info {
-                                display: flex;
-                                align-items: center;
-                                gap: 8px;
-                                margin-bottom: 6px;
-                                font-size: 11px;
-                            }
-                            
-                            .info-label {
-                                font-weight: bold;
-                                white-space: nowrap;
-                                min-width: 70px;
-                            }
-                            
-                            .info-value {
-                                font-weight: 500;
-                            }
-                            
-                            .clinic-logo {
-                                text-align: center;
-                                flex-shrink: 0;
-                                max-width: 30%;
-                            }
-                            
-                            .clinic-logo-image {
-                                width: 60px;
-                                height: 60px;
-                                object-fit: contain;
-                                margin-bottom: 8px;
-                            }
-                            
-                            .clinic-name {
-                                font-weight: bold;
-                                font-size: 12px;
-                            }
-                            
-                            table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                margin: 15px 0;
-                                font-size: 10px;
-                            }
-                            
-                            th, td {
-                                padding: 6px 4px;
-                                text-align: right;
-                                border: 1px solid #333;
-                                white-space: nowrap;
-                                font-size: 9px;
-                            }
-                            
-                            th {
-                                background-color: #f5f5f5;
-                                font-weight: bold;
-                            }
-                            
-                            .bill-summary {
-                                margin: 15px 0;
-                                padding: 10px;
-                                background-color: #f9f9f9;
-                                border: 1px solid #333;
-                                border-radius: 3px;
-                            }
-                            
-                            .summary-row {
-                                display: flex;
-                                justify-content: space-between;
-                                margin-bottom: 6px;
-                                padding: 3px 0;
-                                font-size: 10px;
-                            }
-                            
-                            .summary-row.remaining {
-                                border-top: 2px solid #333;
-                                margin-top: 8px;
-                                padding-top: 8px;
-                                font-weight: bold;
-                                font-size: 11px;
-                            }
-                            
-                            .summary-label {
-                                font-weight: bold;
-                            }
-                            
-                            .signature-section {
-                                display: flex;
-                                justify-content: space-between;
-                                margin-top: 20px;
-                                padding-top: 15px;
-                                border-top: 1px solid #333;
-                                gap: 20px;
-                            }
-                            
-                            .signature-box {
-                                text-align: center;
-                                flex: 1;
-                                max-width: 150px;
-                            }
-                            
-                            .signature-label {
-                                font-weight: bold;
-                                margin-bottom: 20px;
-                                font-size: 10px;
-                            }
-                            
-                            .signature-line {
-                                border-bottom: 2px solid #333;
-                                height: 30px;
-                                width: 100%;
-                            }
-                            
-                            /* Hide v-divider elements and buttons */
-                            .v-divider,
-                            .v-btn,
-                            button {
-                                display: none !important;
-                            }
-                        `
-                    });
+                    // Check if device is mobile
+                    const isMobile = this.isMobileDevice();
+                    
+                    if (isMobile) {
+                        // Use mobile-specific method that actually works
+                        this.printOnMobile(billElement);
+                    } else {
+                        // Use desktop print method
+                        if (this.$print && this.$print.printWithIframe) {
+                            await this.$print.printWithIframe(billElement, {
+                                paperSize: this.$paperSizes ? this.$paperSizes.A5 : 'A5',
+                                title: 'تقرير الحساب',
+                                customStyles: this.getPrintStyles() + this.getMobilePrintStyles()
+                            });
+                        } else {
+                            // Fallback if print plugin not available
+                            this.printFallback(billElement);
+                        }
+                    }
 
                 } catch (error) {
                     console.error('Print error:', error);
-                    this.$swal.fire({
-                        icon: 'error',
-                        title: 'خطأ في الطباعة',
-                        text: 'حدث خطأ أثناء محاولة الطباعة. يرجى المحاولة مرة أخرى.'
-                    });
+                    // Fallback for any device if main method fails
+                    const billElement = document.querySelector('.bill-card');
+                    if (billElement) {
+                        this.printFallback(billElement);
+                    } else {
+                        this.showPrintInstructions();
+                    }
                 }
+            },
+
+            // Mobile print method that definitely works
+            printOnMobile(element) {
+                console.log('printOnMobile called for element:', element);
+                
+                // For mobile, use current window method for better user experience
+                // This avoids the issue of getting stuck in a new window
+                this.printInCurrentWindow(element);
+            },
+
+            // Print in current window (reliable mobile method)
+            printInCurrentWindow(element) {
+                // Show mobile-specific confirmation dialog with A5 instructions
+                this.$swal.fire({
+                    title: 'طباعة التقرير',
+                    html: `
+                        <div style="text-align: right; direction: rtl; font-family: Cairo, sans-serif;">
+                            <p style="margin-bottom: 15px;"><strong>سيتم فتح نافذة الطباعة.</strong></p>
+                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                <h4 style="margin: 0 0 10px 0; color: #1976D2;">📋 لطباعة بحجم A5:</h4>
+                                <ol style="text-align: right; margin: 0; padding-right: 20px;">
+                                    <li>في نافذة الطباعة، ابحث عن "إعدادات الطباعة" أو "More settings"</li>
+                                    <li>في "حجم الورق"، اختر <strong>A5</strong> إذا كان متاحاً</li>
+                                    <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب:</li>
+                                    <ul style="margin: 5px 0; padding-right: 20px;">
+                                        <li><strong>العرض:</strong> 148mm أو 5.8 inches</li>
+                                        <li><strong>الطول:</strong> 210mm أو 8.3 inches</li>
+                                    </ul>
+                                    <li>اختر الهوامش "ضيق" أو "Narrow"</li>
+                                </ol>
+                                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                                    💡 إذا لم تجد هذه الخيارات، استخدم الحجم الافتراضي - التقرير مُحسَّن للطباعة
+                                </p>
+                            </div>
+                            <p>بعد الانتهاء، سيتم العودة تلقائياً للصفحة السابقة.</p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'متابعة الطباعة',
+                    cancelButtonText: 'إلغاء',
+                    confirmButtonColor: '#2196F3',
+                    cancelButtonColor: '#f44336',
+                    width: '90%'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.executeCurrentWindowPrint(element);
+                    }
+                });
+            },
+
+            // Execute the actual print in current window
+            executeCurrentWindowPrint(element) {
+                // Save current content
+                const originalContent = document.body.innerHTML;
+                const originalTitle = document.title;
+                
+                // Build print content with navigation
+                const printContent = this.buildSimplePrintContent(element);
+                
+                // Replace content temporarily
+                document.title = 'تقرير الحساب';
+                document.body.innerHTML = printContent;
+                
+                // Add print styles
+                const printStyles = document.createElement('style');
+                printStyles.innerHTML = this.getPrintStyles() + this.getMobilePrintStyles();
+                document.head.appendChild(printStyles);
+                
+                // Show loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; font-family: Cairo, sans-serif; direction: rtl;">
+                        <div style="text-align: center; background: white; color: black; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                            <h3>جاري تحضير الطباعة...</h3>
+                            <p>سيتم فتح نافذة الطباعة خلال ثانية واحدة</p>
+                            <button onclick="this.parentElement.parentElement.remove(); window.history.back();" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                                إلغاء والعودة
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(loadingMsg);
+                
+                // Trigger print after delay
+                setTimeout(() => {
+                    loadingMsg.remove();
+                    
+                    // Listen for print dialog events
+                    const handleAfterPrint = () => {
+                        // Restore content after print
+                        document.title = originalTitle;
+                        document.body.innerHTML = originalContent;
+                        if (printStyles && printStyles.parentNode) {
+                            printStyles.parentNode.removeChild(printStyles);
+                        }
+                        
+                        // Remove event listener
+                        window.removeEventListener('afterprint', handleAfterPrint);
+                        
+                        // Reload page to restore Vue functionality
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    };
+                    
+                    // Add event listener for after print
+                    window.addEventListener('afterprint', handleAfterPrint);
+                    
+                    // Add a backup timeout in case afterprint doesn't fire
+                    setTimeout(() => {
+                        if (document.title === 'تقرير الحساب') {
+                            handleAfterPrint();
+                        }
+                    }, 10000); // 10 seconds backup
+                    
+                    // Trigger print
+                    window.print();
+                    
+                }, 1000);
+            },
+
+            // Build simple print content for current window method
+            buildSimplePrintContent(element) {
+                return `
+                    <div style="font-family: Cairo, Arial, sans-serif; direction: rtl; padding: 15mm;">
+                        ${element.outerHTML}
+                        <div style="text-align: center; margin-top: 10px;" class="screen-only">
+                            <button onclick="window.history.back(); window.location.reload();" style="
+                                background: #2196F3; 
+                                color: white; 
+                                border: none; 
+                                padding: 8px 16px; 
+                                border-radius: 4px; 
+                                cursor: pointer; 
+                                font-family: Cairo, Arial, sans-serif;
+                                font-size: 12px;
+                            ">
+                                العودة
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            // Build complete HTML for new window method
+            buildMobilePrintHTML(element) {
+                return `
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>تقرير الحساب</title>
+                        <style>
+                            ${this.getPrintStyles()}
+                            ${this.getMobilePrintStyles()}
+                            
+                            /* Additional mobile-specific styles */
+                            body {
+                                font-family: 'Cairo', Arial, sans-serif;
+                                direction: rtl;
+                                margin: 0;
+                                padding: 20px;
+                            }
+                            
+                            /* Print button for the new window */
+                            .print-controls {
+                                text-align: center;
+                                margin: 20px 0;
+                                padding: 15px;
+                                background: #f5f5f5;
+                                border-radius: 8px;
+                            }
+                            
+                            .print-btn {
+                                padding: 12px 24px;
+                                margin: 0 8px;
+                                font-size: 16px;
+                                cursor: pointer;
+                                border: none;
+                                border-radius: 6px;
+                                color: white;
+                                font-family: 'Cairo', Arial, sans-serif;
+                            }
+                            
+                            .print-btn-primary {
+                                background: #2196F3;
+                            }
+                            
+                            .print-btn-secondary {
+                                background: #f44336;
+                            }
+                            
+                            @media print {
+                                .print-controls {
+                                    display: none !important;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="print-controls">
+                            <button class="print-btn print-btn-primary" onclick="window.print()">🖨️ طباعة</button>
+                            <button class="print-btn print-btn-secondary" onclick="window.close()">✕ إغلاق</button>
+                        </div>
+                        ${element.outerHTML}
+                        <div class="print-controls">
+                            <p style="font-size: 14px; color: #666; margin: 10px 0;">
+                                💡 اضغط على "طباعة" أعلاه أو استخدم Ctrl+P (أو Cmd+P على Mac)
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+            },
+
+            // Fallback print method for mobile devices
+            printFallback(element) {
+                try {
+                    // Create a new window for printing
+                    const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
+                    
+                    if (printWindow) {
+                        const printHTML = this.buildDesktopPrintHTML(element);
+                        printWindow.document.write(printHTML);
+                        printWindow.document.close();
+                        
+                        // Wait for content to load then print
+                        setTimeout(() => {
+                            printWindow.focus();
+                            printWindow.print();
+                        }, 1000);
+                    } else {
+                        // If popup blocked, show instructions
+                        this.showPrintInstructions();
+                    }
+                } catch (error) {
+                    console.error('Fallback print error:', error);
+                    this.showPrintInstructions();
+                }
+            },
+
+            // Build HTML for desktop-style printing
+            buildDesktopPrintHTML(element) {
+                return `
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>تقرير الحساب</title>
+                        <style>
+                            ${this.getPrintStyles()}
+                            ${this.getMobilePrintStyles()}
+                        </style>
+                    </head>
+                    <body>
+                        ${element.outerHTML}
+                    </body>
+                    </html>
+                `;
+            },
+
+            // Get mobile-specific print styles to ensure table displays properly
+            getMobilePrintStyles() {
+                return `
+                    /* Hide screen-only elements during print */
+                    @media print {
+                        .screen-only {
+                            display: none !important;
+                        }
+                        
+                        /* Hide all buttons when printing */
+                        button {
+                            display: none !important;
+                        }
+                        
+                        /* A5 page setup for compact printing */
+                        @page {
+                            size: A5;
+                            margin: 8mm;
+                        }
+                        
+                        /* Fallback for mobile browsers that don't support A5 */
+                        @supports not (size: A5) {
+                            @page {
+                                margin: 10mm;
+                            }
+                            
+                            body {
+                                /* Scale content to simulate A5 size on standard paper */
+                                transform: scale(0.7);
+                                transform-origin: top right;
+                                width: 148mm;
+                                max-width: 148mm;
+                            }
+                        }
+                        
+                        /* Mobile-specific print adjustments */
+                        @media print and (max-width: 480px) {
+                            body {
+                                font-size: 8px !important;
+                                padding: 5mm !important;
+                            }
+                            
+                            .bill-card {
+                                padding: 3mm !important;
+                                max-width: 140mm !important;
+                            }
+                        }
+                        
+                        body {
+                            font-family: 'Cairo', sans-serif !important;
+                            direction: rtl !important;
+                            font-size: 10px !important;
+                            line-height: 1.2 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            /* Force A5-like dimensions */
+                            max-width: 148mm !important;
+                            max-height: 210mm !important;
+                        }
+                        
+                        /* Compact layout for A5 */
+                        .bill-card {
+                            margin: 0 !important;
+                            padding: 5mm !important;
+                            font-size: 9px !important;
+                        }
+                        
+                        /* Patient header compact */
+                        .patient-header {
+                            margin-bottom: 6px !important;
+                            font-size: 8px !important;
+                        }
+                        
+                        .patient-info {
+                            margin-bottom: 2px !important;
+                            font-size: 8px !important;
+                        }
+                        
+                        .clinic-logo-image {
+                            width: 30px !important;
+                            height: 30px !important;
+                        }
+                        
+                        .clinic-name {
+                            font-size: 8px !important;
+                        }
+                        
+                        /* Force table to display properly and compact */
+                        .v-data-table,
+                        .bill-table {
+                            width: 100% !important;
+                            border-collapse: collapse !important;
+                            margin: 4px 0 !important;
+                        }
+                        
+                        .v-data-table__wrapper {
+                            overflow: visible !important;
+                        }
+                        
+                        .v-data-table table {
+                            width: 100% !important;
+                            border-collapse: collapse !important;
+                            font-size: 7px !important;
+                        }
+                        
+                        .v-data-table th,
+                        .v-data-table td {
+                            border: 1px solid #333 !important;
+                            padding: 2px !important;
+                            font-size: 7px !important;
+                            text-align: right !important;
+                            white-space: nowrap !important;
+                            line-height: 1.1 !important;
+                        }
+                        
+                        .v-data-table thead th {
+                            background-color: #f5f5f5 !important;
+                            font-weight: bold !important;
+                            font-size: 7px !important;
+                        }
+                        
+                        /* Compact bill summary */
+                        .bill-summary {
+                            margin: 4px 0 !important;
+                            font-size: 8px !important;
+                        }
+                        
+                        .summary-row {
+                            margin-bottom: 1px !important;
+                            font-size: 8px !important;
+                        }
+                        
+                        /* Compact signature section */
+                        .signature-section {
+                            margin-top: 6px !important;
+                            padding-top: 4px !important;
+                        }
+                        
+                        .signature-label {
+                            font-size: 7px !important;
+                            margin-bottom: 6px !important;
+                        }
+                        
+                        .signature-line {
+                            height: 12px !important;
+                        }
+                        
+                        /* Hide dividers to save space */
+                        .v-divider {
+                            display: none !important;
+                        }
+                    }
+                    
+                    /* Screen styles for better view before print */
+                    @media screen {
+                        .screen-only {
+                            display: block !important;
+                        }
+                    }
+                `;
+            },
+
+            // Show print instructions if all methods fail
+            showPrintInstructions() {
+                this.$swal.fire({
+                    icon: 'info',
+                    title: 'تعليمات الطباعة',
+                    html: `
+                        <div style="text-align: right; direction: rtl;">
+                            <p><strong>للطباعة على الهاتف:</strong></p>
+                            <ol style="text-align: right;">
+                                <li>اضغط على زر القائمة (⋮) في المتصفح</li>
+                                <li>اختر "طباعة" أو "Print"</li>
+                                <li>في إعدادات الطباعة، اختر حجم الورق A5</li>
+                                <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب: العرض 148mm، الطول 210mm</li>
+                                <li>اختر الاتجاه "أفقي" أو "Landscape" لعرض أفضل للجدول</li>
+                                <li>اضغط "طباعة"</li>
+                            </ol>
+                        </div>
+                    `,
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#2196F3'
+                });
+            },
+
+            // Check if device is mobile (keep for reference but use desktop print for all)
+            isMobileDevice() {
+                const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile Safari|Chrome Mobile|Samsung Internet/i.test(navigator.userAgent);
+                const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                const screenSize = window.innerWidth <= 768 || window.screen.width <= 768;
+                const isMobile = mobileUA || (touchDevice && screenSize);
+                
+                console.log('Mobile detection:', {
+                    userAgent: mobileUA,
+                    touchDevice: touchDevice,
+                    screenSize: screenSize,
+                    finalResult: isMobile
+                });
+                
+                return isMobile;
+            },
+
+            // Get print styles for desktop printing (used for all devices)
+            getPrintStyles() {
+                return `
+                    .bill-card {
+                        width: 100%;
+                        max-width: none;
+                        margin: 0;
+                        padding: 15px;
+                        background: white;
+                        border: none;
+                        box-shadow: none;
+                        font-family: 'Cairo', Arial, sans-serif;
+                        direction: rtl;
+                    }
+                    
+                    .patient-header {
+                        display: flex;
+                        justify-content: space-between;
+                        flex-wrap: nowrap;
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 2px solid #333;
+                        align-items: flex-start;
+                    }
+                    
+                    .patient-details {
+                        flex: 1;
+                        max-width: 65%;
+                    }
+                    
+                    .patient-info {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 6px;
+                        font-size: 11px;
+                    }
+                    
+                    .info-label {
+                        font-weight: bold;
+                        white-space: nowrap;
+                        min-width: 70px;
+                    }
+                    
+                    .info-value {
+                        font-weight: 500;
+                    }
+                    
+                    .clinic-logo {
+                        text-align: center;
+                        flex-shrink: 0;
+                        max-width: 30%;
+                    }
+                    
+                    .clinic-logo-image {
+                        width: 60px;
+                        height: 60px;
+                        object-fit: contain;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .clinic-name {
+                        font-weight: bold;
+                        font-size: 12px;
+                    }
+                    
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                        font-size: 10px;
+                    }
+                    
+                    th, td {
+                        padding: 6px 4px;
+                        text-align: right;
+                        border: 1px solid #333;
+                        white-space: nowrap;
+                        font-size: 9px;
+                    }
+                    
+                    th {
+                        background-color: #f5f5f5;
+                        font-weight: bold;
+                    }
+                    
+                    .bill-summary {
+                        margin: 15px 0;
+                        padding: 10px;
+                        background-color: #f9f9f9;
+                        border: 1px solid #333;
+                        border-radius: 3px;
+                    }
+                    
+                    .summary-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 6px;
+                        padding: 3px 0;
+                        font-size: 10px;
+                    }
+                    
+                    .summary-row.remaining {
+                        border-top: 2px solid #333;
+                        margin-top: 8px;
+                        padding-top: 8px;
+                        font-weight: bold;
+                        font-size: 11px;
+                    }
+                    
+                    .summary-label {
+                        font-weight: bold;
+                    }
+                    
+                    .signature-section {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 20px;
+                        padding-top: 15px;
+                        border-top: 1px solid #333;
+                        gap: 20px;
+                    }
+                    
+                    .signature-box {
+                        text-align: center;
+                        flex: 1;
+                        max-width: 150px;
+                    }
+                    
+                    .signature-label {
+                        font-weight: bold;
+                        margin-bottom: 20px;
+                        font-size: 10px;
+                    }
+                    
+                    .signature-line {
+                        border-bottom: 2px solid #333;
+                        height: 30px;
+                        width: 100%;
+                    }
+                    
+                    /* Hide v-divider elements and buttons */
+                    .v-divider,
+                    .v-btn,
+                    button {
+                        display: none !important;
+                    }
+                    
+                    /* A5 print page setup for compact one-page layout */
+                    @media print {
+                        @page {
+                            size: A5;
+                            margin: 8mm;
+                        }
+                        
+                        /* Fallback for browsers that don't support A5 size */
+                        @supports not (size: A5) {
+                            @page {
+                                margin: 12mm;
+                            }
+                            
+                            body {
+                                max-width: 148mm !important;
+                                margin: 0 auto !important;
+                                transform: scale(0.8) !important;
+                                transform-origin: top center !important;
+                            }
+                        }
+                        
+                        /* Mobile browser specific adjustments */
+                        @media (max-width: 480px) {
+                            body {
+                                transform: scale(0.7) !important;
+                                max-width: 140mm !important;
+                            }
+                            
+                            .bill-card {
+                                padding: 3mm !important;
+                                font-size: 7px !important;
+                            }
+                            
+                            table {
+                                font-size: 5px !important;
+                            }
+                            
+                            th, td {
+                                padding: 1px !important;
+                                font-size: 5px !important;
+                            }
+                        }
+                        
+                        body {
+                            font-size: 9px !important;
+                            line-height: 1.1 !important;
+                        }
+                        
+                        .bill-card {
+                            padding: 5mm !important;
+                            font-size: 8px !important;
+                        }
+                        
+                        .patient-header {
+                            margin-bottom: 6px !important;
+                            padding-bottom: 4px !important;
+                        }
+                        
+                        .patient-info {
+                            font-size: 7px !important;
+                            margin-bottom: 2px !important;
+                        }
+                        
+                        .clinic-logo-image {
+                            width: 25px !important;
+                            height: 25px !important;
+                        }
+                        
+                        .clinic-name {
+                            font-size: 7px !important;
+                        }
+                        
+                        table {
+                            margin: 4px 0 !important;
+                            font-size: 6px !important;
+                        }
+                        
+                        th, td {
+                            padding: 1px 2px !important;
+                            font-size: 6px !important;
+                        }
+                        
+                        .bill-summary {
+                            margin: 4px 0 !important;
+                            padding: 4px !important;
+                            font-size: 7px !important;
+                        }
+                        
+                        .summary-row {
+                            margin-bottom: 2px !important;
+                            font-size: 7px !important;
+                        }
+                        
+                        .signature-section {
+                            margin-top: 6px !important;
+                            padding-top: 4px !important;
+                        }
+                        
+                        .signature-label {
+                            font-size: 6px !important;
+                            margin-bottom: 8px !important;
+                        }
+                        
+                        .signature-line {
+                            height: 10px !important;
+                        }
+                    }
+                `;
+            },
+
+            // Show instructions for manual printing on mobile
+            showMobilePrintInstructions() {
+                this.$swal.fire({
+                    icon: 'info',
+                    title: 'تعليمات الطباعة',
+                    html: `
+                        <div style="text-align: right; direction: rtl;">
+                            <p><strong>للطباعة بحجم A5:</strong></p>
+                            <ol style="text-align: right;">
+                                <li>في نافذة الطباعة، اختر "خيارات أكثر" أو "More settings"</li>
+                                <li>في "حجم الورق" أو "Paper size"، اختر A5</li>
+                                <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب:</li>
+                                <ul style="margin: 10px 0;">
+                                    <li>العرض: 148mm أو 5.8 inches</li>
+                                    <li>الطول: 210mm أو 8.3 inches</li>
+                                </ul>
+                                <li>تأكد من أن الهوامش مضبوطة على "ضيق" أو "Narrow"</li>
+                                <li>اضغط على "طباعة"</li>
+                            </ol>
+                            <p><strong>على الهاتف المحمول:</strong></p>
+                            <ol style="text-align: right;">
+                                <li>اضغط على زر القائمة (⋮) في المتصفح</li>
+                                <li>اختر "مشاركة" أو "Share"</li>
+                                <li>اختر "طباعة" أو "Print"</li>
+                                <li>أو احفظ الصفحة كـ PDF ثم اطبعها</li>
+                            </ol>
+                        </div>
+                    `,
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#2196F3',
+                    width: '600px'
+                });
+            },
+
+            // Alternative: Download as PDF (fallback)
+            downloadAsPDF(element) {
+                // TODO: Implement PDF generation using element content
+                console.log('PDF generation requested for element:', element);
+                
+                this.$swal.fire({
+                    icon: 'info', 
+                    title: 'تنزيل التقرير',
+                    text: 'سيتم تحويل التقرير إلى PDF للتنزيل...',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                
+                // You can implement PDF generation here using libraries like jsPDF or html2canvas
+                // For now, we'll show the print instructions
+                setTimeout(() => {
+                    this.showMobilePrintInstructions();
+                }, 2000);
             },
 
             close() {
@@ -675,6 +1330,22 @@
 <style scoped>
 .bill-card {
     font-family: 'Cairo', sans-serif;
+}
+
+/* Table container for proper scrolling */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+/* Mobile scroll hint */
+.mobile-scroll-hint {
+    text-align: center;
+    direction: rtl;
 }
 
 .patient-header {
@@ -722,17 +1393,113 @@
 
 .bill-table {
     margin: 20px 0;
+    /* Force desktop table layout on all devices */
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* Force desktop table behavior globally */
+.bill-table >>> .v-data-table__wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+.bill-table >>> table {
+    width: 100% !important;
+    min-width: 600px !important; /* Ensure minimum width for desktop layout */
+    border-collapse: collapse !important;
+    table-layout: auto !important;
 }
 
 .bill-table >>> th {
     background-color: #f5f5f5 !important;
     font-weight: bold !important;
     text-align: right !important;
+    /* Desktop-style headers */
+    padding: 12px 16px !important;
+    border: 1px solid #e0e0e0 !important;
+    white-space: nowrap !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
 }
 
 .bill-table >>> td {
     text-align: right !important;
     padding: 12px 16px !important;
+    /* Desktop-style cells */
+    border: 1px solid #e0e0e0 !important;
+    white-space: nowrap !important;
+    min-width: 100px !important;
+}
+
+/* Disable Vuetify mobile breakpoints for this table */
+.bill-table >>> .v-data-table {
+    /* Force desktop layout regardless of screen size */
+    display: table !important;
+    width: 100% !important;
+}
+
+.bill-table >>> .v-data-table__wrapper {
+    /* Ensure table wrapper doesn't collapse on mobile */
+    overflow-x: auto !important;
+    display: block !important;
+}
+
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table {
+    /* Force table display (not block) */
+    display: table !important;
+    width: 100% !important;
+    min-width: 600px !important;
+}
+
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead,
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody {
+    /* Force table-row-group display */
+    display: table-row-group !important;
+}
+
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead > tr,
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody > tr {
+    /* Force table-row display */
+    display: table-row !important;
+}
+
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead > tr > th,
+.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
+    /* Force table-cell display */
+    display: table-cell !important;
+}
+
+/* Override any mobile responsive CSS from Vuetify */
+@media screen and (max-width: 960px) {
+    .bill-table >>> .v-data-table {
+        display: table !important;
+    }
+    
+    .bill-table >>> .v-data-table__wrapper {
+        overflow-x: auto !important;
+    }
+    
+    .bill-table >>> table {
+        display: table !important;
+        min-width: 600px !important;
+    }
+    
+    .bill-table >>> thead,
+    .bill-table >>> tbody {
+        display: table-row-group !important;
+    }
+    
+    .bill-table >>> tr {
+        display: table-row !important;
+    }
+    
+    .bill-table >>> th,
+    .bill-table >>> td {
+        display: table-cell !important;
+    }
 }
 
 .payment-item {
@@ -941,7 +1708,7 @@
     }
 }
 
-/* Mobile responsive - only for screen */
+/* Mobile responsive - force desktop table layout on mobile */
 @media screen and (max-width: 768px) {
     .patient-header {
         flex-direction: column;
@@ -962,28 +1729,176 @@
         width: 100%;
     }
     
-    /* Mobile table styles - only for screen view */
+    /* Force desktop table layout on mobile - NO mobile responsive table */
     .bill-table {
         overflow-x: auto !important;
         width: 100% !important;
         margin: 10px 0 !important;
+        /* Force table to display as desktop */
+        min-width: 600px !important;
     }
     
     .bill-table >>> .v-data-table__wrapper {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        /* Ensure table shows full width */
+        min-width: 600px !important;
+    }
+    
+    .bill-table >>> table {
+        /* Force table to maintain desktop layout */
+        width: 100% !important;
+        min-width: 600px !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
     }
     
     .bill-table >>> th,
     .bill-table >>> td {
-        padding: 8px 6px !important;
-        font-size: 12px !important;
+        /* Desktop-style cells on mobile */
+        padding: 12px 8px !important;
+        font-size: 13px !important;
         white-space: nowrap !important;
-        min-width: 80px !important;
+        min-width: 100px !important;
+        border: 1px solid #e0e0e0 !important;
+        text-align: right !important;
+        /* Prevent text wrapping to maintain desktop look */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .bill-table >>> thead th {
+        background-color: #f5f5f5 !important;
+        font-weight: bold !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1 !important;
     }
     
     .v-card {
         overflow-x: auto !important;
+        /* Add padding to allow horizontal scroll */
+        padding: 10px !important;
+    }
+    
+    /* Add scroll hint for mobile users */
+    .bill-table::before {
+        content: "← اسحب يميناً ويساراً لرؤية جميع البيانات →" !important;
+        display: block !important;
+        text-align: center !important;
+        font-size: 12px !important;
+        color: #666 !important;
+        padding: 8px !important;
+        background-color: #e3f2fd !important;
+        border-radius: 4px !important;
+        margin-bottom: 10px !important;
+        font-family: 'Cairo', sans-serif !important;
+    }
+}
+
+/* Mobile print button enhancement */
+@media screen and (max-width: 768px) {
+    .v-toolbar .v-btn {
+        /* Ensure print button is large enough for touch */
+        min-width: 48px !important;
+        min-height: 48px !important;
+        padding: 12px !important;
+    }
+    
+    .v-toolbar .v-btn .v-icon {
+        font-size: 24px !important;
+    }
+    
+    /* Add touch feedback */
+    .v-toolbar .v-btn:active {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        transform: scale(0.98) !important;
+        transition: all 0.1s ease !important;
+    }
+    
+    /* Prevent text selection on buttons */
+    .v-toolbar .v-btn {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+    }
+}
+
+/* A5 page size support for new window printing only */
+@media print {
+    @page {
+        size: A5;
+        margin: 10mm;
+    }
+}
+
+/* Mobile print modal styles */
+.mobile-print-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10000 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: auto !important;
+}
+
+.mobile-print-content {
+    background: white !important;
+    margin: 10px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: calc(100vh - 20px) !important;
+}
+
+.mobile-print-header {
+    background: #2196F3 !important;
+    color: white !important;
+    padding: 15px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+.mobile-print-body {
+    padding: 20px !important;
+    overflow: auto !important;
+    flex: 1 !important;
+    font-family: Cairo, sans-serif !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+.mobile-print-footer {
+    background: #f5f5f5 !important;
+    padding: 15px !important;
+    border-top: 1px solid #ddd !important;
+    flex-shrink: 0 !important;
+}
+
+/* Responsive adjustments for mobile modal */
+@media screen and (max-width: 480px) {
+    .mobile-print-content {
+        margin: 5px !important;
+        border-radius: 4px !important;
+    }
+    
+    .mobile-print-header {
+        padding: 12px !important;
+    }
+    
+    .mobile-print-body {
+        padding: 15px !important;
+    }
+    
+    .mobile-print-footer {
+        padding: 12px !important;
     }
 }
 </style>

@@ -95,7 +95,7 @@ module.exports = {
     },
     resolve: {
       alias: {
-        'vue$': 'vue/dist/vue.runtime.esm.js'
+        'vue$': 'vue/dist/vue.esm.js'
       }
     },
     plugins: [
@@ -115,7 +115,7 @@ module.exports = {
   },
 
   // Public path configuration
-  publicPath: process.env.NODE_ENV === 'production' ? './' : '/'
+  publicPath: process.env.NODE_ENV === 'production' ? '/' : '/'
 }
 
 

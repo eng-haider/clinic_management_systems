@@ -67,7 +67,7 @@ Vue.use(PrintPlugin)
 Vue.mixin({
   data() {
     return {
-      Url: 'https://apismartclinicv3.tctate.com',  // Updated to v4 API
+      Url: 'https://smartclinicv3.tctate.com/back/public',  // Updated to v4 API
       http: 'https://'  // Changed to https for security
     }
   }
@@ -81,20 +81,7 @@ Vue.config.devtools = process.env.NODE_ENV === 'development'
 // Disable prefetch loading globally - we'll manually handle it in router
 Vue.config.performance = process.env.NODE_ENV === 'development'
 
-// Add progress bar for route changes
-router.beforeEach((to, from, next) => {
-  // Start loading indicator if you have one
-  next()
-})
-
-router.afterEach(() => {
-  // Stop loading indicator if you have one
-  
-  // Optimize for mobile devices
-  if (window.innerWidth <= 768) {
-    window.scrollTo(0, 0)
-  }
-})
+// Note: Router guards are defined in router.js to avoid conflicts
 
 // Initialize store with data from localStorage if available
 const initializeStore = () => {

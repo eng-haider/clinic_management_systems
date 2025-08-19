@@ -25,12 +25,6 @@ import Profile from '@/views/dashboard/profile'
 import Store from '@/views/dashboard/store'
 import Error from '@/views/pages/Error'
 import Recipes from '@/views/dashboard/recipes'
-import Conjugations from '@/views/dashboard/Conjugations'
-import ConjugationsCategories from '@/views/dashboard/ConjugationsCategories'
-import XX from '@/views/dashboard/xx'
-import RequestBookingTest from '@/views/dashboard/requestBooking_test'
-import BirthDay from '@/views/dashboard/BirthDay'
-import WaitingList from '@/views/dashboard/waitinglist'
 
 const routeComponents = {
   Login,

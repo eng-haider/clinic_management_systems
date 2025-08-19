@@ -272,7 +272,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://smartclinicv3.tctate.com/back/public/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -388,6 +388,31 @@ export default {
       if (patient && patient.id) {
         // Editing existing patient
         this.editedItem = { ...this.defaultPatient, ...patient };
+        
+        // Handle doctor data conversion for editing
+        if (patient.doctor_id && !this.editedItem.doctors) {
+          // If patient has doctor_id but no doctors field, set doctors to doctor_id
+          this.editedItem.doctors = parseInt(patient.doctor_id);
+          console.log('Set doctors field from doctor_id:', patient.doctor_id);
+        } else if (patient.doctors) {
+          if (typeof patient.doctors === 'object' && patient.doctors.id) {
+            // If doctors is an object (from API), extract the ID
+            this.editedItem.doctors = parseInt(patient.doctors.id);
+            console.log('Set doctors field from doctors object:', patient.doctors.id);
+          } else if (typeof patient.doctors === 'number' || typeof patient.doctors === 'string') {
+            // If doctors is already an ID
+            this.editedItem.doctors = parseInt(patient.doctors);
+            console.log('Set doctors field from existing ID:', patient.doctors);
+          }
+        }
+        
+        // Ensure doctors field is valid for the select component
+        if (this.editedItem.doctors && isNaN(parseInt(this.editedItem.doctors))) {
+          console.error('Invalid doctors value, resetting:', this.editedItem.doctors);
+          this.editedItem.doctors = '';
+        }
+        
+        console.log('EditedItem doctors field:', this.editedItem.doctors);
       } else {
         // Creating new patient
         this.editedItem = { ...this.defaultPatient };
@@ -448,12 +473,53 @@ export default {
         // Prepare data for saving
         const patientData = { ...this.editedItem };
         
+        console.log('Original editedItem.doctors:', this.editedItem.doctors);
+        console.log('PatientData before doctor processing:', patientData);
+        
         // Handle doctor assignment - send as doctor_id
-        if (patientData.doctors) {
-
-           patientData.doctor_id =this.isEditing ?  typeof patientData.doctors === 'object' ? patientData.doctors.id : patientData.doctors : patientData.doctors;
+        if (patientData.doctors !== null && patientData.doctors !== undefined && patientData.doctors !== '') {
+          // Determine doctor_id based on the data type and editing mode
+          if (this.isEditing) {
+            // When editing, doctors might be an object (from API) or ID (from selection)
+            if (typeof patientData.doctors === 'object' && patientData.doctors.id) {
+              patientData.doctor_id = patientData.doctors.id;
+            } else if (typeof patientData.doctors === 'number' || typeof patientData.doctors === 'string') {
+              patientData.doctor_id = parseInt(patientData.doctors);
+            }
+          } else {
+            // When creating new patient, doctors should be the selected ID
+            patientData.doctor_id = parseInt(patientData.doctors);
+          }
+          
+          // Ensure doctor_id is valid
+          if (isNaN(patientData.doctor_id) || patientData.doctor_id <= 0) {
+            console.error('Invalid doctor_id generated:', patientData.doctor_id);
+            delete patientData.doctor_id;
+          }
+          
+          // Clean up the doctors property
           delete patientData.doctors;
+          
+          console.log('Doctor ID assigned:', patientData.doctor_id);
+        } else {
+          console.log('No doctor selected or doctor data is empty/null');
+          
+          // Check if doctor selection should be required but wasn't provided
+          const isDoctorFieldVisible = (this.$store.state.role === 'secretary' || this.$store.state.role === 'accounter') 
+            && this.doctors.length > 1 
+            && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient == 0;
+          
+          if (isDoctorFieldVisible) {
+            console.warn('Doctor field is visible but no doctor was selected');
+          } else {
+            console.log('Doctor field is not visible for current user/clinic settings');
+          }
+          
+          // Ensure no invalid doctor_id is sent
+          delete patientData.doctor_id;
         }
+
+        console.log('Final patientData:', patientData);
 
         // Remove images from patient data (they will be uploaded separately)
         delete patientData.images;
@@ -467,12 +533,15 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://apismartclinicv3.tctate.com/api/patients";
+        const apiUrl = "https://smartclinicv3.tctate.com/back/public/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
 
 
+        console.log('API Request - URL:', url);
+        console.log('API Request - Method:', method);
+        console.log('API Request - Body:', JSON.stringify(patientData, null, 2));
         
         const response = await fetch(url, {
           method: method,
@@ -484,8 +553,12 @@ export default {
           body: JSON.stringify(patientData)
         });
 
+        console.log('API Response Status:', response.status);
+        console.log('API Response OK:', response.ok);
+
         if (response.ok) {
           const result = await response.json();
+          console.log('API Response Data:', result);
           
           // Get patient ID from result (for new patients) or from existing patient data
           const patientId = result.data?.id || patientData.id;
@@ -509,13 +582,20 @@ export default {
 
           this.closeDialog();
         } else {
-          throw new Error('فشل في حفظ بيانات المريض');
+          const errorData = await response.text();
+          console.error('API Error Response:', errorData);
+          throw new Error(`فشل في حفظ بيانات المريض: ${response.status} - ${errorData}`);
         }
       } catch (error) {
         console.error('Save patient error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          patientData: patientData
+        });
         this.$swal.fire({
           title: "خطأ في الحفظ",
-          text: "حدث خطأ أثناء حفظ بيانات المريض",
+          text: `حدث خطأ أثناء حفظ بيانات المريض: ${error.message}`,
           icon: "error",
           confirmButtonText: "اغلاق",
         });
@@ -540,7 +620,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://apismartclinicv3.tctate.com/api/cases/uploude_images', {
+        const response = await fetch('https://smartclinicv3.tctate.com/back/public/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

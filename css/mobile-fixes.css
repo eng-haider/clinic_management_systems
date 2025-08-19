@@ -1,0 +1,93 @@
+/* Mobile print optimization styles */
+
+/* Prevent content jumping on mobile browsers */
+@media screen and (max-width: 768px) {
+    html, body {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    /* Allow text selection only in content areas */
+    .bill-card * {
+        -webkit-user-select: text;
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+    }
+    
+    /* Prevent zoom on input focus on iOS */
+    input, select, textarea, button {
+        font-size: 16px;
+    }
+    
+    /* Smooth scrolling for mobile */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Print preview optimization for mobile */
+@media print {
+    /* Reset all margins and paddings */
+    * {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    html, body {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+    
+    /* Hide navigation and UI elements */
+    .v-navigation-drawer,
+    .v-footer,
+    .v-app-bar,
+    .v-toolbar,
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Ensure content fills the page */
+    .bill-card {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 10mm !important;
+        page-break-inside: avoid !important;
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .v-btn {
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Fix iOS print issues */
+    @media print {
+        body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+}
+
+/* Android Chrome specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+    .v-btn:active {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
+}
