@@ -184,14 +184,15 @@
             <br>
             <v-row justify="center">
 
-              <v-col class="py-0" cols="12" sm="12" md="12" v-if="$store.state.role=='secretary' && doctors && doctors.length>0">
+            
+              <v-col class="py-0" cols="12" sm="12" md="12" v-if="($store.state.role=='secretary'|| $store.state.role=='accounter') && doctors && doctors.length>0">
                 <v-select :rules="[rules.required]" v-model="editedItem.doctors" :label="$t('doctor')" return-object
                   :items="doctors" outlined item-text="name" item-value="id">
                 </v-select>
 
               </v-col>
 
-              
+          
 
               <v-col cols="12" sm="6" xs="12" >
                 <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
@@ -435,7 +436,7 @@
         }
       },
       async getclinicDoctor() {
-        if (this.$store.state.role == 'secretary') {
+        if (this.$store.state.role == 'secretary' || this.$store.state.role == 'accounter') {
           console.log('Fetching doctors...');
           
           // Check cache first
