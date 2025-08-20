@@ -1032,6 +1032,62 @@ birth_date: ''
           toast: true,
           position: 'top-end'
         });
+      } else if (operationId === 58) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 58);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل للأسنان من 15 إلى 25. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Case category 58: select teeth 15,16,17,18,19,20,21,22,23,24,25
+        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        console.log('🦷 Special case category 58 detected - selecting teeth 15-25:', teethToSelect);
+        
+        // Show notification for teeth 15-25 case
+        this.$swal.fire({
+          title: "حالة أسنان متعددة",
+          text: `تم إضافة الحالة "${operationName}" للأسنان من 15 إلى 25: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (operationId === 59) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 59);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل للأسنان من 15 إلى 25. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Case category 59: select teeth 15,16,17,18,19,20,21,22,23,24,25
+        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        console.log('🦷 Special case category 59 detected - selecting teeth 15-25:', teethToSelect);
+        
+        // Show notification for teeth 15-25 case
+        this.$swal.fire({
+          title: "حالة أسنان متعددة",
+          text: `تم إضافة الحالة "${operationName}" للأسنان من 15 إلى 25: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
       }
       
       // Create new case object with multiple teeth support
