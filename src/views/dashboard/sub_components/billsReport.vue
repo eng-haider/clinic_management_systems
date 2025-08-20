@@ -33,6 +33,7 @@
                 <div class="clinic-logo">
                     <img style="width:100px;height:100px" :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
                     <div class="clinic-name">{{ $store.state.AdminInfo.clinics_info.name }} </div>
+                    <div class="clinic-phone" v-if="$store.state.AdminInfo.clinics_info.whatsapp_phone" style="font-size: 12px; color: #666; direction: ltr;">{{ $store.state.AdminInfo.clinics_info.whatsapp_phone }}</div>
                 </div>
             </div>
 
@@ -345,72 +346,20 @@
                 
                 console.log('getDoctorName input:', item);
                 
-                // First check if item has doctors array (from cases)
+                // Only check for doctors array from cases - removed all other sources
                 if (item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0) {
                     console.log('Found doctors array:', item.doctors);
                     return item.doctors[0].name; // Get first doctor's name
                 }
                 
-                // Check if item has a single doctors object (from patient level)
+                // Check if item has a single doctors object (from cases)
                 if (item.doctors && !Array.isArray(item.doctors) && item.doctors.name) {
                     console.log('Found doctors object:', item.doctors);
                     return item.doctors.name;
                 }
                 
-                // Try different possible doctor field names
-                if (item.doctor && item.doctor.name) {
-                    console.log('Found doctor.name:', item.doctor.name);
-                    return item.doctor.name;
-                }
-                if (item.doctor_name) {
-                    console.log('Found doctor_name:', item.doctor_name);
-                    return item.doctor_name;
-                }
-                if (item.doctorName) {
-                    console.log('Found doctorName:', item.doctorName);
-                    return item.doctorName;
-                }
-                if (item.user && item.user.name) {
-                    console.log('Found user.name:', item.user.name);
-                    return item.user.name;
-                }
-                if (item.created_by && item.created_by.name) {
-                    console.log('Found created_by.name:', item.created_by.name);
-                    return item.created_by.name;
-                }
-                if (item.doctor_id) {
-                    console.log('Found doctor_id:', item.doctor_id);
-                    if (this.$store.state.doctors) {
-                        const doctor = this.$store.state.doctors.find(d => d.id === item.doctor_id);
-                        if (doctor) {
-                            console.log('Found doctor from store:', doctor.name);
-                            return doctor.name;
-                        }
-                    }
-                    // Try to get from AdminInfo doctors list
-                    if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.doctors) {
-                        const doctor = this.$store.state.AdminInfo.doctors.find(d => d.id === item.doctor_id);
-                        if (doctor) {
-                            console.log('Found doctor from AdminInfo:', doctor.name);
-                            return doctor.name;
-                        }
-                    }
-                }
-                
-                // Check if this is patient data and has doctors object at root level
-                if (this.patient && this.patient.doctors && this.patient.doctors.name) {
-                    console.log('Found patient.doctors.name:', this.patient.doctors.name);
-                    return this.patient.doctors.name;
-                }
-                
-                // Fallback to store current user if available
-                if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.name) {
-                    console.log('Using fallback AdminInfo.name:', this.$store.state.AdminInfo.name);
-                    return this.$store.state.AdminInfo.name;
-                }
-                
-                console.log('No doctor name found');
-                return null;
+                console.log('No doctor name found from cases');
+                return '-';
             },
 
             formatCurrency(amount) {
@@ -481,7 +430,13 @@
             },
 
             getLogoUrl() {
-                // Get the current window location origin to build the correct URL
+                // Try to get clinic logo from store first
+                const clinicLogo = this.$store.getters.getClinicLogo;
+                if (clinicLogo) {
+                    return clinicLogo;
+                }
+                
+                // Fallback to default logo
                 const origin = window.location.origin;
                 return `${origin}/111.png`;
             },
@@ -511,7 +466,7 @@
                         // Use desktop print method
                         if (this.$print && this.$print.printWithIframe) {
                             await this.$print.printWithIframe(billElement, {
-                                paperSize: this.$paperSizes ? this.$paperSizes.A5 : 'A5',
+                                paperSize: 'A4', // Changed from A5 to A4
                                 title: 'تقرير الحساب',
                                 customStyles: this.getPrintStyles() + this.getMobilePrintStyles()
                             });
@@ -537,9 +492,45 @@
             printOnMobile(element) {
                 console.log('printOnMobile called for element:', element);
                 
-                // For mobile, use current window method for better user experience
-                // This avoids the issue of getting stuck in a new window
-                this.printInCurrentWindow(element);
+                // For mobile, use new window method to show preview page
+                this.printWithNewWindow(element);
+            },
+
+            // Create new window with preview page for mobile
+            printWithNewWindow(element) {
+                try {
+                    // Create a new window for the preview
+                    const printWindow = window.open('', '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
+                    
+                    if (printWindow) {
+                        const printHTML = this.buildMobilePrintHTML(element);
+                        printWindow.document.write(printHTML);
+                        printWindow.document.close();
+                        
+                        // Wait for content to load
+                        setTimeout(() => {
+                            printWindow.focus();
+                        }, 500);
+                    } else {
+                        // If popup blocked, show instructions
+                        this.$swal.fire({
+                            icon: 'warning',
+                            title: 'تم حظر النافذة المنبثقة',
+                            html: `
+                                <div style="text-align: right; direction: rtl;">
+                                    <p>يرجى السماح للنوافذ المنبثقة في هذا الموقع، ثم المحاولة مرة أخرى.</p>
+                                    <p>أو استخدم الطباعة المباشرة من الصفحة الحالية.</p>
+                                </div>
+                            `,
+                            confirmButtonText: 'حسناً',
+                            confirmButtonColor: '#2196F3'
+                        });
+                    }
+                } catch (error) {
+                    console.error('New window print error:', error);
+                    // Fallback to current window method
+                    this.printInCurrentWindow(element);
+                }
             },
 
             // Print in current window (reliable mobile method)
@@ -551,19 +542,19 @@
                         <div style="text-align: right; direction: rtl; font-family: Cairo, sans-serif;">
                             <p style="margin-bottom: 15px;"><strong>سيتم فتح نافذة الطباعة.</strong></p>
                             <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
-                                <h4 style="margin: 0 0 10px 0; color: #1976D2;">📋 لطباعة بحجم A5:</h4>
+                                <h4 style="margin: 0 0 10px 0; color: #1976D2;">📋 لطباعة بحجم A4:</h4>
                                 <ol style="text-align: right; margin: 0; padding-right: 20px;">
                                     <li>في نافذة الطباعة، ابحث عن "إعدادات الطباعة" أو "More settings"</li>
-                                    <li>في "حجم الورق"، اختر <strong>A5</strong> إذا كان متاحاً</li>
-                                    <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب:</li>
+                                    <li>في "حجم الورق"، اختر <strong>A4</strong> (الحجم الافتراضي)</li>
+                                    <li>إذا لم يكن A4 متاحاً، اختر "مخصص" واكتب:</li>
                                     <ul style="margin: 5px 0; padding-right: 20px;">
-                                        <li><strong>العرض:</strong> 148mm أو 5.8 inches</li>
-                                        <li><strong>الطول:</strong> 210mm أو 8.3 inches</li>
+                                        <li><strong>العرض:</strong> 210mm أو 8.3 inches</li>
+                                        <li><strong>الطول:</strong> 297mm أو 11.7 inches</li>
                                     </ul>
-                                    <li>اختر الهوامش "ضيق" أو "Narrow"</li>
+                                    <li>اختر الهوامش "عادي" أو "Normal"</li>
                                 </ol>
                                 <p style="margin-top: 10px; font-size: 12px; color: #666;">
-                                    💡 إذا لم تجد هذه الخيارات، استخدم الحجم الافتراضي - التقرير مُحسَّن للطباعة
+                                    💡 A4 هو الحجم الافتراضي للطباعة - التقرير مُحسَّن للطباعة
                                 </p>
                             </div>
                             <p>بعد الانتهاء، سيتم العودة تلقائياً للصفحة السابقة.</p>
@@ -687,63 +678,378 @@
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>تقرير الحساب</title>
                         <style>
-                            ${this.getPrintStyles()}
-                            ${this.getMobilePrintStyles()}
-                            
-                            /* Additional mobile-specific styles */
+                            /* A4 page setup - 210mm x 297mm */
                             body {
                                 font-family: 'Cairo', Arial, sans-serif;
                                 direction: rtl;
                                 margin: 0;
-                                padding: 20px;
+                                padding: 10px;
+                                background: #f5f5f5;
+                                min-height: 100vh;
+                                /* A4 dimensions simulation - properly centered */
+                                max-width: 210mm;
+                                width: 210mm;
+                                margin: 0 auto;
+                                background: white;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                                /* Ensure content doesn't get cut from left */
+                                overflow-x: visible;
+                                position: relative;
                             }
                             
-                            /* Print button for the new window */
+                            /* Print controls styling */
                             .print-controls {
                                 text-align: center;
-                                margin: 20px 0;
-                                padding: 15px;
-                                background: #f5f5f5;
+                                margin: 10px 0;
+                                padding: 10px;
+                                background: #f8f9fa;
                                 border-radius: 8px;
+                                border: 1px solid #dee2e6;
                             }
                             
-                            .print-btn {
-                                padding: 12px 24px;
-                                margin: 0 8px;
-                                font-size: 16px;
+                            .print-btn, .close-btn {
+                                padding: 10px 20px;
+                                margin: 0 5px;
+                                font-size: 14px;
                                 cursor: pointer;
                                 border: none;
                                 border-radius: 6px;
                                 color: white;
                                 font-family: 'Cairo', Arial, sans-serif;
+                                transition: all 0.3s ease;
                             }
                             
-                            .print-btn-primary {
-                                background: #2196F3;
+                            .print-btn {
+                                background: #28a745;
                             }
                             
-                            .print-btn-secondary {
-                                background: #f44336;
+                            .print-btn:hover {
+                                background: #218838;
                             }
                             
+                            .close-btn {
+                                background: #dc3545;
+                            }
+                            
+                            .close-btn:hover {
+                                background: #c82333;
+                            }
+                            
+                            /* Bill card styling for A4 */
+                            .bill-card {
+                                width: 100%;
+                                margin: 0;
+                                padding: 10mm;
+                                background: white;
+                                border: none;
+                                box-shadow: none;
+                                font-family: 'Cairo', Arial, sans-serif;
+                                direction: rtl;
+                                font-size: 14px;
+                                line-height: 1.5;
+                                /* Ensure content fits properly in A4 */
+                                box-sizing: border-box;
+                                overflow: visible;
+                            }
+                            
+                            /* Patient header */
+                            .patient-header {
+                                display: flex;
+                                justify-content: space-between;
+                                flex-wrap: nowrap;
+                                margin-bottom: 15px;
+                                padding-bottom: 10px;
+                                border-bottom: 2px solid #333;
+                                align-items: flex-start;
+                                width: 100%;
+                                /* Ensure proper spacing for A4 */
+                                gap: 15px;
+                            }
+                            
+                            .patient-details {
+                                flex: 1;
+                                max-width: 65%;
+                                /* Ensure text doesn't get cut */
+                                overflow: visible;
+                            }
+                            
+                            .patient-info {
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                                /* Ensure content fits */
+                                flex-wrap: wrap;
+                            }
+                            
+                            .info-label {
+                                font-weight: bold;
+                                white-space: nowrap;
+                                min-width: 80px;
+                                font-size: 12px;
+                            }
+                            
+                            .info-value {
+                                font-weight: 500;
+                                font-size: 12px;
+                                /* Allow text to wrap if needed */
+                                word-break: break-word;
+                            }
+                            
+                            .clinic-logo {
+                                text-align: center;
+                                flex-shrink: 0;
+                                max-width: 30%;
+                                /* Better positioning for A4 */
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: flex-start;
+                            }
+                            
+                            .clinic-logo-image {
+                                width: 80px;
+                                height: 80px;
+                                object-fit: contain;
+                                margin-bottom: 8px;
+                                /* Ensure image doesn't get cut */
+                                max-width: 100%;
+                            }
+                            
+                            .clinic-name {
+                                font-weight: bold;
+                                font-size: 12px;
+                                text-align: center;
+                                line-height: 1.4;
+                                /* Ensure text wraps properly */
+                                word-break: break-word;
+                                max-width: 100%;
+                            }
+                            
+                            /* Table styling */
+                            .table-container {
+                                margin: 15px 0;
+                                width: 100%;
+                                overflow: visible;
+                            }
+                            
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                font-size: 11px;
+                                table-layout: fixed;
+                                /* Ensure table fits properly */
+                                margin: 0;
+                            }
+                            
+                            th, td {
+                                padding: 6px 4px;
+                                text-align: right;
+                                border: 1px solid #333;
+                                font-size: 10px;
+                                line-height: 1.3;
+                                /* Ensure text fits in cells */
+                                word-break: break-word;
+                                overflow: hidden;
+                            }
+                            
+                            th {
+                                background-color: #f5f5f5;
+                                font-weight: bold;
+                                font-size: 10px;
+                            }
+                            
+                            /* Bill summary */
+                            .bill-summary {
+                                margin: 15px 0;
+                                padding: 10px;
+                                background-color: #f9f9f9;
+                                border: 1px solid #333;
+                                border-radius: 4px;
+                                width: 100%;
+                                box-sizing: border-box;
+                            }
+                            
+                            .summary-row {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 8px;
+                                padding: 4px 0;
+                                font-size: 11px;
+                                /* Ensure content fits */
+                                align-items: center;
+                            }
+                            
+                            .summary-row.remaining {
+                                border-top: 2px solid #333;
+                                margin-top: 10px;
+                                padding-top: 10px;
+                                font-weight: bold;
+                                font-size: 12px;
+                            }
+                            
+                            .summary-label {
+                                font-weight: bold;
+                                flex-shrink: 0;
+                            }
+                            
+                            .summary-value {
+                                text-align: left;
+                                flex-shrink: 0;
+                            }
+                            
+                            /* Signature section */
+                            .signature-section {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-top: 20px;
+                                padding-top: 15px;
+                                border-top: 2px solid #333;
+                                gap: 30px;
+                                width: 100%;
+                            }
+                            
+                            .signature-box {
+                                text-align: center;
+                                flex: 1;
+                                max-width: 45%;
+                            }
+                            
+                            .signature-label {
+                                font-weight: bold;
+                                margin-bottom: 20px;
+                                font-size: 11px;
+                                line-height: 1.3;
+                            }
+                            
+                            .signature-line {
+                                border-bottom: 2px solid #333;
+                                height: 30px;
+                                width: 100%;
+                            }
+                            
+                            /* Hide dividers and buttons */
+                            .v-divider {
+                                display: none;
+                            }
+                            
+                            /* Print media query for A4 */
                             @media print {
                                 .print-controls {
                                     display: none !important;
+                                }
+                                
+                                @page {
+                                    size: A4;
+                                    margin: 15mm;
+                                    /* Standard A4 margins */
+                                    margin-left: 15mm;
+                                    margin-right: 15mm;
+                                }
+                                
+                                body {
+                                    max-width: none;
+                                    width: auto;
+                                    box-shadow: none;
+                                    background: white;
+                                    margin: 0;
+                                    padding: 0;
+                                    /* Prevent content from being cut */
+                                    overflow: visible;
+                                }
+                                
+                                .bill-card {
+                                    padding: 10mm;
+                                    font-size: 11px;
+                                    width: 100%;
+                                    max-width: none;
+                                    /* Ensure all content fits */
+                                    overflow: visible;
+                                }
+                                
+                                .patient-info {
+                                    font-size: 10px;
+                                    margin-bottom: 6px;
+                                }
+                                
+                                .clinic-logo-image {
+                                    width: 60px;
+                                    height: 60px;
+                                }
+                                
+                                .clinic-name {
+                                    font-size: 10px;
+                                }
+                                
+                                th, td {
+                                    font-size: 9px;
+                                    padding: 4px 3px;
+                                }
+                                
+                                .summary-row {
+                                    font-size: 10px;
+                                }
+                                
+                                .signature-label {
+                                    font-size: 9px;
+                                }
+                                
+                                .signature-line {
+                                    height: 20px;
+                                }
+                            }
+                            
+                            /* Responsive adjustments */
+                            @media screen and (max-width: 480px) {
+                                body {
+                                    max-width: 100vw;
+                                    width: 100vw;
+                                    padding: 3px;
+                                    /* Prevent horizontal scroll */
+                                    overflow-x: hidden;
+                                }
+                                
+                                .bill-card {
+                                    padding: 3px;
+                                    /* Ensure content fits on mobile */
+                                    overflow-x: hidden;
+                                }
+                                
+                                .patient-header {
+                                    gap: 5px;
+                                }
+                                
+                                .patient-details {
+                                    max-width: 65%;
+                                }
+                                
+                                .clinic-logo {
+                                    max-width: 30%;
+                                }
+                                
+                                .clinic-logo-image {
+                                    width: 30px;
+                                    height: 30px;
+                                }
+                                
+                                table {
+                                    font-size: 7px;
+                                }
+                                
+                                th, td {
+                                    font-size: 7px;
+                                    padding: 1px;
                                 }
                             }
                         </style>
                     </head>
                     <body>
                         <div class="print-controls">
-                            <button class="print-btn print-btn-primary" onclick="window.print()">🖨️ طباعة</button>
-                            <button class="print-btn print-btn-secondary" onclick="window.close()">✕ إغلاق</button>
+                            <button onclick="window.print()" class="print-btn">🖨️ طباعة</button>
+                            <button onclick="window.close()" class="close-btn">✕ إغلاق</button>
                         </div>
                         ${element.outerHTML}
-                        <div class="print-controls">
-                            <p style="font-size: 14px; color: #666; margin: 10px 0;">
-                                💡 اضغط على "طباعة" أعلاه أو استخدم Ctrl+P (أو Cmd+P على Mac)
-                            </p>
-                        </div>
                     </body>
                     </html>
                 `;
@@ -810,24 +1116,24 @@
                             display: none !important;
                         }
                         
-                        /* A5 page setup for compact printing */
+                        /* A4 page setup for compact printing */
                         @page {
-                            size: A5;
-                            margin: 8mm;
+                            size: A4;
+                            margin: 15mm;
                         }
                         
-                        /* Fallback for mobile browsers that don't support A5 */
-                        @supports not (size: A5) {
+                        /* Fallback for mobile browsers that don't support A4 */
+                        @supports not (size: A4) {
                             @page {
-                                margin: 10mm;
+                                margin: 15mm;
                             }
                             
                             body {
-                                /* Scale content to simulate A5 size on standard paper */
-                                transform: scale(0.7);
-                                transform-origin: top right;
-                                width: 148mm;
-                                max-width: 148mm;
+                                /* Scale content to fit A4 size on standard paper */
+                                transform: scale(1.0);
+                                transform-origin: top center;
+                                width: 210mm;
+                                max-width: 210mm;
                             }
                         }
                         
@@ -847,48 +1153,48 @@
                         body {
                             font-family: 'Cairo', sans-serif !important;
                             direction: rtl !important;
-                            font-size: 10px !important;
-                            line-height: 1.2 !important;
+                            font-size: 12px !important;
+                            line-height: 1.4 !important;
                             margin: 0 !important;
                             padding: 0 !important;
-                            /* Force A5-like dimensions */
-                            max-width: 148mm !important;
-                            max-height: 210mm !important;
+                            /* Force A4-like dimensions */
+                            max-width: 210mm !important;
+                            max-height: 297mm !important;
                         }
                         
-                        /* Compact layout for A5 */
+                        /* Standard layout for A4 */
                         .bill-card {
                             margin: 0 !important;
-                            padding: 5mm !important;
-                            font-size: 9px !important;
+                            padding: 15mm !important;
+                            font-size: 11px !important;
                         }
                         
-                        /* Patient header compact */
+                        /* Patient header standard */
                         .patient-header {
-                            margin-bottom: 6px !important;
-                            font-size: 8px !important;
+                            margin-bottom: 15px !important;
+                            font-size: 10px !important;
                         }
                         
                         .patient-info {
-                            margin-bottom: 2px !important;
-                            font-size: 8px !important;
+                            margin-bottom: 6px !important;
+                            font-size: 10px !important;
                         }
                         
                         .clinic-logo-image {
-                            width: 30px !important;
-                            height: 30px !important;
+                            width: 60px !important;
+                            height: 60px !important;
                         }
                         
                         .clinic-name {
-                            font-size: 8px !important;
+                            font-size: 10px !important;
                         }
                         
-                        /* Force table to display properly and compact */
+                        /* Force table to display properly and standard A4 size */
                         .v-data-table,
                         .bill-table {
                             width: 100% !important;
                             border-collapse: collapse !important;
-                            margin: 4px 0 !important;
+                            margin: 10px 0 !important;
                         }
                         
                         .v-data-table__wrapper {
@@ -898,49 +1204,49 @@
                         .v-data-table table {
                             width: 100% !important;
                             border-collapse: collapse !important;
-                            font-size: 7px !important;
+                            font-size: 9px !important;
                         }
                         
                         .v-data-table th,
                         .v-data-table td {
                             border: 1px solid #333 !important;
-                            padding: 2px !important;
-                            font-size: 7px !important;
+                            padding: 4px 3px !important;
+                            font-size: 9px !important;
                             text-align: right !important;
                             white-space: nowrap !important;
-                            line-height: 1.1 !important;
+                            line-height: 1.2 !important;
                         }
                         
                         .v-data-table thead th {
                             background-color: #f5f5f5 !important;
                             font-weight: bold !important;
-                            font-size: 7px !important;
+                            font-size: 9px !important;
                         }
                         
-                        /* Compact bill summary */
+                        /* Standard bill summary */
                         .bill-summary {
-                            margin: 4px 0 !important;
-                            font-size: 8px !important;
+                            margin: 10px 0 !important;
+                            font-size: 10px !important;
                         }
                         
                         .summary-row {
-                            margin-bottom: 1px !important;
-                            font-size: 8px !important;
+                            margin-bottom: 6px !important;
+                            font-size: 10px !important;
                         }
                         
-                        /* Compact signature section */
+                        /* Standard signature section */
                         .signature-section {
-                            margin-top: 6px !important;
-                            padding-top: 4px !important;
+                            margin-top: 15px !important;
+                            padding-top: 10px !important;
                         }
                         
                         .signature-label {
-                            font-size: 7px !important;
-                            margin-bottom: 6px !important;
+                            font-size: 9px !important;
+                            margin-bottom: 15px !important;
                         }
                         
                         .signature-line {
-                            height: 12px !important;
+                            height: 20px !important;
                         }
                         
                         /* Hide dividers to save space */
@@ -1146,23 +1452,23 @@
                         display: none !important;
                     }
                     
-                    /* A5 print page setup for compact one-page layout */
+                    /* A4 print page setup for standard one-page layout */
                     @media print {
                         @page {
-                            size: A5;
-                            margin: 8mm;
+                            size: A4;
+                            margin: 15mm;
                         }
                         
-                        /* Fallback for browsers that don't support A5 size */
-                        @supports not (size: A5) {
+                        /* Fallback for browsers that don't support A4 size */
+                        @supports not (size: A4) {
                             @page {
-                                margin: 12mm;
+                                margin: 15mm;
                             }
                             
                             body {
-                                max-width: 148mm !important;
+                                max-width: 210mm !important;
                                 margin: 0 auto !important;
-                                transform: scale(0.8) !important;
+                                transform: scale(1.0) !important;
                                 transform-origin: top center !important;
                             }
                         }
@@ -1170,22 +1476,22 @@
                         /* Mobile browser specific adjustments */
                         @media (max-width: 480px) {
                             body {
-                                transform: scale(0.7) !important;
-                                max-width: 140mm !important;
+                                transform: scale(0.9) !important;
+                                max-width: 200mm !important;
                             }
                             
                             .bill-card {
-                                padding: 3mm !important;
-                                font-size: 7px !important;
+                                padding: 8mm !important;
+                                font-size: 9px !important;
                             }
                             
                             table {
-                                font-size: 5px !important;
+                                font-size: 7px !important;
                             }
                             
                             th, td {
-                                padding: 1px !important;
-                                font-size: 5px !important;
+                                padding: 2px !important;
+                                font-size: 7px !important;
                             }
                         }
                         

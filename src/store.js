@@ -69,6 +69,21 @@ export default new Vuex.Store({
       const hasPermission = state.AdminInfo.Permissions.includes('show_lap_cases');
       const showLap = state.AdminInfo.show_lap === 1;
       return hasPermission && showLap;
+    },
+    getClinicLogo: state => {
+      if (state.AdminInfo.clinics_info && state.AdminInfo.clinics_info.logo) {
+        return state.AdminInfo.clinics_info.logo;
+      }
+      return null;
+    },
+    getClinicInfo: state => {
+      return state.AdminInfo.clinics_info || null;
+    },
+    getClinicName: state => {
+      return state.AdminInfo.clinics_info ? state.AdminInfo.clinics_info.name : '';
+    },
+    getClinicPhone: state => {
+      return state.AdminInfo.clinics_info ? state.AdminInfo.clinics_info.whatsapp_phone : '';
     }
   },
   mutations: {
@@ -165,6 +180,28 @@ export default new Vuex.Store({
         state.AdminInfo.Permissions = Permissions;
       },
 
+      updateClinicLogo(state, logoUrl) {
+        if (state.AdminInfo.clinics_info) {
+          state.AdminInfo.clinics_info.logo = logoUrl;
+        }
+      },
+
+      updateClinicName(state, name) {
+        if (state.AdminInfo.clinics_info) {
+          state.AdminInfo.clinics_info.name = name;
+        }
+      },
+
+      updateClinicPhone(state, phone) {
+        if (state.AdminInfo.clinics_info) {
+          state.AdminInfo.clinics_info.whatsapp_phone = phone;
+        }
+      },
+
+      updateClinicInfo(state, clinicInfo) {
+        state.AdminInfo.clinics_info = clinicInfo;
+      },
+
   
     
     
@@ -180,6 +217,23 @@ export default new Vuex.Store({
     
     
   
+    },
+
+    // Clinic management actions
+    updateClinicLogo({ commit }, logoUrl) {
+      commit('updateClinicLogo', logoUrl);
+    },
+
+    updateClinicName({ commit }, name) {
+      commit('updateClinicName', name);
+    },
+
+    updateClinicPhone({ commit }, phone) {
+      commit('updateClinicPhone', phone);
+    },
+
+    updateClinicInfo({ commit }, clinicInfo) {
+      commit('updateClinicInfo', clinicInfo);
     },
 
     //updateInfo

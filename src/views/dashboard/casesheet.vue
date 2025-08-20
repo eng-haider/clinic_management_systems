@@ -20,8 +20,12 @@
 
 
 
-        <v-dialog v-model="Recipe" max-width="900px" v-if="CaseCategories.length>0">
-            <Recipe :patients="desserts" :RecipeInfo="RecipeInfo" :recipes="recipes" :CaseCategories="CaseCategories">
+        <v-dialog v-model="Recipe" max-width="900px">
+            <Recipe 
+                :patients="desserts" 
+                :RecipeInfo="RecipeInfo" 
+                :recipes="recipes" 
+                :CaseCategories="CaseCategories || []">
             </Recipe>
         </v-dialog>
 
@@ -796,7 +800,7 @@
                 this.sendingMessage = true;
 
                 try {
-                    const response = await this.apiRequest('whatsapp/storeNow', 'post', {
+                    await this.apiRequest('whatsapp/storeNow', 'post', {
                         patient_id: this.selectedPatient.id,
                         message: this.whatsappMessage.message.trim()
                     });
@@ -1084,8 +1088,6 @@
                 this.booking = true;
             },
             addRecipe(item) {
-
-
                 this.RecipeInfo = item;
                 if (item.case == null) {
                     this.RecipeInfo.case = {
@@ -1096,7 +1098,6 @@
 
                 this.Recipe = true;
                 this.dialog = false;
-
             },
             print() {
 
@@ -1364,7 +1365,7 @@
                     });
             },
 
-            initialize(page = 1) {
+            initialize() {
                 if (this.isSearching || this.isSearchingDoctor) return;
                 
                 this.loadingData = true;
@@ -1411,26 +1412,33 @@
                 const cached = this.getCache(this.cacheConfig.caseCategories.key);
                 if (cached) {
                     this.CaseCategories = cached;
-                    return;
+                    return Promise.resolve(cached);
                 }
 
-                this.apiRequest('cases/CaseCategories')
+                return this.apiRequest('cases/CaseCategories')
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
                         this.setCache(this.cacheConfig.caseCategories.key, res.data, this.cacheConfig.caseCategories.ttl);
+                        return res.data;
                     })
-                    .catch(() => {
+                    .catch((error) => {
+                        console.error('Error loading case categories:', error);
                         this.loading = false;
                         // Try to use expired cache as fallback
                         const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
                         if (expiredCache) {
                             try {
-                                this.CaseCategories = JSON.parse(expiredCache).data;
+                                const parsed = JSON.parse(expiredCache);
+                                this.CaseCategories = parsed.data;
+                                return this.CaseCategories;
                             } catch (e) {
                                 console.warn('Failed to parse expired cache');
                             }
                         }
+                        // Return empty array as fallback
+                        this.CaseCategories = [];
+                        return [];
                     });
             },
 
