@@ -415,11 +415,12 @@
             },
 
 
+
             //ConjugationsCategories
 
             getConjugationsCategories() {
                 this.loading = true;
-                Axios.get("Conjugations/ConjugationsCategories", {
+                Axios.get("https://smartclinicv5.tctate.com/api/Conjugations/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
