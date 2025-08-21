@@ -1321,6 +1321,7 @@ birth_date: ''
             notes: caseItem.notes || '',
             operation_id: caseItem.case_categores_id,
             status_id: caseItem.status_id,
+            doctors: caseItem.doctors || [],
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,

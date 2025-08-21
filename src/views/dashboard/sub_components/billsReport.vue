@@ -250,10 +250,10 @@
                 // Check if patient has bills array (new structure)
                 if (this.patient.bills && this.patient.bills.length > 0) {
                     return this.patient.bills.reduce((total, bill) => {
-                        if (bill.is_paid) {
+                        // if (bill.is_paid) {
                             return total + (parseFloat(bill.price) || 0);
-                        }
-                        return total;
+                        // }
+                        // return total;
                     }, 0);
                 }
                 // Fallback to old structure
