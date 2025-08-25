@@ -850,11 +850,11 @@ birth_date: ''
         
         // If paid_at_secretary is true (1), only secretary/accounter can change payment status
         if (paidAtSecretary == 1 || paidAtSecretary === true) {
-          return role === 'secretary' || role === 'accounter';
+          return role === 'secretary' || role === 'accounter' || role === 6;
         }
         // If paid_at_secretary is false (0), only secretary/accounter can change payment status
         else {
-          return role === 'secretary' || role === 'accounter';
+          return role === 'secretary' || role === 'accounter' || role === 6;
         }
       } catch (error) {
         console.error('Error checking payment permission:', error);
@@ -908,7 +908,7 @@ birth_date: ''
         });
         
         // If paid_at_secretary is true (1) and user is secretary/accounter, show limited mode
-        const isSecretaryOnlyMode = (role === 'secretary' || role === 'accounter') && (paidAtSecretary == 1 || paidAtSecretary === true);
+        const isSecretaryOnlyMode = (role === 'secretary' || role === 'accounter' || role === 6) && (paidAtSecretary == 1 || paidAtSecretary === true);
         console.log('🔍 Secretary bills only mode result:', isSecretaryOnlyMode);
         console.log('🔍 Should show teeth component:', !isSecretaryOnlyMode);
         
@@ -1899,7 +1899,7 @@ birth_date: ''
     addPayment() {
       // Check if user has permission to create bills
       const role = this.$store.state.role;
-      if (role === 'secretary' || role === 'accounter') {
+      if (role === 'secretary' || role === 'accounter' || role === 6) {
         this.$swal.fire({
           title: "غير مسموح",
           text: "ليس لديك صلاحية لإنشاء فواتير جديدة",

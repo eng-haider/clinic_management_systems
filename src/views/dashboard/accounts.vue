@@ -128,7 +128,7 @@
                       <v-divider class="my-2"></v-divider>
                       <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ (accounts_statistic.all_sum-accounts_statistic.item_cost_sum * doctorPercentage / 100) | currency }}
+                        {{ (accounts_statistic.all_sum * doctorPercentage / 100) | currency }}
                       </div>
                     </div>
 
