@@ -103,8 +103,8 @@
                         :loading="sendingMessage"
                         :disabled="!whatsappMessage.message.trim()"
                     >
-                        <v-icon left>mdi-send</v-icon>
-                        إرسال
+                        <v-icon left>{{ apiWhatsappEnabled ? 'mdi-send' : 'mdi-open-in-new' }}</v-icon>
+                        {{ apiWhatsappEnabled ? 'إرسال' : 'فتح واتساب' }}
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -345,7 +345,7 @@
                                 mdi-whatsapp
                             </v-icon>
                         </template>
-                        <span>{{ $t("Send WhatsApp") }}</span>
+                        <span>{{ apiWhatsappEnabled ? "إرسال رسالة واتساب" : "فتح واتساب في نافذة جديدة" }}</span>
                     </v-tooltip>
 
                     <v-tooltip bottom>
@@ -681,6 +681,10 @@
             },
 
             // WhatsApp Methods
+            /**
+             * Opens WhatsApp dialog for sending messages to patients
+             * @param {Object} item - Patient data object
+             */
             openWhatsappDialog(item) {
                 this.selectedPatient = {
                     id: item.id,
@@ -716,6 +720,12 @@
                 this.whatsappMessage.message = messages[messageType] || '';
             },
 
+            /**
+             * Sends WhatsApp message using either API or URL method
+             * Based on api_whatsapp setting in store:
+             * - If api_whatsapp = 1: Uses API endpoint to send message
+             * - If api_whatsapp = 0: Opens WhatsApp web/app with pre-filled message
+             */
             async sendWhatsappMessage() {
                 if (!this.whatsappMessage.message.trim()) {
                     this.$swal.fire({
@@ -740,18 +750,61 @@
                 this.sendingMessage = true;
 
                 try {
-                    await this.apiRequest('whatsapp/storeNow', 'post', {
-                        patient_id: this.selectedPatient.id,
-                        message: this.whatsappMessage.message.trim()
-                    });
+                    // Check if api_whatsapp is enabled (1) or disabled (0)
+                    const apiWhatsappEnabled = this.$store.getters.getApiWhatsapp;
+                    
+                    if (apiWhatsappEnabled === 1) {
+                        // Use API method for sending WhatsApp message
+                        await this.apiRequest('whatsapp/storeNow', 'post', {
+                            patient_id: this.selectedPatient.id,
+                            message: this.whatsappMessage.message.trim()
+                        });
 
-                    this.$swal.fire({
-                        position: "top-end",
-                        icon: "success",
-                        title: "تم إرسال الرسالة بنجاح",
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
+                        this.$swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: "تم إرسال الرسالة بنجاح",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    } else {
+                        // Use URL method for sending WhatsApp message
+                        const phoneNumber = this.selectedPatient.phone || '';
+                        
+                        if (!phoneNumber.trim()) {
+                            this.$swal.fire({
+                                title: "خطأ",
+                                text: "رقم الهاتف غير موجود",
+                                icon: "error",
+                                confirmButtonText: "اغلاق",
+                            });
+                            return;
+                        }
+                        
+                        const message = encodeURIComponent(this.whatsappMessage.message.trim());
+                        
+                        // Clean phone number (remove spaces, dashes, etc.) and ensure it starts with country code
+                        let cleanPhone = phoneNumber.replace(/[\s-+()]/g, '');
+                        
+                        // If phone doesn't start with country code, assume Iraq (+964)
+                        if (!cleanPhone.startsWith('964') && cleanPhone.startsWith('07')) {
+                            cleanPhone = '964' + cleanPhone.substring(1);
+                        }
+                        
+                        // Create WhatsApp URL
+                        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+                        
+                        // Open WhatsApp in new window/tab
+                        window.open(whatsappUrl, '_blank');
+                        
+                        this.$swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: "تم فتح واتساب في نافذة جديدة",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
 
                     this.closeWhatsappDialog();
                 } catch (error) {
@@ -1764,6 +1817,9 @@
         computed: {
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
+            },
+            apiWhatsappEnabled() {
+                return this.$store.getters.getApiWhatsapp === 1;
             }
             // Remove the old selected computed property that was calling getMoreitems
             // selected: function () {

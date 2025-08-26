@@ -4,7 +4,6 @@
 
 
     <v-dialog v-model="dialog" max-width="900px" v-track-dialog>
-
       <v-card>
         <billsReport :patient="patient" />
       </v-card>
@@ -77,10 +76,37 @@
                 </v-select>
               </v-flex>
 
+              <!-- Salary Delivery Filter -->
+              <v-flex xs12 md3 sm3 pt-2 style="float: left;" pl-3 v-if="isPaidToDoctorEnabled && search.DocorId && search.DocorId !== 0">
+                <v-select 
+                  dense 
+                  v-model="search.is_salary_delivery_date" 
+                  :items="[
+                    // { text: 'جميع الحالات', value: null },
+                    { text: '  المبلغ المطلوب', value: true },
+                    { text: '   الكل', value: false }
+                  ]"
+                  item-text="text"
+                  item-value="value"
+                  label="حالة تسليم الراتب"
+                  outlined
+                  clearable
+                >
+                </v-select>
+              </v-flex>
+
 
 
               <v-flex xs2 md1 sm1 pt-2>
                 <v-btn color="green" dense style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
+              </v-flex>
+
+              <!-- Salary Delivery Button -->
+              <v-flex xs2 md1 sm1 pt-2 v-if="showSalaryDeliveryButton">
+                <v-btn color="orange" dense style="color:#fff" @click="openSalaryDeliveryDialog()">
+                  <v-icon left small>mdi-calendar-check</v-icon>
+                  تسليم راتب
+                </v-btn>
               </v-flex>
 
 
@@ -227,6 +253,14 @@
 
 
 
+        <template v-slot:[`item.patient.name`]="{ item }">
+          {{ getPatientName(item) }}
+        </template>
+
+        <template v-slot:[`item.patient.phone`]="{ item }">
+          {{ getPatientPhone(item) }}
+        </template>
+
         <template v-slot:[`item.price`]="{ item }">
           <v-chip class="text-right" :color="'green'" outlined>
             {{ item.price | currency}}
@@ -241,6 +275,10 @@
 
         <template v-slot:[`item.PaymentDate`]="{ item }">
           {{ new Date(item.PaymentDate).toLocaleDateString('ar-IQ') }}
+        </template>
+
+        <template v-slot:[`item.user.name`]="{ item }">
+          {{ getDoctorName(item) }}
         </template>
 
 
@@ -443,11 +481,82 @@
     <v-row>
 
     </v-row>
+
+    <!-- Salary Delivery Dialog -->
+    <v-dialog v-model="salaryDeliveryDialog" max-width="500px" persistent>
+      <v-card>
+        <v-toolbar dark color="orange">
+          <v-toolbar-title>تحديد تاريخ تسليم الراتب</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="closeSalaryDeliveryDialog">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        
+        <v-card-text class="pt-4">
+          <div class="doctor-info mb-3">
+            <p class="subtitle-1 mb-1">
+              <strong>الطبيب:</strong> {{ selectedDoctorData ? selectedDoctorData.name : '' }}
+            </p>
+          </div>
+          
+          <v-menu
+            v-model="salaryDeliveryMenu"
+            :close-on-content-click="false"
+            :nudge-right="40"
+            transition="scale-transition"
+            offset-y
+            min-width="auto"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                v-model="salaryDeliveryDate"
+                label="تاريخ تسليم الراتب"
+                prepend-icon="mdi-calendar"
+                readonly
+                v-bind="attrs"
+                v-on="on"
+                outlined
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              v-model="salaryDeliveryDate"
+              no-title
+              scrollable
+              @change="salaryDeliveryMenu = false"
+            ></v-date-picker>
+          </v-menu>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn 
+            text 
+            color="grey darken-1" 
+            @click="closeSalaryDeliveryDialog"
+            :disabled="salaryDeliveryLoading"
+          >
+            إلغاء
+          </v-btn>
+          <v-btn 
+            color="orange" 
+            dark 
+            @click="setSalaryDeliveryDate"
+            :loading="salaryDeliveryLoading"
+            :disabled="!salaryDeliveryDate"
+          >
+            <v-icon left>mdi-calendar-check</v-icon>
+            تحديد التاريخ
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
   import dash_card from '../../components/core/counts_number_card.vue';
+  import Swal from "sweetalert2";
 
   import {
     EventBus
@@ -496,6 +605,7 @@
             60000)).toISOString().substr(0, 10),
 
           to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+          is_salary_delivery_date: null, // null = all, true = delivered, false = not delivered
         },
         page: 1,
         pageCount: 0,
@@ -504,6 +614,12 @@
         is_search: false,
         last_page: 0,
         loadingData: true,
+
+        // Salary delivery properties
+        salaryDeliveryDialog: false,
+        salaryDeliveryLoading: false,
+        salaryDeliveryDate: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+        salaryDeliveryMenu: false,
 
         headers_Conjugations: [{
             text: this.$t('datatable.name'),
@@ -544,12 +660,12 @@
         headers: [{
             text: this.$t('datatable.name'),
             align: "start",
-            value: "billable.name"
+            value: "patient.name"
           },
 
           {
             text: 'رقم الهاتف',
-            value: "billable.phone",
+            value: "patient.phone",
             sortable: false
           },
 
@@ -613,6 +729,14 @@
         if (!this.showDoctorPercentage) return 0;
         const remaining = this.accounts_statistic.all_sum - this.accounts_statistic.paid;
         return (remaining * this.doctorPercentage) / 100;
+      },
+      
+      isPaidToDoctorEnabled() {
+        return this.$store.getters.getPaidToDoctor === 1;
+      },
+      
+      showSalaryDeliveryButton() {
+        return this.isPaidToDoctorEnabled && this.search.DocorId && this.search.DocorId !== 0;
       }
     },
     watch: {
@@ -695,9 +819,46 @@
 
       },
       editItem(item) {
-        item
+        // Extract patient data from different structures: patient, billable.patient, or billable
+        const patientData = item.patient || item.billable?.patient || item.billable || item;
+        
         this.dialog = true;
-        this.patient = item;
+        this.patient = {
+          ...patientData,
+          // Ensure we have the case data as well
+          case: item,
+          billable: item.billable || item, // Handle cases where item itself is the case
+          doctors: item.doctors, // Include doctors array if present
+          // Add any additional fields that might be needed
+          id: patientData.id || item.patient_id,
+          name: this.getPatientName(item),
+          phone: this.getPatientPhone(item),
+          price: item.price,
+          is_paid: item.is_paid,
+          PaymentDate: item.PaymentDate
+        };
+      },
+
+      // Helper method to safely get patient name
+      getPatientName(item) {
+        // Handle different API response structures
+        return item.patient?.name || item.billable?.patient?.name || item.billable?.name || 'غير محدد';
+      },
+
+      // Helper method to safely get patient phone
+      getPatientPhone(item) {
+        // Handle different API response structures
+        return item.patient?.phone || item.billable?.patient?.phone || item.billable?.phone || 'غير محدد';
+      },
+
+      // Helper method to safely get doctor name
+      getDoctorName(item) {
+   console.log('Getting doctor name for item:', item);
+        // Handle different API response structures
+        if (item.billable.doctors && item.billable.doctors.length > 0) {
+          return item.billable.doctors[0].name; // Get first doctor from doctors array
+        }
+        return item.user?.name || 'غير محدد';
       },
 
       totalOrders: function (values) {
@@ -867,9 +1028,11 @@
         }
       },
 
+
       getclinicDoctor() {
+     
         this.loadingData = true;
-        this.axios.get("https://apismartclinicv5.tctate.com/api/doctors/clinic", {
+        this.axios.get("https://smartclinicv5.tctate.com/api/doctors/clinic", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -879,6 +1042,7 @@
           .then(res => {
             this.loadingData = false;
 
+         
             // Handle the response structure - check if data is nested
             const doctors = res.data.data || res.data;
 
@@ -927,6 +1091,86 @@
           .finally(() => {
             this.loading4 = false;
           });
+      },
+
+      // Salary Delivery Methods
+      openSalaryDeliveryDialog() {
+        this.salaryDeliveryDialog = true;
+        // Set today's date as default
+        this.salaryDeliveryDate = (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10);
+      },
+
+      closeSalaryDeliveryDialog() {
+        this.salaryDeliveryDialog = false;
+        this.salaryDeliveryLoading = false;
+        this.salaryDeliveryDate = (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10);
+      },
+
+      async setSalaryDeliveryDate() {
+        if (!this.search.DocorId || this.search.DocorId === 0) {
+          Swal.fire({
+            title: "خطأ",
+            text: "يرجى تحديد الطبيب أولاً",
+            icon: "error",
+            confirmButtonText: "اغلاق",
+          });
+          return;
+        }
+
+        if (!this.salaryDeliveryDate) {
+          Swal.fire({
+            title: "خطأ",
+            text: "يرجى تحديد تاريخ تسليم الراتب",
+            icon: "error",
+            confirmButtonText: "اغلاق",
+          });
+          return;
+        }
+
+        this.salaryDeliveryLoading = true;
+
+        try {
+          await this.axios.post('https://smartclinicv5.tctate.com/api/doctorss/setSalaryDeliveryDate', {
+            doctor_id: this.search.DocorId,
+            salary_delivery_date: this.salaryDeliveryDate
+          }, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          });
+
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "تم تحديد تاريخ تسليم الراتب بنجاح",
+            showConfirmButton: false,
+            timer: 1500
+          });
+
+          this.closeSalaryDeliveryDialog();
+          
+          // Refresh the data to reflect the changes
+          this.initialize();
+
+        } catch (error) {
+          console.error('Salary delivery date error:', error);
+          
+          let errorMessage = "حدث خطأ أثناء تحديد تاريخ تسليم الراتب";
+          if (error.response && error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
+
+          Swal.fire({
+            title: "فشل في التحديد",
+            text: errorMessage,
+            icon: "error",
+            confirmButtonText: "اغلاق",
+          });
+        } finally {
+          this.salaryDeliveryLoading = false;
+        }
       },
     },
     created() {

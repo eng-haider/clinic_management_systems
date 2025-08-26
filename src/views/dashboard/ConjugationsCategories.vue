@@ -431,12 +431,13 @@
             saveCat() {
 
 
+
                 if (this.$refs.form.validate()) {
                     this.loadSave = true;
                     if (this.editedCategoryIndex > -1) {
 
                         this.axios
-                            .patch("ConjugationsCategories/" + this.editedItemCategories.id, this
+                            .patch("https://smartclinicv5.tctate.com/api/ConjugationsCategories/" + this.editedItemCategories.id, this
                                 .editedItemCategories, {
                                     headers: {
                                         "Content-Type": "application/json",
@@ -468,7 +469,7 @@
                     } else {
 
                         this.axios
-                            .post("ConjugationsCategories", this.editedItemCategories, {
+                            .post("https://smartclinicv5.tctate.com/api/ConjugationsCategories", this.editedItemCategories, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -545,7 +546,7 @@
                     } else {
 
                         this.axios
-                            .post("Conjugations", this.editedItem, {
+                            .post("https://smartclinicv5.tctate.com/api/Conjugations", this.editedItem, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -591,7 +592,7 @@
 
             getConjugationsCategories() {
                 this.loading = true;
-                Axios.get("Conjugations/ConjugationsCategories", {
+                Axios.get("https://smartclinicv5.tctate.com/api/Conjugations/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -611,7 +612,7 @@
             },
 
             fetchDataByCategory(categoryId) {
-                Axios.get(`/Conjugations/getByCat/${categoryId}`, {
+                Axios.get(`https://smartclinicv5.tctate.com/api/Conjugations/getByCat/${categoryId}`, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -653,7 +654,7 @@
 
             initialize() {
                 this.loading = true;
-                Axios.get("ConjugationsCategories", {
+                Axios.get("https://smartclinicv5.tctate.com/api/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -684,7 +685,7 @@
                 this.menu2 = false;
             },
             updateIsPaid(item) {
-                Axios.patch(`Conjugations/updateIsPaid/${item.id}`, {
+                Axios.patch(`https://smartclinicv5.tctate.com/api/Conjugations/updateIsPaid/${item.id}`, {
                         is_paid: item.is_paid
                     }, {
                         headers: {

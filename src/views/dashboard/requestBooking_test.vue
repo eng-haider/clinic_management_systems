@@ -1,7 +1,8 @@
 <template>
   <v-container fluid>
     <!-- App Bar with Doctor Filter for Secretary -->
-    <v-app-bar v-if="$store.state.role === 'secretary' && doctors && doctors.length > 1" 
+   
+    <v-app-bar v-if="($store.state.role === 'secretary' || $store.state.role === 'adminDoctor') && doctors && doctors.length > 1" 
                color="primary" 
                dark 
                dense 
@@ -436,7 +437,8 @@
         }
       },
       async getclinicDoctor() {
-        if (this.$store.state.role == 'secretary' || this.$store.state.role == 'accounter') {
+       
+        if (this.$store.state.role == 'secretary' || this.$store.state.role == 'accounter'  || this.$store.state.role == 'adminDoctor') {
           console.log('Fetching doctors...');
           
           // Check cache first
@@ -451,6 +453,7 @@
           
           this.loading = true;
 
+          
           await axios.get("https://smartclinicv5.tctate.com/api/doctors/secretary", {
               headers: {
                 "Content-Type": "application/json",
@@ -867,7 +870,7 @@
           
           // Determine API endpoint based on doctor filter
           let apiEndpoint = 'https://smartclinicv5.tctate.com/api/reservations/formatted';
-          if (this.selectedDoctorFilter && this.$store.state.role === 'secretary') {
+          if (this.selectedDoctorFilter && (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor')) {
             apiEndpoint =`https://smartclinicv5.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
           }
           

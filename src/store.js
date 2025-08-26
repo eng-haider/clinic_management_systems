@@ -39,7 +39,9 @@ export default new Vuex.Store({
         send_msg: 1,
         clinics_info: '',
         doctor_info: null,
-        show_lap: 0
+        show_lap: 0,
+        api_whatsapp: 0,
+        paid_to_doctor: 0
     }
  
   },
@@ -69,7 +71,9 @@ export default new Vuex.Store({
       const hasPermission = state.AdminInfo.Permissions.includes('show_lap_cases');
       const showLap = state.AdminInfo.show_lap === 1;
       return hasPermission && showLap;
-    }
+    },
+    getApiWhatsapp: state => state.AdminInfo.api_whatsapp || 0,
+    getPaidToDoctor: state => state.AdminInfo.paid_to_doctor || 0
   },
   mutations: {
     SET_DRAWER(state, payload) {
@@ -110,7 +114,9 @@ export default new Vuex.Store({
           send_msg: 1,
           clinics_info: '',
           doctor_info: null,
-          show_lap: 0
+          show_lap: 0,
+          api_whatsapp: 0,
+          paid_to_doctor: 0
         }
       },
 
@@ -153,6 +159,14 @@ export default new Vuex.Store({
         state.AdminInfo.clinics_info = userData.clinics_info
         state.AdminInfo.doctor_info = userData.doctor_info
         state.AdminInfo.show_lap = userData.show_lap || 0
+        // Extract api_whatsapp from clinics_info if it exists
+        if (userData.clinics_info && typeof userData.clinics_info === 'object') {
+          state.AdminInfo.api_whatsapp = userData.clinics_info.api_whatsapp || 0
+          state.AdminInfo.paid_to_doctor = userData.clinics_info.paid_to_doctor || 0
+        } else {
+          state.AdminInfo.api_whatsapp = 0
+          state.AdminInfo.paid_to_doctor = 0
+        }
       },
 
       updatePermissions(state, permissions) {
@@ -163,6 +177,14 @@ export default new Vuex.Store({
       
 
         state.AdminInfo.Permissions = Permissions;
+      },
+
+      updateApiWhatsapp(state, apiWhatsappValue) {
+        state.AdminInfo.api_whatsapp = apiWhatsappValue || 0;
+      },
+
+      updatePaidToDoctor(state, paidToDoctorValue) {
+        state.AdminInfo.paid_to_doctor = paidToDoctorValue || 0;
       },
 
   
@@ -254,7 +276,9 @@ export default new Vuex.Store({
         send_msg: userData.send_msg,
         clinics_info: loginResponse.clinic_info || userData.Clinics,
         doctor_info: userData.doctor,
-        show_lap: userData.doctor ? userData.doctor.show_lap : 0
+        show_lap: userData.doctor ? userData.doctor.show_lap : 0,
+        api_whatsapp: (loginResponse.clinic_info || userData.Clinics)?.api_whatsapp || 0,
+        paid_to_doctor: (loginResponse.clinic_info || userData.Clinics)?.paid_to_doctor || 0
       };
       
       // Commit to store
@@ -306,6 +330,18 @@ UpdateLang({
 
   });
 
+},
+
+updateApiWhatsapp({
+  commit
+}, apiWhatsappValue) {
+  commit('updateApiWhatsapp', apiWhatsappValue);
+},
+
+updatePaidToDoctor({
+  commit
+}, paidToDoctorValue) {
+  commit('updatePaidToDoctor', paidToDoctorValue);
 },
    
 
