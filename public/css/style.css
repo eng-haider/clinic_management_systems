@@ -34,7 +34,9 @@ body > div:nth-child(10){
   display:none !important;
 }
 
-
+.v-date-picker-table{
+  height: auto !important;
+}
 
 .money{
   color: green;

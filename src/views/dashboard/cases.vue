@@ -83,14 +83,20 @@
                         <v-flex xs6 md2 sm2 pr-4>
 
                             <v-menu v-model="menu2" :close-on-content-click="false" :nudge-right="40"
-                                transition="scale-transition" offset-y min-width="auto">
+                                transition="scale-transition" offset-y min-width="290px">
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-text-field dense outlined v-model="search.from_date" :label="$t('from_date')"
-                                        v-bind="attrs" v-on="on"></v-text-field>
+                                        prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on"></v-text-field>
                                 </template>
-                                <v-date-picker v-model="search.from_date" no-title scrollable>
+                                <v-date-picker 
+                                    v-model="search.from_date" 
+                                    no-title 
+                                    scrollable
+                                    show-current
+                                    full-width
+                                    @change="menu2 = false"
+                                    locale="ar">
                                     <v-spacer></v-spacer>
-
                                 </v-date-picker>
                             </v-menu>
 
@@ -101,14 +107,20 @@
                         <v-flex xs6 md2 sm2 pr-4>
 
                             <v-menu v-model="menu3" :close-on-content-click="false" :nudge-right="40"
-                                transition="scale-transition" offset-y min-width="auto">
+                                transition="scale-transition" offset-y min-width="290px">
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-text-field dense outlined v-model="search.to_date" :label="$t('to_date')"
-                                        v-bind="attrs" v-on="on"></v-text-field>
+                                        prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on"></v-text-field>
                                 </template>
-                                <v-date-picker v-model="search.to_date" no-title scrollable>
+                                <v-date-picker 
+                                    v-model="search.to_date" 
+                                    no-title 
+                                    scrollable
+                                    show-current
+                                    full-width
+                                    @change="menu3 = false"
+                                    locale="ar">
                                     <v-spacer></v-spacer>
-
                                 </v-date-picker>
                             </v-menu>
 
@@ -472,8 +484,8 @@
                     status_id: '',
                     is_paid: '',
                     doctors: '',
-                    from_date: "",
-                    to_date: "",
+                    from_date: (new Date(new Date().setDate(new Date().getDate() - 30) - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+                    to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
                     note: ""
                 },
 
@@ -1590,8 +1602,8 @@
                     status_id: '',
                     is_paid: '',
                     doctors: '',
-                    from_date: "",
-                    to_date: "",
+                    from_date: (new Date(new Date().setDate(new Date().getDate() - 30) - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+                    to_date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
                     note: ""
                 }
 
@@ -1787,5 +1799,9 @@
         font-size: 27px;
         position: relative;
         bottom: 10px;
+    }
+
+    ::v-deep .v-date-picker-table {
+        height: auto !important;
     }
 </style>

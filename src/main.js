@@ -35,6 +35,7 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import "sweetalert2/dist/sweetalert2.min.css"
 import '@/assets/performance.css'
 import '@/assets/transitions.css'
+import './assets/date-picker-styles.css'  // Import global styles for date picker
 
 // Minimal plugin imports
 import VueRouterUserRoles from "vue-router-user-roles"

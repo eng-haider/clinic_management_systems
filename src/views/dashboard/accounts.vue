@@ -160,6 +160,25 @@
                         {{ doctorPaidAmount | currency }}
                       </div>
                     </div>
+
+
+                      <div  class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">المواد المستعملة</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ accounts_statistic.item_cost_sum | currency }}
+                      </div>
+                    </div>
+
+
+
+                      <div  class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary"> الباقي</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{doctorPaidAmount- accounts_statistic.item_cost_sum | currency }}
+                      </div>
+                    </div>
                   </div>
                 </v-card-text>
               </v-card>

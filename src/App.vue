@@ -101,4 +101,32 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #2e3d96;
 }
+
+/* Date Picker Global Styles */
+.v-date-picker-table {
+  height: auto !important;
+  min-height: 250px !important;
+}
+
+.v-date-picker-table .v-btn {
+  height: 32px !important;
+  width: 32px !important;
+  font-size: 14px !important;
+}
+
+.v-date-picker-table thead th {
+  height: 32px !important;
+}
+
+.v-date-picker-table tbody td {
+  height: 32px !important;
+}
+
+.v-picker {
+  border-radius: 4px;
+}
+
+.v-picker__body {
+  background: white !important;
+}
 </style>

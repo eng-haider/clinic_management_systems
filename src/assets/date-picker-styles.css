@@ -1,0 +1,109 @@
+/* Date Picker Global Styles - Ensures build inclusion */
+
+/* Main date picker table */
+.v-date-picker-table {
+  height: auto !important;
+  min-height: 250px !important;
+}
+
+/* Date picker buttons */
+.v-date-picker-table .v-btn {
+  height: 32px !important;
+  width: 32px !important;
+  font-size: 14px !important;
+  min-width: 32px !important;
+}
+
+/* Date picker header cells */
+.v-date-picker-table thead th {
+  height: 32px !important;
+  padding: 0 4px !important;
+}
+
+/* Date picker body cells */
+.v-date-picker-table tbody td {
+  height: 32px !important;
+  padding: 0 !important;
+}
+
+/* Picker container */
+.v-picker {
+  border-radius: 4px;
+  min-width: 290px !important;
+}
+
+/* Picker body */
+.v-picker__body {
+  background: white !important;
+}
+
+/* Date picker header */
+.v-date-picker-header {
+  padding: 4px 16px !important;
+}
+
+/* Month/year title */
+.v-date-picker-header__value {
+  font-size: 16px !important;
+}
+
+/* Navigation buttons */
+.v-date-picker-header .v-btn {
+  height: 36px !important;
+  width: 36px !important;
+}
+
+/* Today button highlighting */
+.v-date-picker-table .v-btn.v-btn--outlined.v-btn--text.v-btn--rounded.accent--text {
+  border-color: #1976d2 !important;
+  color: #1976d2 !important;
+}
+
+/* Selected date */
+.v-date-picker-table .v-btn.primary {
+  background-color: #1976d2 !important;
+  color: white !important;
+}
+
+/* Hover effect */
+.v-date-picker-table .v-btn:hover {
+  background-color: rgba(25, 118, 210, 0.08) !important;
+}
+
+/* Disabled dates */
+.v-date-picker-table .v-btn--disabled {
+  color: rgba(0, 0, 0, 0.26) !important;
+}
+
+/* Menu container */
+.v-menu__content {
+  max-height: none !important;
+}
+
+/* Ensure proper RTL support for Arabic */
+.v-date-picker-table[dir="rtl"] {
+  direction: rtl;
+}
+
+.v-date-picker-table[dir="rtl"] thead th {
+  text-align: center !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .v-picker {
+    min-width: 280px !important;
+  }
+  
+  .v-date-picker-table .v-btn {
+    height: 28px !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    font-size: 12px !important;
+  }
+  
+  .v-date-picker-table thead th,
+  .v-date-picker-table tbody td {
+    height: 28px !important;
+  }
+}
