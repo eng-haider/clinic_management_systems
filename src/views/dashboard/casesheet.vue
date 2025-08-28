@@ -406,9 +406,9 @@
             mask,
         },        components: {
             OwnerBooking: () => import("./sub_components/ownerBookinfDed.vue"),
-            cases: () => import(/* webpackChunkName: "cases" */ "./case.vue"),
-            Recipe: () => import(/* webpackChunkName: "recipe" */ "./Recipe.vue"),
-            Bill: () => import(/* webpackChunkName: "bill" */ "./sub_components/billsReport.vue"),
+            cases: () => import("./case.vue"),
+            Recipe: () => import("./Recipe.vue"),
+            Bill: () => import("./sub_components/billsReport.vue"),
             PatientEditDialog: () => import("@/components/PatientEditDialog.vue")
         },
 

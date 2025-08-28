@@ -15,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: '[name].[contenthash].css',
-      chunkFilename: '[name].[contenthash].css'
+      filename: 'css/[name].css',
+      chunkFilename: 'css/[name].css',
     } : false,
     sourceMap: false,
   },
@@ -30,10 +30,12 @@ module.exports = {
     display: 'standalone',
     scope: '/',
     start_url: '/',
-    workboxPluginMode: 'InjectManifest',
+    workboxPluginMode: 'GenerateSW',
     workboxOptions: {
-      swSrc: 'public/sw.js',
-      swDest: 'sw.js',
+      skipWaiting: true,
+      clientsClaim: true,
+      exclude: [/\.map$/, /manifest$/, /\.htaccess$/],
+      runtimeCaching: []
     },
   },
 
@@ -50,34 +52,6 @@ module.exports = {
         return args;
       });
     
-    // Enhanced chunk splitting for better caching
-    config.optimization.splitChunks({
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
-          chunks: 'all',
-          priority: 10,
-          reuseExistingChunk: true,
-        },
-        vuetify: {
-          test: /[\\/]node_modules[\\/](vuetify|@mdi)[\\/]/,
-          name: 'vuetify',
-          chunks: 'all',
-          priority: 20,
-          reuseExistingChunk: true,
-        },
-        common: {
-          name: 'common',
-          minChunks: 2,
-          chunks: 'all',
-          priority: 5,
-          reuseExistingChunk: true,
-        }
-      }
-    })
-    
     // Add cache-loader for better build performance
     config.module
       .rule('vue')
@@ -89,8 +63,8 @@ module.exports = {
   // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js' : '[name].js',
-      chunkFilename: process.env.NODE_ENV === 'production' ? '[name].[contenthash].js' : '[name].js'
+      filename: process.env.NODE_ENV === 'production' ? 'js/[name].js' : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].js' : '[name].js'
     },
     performance: {
       hints: false,
@@ -99,16 +73,24 @@ module.exports = {
     },
     optimization: {
       minimize: process.env.NODE_ENV === 'production',
-      runtimeChunk: 'single',
+      runtimeChunk: false,
       splitChunks: {
+        chunks: 'all',
         cacheGroups: {
           vendor: {
+            name: 'chunk-vendors',
             test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
+            priority: 10,
+            chunks: 'initial'
           },
-        },
-      },
+          common: {
+            name: 'chunk-common',
+            minChunks: 2,
+            priority: 5,
+            chunks: 'initial'
+          }
+        }
+      }
     },
     resolve: {
       alias: {

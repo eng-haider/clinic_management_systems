@@ -80,11 +80,6 @@ class PWAManager {
     };
   }
 
-  // Check if service worker is supported
-  isServiceWorkerSupported() {
-    return 'serviceWorker' in navigator;
-  }
-
   // Check if notifications are supported
   isNotificationSupported() {
     return 'Notification' in window;
@@ -138,38 +133,6 @@ class PWAManager {
       isSafari: /Safari/.test(userAgent) && /Apple Computer/.test(navigator.vendor),
       isFirefox: /Firefox/.test(userAgent)
     };
-  }
-
-  // Register for push notifications
-  async registerForPushNotifications() {
-    if (!this.isServiceWorkerSupported()) {
-      throw new Error('Service Worker not supported');
-    }
-
-    const registration = await navigator.serviceWorker.ready;
-    
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: this.urlB64ToUint8Array(process.env.VUE_APP_VAPID_PUBLIC_KEY)
-    });
-
-    return subscription;
-  }
-
-  // Convert VAPID key
-  urlB64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
   }
 
   // Add to home screen guidance
