@@ -128,7 +128,7 @@
                       <v-divider class="my-2"></v-divider>
                       <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ (accounts_statistic.all_sum * doctorPercentage / 100) | currency }}
+                        {{ (accounts_statistic.all_sum-accounts_statistic.item_cost_sum * doctorPercentage / 100) | currency }}
                       </div>
                     </div>
 
@@ -158,25 +158,6 @@
                       <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
                         {{ doctorPaidAmount | currency }}
-                      </div>
-                    </div>
-
-
-                      <div  class="mt-2">
-                      <v-divider class="my-2"></v-divider>
-                      <div class="text-caption text--secondary">المواد المستعملة</div>
-                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ accounts_statistic.item_cost_sum | currency }}
-                      </div>
-                    </div>
-
-
-
-                      <div  class="mt-2">
-                      <v-divider class="my-2"></v-divider>
-                      <div class="text-caption text--secondary"> الباقي</div>
-                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{doctorPaidAmount- accounts_statistic.item_cost_sum | currency }}
                       </div>
                     </div>
                   </div>
@@ -653,7 +634,7 @@
 
           return this.initialize()
         }
-        this.axios.get("patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
+        this.axios.get("https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -681,7 +662,7 @@
           });
       },
       Export() {
-        this.axios.get('/patientsAccounstsv2/export', {
+        this.axios.get('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/export', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -785,11 +766,12 @@
         // First get the statistics/report data
         this.getAccountsReport();
 
+
         if (this.is_search == true) {
           this.allItem = true;
 
           console.log('Making search API call with params:', this.search);
-          this.axios.post('/patientsAccounstsv2?page=' + this.current_page, this.search, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -810,7 +792,7 @@
             });
         } else {
           console.log('Making general API call without body...');
-          this.axios.post('/patientsAccounstsv2?page=' + this.current_page, {}, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -837,7 +819,7 @@
 
         if (this.is_search) {
           // Send search parameters when searching
-          this.axios.post('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
               .search, {
                 headers: {
                   "Content-Type": "application/json",
@@ -862,7 +844,7 @@
             });
         } else {
           // Send empty body when not searching
-          this.axios.post('/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
+          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -885,7 +867,9 @@
         }
       },
 
+
       getclinicDoctor() {
+     
         this.loadingData = true;
         this.axios.get("https://apismartclinicv3.tctate.com/api/doctors/clinic", {
             headers: {
@@ -897,6 +881,7 @@
           .then(res => {
             this.loadingData = false;
 
+         
             // Handle the response structure - check if data is nested
             const doctors = res.data.data || res.data;
 
@@ -926,7 +911,7 @@
       getCase_number_stats() {
 
         this.axios
-          .get("cases/getCaseCategoriesCounts", {
+          .get("https://apismartclinicv3.tctate.com/api/cases/getCaseCategoriesCounts", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

@@ -123,6 +123,45 @@
                   item-value="id"
                 />
               </v-col>
+
+              <!-- From Where Come Selection (if enabled) -->
+              <v-col 
+                class="py-0" 
+                cols="12" 
+                sm="6" 
+                md="6"
+                v-if="isFromWhereComeEnabled"
+              >
+                <v-select 
+                  v-model="editedItem.from_where_come_id"
+                  :items="fromWhereComeList"
+                  :loading="loadingFromWhereCome"
+                  :rules="[rules.required]"
+                  label="من أين جئت؟"
+                  outlined
+                  item-text="name"
+                  item-value="id"
+                  style="direction: rtl;text-align: right;"
+                />
+              </v-col>
+
+              <!-- Identifier Field (only show when option 2 is selected) -->
+              <v-col 
+                class="py-0" 
+                cols="12" 
+                sm="6" 
+                md="6"
+                v-if="isFromWhereComeEnabled && showIdentifierField"
+              >
+                <v-text-field 
+                  v-model="editedItem.identifier"
+                  :rules="[rules.required]"
+                  label="المعرف"
+                  placeholder="أدخل المعرف"
+                  outlined
+                  style="direction: rtl;text-align: right;"
+                />
+              </v-col>
             </v-row>
 
             <!-- Systemic Conditions -->
@@ -229,6 +268,11 @@ export default {
       loadSave: false,
       mask: "07XX XXX XXXXX",
       
+      // From where come data
+      fromWhereComeList: [],
+      loadingFromWhereCome: false,
+      showIdentifierField: false,
+      
       // Default patient structure
       defaultPatient: {
         name: "",
@@ -242,6 +286,8 @@ export default {
         doctors: "",
         systemic_conditions: "",
         email: "",
+        from_where_come_id: "",
+        identifier: "",
         case: {
           case_categores_id: "",
           upper_right: "",
@@ -323,6 +369,12 @@ export default {
 
     isMobileDevice() {
       return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    },
+
+    // Check if "from where come" feature is enabled
+    isFromWhereComeEnabled() {
+      return this.$store.state.AdminInfo?.clinics_info?.add_from_where_come == 1 || 
+             this.$store.state.AdminInfo?.clinics_info?.add_from_where_come === true;
     }
   },
 
@@ -348,6 +400,17 @@ export default {
     // Pass loading state to internal loadSave
     loading(newVal) {
       this.loadSave = newVal;
+    },
+
+    // Watch for "from where come" selection changes
+    'editedItem.from_where_come_id'(newVal) {
+      // Show identifier field when option 2 is selected
+      this.showIdentifierField = newVal == 2;
+      
+      // Clear identifier when not needed
+      if (!this.showIdentifierField) {
+        this.editedItem.identifier = '';
+      }
     }
   },
 
@@ -361,9 +424,42 @@ export default {
     
     // Update dropzone options based on device type
     this.updateDropzoneForDevice();
+    
+    // Fetch from where come list if feature is enabled
+    if (this.isFromWhereComeEnabled) {
+      this.fetchFromWhereComeList();
+    }
   },
 
   methods: {
+    // Fetch "from where come" options from API
+    async fetchFromWhereComeList() {
+      try {
+        this.loadingFromWhereCome = true;
+        const response = await fetch('https://apismartclinicv3.tctate.com/api/from-where-come', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          this.fromWhereComeList = result.data || result || [];
+          console.log('From where come list loaded:', this.fromWhereComeList);
+        } else {
+          console.error('Failed to fetch from where come list:', response.status);
+          this.fromWhereComeList = [];
+        }
+      } catch (error) {
+        console.error('Error fetching from where come list:', error);
+        this.fromWhereComeList = [];
+      } finally {
+        this.loadingFromWhereCome = false;
+      }
+    },
     openDialog() {
       this.updateEditedItem(this.patient);
       this.uploadedImages = [];
@@ -413,16 +509,29 @@ export default {
         }
         
         console.log('EditedItem doctors field:', this.editedItem.doctors);
+        
+        // Handle from where come data
+        if (patient.from_where_come_id) {
+          this.editedItem.from_where_come_id = patient.from_where_come_id;
+          // Check if identifier field should be shown
+          this.showIdentifierField = patient.from_where_come_id == 2;
+        }
+        
+        if (patient.identifier) {
+          this.editedItem.identifier = patient.identifier;
+        }
       } else {
         // Creating new patient
         this.editedItem = { ...this.defaultPatient };
         this.uploadedImages = [];
+        this.showIdentifierField = false;
       }
     },
 
     resetForm() {
       this.editedItem = { ...this.defaultPatient };
       this.uploadedImages = [];
+      this.showIdentifierField = false;
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
       }
@@ -517,6 +626,24 @@ export default {
           
           // Ensure no invalid doctor_id is sent
           delete patientData.doctor_id;
+        }
+
+        // Handle from where come data
+        if (this.isFromWhereComeEnabled && patientData.from_where_come_id) {
+          // Ensure from_where_come_id is a valid number
+          patientData.from_where_come_id = parseInt(patientData.from_where_come_id);
+          
+          // Include identifier if provided and option 2 is selected
+          if (patientData.from_where_come_id === 2 && patientData.identifier) {
+            patientData.identifier = patientData.identifier.trim();
+          } else {
+            // Remove identifier if not needed
+            delete patientData.identifier;
+          }
+        } else {
+          // Remove from where come fields if feature is disabled
+          delete patientData.from_where_come_id;
+          delete patientData.identifier;
         }
 
         console.log('Final patientData:', patientData);

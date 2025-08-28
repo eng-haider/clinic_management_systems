@@ -249,6 +249,7 @@
 
                 <template v-slot:[`item.age`]="{ item }">
                     <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.age}}</p>
+                      
                 </template>
 
                 <!-- <template v-slot:[`item.sex`]="{ item }">
@@ -271,6 +272,23 @@
                     <span>
                         {{ getDoctorName(item) }}
                     </span>
+                </template>
+
+                <!-- From Where Come Template -->
+                <template v-slot:[`item.from_where_come`]="{ item }" v-if="hasFromWhereComeData">
+                    <span @click="editItem(item)" v-if="item.from_where_come">
+                        {{ item.from_where_come.name || getFromWhereComeText(item.from_where_come.id || item.from_where_come) }}
+                    </span>
+                    <span v-else class="text--disabled">-</span>
+                </template>
+
+                <!-- Identifier Template -->
+                <template v-slot:[`item.identifier`]="{ item }" v-if="hasIdentifierData">
+                    <span @click="editItem(item)" v-if="item.identifier" style="direction: ltr; text-align: end;">
+                        {{ item.identifier }}
+                    </span>
+            
+                    <span v-else class="text--disabled">-</span>
                 </template>
 
 
@@ -298,7 +316,7 @@
                 <template v-slot:[`item.booking`]="{ item }">
 
 
-                    <span style="display:none">{{item.id}}</span>
+                    <span style="display:none">{{item.id}} </span>
 
                     <v-btn @click.stop="addbooking(item)" dense color="#3b6a75"
                         style="color:#fff;height:28px;font-weight:bold">
@@ -559,62 +577,7 @@
                         notes: ""
                     }
                 },
-                doctors: [],
-                headers: [{
-                        text: this.$t('datatable.name'),
-                        align: "start",
-                        value: "name"
-                    }, {
-                        text: this.$t('datatable.phone'),
-                        align: "start",
-                        value: "phone"
-                    },
-
-                    {
-                        text: this.$t('datatable.age'),
-                        align: "start",
-                        value: "age"
-                    },
-
-                    this.$store.getters.isSecretary ? {
-                        text: this.$t('datatable.data_create'),
-                        align: "start",
-                        value: "created_at"
-                    } : '',
-
-                    this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' || this.$store.getters.userRole == 'accounter' ? {
-                        text: this.$t('datatable.doctor'),
-                        align: "start",
-                        value: "doctor"
-                    } : '',
-
-
-
-
-
-
-                    {
-                        text: '',
-                        value: "Recipe",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "booking",
-                        sortable: false
-                    },
-
-     
-                    
-                 
-                    //booking
-                    //booking
-                    {
-                        text: this.$t('Processes'),
-                        value: "actions",
-                        sortable: false
-                    }
-                ]
+                doctors: []
             }
         },
 
@@ -852,6 +815,28 @@
                 return item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0 && item.doctors[0];
             },
 
+            // Helper method to get from_where_come text
+            getFromWhereComeText(value) {
+                if (!value) return '';
+                
+                // These should match the options from PatientEditDialog.vue
+                const options = {
+                    1: 'Google Ads',
+                    2: 'فيس بوك',
+                    3: 'انستجرام',
+                    4: 'تيك توك',
+                    5: 'يوتيوب',
+                    6: 'أصدقاء',
+                    7: 'الموقع الالكتروني',
+                    8: 'مرضى سابقين',
+                    9: 'لافتة العيادة',
+                    10: 'مراكز أخرى',
+                    11: 'أخرى'
+                };
+                
+                return options[value] || `خيار ${value}`;
+            },
+
             // Handle row click to navigate to patient page
             handleRowClick(item) {
                 this.$router.push(`/patient/${item.id}`);
@@ -953,7 +938,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Don't use cache for doctor search - always fetch fresh data
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         
@@ -1111,7 +1096,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("https://smartclinicv5.tctate.com/api/patients/" + item.id, {
+                        Axios.delete("https://apismartclinicv3.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1294,7 +1279,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Don't use cache for search - always fetch fresh data
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
@@ -1405,7 +1390,7 @@
                     return;
                 }
                 
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
+                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;
@@ -1572,8 +1557,13 @@
                     const patientData = eventData.patient;
                     const isEditing = eventData.isEditing;
                     
-                    // Clear all cache and refresh data
-                    this.refreshAllData();
+                    // Clear all cache and refresh data immediately
+                    this.clearAllCache();
+                    
+                    // Force refresh the data table to show updated information
+                    this.$nextTick(() => {
+                        this.refreshAllData();
+                    });
                     
                     // Handle redirection based on user role
                     const userRole = this.$store.getters.userRole;
@@ -1770,8 +1760,15 @@
 
             // Method to refresh all data and clear cache
             refreshAllData() {
-                // Clear all cache
+                // Clear all cache aggressively
                 this.clearAllCache();
+                
+                // Also clear any localStorage keys that might contain patient data
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('patients') || key.includes('cache')) {
+                        localStorage.removeItem(key);
+                    }
+                });
                 
                 // Reset search states
                 this.isSearching = false;
@@ -1779,12 +1776,16 @@
                 this.search = '';
                 this.searchDocorId = '';
                 
-                // Reset pagination
+                // Reset pagination to first page
                 this.tableOptions.page = 1;
                 this.page = 1;
                 
-                // Reload data
-                this.initialize();
+                // Add a small delay to ensure the backend has processed the changes
+                setTimeout(() => {
+                    // Force reload data without cache
+                    this.loadingData = true;
+                    this.initialize();
+                }, 100);
             },
 
         },
@@ -1792,6 +1793,85 @@
         computed: {
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
+            },
+            
+            // Check if any patient has from_where_come data
+            hasFromWhereComeData() {
+                return this.desserts && this.desserts.some(patient => {
+                    const fromWhere = patient.from_where_come;
+                    return fromWhere && fromWhere !== null && fromWhere !== '' && 
+                           (typeof fromWhere === 'object' ? fromWhere.name || fromWhere.id : fromWhere);
+                });
+            },
+            
+            // Check if any patient has identifier data
+            hasIdentifierData() {
+                return this.desserts && this.desserts.some(patient => 
+                    patient.identifier && patient.identifier !== null && patient.identifier !== ''
+                );
+            },
+
+            // Dynamic headers based on data availability
+            headers() {
+                return [{
+                        text: this.$t('datatable.name'),
+                        align: "start",
+                        value: "name"
+                    }, {
+                        text: this.$t('datatable.phone'),
+                        align: "start",
+                        value: "phone"
+                    },
+
+                    {
+                        text: this.$t('datatable.age'),
+                        align: "start",
+                        value: "age"
+                    },
+
+                    this.$store.getters.isSecretary ? {
+                        text: this.$t('datatable.data_create'),
+                        align: "start",
+                        value: "created_at"
+                    } : '',
+
+                    this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' || this.$store.getters.userRole == 'accounter' ? {
+                        text: this.$t('datatable.doctor'),
+                        align: "start",
+                        value: "doctor"
+                    } : '',
+
+                    // Conditionally show "from where come" column if any patient has this data
+                    this.hasFromWhereComeData ? {
+                        text: 'مصدر الإحالة',
+                        align: "start",
+                        value: "from_where_come"
+                    } : '',
+
+                    // Conditionally show "identifier" column if any patient has this data
+                    this.hasIdentifierData ? {
+                        text: 'المعرف',
+                        align: "start",
+                        value: "identifier"
+                    } : '',
+
+                    {
+                        text: '',
+                        value: "Recipe",
+                        sortable: false
+                    },
+                    {
+                        text: '',
+                        value: "booking",
+                        sortable: false
+                    },
+
+                    {
+                        text: this.$t('Processes'),
+                        value: "actions",
+                        sortable: false
+                    }
+                ].filter(header => header !== '');
             }
             // Remove the old selected computed property that was calling getMoreitems
             // selected: function () {

@@ -33,13 +33,14 @@
       </v-flex>
     </v-layout>
 
-    <!-- <v-layout row wrap>
-      <v-flex  md6 sm6 xs12 pt-4>
-        <v-card>
-          <canvas id="pie-chart" ref="pieChart"></canvas>
+    <v-layout row wrap pt-4>
+      <v-flex md-3 sm6 xs12 pt-4>
+        <v-card pa-3>
+          <h2 style="text-align: center; font-family: 'Cairo' !important;" class="sssaw">مصادر المراجعين</h2>
+          <canvas id="sources-chart" ref="sourcesChart"></canvas>
         </v-card>
       </v-flex>
-    </v-layout> -->
+    </v-layout>
 
     <!-- Loading Test Component for Testing -->
     <v-layout row wrap v-if="isDevelopment">
@@ -80,9 +81,11 @@ export default {
       loadingData: false,
       pieChart: null,
       barChart: null,
+      sourcesChart: null,
       page: 1,
       pageCount: 0,
-      isLoading: false // Add loading state
+      isLoading: false, // Add loading state
+      sourcesStatistics: []
     };
   },
   computed: {
@@ -106,7 +109,8 @@ export default {
           this.loadCaseStats(),
           this.loadDashboardCounts(),
           this.loadBookingData(),
-          this.loadAccountsCounts()
+          this.loadAccountsCounts(),
+          this.loadSourcesStatistics()
         ]);
         
         // Create charts after all data is loaded
@@ -183,9 +187,24 @@ export default {
       }
     },
 
+    async loadSourcesStatistics() {
+      try {
+        const response = await this.axios.get("https://apismartclinicv3.tctate.com/api/from-where-come/statistics", {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${this.$store.state.AdminInfo.token}`
+          }
+        });
+        this.sourcesStatistics = response.data.data.sources_statistics;
+      } catch (error) {
+        console.error('Error loading sources statistics:', error);
+      }
+    },
+
     createCharts() {
       // Check if canvas elements exist before creating charts
-      if (!this.$refs.barChart || !this.$refs.pieChart) {
+      if (!this.$refs.barChart) {
         console.warn('Canvas elements not found, skipping chart creation');
         return;
       }
@@ -227,6 +246,55 @@ export default {
             }
           }
         });
+
+        // Sources Statistics Chart
+        if (this.$refs.sourcesChart && this.sourcesStatistics && this.sourcesStatistics.length > 0) {
+          const ctxSources = this.$refs.sourcesChart.getContext('2d');
+          if (this.sourcesChart) {
+            this.sourcesChart.destroy();
+          }
+          this.sourcesChart = new Chart(ctxSources, {
+            type: 'doughnut',
+            data: {
+              labels: this.sourcesStatistics.map(item => item.name),
+              datasets: [{
+                label: 'عدد المراجعين',
+                data: this.sourcesStatistics.map(item => item.patients_count),
+                backgroundColor: [
+                  'rgba(53, 113, 255, 0.8)',
+                  'rgba(255, 99, 132, 0.8)',
+                  'rgba(54, 162, 235, 0.8)',
+                  'rgba(255, 206, 86, 0.8)',
+                  'rgba(75, 192, 192, 0.8)'
+                ],
+                borderColor: [
+                  'rgba(53, 113, 255, 1)',
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'bottom'
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return context.label + ': ' + context.raw + ' مراجع';
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
 
         // Pie Chart for Accounts
         const ctxPie = this.$refs.pieChart.getContext('2d');

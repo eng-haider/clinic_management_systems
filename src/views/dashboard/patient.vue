@@ -990,8 +990,8 @@ birth_date: ''
         }
         
         // Case category 56: select teeth 24,23,22,21,11,12,13,14
-        teethToSelect = [24, 23, 22, 21, 11, 12, 13, 14];
-        toothNumbers = [24, 23, 22, 21, 11, 12, 13, 14];
+        teethToSelect = [24, 23, 22, 21, 11, 12, 13, 14,44,42,42,41,31,32,33,34];
+        toothNumbers = [24, 23, 22, 21, 11, 12, 13, 14, 44, 42, 42, 41, 31, 32, 33, 34];
         console.log('🦷 Special case category 56 detected - selecting upper front teeth:', teethToSelect);
         
         // Show notification for upper front teeth case
@@ -1018,8 +1018,8 @@ birth_date: ''
         }
         
         // Case category 57: select teeth 25,24,23,22,21,11,12,13,14,15
-        teethToSelect = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15];
-        toothNumbers = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15];
+        teethToSelect = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15, 45, 44, 43, 42, 41, 31, 32, 33,34, 35];
+        toothNumbers = [25, 24, 23, 22, 21, 11, 12, 13, 14, 15, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
         console.log('🦷 Special case category 57 detected - selecting extended upper teeth:', teethToSelect);
         
         // Show notification for extended upper teeth case
@@ -1046,8 +1046,8 @@ birth_date: ''
         }
         
         // Case category 58: select teeth 15,16,17,18,19,20,21,22,23,24,25
-        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
-        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25,45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
+        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
         console.log('🦷 Special case category 58 detected - selecting teeth 15-25:', teethToSelect);
         
         // Show notification for teeth 15-25 case
@@ -1074,8 +1074,8 @@ birth_date: ''
         }
         
         // Case category 59: select teeth 15,16,17,18,19,20,21,22,23,24,25
-        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
-        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
+        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
         console.log('🦷 Special case category 59 detected - selecting teeth 15-25:', teethToSelect);
         
         // Show notification for teeth 15-25 case
