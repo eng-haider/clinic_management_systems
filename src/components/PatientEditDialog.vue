@@ -30,15 +30,41 @@
         <v-card-text>
           <v-container>
             <v-row>
-              <!-- Name Field -->
+              <!-- Name Field with Patient Combobox -->
               <v-col class="py-0" cols="12" sm="6" md="6">
-                <v-text-field 
+                <v-combobox
                   v-model="editedItem.name"
-                  style="direction: rtl;text-align: right;"
-                  :rules="[rules.required]" 
+                  :items="patientsList"
+                  :loading="loadingPatients"
+                  :search-input.sync="patientSearch"
+                  item-text="text"
+                  item-value="value"
+                  :rules="[rules.required]"
                   :label="$t('datatable.name')"
+                  placeholder="ابحث عن مريض أو أدخل اسم جديد"
+                  style="direction: rtl;text-align: right;"
                   outlined
-                />
+                  clearable
+                  @change="handlePatientNameSelect"
+                  @update:search-input="searchPatientsByName"
+                >
+                  <template v-slot:no-data>
+                    <v-list-item>
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          لا توجد نتائج. سيتم إضافة "{{ patientSearch }}" كمريض جديد
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                  
+                  <template v-slot:item="{ item }">
+                    <v-list-item-content>
+                      <v-list-item-title>{{ item.text || item.name }}</v-list-item-title>
+                      <v-list-item-subtitle>{{ item.phone }} - العمر: {{ item.age }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </v-combobox>
               </v-col>
 
               <!-- Phone Field -->
@@ -229,6 +255,12 @@ export default {
       loadSave: false,
       mask: "07XX XXX XXXXX",
       
+      // Patient combobox properties
+      patientsList: [],
+      loadingPatients: false,
+      patientSearch: '',
+      patientSearchTimeout: null,
+      
       // Default patient structure
       defaultPatient: {
         name: "",
@@ -342,6 +374,9 @@ export default {
     loading(newVal) {
       this.loadSave = newVal;
     }
+
+    // Removed the auto-fill watcher for editedItem.name to prevent 
+    // automatic completion of other fields when name is selected
   },
 
   mounted() {
@@ -351,12 +386,114 @@ export default {
         "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
       };
     }
+    
+    // Initialize patients list for combobox
+    this.fetchPatientsForCombobox();
   },
 
   methods: {
+    // Patient Combobox Methods
+    /**
+     * Fetches patients list for combobox
+     */
+    async fetchPatientsForCombobox(searchTerm = '') {
+      try {
+        this.loadingPatients = true;
+        const response = await fetch(
+          `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+            }
+          }
+        );
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data) {
+            this.patientsList = result.data.map(patient => ({
+              text: patient.name,
+              value: patient.name,
+              name: patient.name,
+              phone: patient.phone || '',
+              age: patient.age || 'غير محدد',
+              id: patient.id,
+              fullData: patient
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching patients for combobox:', error);
+        this.patientsList = [];
+      } finally {
+        this.loadingPatients = false;
+      }
+    },
+
+    /**
+     * Handles patient search input with debouncing
+     */
+    searchPatientsByName(searchTerm) {
+      // Clear existing timeout
+      if (this.patientSearchTimeout) {
+        clearTimeout(this.patientSearchTimeout);
+      }
+
+      // If search term is empty or too short, load initial patients
+      if (!searchTerm || searchTerm.length < 2) {
+        this.fetchPatientsForCombobox();
+        return;
+      }
+
+      // Debounce search to avoid too many API calls
+      this.patientSearchTimeout = setTimeout(() => {
+        this.fetchPatientsForCombobox(searchTerm);
+      }, 300);
+    },
+
+    /**
+     * Handles patient name selection
+     */
+    handlePatientNameSelect(selectedItem) {
+      console.log('Patient selected:', selectedItem, typeof selectedItem);
+      
+      if (!selectedItem) return;
+
+      // If selectedItem is a string, it's a new patient name
+      if (typeof selectedItem === 'string') {
+        // Just set the name, don't auto-fill other fields
+        this.editedItem.name = selectedItem;
+        return;
+      }
+
+      // If selectedItem is an object with patient data, only set the name
+      if (selectedItem && typeof selectedItem === 'object') {
+        if (selectedItem.fullData) {
+          // Only set the name, don't fill other fields
+          this.editedItem.name = selectedItem.fullData.name || '';
+        } else {
+          // Just set the name
+          this.editedItem.name = selectedItem.name || selectedItem.text || selectedItem;
+        }
+      }
+    },
+
+    /**
+     * Fills the form with patient data (disabled - keeping for reference)
+     */
+    fillPatientData() {
+      // This method is now disabled to prevent auto-completion
+      // Only the name field will be filled from the combobox selection
+      console.log('Auto-fill disabled. Only name will be set from combobox selection.');
+    },
+
     openDialog() {
       this.updateEditedItem(this.patient);
       this.uploadedImages = [];
+      this.patientSearch = '';
       if (this.$refs.myVueDropzone) {
         this.$refs.myVueDropzone.removeAllFiles();
       }
@@ -383,6 +520,7 @@ export default {
     resetForm() {
       this.editedItem = { ...this.defaultPatient };
       this.uploadedImages = [];
+      this.patientSearch = '';
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
       }

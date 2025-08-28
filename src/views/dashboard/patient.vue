@@ -891,9 +891,19 @@ export default {
       try {
         const role = this.$store.state.role;
         const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
+        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
 
-       
+        // If doctor_can_pay is enabled (1), allow doctors, adminDoctors, and accounters to change payment status
+        if (doctorCanPay == 1 || doctorCanPay === true) {
+          // Check paid_at_secretary setting for additional permissions
+          if (paidAtSecretary == 1 || paidAtSecretary === true) {
+            return role === 'secretary' || role === 'accounter' || role === 'doctor' || role === 'adminDoctor';
+          } else {
+            return role === 'accounter' || role === 'doctor' || role === 'adminDoctor';
+          }
+        }
         
+        // If doctor_can_pay is not enabled, use original logic
         // If paid_at_secretary is true (1), only secretary/accounter can change payment status
         if (paidAtSecretary == 1 || paidAtSecretary === true) {
           return role === 'secretary' || role === 'accounter';
@@ -912,8 +922,20 @@ export default {
     canAddBills() {
       try {
         const role = this.$store.state.role;
-        // Allow accountants to add bills, but not secretaries
-        return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
+        
+        // Always allow accounters to add bills
+        if (role === 'accounter') {
+          return true;
+        }
+        
+        // If doctor_can_pay is enabled (1), allow doctors and adminDoctors to add bills
+        if (doctorCanPay == 1 || doctorCanPay === true) {
+          return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+        }
+        
+        // Otherwise, only accounters can add bills
+        return role === 'accounter';
       } catch (error) {
         console.error('Error checking add bills permission:', error);
         return false;
@@ -971,7 +993,19 @@ export default {
     canEditBills() {
       try {
         const role = this.$store.state.role;
-        // Only accountants can edit bills
+        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
+        
+        // Always allow accounters to edit bills
+        if (role === 'accounter') {
+          return true;
+        }
+        
+        // If doctor_can_pay is enabled (1), allow doctors and adminDoctors to edit bills
+        if (doctorCanPay == 1 || doctorCanPay === true) {
+          return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+        }
+        
+        // Otherwise, only accounters can edit bills
         return role === 'accounter';
       } catch (error) {
         console.error('Error checking edit bills permission:', error);
@@ -1903,8 +1937,7 @@ export default {
     // Add a new payment
     addPayment() {
       // Check if user has permission to create bills
-      const role = this.$store.state.role;
-      if (role === 'secretary') {
+      if (!this.canAddBills) {
         this.$swal.fire({
           title: "غير مسموح",
           text: "ليس لديك صلاحية لإنشاء فواتير جديدة",

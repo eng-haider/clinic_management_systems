@@ -786,13 +786,17 @@
                         // Clean phone number (remove spaces, dashes, etc.) and ensure it starts with country code
                         let cleanPhone = phoneNumber.replace(/[\s-+()]/g, '');
                         
-                        // If phone doesn't start with country code, assume Iraq (+964)
-                        if (!cleanPhone.startsWith('964') && cleanPhone.startsWith('07')) {
+                        // If phone starts with 0, replace it with Iraq country code (+964)
+                        if (cleanPhone.startsWith('0')) {
                             cleanPhone = '964' + cleanPhone.substring(1);
+                        }
+                        // If phone doesn't start with country code but starts with 7, add Iraq code
+                        else if (!cleanPhone.startsWith('964') && cleanPhone.startsWith('7')) {
+                            cleanPhone = '964' + cleanPhone;
                         }
                         
                         // Create WhatsApp URL
-                        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+                        const whatsappUrl = `https://api.whatsapp.com/send/?phone=${cleanPhone}&text=${message}`;
                         
                         // Open WhatsApp in new window/tab
                         window.open(whatsappUrl, '_blank');
@@ -1031,6 +1035,15 @@
                 });
             },
 
+            clearPatientCache() {
+                // Clear all patient-related cache keys
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('patients') || key.includes('search_patients') || key.includes('all_patients')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            },
+
             goTop() {
                 if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
@@ -1144,6 +1157,9 @@
                                 }
                             })
                             .then(() => {
+                                // Clear patient-specific cache first
+                                this.clearPatientCache();
+                                
                                 this.$swal.fire({
                                     position: "top-end",
                                     icon: "success",
@@ -1597,6 +1613,9 @@
                     const patientData = eventData.patient;
                     const isEditing = eventData.isEditing;
                     
+                    // Clear patient cache immediately when a patient is edited or created
+                    this.clearPatientCache();
+                    
                     // Clear all cache and refresh data
                     this.refreshAllData();
                     
@@ -1641,6 +1660,8 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
+                                // Clear patient cache immediately when a patient is edited
+                                this.clearPatientCache();
                                 this.refreshAllData();
                                 this.close();
 
@@ -1713,6 +1734,8 @@
 
                                 this.patientInfo = res.data.data;
                                 this.dialog = false;
+                                // Clear patient cache immediately when a new patient is created
+                                this.clearPatientCache();
                                 this.refreshAllData();
 
                                 // Check user role and redirect accordingly
