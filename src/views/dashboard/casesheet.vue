@@ -442,26 +442,6 @@
                 
                 // Add fully paid filter
                 fullyPaidFilter: null, // null = all, true = fully paid, false = not fully paid
-                
-                // Cache configuration
-                cacheConfig: {
-                    patients: {
-                        key: 'patients_cache',
-                        ttl: 5 * 60 * 1000, // 5 minutes
-                    },
-                    doctors: {
-                        key: 'doctors_cache',
-                        ttl: 30 * 60 * 1000, // 30 minutes
-                    },
-                    caseCategories: {
-                        key: 'case_categories_cache',
-                        ttl: 60 * 60 * 1000, // 1 hour
-                    },
-                    recipes: {
-                        key: 'recipes_cache',
-                        ttl: 15 * 60 * 1000, // 15 minutes
-                    }
-                },
 
                 // WhatsApp Dialog - properly initialize
                 whatsappDialog: false,
@@ -587,60 +567,6 @@
                 this.tableOptions.page = newPage;
                 this.page = newPage;
                 this.loadTableData();
-            },
-
-            // Cache management methods
-            setCache(key, data, ttl = 5 * 60 * 1000) {
-                const cacheItem = {
-                    data: data,
-                    timestamp: Date.now(),
-                    ttl: ttl
-                };
-                try {
-                    localStorage.setItem(key, JSON.stringify(cacheItem));
-                } catch (error) {
-                    console.warn('Failed to set cache:', error);
-                }
-            },
-
-            getCache(key) {
-                try {
-                    const cached = localStorage.getItem(key);
-                    if (!cached) return null;
-
-                    const cacheItem = JSON.parse(cached);
-                    const now = Date.now();
-                    
-                    // Check if cache is expired
-                    if (now - cacheItem.timestamp > cacheItem.ttl) {
-                        localStorage.removeItem(key);
-                        return null;
-                    }
-                    
-                    return cacheItem.data;
-                } catch (error) {
-                    console.warn('Failed to get cache:', error);
-                    return null;
-                }
-            },
-
-            clearCache(key) {
-                try {
-                    localStorage.removeItem(key);
-                } catch (error) {
-                    console.warn('Failed to clear cache:', error);
-                }
-            },
-
-            clearAllCache() {
-                Object.values(this.cacheConfig).forEach(config => {
-                    this.clearCache(config.key);
-                });
-            },
-
-            // Generate cache key for paginated data
-            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', fullyPaid = null) {
-                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_fp${fullyPaid}`;
             },
 
             // WhatsApp Methods
@@ -892,13 +818,24 @@
                     }
                 };
             },
-            getrecipes() {
-                const cached = this.getCache(this.cacheConfig.recipes.key);
-                if (cached) {
-                    this.recipes = cached;
-                    return;
-                }
+            getclinicDoctor() {
+                // Always fetch fresh doctor data - no caching
+                const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
+                this.apiRequest(endpoint)
+                    .then(res => {
+                        this.loadingData = false;
+                        this.loading = false;
+                        this.doctors = res.data.data;
+                        this.doctorsAll = [{ id: 0, name: ' الكل' }, ...this.doctors];
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                        console.error('Failed to fetch doctors');
+                    });
+            },
 
+            getrecipes() {
+                // Always fetch fresh recipes data - no caching
                 Axios.get("getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
@@ -908,177 +845,42 @@
                     })
                     .then(res => {
                         this.recipes = res.data;
-                        this.setCache(this.cacheConfig.recipes.key, res.data, this.cacheConfig.recipes.ttl);
                     })
                     .catch(() => {
-                        // If API fails, try to use expired cache as fallback
-                        const expiredCache = localStorage.getItem(this.cacheConfig.recipes.key);
-                        if (expiredCache) {
-                            try {
-                                this.recipes = JSON.parse(expiredCache).data;
-                            } catch (e) {
-                                console.warn('Failed to parse expired cache');
-                            }
-                        }
+                        console.error('Failed to fetch recipes');
                     });
             },
 
-            getByDocor() {
-                if (this.searchDocorId == 0) {
-                    return this.initialize();
-                }
-                
-                // Clear doctor search cache before performing new search
-                this.clearDoctorSearchCache();
-                
-                this.isSearchingDoctor = true;
-                this.loadingData = true;
-                
-                const currentPage = this.tableOptions.page || 1;
-                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                
-                // Don't use cache for doctor search - always fetch fresh data
-                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
+            getCaseCategories() {
+                // Always fetch fresh case categories data - no caching
+                this.apiRequest('case-categories')
                     .then(res => {
-                        this.loadingData = false;
-                        
-                        if (res.data && res.data.data) {
-                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
-                            this.desserts = res.data.data;
-                            this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
-                            this.page = currentPage;
-                            
-                            // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.fullyPaidFilter);
-                            this.setCache(cacheKey, {
-                                data: res.data.data,
-                                total: this.totalItems,
-                                pageCount: this.pageCount
-                            }, this.cacheConfig.patients.ttl);
-                        } else {
-                            // No data found
-                            this.desserts = [];
-                            this.totalItems = 0;
-                            this.pageCount = 0;
-                            this.page = 1;
-                        }
+                        this.loading = false;
+                        this.CaseCategories = res.data;
                     })
-                    .catch((error) => {
-                        this.loadingData = false;
-                        console.error('Doctor search error:', error);
-                        
-                        // Show error message to user
-                        this.$swal.fire({
-                            title: "خطأ في البحث",
-                            text: "حدث خطأ أثناء البحث عن مرضى الطبيب. يرجى المحاولة مرة أخرى.",
-                            icon: "error",
-                            confirmButtonText: "اغلاق",
-                        });
-                        
-                        // Reset to empty results
-                        this.desserts = [];
-                        this.totalItems = 0;
-                        this.pageCount = 0;
+                    .catch(() => {
+                        this.loading = false;
+                        console.error('Failed to fetch case categories');
                     });
             },
 
-            clearDoctorSearchCache() {
-                // Clear all doctor search-related cache keys
-                Object.keys(localStorage).forEach(key => {
-                    if (key.includes('doctor_patients')) {
-                        localStorage.removeItem(key);
-                    }
-                });
+            // Method to refresh all data - simplified without cache clearing
+            refreshAllData() {
+                // Reset search states
+                this.isSearching = false;
+                this.isSearchingDoctor = false;
+                this.search = '';
+                this.searchDocorId = '';
+                
+                // Reset pagination to first page
+                this.tableOptions.page = 1;
+                this.page = 1;
+                
+                // Force reload data immediately
+                this.loadingData = true;
+                this.initialize();
             },
 
-            goTop() {
-                if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-
-                    window.scrollTo(0, 0);
-
-                }
-
-            },
-            openbill(item) {
-                item
-
-                this.patientInfo = item;
-                this.bill = true;
-            },
-            addCase(item) {
-
-                // Farce de racines this.patientInfo = item;
-                this.patientInfo = {
-                    case_categores_id: "",
-                    upper_right: "",
-                    tooth_num: [],
-                    upper_left: "",
-                    root_stuffing: {
-                        "access_opening": [
-                            ['', '', '', '']
-                        ],
-                        "oburation": [
-                            ['', '', '', '']
-                        ],
-                    },
-                    patient_id: item.id,
-                    lower_right: "",
-                    lower_left: "",
-                    case_categories: {
-                        name_ar: ''
-                    },
-                    status_id: 42,
-                    bills: [{
-                        price: '',
-                        PaymentDate: this.getFormattedDate(new Date())
-                    }],
-                    sessions: [{
-                        note: '',
-                        date: ''
-                    }],
-                    images: [{
-                            img: '',
-                            descrption: ''
-                        }
-
-                    ],
-                    notes: ""
-                }
-                this.casesheet = true;
-                if (this.patientInfo.images.length > 0) {
-                    this.casesheet = true;
-                }
-
-                // if (/Android|webOS|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                //     this.casesheet = true;
-                //  //   this.$router.push("/case/" + item.id)
-
-                // } else {
-
-                //     this.casesheet = true;
-                // }
-
-            },
-            addbooking(item) {
-
-                this.patientInfo = item;
-                this.booking = true;
-            },
-            addRecipe(item) {
-
-
-                this.RecipeInfo = item;
-                if (item.case == null) {
-                    this.RecipeInfo.case = {
-                        name_ar: "",
-                        id: ""
-                    }
-                }
-
-                this.Recipe = true;
-                this.dialog = false;
-
-            },
             print() {
 
 
@@ -1247,9 +1049,6 @@
 
             },
             seachs() {
-                // Clear all search-related cache before performing new search
-                this.clearSearchCache();
-                
                 this.isSearching = true;
                 this.loadingData = true;
                 
@@ -1264,21 +1063,11 @@
                 }
             },
 
-            clearSearchCache() {
-                // Clear all search-related cache keys
-                Object.keys(localStorage).forEach(key => {
-                    if (key.includes('search_patients')) {
-                        localStorage.removeItem(key);
-                    }
-                });
-            },
-
-
             performSearch() {
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
-                // Don't use cache for search - always fetch fresh data
+                // Always fetch fresh data - no caching for search
                 this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
@@ -1290,14 +1079,6 @@
                             this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
                             this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
                             this.page = currentPage;
-                            
-                            // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
-                            this.setCache(cacheKey, {
-                                data: res.data.data,
-                                total: res.data.meta ? res.data.meta.total : res.data.data.length,
-                                pageCount: this.pageCount
-                            }, this.cacheConfig.patients.ttl);
                         } else {
                             // No data found
                             this.desserts = [];
@@ -1325,44 +1106,6 @@
                     });
             },
 
-            getclinicDoctor() {
-                const cached = this.getCache(this.cacheConfig.doctors.key);
-                if (cached) {
-                    this.doctors = cached.doctors;
-                    this.doctorsAll = cached.doctorsAll;
-                    return;
-                }
-
-                const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
-                this.apiRequest(endpoint)
-                    .then(res => {
-                        this.loadingData = false;
-                        this.loading = false;
-                        this.doctors = res.data.data;
-                        this.doctorsAll = [{ id: 0, name: ' الكل' }, ...this.doctors];
-                        
-                        // Cache the response
-                        this.setCache(this.cacheConfig.doctors.key, {
-                            doctors: this.doctors,
-                            doctorsAll: this.doctorsAll
-                        }, this.cacheConfig.doctors.ttl);
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                        // Try to use expired cache as fallback
-                        const expiredCache = localStorage.getItem(this.cacheConfig.doctors.key);
-                        if (expiredCache) {
-                            try {
-                                const data = JSON.parse(expiredCache).data;
-                                this.doctors = data.doctors;
-                                this.doctorsAll = data.doctorsAll;
-                            } catch (e) {
-                                console.warn('Failed to parse expired cache');
-                            }
-                        }
-                    });
-            },
-
             initialize() {
                 if (this.isSearching || this.isSearchingDoctor) {
                     // Reset search states when initializing
@@ -1377,19 +1120,8 @@
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.fullyPaidFilter);
                 
-                const cached = this.getCache(cacheKey);
-                if (cached) {
-                    this.loadingData = false;
-                    this.search = null;
-                    this.totalItems = cached.total;
-                    this.desserts = cached.data;
-                    this.pageCount = Math.ceil(cached.total / itemsPerPage);
-                    this.page = currentPage;
-                    return;
-                }
-                
+                // Always fetch fresh data - no caching for patients
                 this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
                     .then(res => {
                         this.loadingData = false;
@@ -1401,13 +1133,6 @@
                             this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
                             this.last_page = res.data.meta ? res.data.meta.last_page : 1;
                             this.page = currentPage;
-                            
-                            // Cache the response
-                            this.setCache(cacheKey, {
-                                data: res.data.data,
-                                total: this.totalItems,
-                                pageCount: this.pageCount
-                            }, this.cacheConfig.patients.ttl);
                         } else {
                             // No data found
                             this.desserts = [];
@@ -1419,57 +1144,11 @@
                     .catch((error) => {
                         this.loadingData = false;
                         console.error('Initialize error:', error);
-                        
-                        // Try to use expired cache as fallback
-                        const expiredCache = localStorage.getItem(cacheKey);
-                        if (expiredCache) {
-                            try {
-                                const data = JSON.parse(expiredCache).data;
-                                this.desserts = data.data || [];
-                                this.totalItems = data.total || 0;
-                                this.pageCount = data.pageCount || 0;
-                            } catch (e) {
-                                console.warn('Failed to parse expired cache');
-                                this.desserts = [];
-                                this.totalItems = 0;
-                                this.pageCount = 0;
-                            }
-                        } else {
-                            this.desserts = [];
-                            this.totalItems = 0;
-                            this.pageCount = 0;
-                        }
+                        this.desserts = [];
+                        this.totalItems = 0;
+                        this.pageCount = 0;
                     });
             },
-
-            getCaseCategories() {
-                const cached = this.getCache(this.cacheConfig.caseCategories.key);
-                if (cached) {
-                    this.CaseCategories = cached;
-                    return;
-                }
-
-                this.apiRequest('case-categories')
-                    .then(res => {
-                        this.loading = false;
-                        this.CaseCategories = res.data;
-                        this.setCache(this.cacheConfig.caseCategories.key, res.data, this.cacheConfig.caseCategories.ttl);
-                    })
-                    .catch(() => {
-                        this.loading = false;
-                        // Try to use expired cache as fallback
-                        const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
-                        if (expiredCache) {
-                            try {
-                                this.CaseCategories = JSON.parse(expiredCache).data;
-                            } catch (e) {
-                                console.warn('Failed to parse expired cache');
-                            }
-                        }
-                    });
-            },
-
-
 
             SaveCase(id) {
 
@@ -1891,15 +1570,31 @@
         },
 
         mounted() {
-         
-        },
-        created() {
+            // Force fresh data load when component is mounted
+            this.loadingData = true;
+            
+            // Clear any existing data
+            this.desserts = [];
+            this.totalItems = 0;
+            this.pageCount = 0;
+            
+            // Reset pagination
+            this.tableOptions.page = 1;
+            this.page = 1;
+            
+            // Load fresh data
             this.initialize();
             this.getrecipes();
             this.getclinicDoctor();
             this.getCaseCategories();
+        },
 
-
+        created() {
+            // Remove initialization from created since we're doing it in mounted
+            // this.initialize();
+            // this.getrecipes();
+            // this.getclinicDoctor();
+            // this.getCaseCategories();
 
             EventBus.$on("GetResCancel", (tooth) => {
                 tooth

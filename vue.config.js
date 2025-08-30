@@ -4,8 +4,6 @@ const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
-  transpileDependencies: [],
-  
   // Disable source maps in production
   productionSourceMap: false,
   parallel: true,
@@ -13,17 +11,12 @@ module.exports = {
   devServer: {
     hot: false,
     liveReload: true,
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
   },
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: 'css/[name].css',
-      chunkFilename: 'css/[name].css'
+      filename: 'css/app.css',
+      chunkFilename: 'css/app.css',
     } : false,
     sourceMap: false,
   },
@@ -37,65 +30,58 @@ module.exports = {
     display: 'standalone',
     scope: '/',
     start_url: '/',
-    workboxPluginMode: 'InjectManifest',
+    workboxPluginMode: 'GenerateSW',
     workboxOptions: {
-      swSrc: 'public/sw.js',
-      swDest: 'sw.js',
       skipWaiting: true,
-      clientsClaim: true
+      clientsClaim: true,
+      exclude: [/\.map$/, /manifest$/, /\.htaccess$/],
+      runtimeCaching: []
     },
   },
 
-  // Disable code splitting and chunk files
   chainWebpack: config => {
     // Remove prefetch and preload plugins for better control
     config.plugins.delete('prefetch')
     config.plugins.delete('preload')
     
     // Configure HTML plugin
-    config.plugin('html').tap((args) => {
-      args[0].title = 'Smart Clinic Management System';
-      return args;
-    });
+    config
+      .plugin('html')
+      .tap((args) => {
+        args[0].title = 'Smart Clinic Management System';
+        return args;
+      });
+    
+    // Disable chunk splitting to prevent multiple JS chunks
+    config.optimization.delete('splitChunks')
+    
+    // Add cache-loader for better build performance
+    config.module
+      .rule('vue')
+      .use('cache-loader')
+      .loader('cache-loader')
+      .before('vue-loader')
   },
 
-  // Enhanced performance optimizations with proper chunk configuration
+  // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: 'js/[name].[hash].js',
-      chunkFilename: 'js/[name].[hash].js'
-    },
-    optimization: {
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            // Remove custom filename to prevent conflict
-            // filename: 'vendors.[contenthash].js'
-          }
-        }
-      },
-      runtimeChunk: false,
-      minimize: true,
-      concatenateModules: false,
-      providedExports: false,
-      usedExports: false,
-      sideEffects: false,
-      removeAvailableModules: false,
-      removeEmptyChunks: false,
-      mergeDuplicateChunks: false
+      filename: process.env.NODE_ENV === 'production' ? 'js/app.js' : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/app.js' : '[name].js'
     },
     performance: {
       hints: false,
-      maxEntrypointSize: 5048000,
-      maxAssetSize: 5048000
+      maxEntrypointSize: 512000,
+      maxAssetSize: 512000
+    },
+    optimization: {
+      minimize: process.env.NODE_ENV === 'production',
+      runtimeChunk: false,
+      splitChunks: false,
     },
     resolve: {
       alias: {
-        'vue$': 'vue/dist/vue.esm.js'
+        'vue$': 'vue/dist/vue.runtime.esm.js'
       }
     },
     plugins: [
@@ -113,9 +99,6 @@ module.exports = {
       })
     ],
   },
-
-  // Public path configuration
-  publicPath: process.env.NODE_ENV === 'production' ? '/' : '/'
 }
 
 
