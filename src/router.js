@@ -6,6 +6,9 @@ import performanceMonitor from './utils/performanceMonitor'
 Vue.use(Router)
 
 // Enhanced route components with better caching and preloading
+// Import directly instead of lazy loading
+import CaseSheet from '@/views/dashboard/casesheet'
+
 const routeComponents = {
   // Auth pages - Critical path, smaller chunks
   Login: () => import(/* webpackChunkName: "auth" */ '@/views/pages/Login'),
@@ -15,33 +18,28 @@ const routeComponents = {
   DashboardLayout: () => import(/* webpackChunkName: "layout" */ '@/views/dashboard/Index'),
   PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
   
-  // Core dashboard views - Optimized chunking
-  Dashboard: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/Dashboard'),
-  CaseSheet: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/casesheet'),
-  Cases: () => import(/* webpackChunkName: "dashboard-core" */ '@/views/dashboard/cases'),
+  // Core dashboard views - Use unique chunk names
+  Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard'),
+  CaseSheet: CaseSheet, // Direct import instead of dynamic import
+  Cases: () => import(/* webpackChunkName: "cases" */ '@/views/dashboard/cases'),
   Patient: () => import(/* webpackChunkName: "patient" */ '@/views/dashboard/patient'),
   
-  // Secondary views - Separate chunks
-  Calendar: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/calendar'),
-  Recipe: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/Recipe'),
-  Reports: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/reports'),
-  Accounts: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/accounts'),
-  BillsReport: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/billsReport'),
-  CaseLap: () => import(/* webpackChunkName: "features" */ '@/views/dashboard/CaseLap'),
+  // Secondary views - Use unique chunk names
+  Calendar: () => import(/* webpackChunkName: "calendar" */ '@/views/dashboard/calendar'),
+  Recipe: () => import(/* webpackChunkName: "recipe" */ '@/views/dashboard/Recipe'),
+  Reports: () => import(/* webpackChunkName: "reports" */ '@/views/dashboard/reports'),
+  Accounts: () => import(/* webpackChunkName: "accounts" */ '@/views/dashboard/accounts'),
+  BillsReport: () => import(/* webpackChunkName: "bills-report" */ '@/views/dashboard/billsReport'),
+  CaseLap: () => import(/* webpackChunkName: "case-lap" */ '@/views/dashboard/CaseLap'),
   
-  // Administrative views - Separate chunk
-  Doctors: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/doctors'),
-  Profile: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/profile'),
-  Store: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/store'),
-
+  // Administrative views - Use unique chunk names
+  Doctors: () => import(/* webpackChunkName: "doctors" */ '@/views/dashboard/doctors'),
+  Profile: () => import(/* webpackChunkName: "profile" */ '@/views/dashboard/profile'),
+  Store: () => import(/* webpackChunkName: "store" */ '@/views/dashboard/store'),
   
   // Error pages
   Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
-  // Add this to the routeComponents object
-  CaseCategories: () => import(/* webpackChunkName: "admin" */ '@/views/dashboard/CaseCategories')
-  
-  // Add this route in the dashboard children array
-
+  CaseCategories: () => import(/* webpackChunkName: "case-categories" */ '@/views/dashboard/CaseCategories')
 }
 
 const router = new Router({

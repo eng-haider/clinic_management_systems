@@ -211,11 +211,12 @@
 
                         <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="payment-filter">
                             <v-select
-                                v-model="fullyPaidFilter"
+                                v-model="billingStatusFilter"
                                 :items="[
                                     { text: 'جميع المرضى', value: null },
-                                    { text: 'مدفوع بالكامل', value: true },
-                                    { text: 'غير مدفوع بالكامل', value: false }
+                                    { text: 'مدفوع بالكامل', value: 'all_paid' },
+                                    { text: 'غير مدفوع نهائياً', value: 'none_paid' },
+                                    { text: 'مدفوع جزئياً', value: 'some_paid' }
                                 ]"
                                 item-text="text"
                                 item-value="value"
@@ -422,8 +423,8 @@
                 // Add timeout variable
                 paginationTimeout: null,
                 
-                // Add fully paid filter
-                fullyPaidFilter: null, // null = all, true = fully paid, false = not fully paid
+                // Add billing status filter
+                billingStatusFilter: null, // null = all, 'all_paid' = fully paid, 'none_paid' = not paid, 'some_paid' = partially paid
                 
                 // Cache configuration
                 cacheConfig: {
@@ -676,8 +677,8 @@
             },
 
             // Generate cache key for paginated data
-            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', fullyPaid = null) {
-                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_fp${fullyPaid}`;
+            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', billingStatus = null) {
+                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_bs${billingStatus}`;
             },
 
             // WhatsApp Methods
@@ -981,8 +982,14 @@
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
+                // Build API URL with billing status parameter for doctor search
+                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
+                if (this.billingStatusFilter) {
+                    apiUrl += `&billing_status=${this.billingStatusFilter}`;
+                }
+                
                 // Don't use cache for doctor search - always fetch fresh data
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(apiUrl)
                     .then(res => {
                         this.loadingData = false;
                         
@@ -993,7 +1000,7 @@
                             this.page = currentPage;
                             
                             // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.fullyPaidFilter);
+                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.billingStatusFilter);
                             this.setCache(cacheKey, {
                                 data: res.data.data,
                                 total: this.totalItems,
@@ -1433,7 +1440,7 @@
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.fullyPaidFilter);
+                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.billingStatusFilter);
                 
                 const cached = this.getCache(cacheKey);
                 if (cached) {
@@ -1446,7 +1453,13 @@
                     return;
                 }
                 
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
+                // Build API URL with billing status parameter
+                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                if (this.billingStatusFilter) {
+                    apiUrl += `&billing_status=${this.billingStatusFilter}`;
+                }
+                
+                this.apiRequest(apiUrl)
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;

@@ -6,7 +6,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 module.exports = {
   // Disable source maps in production
   productionSourceMap: false,
-  parallel: true,
+  parallel: false, // Disable parallel processing
   
   devServer: {
     hot: false,
@@ -15,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: 'css/[name].css',
-      chunkFilename: 'css/[name].css',
+      filename: 'css/[name].[contenthash:8].css',
+      chunkFilename: 'css/[name].[contenthash:8].css',
     } : false,
     sourceMap: false,
   },
@@ -52,19 +52,19 @@ module.exports = {
         return args;
       });
     
-    // Add cache-loader for better build performance
-    config.module
-      .rule('vue')
-      .use('cache-loader')
-      .loader('cache-loader')
-      .before('vue-loader')
+    // DISABLE cache-loader completely
+    // config.module
+    //   .rule('vue')
+    //   .use('cache-loader')
+    //   .loader('cache-loader')
+    //   .before('vue-loader')
   },
 
   // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? 'js/[name].js' : '[name].js',
-      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].js' : '[name].js'
+      filename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js'
     },
     performance: {
       hints: false,
@@ -76,6 +76,8 @@ module.exports = {
       runtimeChunk: false,
       splitChunks: {
         chunks: 'all',
+        maxInitialRequests: Infinity,
+        minSize: 0,
         cacheGroups: {
           vendor: {
             name: 'chunk-vendors',
@@ -88,6 +90,11 @@ module.exports = {
             minChunks: 2,
             priority: 5,
             chunks: 'initial'
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
           }
         }
       }
@@ -113,5 +120,4 @@ module.exports = {
     ],
   },
 }
-
 
