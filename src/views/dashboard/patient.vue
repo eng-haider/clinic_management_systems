@@ -110,9 +110,9 @@
                         class="elevation-1"
                         dense
                         hide-default-footer
+                        :items-per-page="-1"
                         disable-sort
                         @click="handleDataTableClick"
-                        :item-class="getRowClass"
                       >
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
