@@ -6,7 +6,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 module.exports = {
   // Disable source maps in production
   productionSourceMap: false,
-  parallel: true,
+  parallel: false, // Disable parallel processing
   
   devServer: {
     hot: false,
@@ -15,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: 'css/app.css',
-      chunkFilename: 'css/app.css',
+      filename: 'css/[name].[contenthash:8].css',
+      chunkFilename: 'css/[name].[contenthash:8].css',
     } : false,
     sourceMap: false,
   },
@@ -52,22 +52,19 @@ module.exports = {
         return args;
       });
     
-    // Disable chunk splitting to prevent multiple JS chunks
-    config.optimization.delete('splitChunks')
-    
-    // Add cache-loader for better build performance
-    config.module
-      .rule('vue')
-      .use('cache-loader')
-      .loader('cache-loader')
-      .before('vue-loader')
+    // DISABLE cache-loader completely
+    // config.module
+    //   .rule('vue')
+    //   .use('cache-loader')
+    //   .loader('cache-loader')
+    //   .before('vue-loader')
   },
 
   // Enhanced performance optimizations
   configureWebpack: {
     output: {
-      filename: process.env.NODE_ENV === 'production' ? 'js/app.js' : '[name].js',
-      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/app.js' : '[name].js'
+      filename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js'
     },
     performance: {
       hints: false,
@@ -77,7 +74,30 @@ module.exports = {
     optimization: {
       minimize: process.env.NODE_ENV === 'production',
       runtimeChunk: false,
-      splitChunks: false,
+      splitChunks: {
+        chunks: 'all',
+        maxInitialRequests: Infinity,
+        minSize: 0,
+        cacheGroups: {
+          vendor: {
+            name: 'chunk-vendors',
+            test: /[\\/]node_modules[\\/]/,
+            priority: 10,
+            chunks: 'initial'
+          },
+          common: {
+            name: 'chunk-common',
+            minChunks: 2,
+            priority: 5,
+            chunks: 'initial'
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
+          }
+        }
+      }
     },
     resolve: {
       alias: {
