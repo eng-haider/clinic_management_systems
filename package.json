@@ -6,6 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "build:clean": "rm -rf dist && rm -rf node_modules/.cache && vue-cli-service build",
+    "build:fresh": "rm -rf dist && rm -rf node_modules/.cache && rm -rf ~/.cache/vue-cli-service && npm cache clean --force && vue-cli-service build",
+    "build:nuclear": "./build.sh",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

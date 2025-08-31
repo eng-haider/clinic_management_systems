@@ -1,7 +1,6 @@
 // vue.config.js
 
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   // Disable source maps in production
@@ -40,7 +39,7 @@ module.exports = {
   },
 
   chainWebpack: config => {
-    // Remove prefetch and preload plugins for better control
+    // Remove prefetch and preload plugins
     config.plugins.delete('prefetch')
     config.plugins.delete('preload')
     
@@ -52,25 +51,37 @@ module.exports = {
         return args;
       });
     
-    // DISABLE cache-loader completely
-    // config.module
-    //   .rule('vue')
-    //   .use('cache-loader')
-    //   .loader('cache-loader')
-    //   .before('vue-loader')
+    // COMPLETELY DISABLE ALL CACHING
+    config.cache(false);
+    
+    // Remove cache loaders completely
+    const rules = ['vue', 'js', 'ts', 'tsx', 'css', 'scss', 'sass', 'less', 'stylus']
+    rules.forEach(rule => {
+      if (config.module.rules.get(rule)) {
+        config.module.rule(rule).uses.delete('cache-loader')
+      }
+    })
+    
+    // Force fresh compilation
+    config.resolve.symlinks(false)
   },
 
-  // Enhanced performance optimizations
   configureWebpack: {
+    // DISABLE ALL WEBPACK CACHING
+    cache: false,
+    
+    // Force unique filenames
     output: {
       filename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js',
       chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js'
     },
+    
     performance: {
       hints: false,
       maxEntrypointSize: 512000,
       maxAssetSize: 512000
     },
+    
     optimization: {
       minimize: process.env.NODE_ENV === 'production',
       runtimeChunk: false,
@@ -99,25 +110,23 @@ module.exports = {
         }
       }
     },
+    
     resolve: {
       alias: {
         'vue$': 'vue/dist/vue.runtime.esm.js'
       }
     },
+    
     plugins: [
-      // Uncomment to analyze bundle size
-      // new BundleAnalyzerPlugin(),
       new VuetifyLoaderPlugin({
         match (originalTag, { kebabTag, camelTag }) {
           if (kebabTag.startsWith('core-')) {
-            return [
-              camelTag,
-              `import ${camelTag} from '@/components/core/${camelTag.substring(4)}.vue'`
-            ]
+            return [camelTag, `import ${camelTag} from '@/components/core/${camelTag.substring(4)}.vue'`]
           }
         }
       })
     ],
   },
 }
+
 
