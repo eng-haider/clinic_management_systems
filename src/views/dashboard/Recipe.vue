@@ -566,6 +566,7 @@
           rx_img: ''
         };
         EventBus.$emit("changeStatusCloseField", false);
+        this.$emit('close'); // Add this line to emit close event
       },
       async print() {
        

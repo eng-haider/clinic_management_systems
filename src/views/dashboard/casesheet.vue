@@ -569,6 +569,95 @@
                 this.loadTableData();
             },
 
+            // Add the missing addRecipe method
+            addRecipe(item) {
+                this.RecipeInfo = item;
+                if (item.case == null) {
+                    this.RecipeInfo.case = {
+                        name_ar: "",
+                        id: ""
+                    }
+                }
+                this.Recipe = true;
+            },
+
+            // Add the missing addbooking method
+            addbooking(item) {
+                this.patientInfo = item;
+                this.booking = true;
+            },
+
+            // Add the missing openbill method
+            openbill(item) {
+                this.patientInfo = item;
+                this.bill = true;
+            },
+
+            // Add the missing addCase method
+            addCase(item) {
+                this.patientInfo = item;
+                this.casesheet = true;
+            },
+
+            // Add the missing getByDocor method
+            getByDocor() {
+                this.isSearchingDoctor = true;
+                this.loadingData = true;
+                
+                // Reset pagination for new search
+                if (this.tableOptions.page === 1) {
+                    // If we're already on page 1, proceed with search
+                    this.performDoctorSearch();
+                } else {
+                    // Reset to page 1 and let the table update handler trigger the search
+                    this.tableOptions.page = 1;
+                    this.page = 1;
+                }
+            },
+
+            // Add the missing performDoctorSearch method
+            performDoctorSearch() {
+                const currentPage = this.tableOptions.page || 1;
+                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+                
+                let url = `https://apismartclinicv3.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                
+                if (this.searchDocorId && this.searchDocorId !== 0) {
+                    url += `&doctor_id=${this.searchDocorId}`;
+                }
+                
+                this.apiRequest(url)
+                    .then(res => {
+                        this.loadingData = false;
+                        this.allItem = true;
+                        
+                        if (res.data && res.data.data) {
+                            this.desserts = res.data.data;
+                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                            this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
+                            this.page = currentPage;
+                        } else {
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                            this.page = 1;
+                        }
+                    })
+                    .catch((error) => {
+                        this.loadingData = false;
+                        console.error('Doctor search error:', error);
+                        this.desserts = [];
+                        this.totalItems = 0;
+                        this.pageCount = 0;
+                    });
+            },
+
+            // Add the missing clearAllCache method
+            clearAllCache() {
+                // Clear any cached data if needed
+                // This method can be expanded based on caching implementation
+            },
+
             // WhatsApp Methods
             openWhatsappDialog(item) {
                 this.selectedPatient = {

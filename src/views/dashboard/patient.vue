@@ -47,24 +47,33 @@
             تعديل
           </v-btn>
           
-          <v-btn 
-            class="mr-2" 
-            rounded
-            style="background-color: rgb(59, 106, 117); color: white;"
+          <v-btn
+            small
+            color="primary"
             @click="bookAppointment()"
-   
+            class="ml-2"
           >
-            <v-icon left>mdi-calendar-clock</v-icon>
+            <v-icon left small>mdi-calendar-plus</v-icon>
             حجز موعد
           </v-btn>
           
-          <v-btn 
-            class="mr-2" 
-            color="success" 
-            rounded
-            @click="generateBill"
+          <v-btn
+            small
+            color="success"
+            @click="addRecipe(patient)"
+            class="ml-2"
           >
-            <v-icon left>mdi-file-document-outline</v-icon>
+            <v-icon left small>mdi-prescription</v-icon>
+            {{ $t("rx") }}
+          </v-btn>
+          
+          <v-btn
+            small
+            color="info"
+            @click="generateBill()"
+            class="ml-2"
+          >
+            <v-icon left small>mdi-receipt</v-icon>
             الفاتورة
           </v-btn>
         </v-col>
@@ -638,6 +647,14 @@
       </v-card>
     </v-dialog>
 
+    <!-- Recipe Dialog -->
+    <v-dialog v-model="Recipe" max-width="900px" v-track-dialog>
+      <Recipe 
+        :RecipeInfo="RecipeInfo"
+        @close="Recipe = false"
+      />
+    </v-dialog>
+
     <!-- Fancybox is handling image viewing now -->
   </v-container>
 </template>
@@ -647,6 +664,7 @@ import teeth from '@/components/core/teeth.vue';
 import OwnerBooking from './sub_components/ownerBookinfDed.vue';
 import Bill from './sub_components/billsReport.vue';
 import PatientEditDialog from '@/components/PatientEditDialog.vue';
+import Recipe from './Recipe.vue';
 import { EventBus } from './event-bus.js';
 // Import the configured axios instance that includes authentication
 import '@/axios.js';
@@ -662,6 +680,7 @@ export default {
     OwnerBooking,
     Bill,
     PatientEditDialog,
+    Recipe,
     vue2Dropzone
   },
   
@@ -736,6 +755,17 @@ birth_date: ''
       editDialog: false,
       appointmentDialog: false,
       billDialog: false,
+      Recipe: false,
+      RecipeInfo: {
+        name: '',
+        sex: '',
+        age: '',
+        notes: '',
+        rx_img: '',
+        case: {
+          case_categories: ''
+        }
+      },
 
       // Pagination and search
       options: {
@@ -2295,6 +2325,21 @@ birth_date: ''
     bookAppointment() {
      
         this.appointmentDialog = true;
+    },
+
+    // Add Recipe (RX)
+    addRecipe(item) {
+      this.RecipeInfo = {
+        name: item.name || '',
+        sex: item.sex || '',
+        age: item.age || '',
+        notes: '',
+        rx_img: '',
+        case: item.case || {
+          case_categories: ''
+        }
+      };
+      this.Recipe = true;
     },
 
     // Close appointment dialog

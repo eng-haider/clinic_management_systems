@@ -124,21 +124,25 @@
                     <div class="text-h5 font-weight-bold mt-1">
                       {{ accounts_statistic.all_sum | currency }}
                     </div>
-                    <div v-if="showDoctorPercentage" class="mt-2">
-                      <v-divider class="my-2"></v-divider>
-                      <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
-                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ (accounts_statistic.all_sum-accounts_statistic.item_cost_sum * doctorPercentage / 100) | currency }}
-                      </div>
-                    </div>
 
-                     <div  class="mt-2">
+                      <div  class="mt-2">
                       <v-divider class="my-2"></v-divider>
                       <div class="text-caption text--secondary">المواد المستعملة</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
                         {{ accounts_statistic.item_cost_sum | currency }}
                       </div>
                     </div>
+
+
+                    <div v-if="showDoctorPercentage" class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ ((accounts_statistic.all_sum-accounts_statistic.item_cost_sum) * doctorPercentage / 100) | currency }}
+                      </div>
+                    </div>
+
+                   
                   </div>
                 </v-card-text>
               </v-card>
@@ -153,11 +157,22 @@
                     <div class="text-h5 font-weight-bold mt-1">
                       {{ accounts_statistic.paid | currency }}
                     </div>
+
+
+                        <div  class="mt-2">
+                      <v-divider class="my-2"></v-divider>
+                      <div class="text-caption text--secondary">المواد المستعملة</div>
+                      <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
+                        {{ accounts_statistic.item_cost_sum | currency }}
+                      </div>
+                    </div>
+
+
                     <div v-if="showDoctorPercentage" class="mt-2">
                       <v-divider class="my-2"></v-divider>
                       <div class="text-caption text--secondary">نسبة الطبيب ({{ doctorPercentage }}%)</div>
                       <div class="text-h6 font-weight-medium" style="color: #4CAF50;">
-                        {{ doctorPaidAmount | currency }}
+                        {{ (accounts_statistic.paid-accounts_statistic.item_cost_sum) * doctorPercentage / 100 | currency }}
                       </div>
                     </div>
                   </div>

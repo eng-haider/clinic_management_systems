@@ -8,6 +8,9 @@
     "build:fresh": "npm run clean && npm run clear-cache && vue-cli-service build",
     "clean": "rimraf dist",
     "clear-cache": "npm cache clean --force && rimraf node_modules/.cache",
+    "build:pwa": "npm run clean && vue-cli-service build --mode production",
+    "build:pwa-fresh": "rm -rf dist && rm -rf node_modules/.cache && npm cache clean --force && npm run build:pwa",
+    "deploy:pwa": "npm run build:pwa-fresh && echo 'PWA build complete with cache busting'",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -43,8 +46,8 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "rimraf": "^3.0.2",
-    "sass": "^1.86.3",
-    "sass-loader": "^8.0.2",
+    "sass": "^1.69.0",
+    "sass-loader": "^13.0.0",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.9.2",
     "webpack": "^4.47.0",
