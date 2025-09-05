@@ -1,6 +1,7 @@
 // vue.config.js
 
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
+const timestamp = Date.now()
 
 module.exports = {
   // Disable source maps in production
@@ -14,8 +15,8 @@ module.exports = {
 
   css: {
     extract: process.env.NODE_ENV === 'production' ? {
-      filename: 'css/[name].[contenthash:8].css',
-      chunkFilename: 'css/[name].[contenthash:8].css',
+      filename: `css/[name].${timestamp}.css`,
+      chunkFilename: `css/[name].${timestamp}.css`,
     } : false,
     sourceMap: false,
   },
@@ -70,12 +71,11 @@ module.exports = {
     // DISABLE ALL WEBPACK CACHING
     cache: false,
     
-    // Force unique filenames
+    // Force unique filenames with timestamp
     output: {
-      filename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js',
-      chunkFilename: process.env.NODE_ENV === 'production' ? 'js/[name].[contenthash:8].js' : '[name].js'
+      filename: process.env.NODE_ENV === 'production' ? `js/[name].${timestamp}.js` : '[name].js',
+      chunkFilename: process.env.NODE_ENV === 'production' ? `js/[name].${timestamp}.js` : '[name].js'
     },
-    
     performance: {
       hints: false,
       maxEntrypointSize: 512000,

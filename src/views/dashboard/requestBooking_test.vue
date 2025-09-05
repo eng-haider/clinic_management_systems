@@ -917,6 +917,7 @@
                 owner_name: doctorName, // Map doctor name
                 doctor_name: doctorName, // Add doctor_name field
                 id: reservation.id,
+                status_id: reservation.status_id, // Add status_id to event data
                 start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
                 startTime: reservation.reservation_from_time,
                 color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
@@ -985,16 +986,21 @@
         };
       },
       getEventColor(event) {
-  const currentDateTime = new Date(); // Get the current date and time
-  const eventDateTime = new Date(event.start); // Parse the event's start date and time
+        const currentDateTime = new Date(); // Get the current date and time
+        const eventDateTime = new Date(event.start); // Parse the event's start date and time
 
-  // Check if the event is in the past
-  if (eventDateTime < currentDateTime) {
-    return "green"; // Event is in the past
-  }
+        // Check status_id first
+        if (event.status_id === 2) {
+          return "blue"; // Status 2 gets blue color
+        }
 
-  return "#FFA500"; // Default to event color or lightblue
-},
+        // Check if the event is in the past
+        if (eventDateTime < currentDateTime) {
+          return "green"; // Event is in the past
+        }
+
+        return "#FFA500"; // Default to event color or lightblue
+      },
       // Helper method to determine color based on reservation date and time
       getReservationColor(reservationDate, reservationTime) {
         const currentDateTime = new Date();
