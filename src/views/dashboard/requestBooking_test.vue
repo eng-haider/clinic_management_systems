@@ -239,7 +239,7 @@
 <script>
   import axios from 'axios';
   import Multiselect from 'vue-multiselect'
-  import cacheManager from '@/utils/cache';
+  // import cacheManager from '@/utils/cache'; // Commented out - cache not working properly
 
   export default {
     components: {
@@ -247,7 +247,8 @@
     },
     data() {
       return {
-        // Cache configuration
+        // Cache configuration - COMMENTED OUT (not working properly)
+        /*
         cacheConfig: {
           reservations: {
             key: 'reservations_cache',
@@ -266,6 +267,7 @@
             ttl: 60 * 60 * 1000, // 1 hour
           }
         },
+        */
         dialogInfo: false,
         owner_item: '',
         BookingDetails: false,
@@ -323,14 +325,32 @@
       this.getPatient(); // Fetch patients for autocomplete
       this.getOwnerTctateitemsById();
      // Ensure reservations are loaded when the page opens
+     
+      // Listen for status changes to clear cache and refresh colors
+      this.$eventBus.$on('changeStatus', () => {
+        console.log('📡 Status change detected - clearing reservations cache');
+        // Clear reservations cache to force refresh with updated colors
+        // cacheManager.delete(this.currentReservationsCacheKey); // Commented out - cache not working
+        // Refresh reservations to get updated colors
+        this.fetchReservations();
+      });
     },
+
+    // beforeDestroy method - COMMENTED OUT (cache not working properly)
+    /*
+    beforeDestroy() {
+      // Clean up EventBus listener to prevent memory leaks
+      this.$eventBus.$off('changeStatus');
+    },
+    */
 
     computed: {
       clinicName() {
         return this.$store.state.AdminInfo.clinics_info?.name || '';
       },
       
-      // Cache status for debugging
+      // Cache-related computed properties - COMMENTED OUT (not working properly)
+      /*
       cacheStatus() {
         return {
           reservations: cacheManager.has(this.cacheConfig.reservations.key),
@@ -346,6 +366,7 @@
           ? `reservations_cache_doctor_${this.selectedDoctorFilter}`
           : this.cacheConfig.reservations.key;
       }
+      */
     },
 
     watch: {
@@ -394,7 +415,8 @@
           // Create a cache key for the search query
           const searchCacheKey = `patient_search_${query}`;
           
-          // Check cache first
+          // Check cache first - COMMENTED OUT (cache not working properly)
+          /*
           const cached = cacheManager.get(searchCacheKey);
           if (cached) {
             console.log('✅ Using cached patient search results');
@@ -402,6 +424,7 @@
             this.isLoading = false;
             return;
           }
+          */
 
           axios.get("https://smartclinicv5.tctate.com/api/patients/searchv2/" + query, {
               headers: {
@@ -414,8 +437,8 @@
               this.isLoading = false;
               this.patients = res.data.data; // Search results
               
-              // Cache the search results for 1 minute
-              cacheManager.set(searchCacheKey, res.data.data, 60 * 1000);
+              // Cache the search results for 1 minute - COMMENTED OUT (not working properly)
+              // cacheManager.set(searchCacheKey, res.data.data, 60 * 1000);
               console.log('💾 Cached patient search results');
             })
             .catch(error => {
@@ -441,7 +464,8 @@
         if (this.$store.state.role == 'secretary' || this.$store.state.role == 'accounter'  || this.$store.state.role == 'adminDoctor') {
           console.log('Fetching doctors...');
           
-          // Check cache first
+          // Check cache first - COMMENTED OUT (cache not working properly)
+          /*
           const cached = cacheManager.get(this.cacheConfig.doctors.key);
           if (cached) {
             console.log('✅ Using cached doctors');
@@ -450,6 +474,7 @@
             this.fetchReservations();
             return;
           }
+          */
           
           this.loading = true;
 
@@ -466,8 +491,8 @@
               this.loading = false;
               this.doctors = res.data.data;
               
-              // Cache the doctors data
-              cacheManager.set(this.cacheConfig.doctors.key, res.data.data, this.cacheConfig.doctors.ttl);
+              // Cache the doctors data - COMMENTED OUT (cache not working properly)
+              // cacheManager.set(this.cacheConfig.doctors.key, res.data.data, this.cacheConfig.doctors.ttl);
               console.log('💾 Cached doctors data');
               
               this.setupDoctorFilterOptions();
@@ -514,8 +539,8 @@
         console.log('Doctor filter changed to:', doctorId);
         this.selectedDoctorFilter = doctorId;
         
-        // Clear current reservations cache
-        cacheManager.remove(this.currentReservationsCacheKey);
+        // Clear current reservations cache - COMMENTED OUT (cache not working)
+        // cacheManager.remove(this.currentReservationsCacheKey);
         
         // Fetch reservations for selected doctor
         await this.fetchReservations();
@@ -541,9 +566,9 @@
             }
           });
 
-          // Clear reservations cache to force refresh
-          cacheManager.remove(this.cacheConfig.reservations.key);
-          console.log('🗑️ Cleared reservations cache after deletion');
+          // Clear reservations cache to force refresh - COMMENTED OUT (cache not working)
+            // cacheManager.remove(this.cacheConfig.reservations.key);
+            // console.log('🗑️ Cleared reservations cache after deletion');
 
           // Refresh the reservations list
           await this.fetchReservations();
@@ -627,14 +652,14 @@
       getOwnerTctateitemsById() {
         console.log('Fetching owner items...');
         
-        // Check cache first
-        const cached = cacheManager.get(this.cacheConfig.ownerItems.key);
-        if (cached) {
-          console.log('✅ Using cached owner items');
-          this.item_id = cached.id;
-          this.owner_item = cached;
-          return;
-        }
+        // Check cache first - COMMENTED OUT (cache not working)
+        // const cached = cacheManager.get(this.cacheConfig.ownerItems.key);
+        // if (cached) {
+        //   console.log('✅ Using cached owner items');
+        //   this.item_id = cached.id;
+        //   this.owner_item = cached;
+        //   return;
+        // }
         
         this.loading = true
         this.$http({
@@ -651,9 +676,9 @@
           this.item_id = response.data.data[0].id;
           this.owner_item = response.data.data[0];
           
-          // Cache the owner item data
-          cacheManager.set(this.cacheConfig.ownerItems.key, response.data.data[0], this.cacheConfig.ownerItems.ttl);
-          console.log('💾 Cached owner items data');
+          // Cache the owner item data - COMMENTED OUT (cache not working)
+          // cacheManager.set(this.cacheConfig.ownerItems.key, response.data.data[0], this.cacheConfig.ownerItems.ttl);
+          // console.log('💾 Cached owner items data');
         }).catch(error => {
           this.loading = false;
           console.error('Error fetching owner items:', error);
@@ -675,13 +700,15 @@
       getPatient() {
         console.log('Fetching patients...');
         
-        // Check cache first
+        // Check cache first - COMMENTED OUT (cache not working properly)
+        /*
         const cached = cacheManager.get(this.cacheConfig.patients.key);
         if (cached) {
           console.log('✅ Using cached patients');
           this.patients = cached;
           return;
         }
+        */
         
         this.loadingData = true; // Show loading indicator
         axios.get("https://smartclinicv5.tctate.com/api/patients/getByUserIdv3", {
@@ -695,8 +722,8 @@
             this.loadingData = false;
             this.patients = res.data.data; // Store fetched patients
             
-            // Cache the patients data
-            cacheManager.set(this.cacheConfig.patients.key, res.data.data, this.cacheConfig.patients.ttl);
+            // Cache the patients data - COMMENTED OUT (cache not working properly)
+            // cacheManager.set(this.cacheConfig.patients.key, res.data.data, this.cacheConfig.patients.ttl);
             console.log('💾 Cached patients data');
           })
           .catch(error => {
@@ -820,8 +847,8 @@
               color: this.getReservationColor(reservationStartDate, fromTime)
             });
 
-            // Clear reservations cache to force refresh on next load
-            cacheManager.remove(this.cacheConfig.reservations.key);
+            // Clear reservations cache to force refresh on next load - COMMENTED OUT (cache not working properly)
+            // cacheManager.remove(this.cacheConfig.reservations.key);
             console.log('🗑️ Cleared reservations cache after new booking');
 
             // Close dialog and show success message
@@ -860,13 +887,15 @@
         try {
           console.log('Fetching reservations...');
           
-          // Check cache first using current cache key
+          // Check cache first using current cache key - COMMENTED OUT (cache not working properly)
+          /*
           const cached = cacheManager.get(this.currentReservationsCacheKey);
           if (cached) {
             console.log('✅ Using cached reservations');
             this.reservations = cached;
             return;
           }
+          */
           
           // Determine API endpoint based on doctor filter
           let apiEndpoint = 'https://smartclinicv5.tctate.com/api/reservations/formatted';
@@ -909,7 +938,7 @@
                 ? `${patientName}| ${this.getDoctorFirstName(doctorName)}`
                 : patientName;
               
-              return {
+              const eventData = {
                 name: displayName,
                 details: `Appointment with ${patientName}`,
                 phone: reservation.user?.user_phone || reservation.user?.phone || '',
@@ -919,15 +948,19 @@
                 id: reservation.id,
                 status_id: reservation.status_id, // Add status_id to event data
                 start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
-                startTime: reservation.reservation_from_time,
-                color: this.getReservationColor(reservation.reservation_start_date, reservation.reservation_from_time)
+                startTime: reservation.reservation_from_time
               };
+              
+              // Set color based on status_id and date/time
+              eventData.color = this.getEventColor(eventData);
+              
+              return eventData;
             });
 
             this.reservations = formattedReservations;
             
-            // Cache the formatted reservations with current cache key
-            cacheManager.set(this.currentReservationsCacheKey, formattedReservations, this.cacheConfig.reservations.ttl);
+            // Cache the formatted reservations with current cache key - COMMENTED OUT (cache not working properly)
+            // cacheManager.set(this.currentReservationsCacheKey, formattedReservations, this.cacheConfig.reservations.ttl);
             
             console.log('Formatted reservations:', this.reservations);
           } else {
@@ -1001,6 +1034,23 @@
 
         return "#FFA500"; // Default to event color or lightblue
       },
+      // Get event color based on status_id and date/time
+      getEventColor(event) {
+        const currentDateTime = new Date();
+        const eventDateTime = new Date(event.start); // Parse the event's start date and time
+
+        // Check status_id first
+        if (event.status_id === 2) {
+          return "blue"; // Status 2 gets blue color
+        }
+
+        // Check if the event is in the past
+        if (eventDateTime < currentDateTime) {
+          return "green"; // Event is in the past
+        }
+
+        return "#FFA500"; // Default to event color or lightblue
+      },
       // Helper method to determine color based on reservation date and time
       getReservationColor(reservationDate, reservationTime) {
         const currentDateTime = new Date();
@@ -1034,7 +1084,8 @@
             this.loadingData = false;
           });
       },
-      // Cache management methods
+      // Cache management methods - COMMENTED OUT (not working properly)
+      /*
       clearCache(key) {
         cacheManager.remove(key);
       },
@@ -1075,18 +1126,18 @@
         ];
         
         for (const check of cacheChecks) {
-          if (!cacheManager.has(check.key)) {
-            console.log(`⚠️ Cache miss for ${check.key}, refreshing...`);
-            if (check.method === 'fetchReservations') {
-              await this.fetchReservations();
-            } else if (check.method === 'getPatient') {
-              this.getPatient();
-            } else if (check.method === 'getclinicDoctor') {
-              await this.getclinicDoctor();
-            } else if (check.method === 'getOwnerTctateitemsById') {
-              this.getOwnerTctateitemsById();
-            }
-          }
+          // if (!cacheManager.has(check.key)) {
+          //   console.log(`⚠️ Cache miss for ${check.key}, refreshing...`);
+          //   if (check.method === 'fetchReservations') {
+          //     await this.fetchReservations();
+          //   } else if (check.method === 'getPatient') {
+          //     this.getPatient();
+          //   } else if (check.method === 'getclinicDoctor') {
+          //     await this.getclinicDoctor();
+          //   } else if (check.method === 'getOwnerTctateitemsById') {
+          //     this.getOwnerTctateitemsById();
+          //   }
+          // }
         }
       },
 
@@ -1100,6 +1151,7 @@
           this.getOwnerTctateitemsById();
         }, 100);
       },
+      */
 
     },
     beforeDestroy() {

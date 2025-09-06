@@ -140,7 +140,8 @@
                         class="elevation-1"
                         dense
                         hide-default-footer
-                        disable-sort
+                        :sort-by="['id']"
+                        :sort-desc="[true]"
                         @click="handleDataTableClick"
                       >
                         <!-- Tooth Number Column -->
@@ -167,17 +168,16 @@
                         <!-- Price Column -->
                         <template v-slot:item.price="{ item }">
                           <v-text-field
-                            v-model="item.price"
-                            type="number"
+                            v-model="item.displayPrice"
+                            type="text"
                             :placeholder="$t('patients.case_amount')"
                             suffix="IQ"
                             dense
                             hide-details
                             class="price-input"
-                            @input="updateCasePrice(item)"
+                            @input="formatPriceInput(item, $event)"
                             @click.stop="hideContextMenu()"
                             @focus.stop="hideContextMenu()"
-                            :value="item.price || ''"
                           />
                         </template>
 
@@ -845,13 +845,15 @@ export default {
     
     totalAmount() {
       return this.patientCases.reduce((total, case_item) => {
-        return total + (parseFloat(case_item.price) || 0);
+        const price = case_item.actualPrice || parseFloat(this.removeCommas(case_item.price)) || 0;
+        return total + price;
       }, 0).toLocaleString();
     },
     
     totalAmountNumber() {
       return this.patientCases.reduce((total, case_item) => {
-        return total + (parseFloat(case_item.price) || 0);
+        const price = case_item.actualPrice || parseFloat(this.removeCommas(case_item.price)) || 0;
+        return total + price;
       }, 0);
     },
     
@@ -859,19 +861,28 @@ export default {
       // Calculate from bills where is_paid = 1
       const paid = this.patientBills
         .filter(bill => bill.is_paid == 1)
-        .reduce((total, bill) => total + (parseFloat(bill.price) || 0), 0);
+        .reduce((total, bill) => {
+          const price = parseFloat(this.removeCommas(bill.price)) || 0;
+          return total + price;
+        }, 0);
       return paid.toLocaleString();
     },
     
     paidAmountNumber() {
       return this.patientBills
         .filter(bill => bill.is_paid == 1)
-        .reduce((total, bill) => total + (parseFloat(bill.price) || 0), 0);
+        .reduce((total, bill) => {
+          const price = parseFloat(this.removeCommas(bill.price)) || 0;
+          return total + price;
+        }, 0);
     },
     
     totalBillsAmount() {
       return this.patientBills
-        .reduce((total, bill) => total + (parseFloat(bill.price) || 0), 0);
+        .reduce((total, bill) => {
+          const price = parseFloat(this.removeCommas(bill.price)) || 0;
+          return total + price;
+        }, 0);
     },
     
     shouldShowSaveButton() {
@@ -1147,6 +1158,7 @@ export default {
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
+        displayPrice: '',
         completed: false,
         notes: '',
         operation_id: caseData.operation.id,
@@ -1336,6 +1348,7 @@ export default {
             case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
             date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
             price: caseItem.price,
+            displayPrice: this.formatNumberWithCommas(caseItem.price || ''),
             completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
             notes: caseItem.notes || '',
             operation_id: caseItem.case_categores_id,
@@ -1817,6 +1830,7 @@ export default {
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
+        displayPrice: '',
         completed: false,
         notes: '',
         operation_id: operation.id,
@@ -1829,6 +1843,38 @@ export default {
       // Only add to local array - no API call
       this.patientCases.unshift(newCase);
       this.selectedTooth = null;
+    },
+    
+    // Format number with commas (e.g., 20000 -> 20,000)
+    formatNumberWithCommas(value) {
+      if (!value || value === '' || value === null || value === undefined) {
+        return '';
+      }
+      // Remove any existing commas and non-numeric characters except decimal point
+      const numericValue = value.toString().replace(/[^\d.]/g, '');
+      if (numericValue === '') return '';
+      // Add commas for thousands separator
+      return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    },
+    
+    // Remove commas from formatted number for API calls
+    removeCommas(value) {
+      if (!value) return '';
+      return value.toString().replace(/,/g, '');
+    },
+    
+    // Handle input formatting in real-time
+    formatPriceInput(item, event) {
+      // Get the raw value without commas
+      const rawValue = this.removeCommas(event);
+      // Update the actual price value (without commas for calculations)
+      item.price = rawValue;
+      // Update the display price with commas - use Vue.nextTick to ensure proper reactivity
+      this.$nextTick(() => {
+        item.displayPrice = this.formatNumberWithCommas(rawValue);
+      });
+      // Update the case price in the array
+      this.updateCasePrice(item);
     },
     
     // Update case price
@@ -1916,11 +1962,20 @@ export default {
         cancelButtonText: "لا، تراجع"
       }).then((result) => {
         if (result.isConfirmed) {
-          // Find the case in the array
-          const index = this.patientCases.findIndex(c => c.id === caseItem.id);
-          if (index !== -1) {
-            // Remove the case from the array
-            this.patientCases.splice(index, 1);
+          // Make API call to delete case from server
+          this.$http.delete(`cases/${caseItem.id}`, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(() => {
+            // Find the case in the array and remove it after successful API call
+            const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+            if (index !== -1) {
+              this.patientCases.splice(index, 1);
+            }
             
             // Show success message
             this.$swal.fire({
@@ -1929,7 +1984,17 @@ export default {
               icon: "success",
               confirmButtonText: "موافق"
             });
-          }
+          })
+          .catch((error) => {
+            console.error('Delete case error:', error);
+            // Show error message
+            this.$swal.fire({
+              title: "خطأ",
+              text: "حدث خطأ أثناء حذف الحالة",
+              icon: "error",
+              confirmButtonText: "موافق"
+            });
+          });
         }
       });
     },

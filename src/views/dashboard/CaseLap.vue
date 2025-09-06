@@ -205,11 +205,11 @@
                 <v-text-field
                   v-model="editForm.price"
                   label="السعر"
-                  type="number"
-                  step="0.01"
                   outlined
                   dense
                   suffix="دينار"
+                  @input="formatPriceInput"
+                  @blur="validatePrice"
                 ></v-text-field>
               </v-col>
 
@@ -727,7 +727,16 @@ export default {
     },
     
     formatPrice(price) {
-      return parseFloat(price).toLocaleString('ar-IQ')
+      if (!price || price === '' || price === null || price === undefined) {
+        return '0';
+      }
+      // Remove any existing commas first
+      const cleanPrice = price.toString().replace(/,/g, '');
+      const numericPrice = parseFloat(cleanPrice);
+      if (isNaN(numericPrice)) {
+        return '0';
+      }
+      return numericPrice.toLocaleString('en-US');
     },
     
     formatDate(dateString) {
