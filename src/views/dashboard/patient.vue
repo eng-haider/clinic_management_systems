@@ -791,7 +791,7 @@ birth_date: ''
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://hasan.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -1271,7 +1271,7 @@ birth_date: ''
         console.log('📡 Making API request to get patient data...');
         
         // Use dynamic URL from store if available
-        const baseUrl = this.$store.state.AdminInfo?.api_url || this.Url || 'https://apismartclinicv3.tctate.com';
+        const baseUrl = this.$store.state.AdminInfo?.api_url || this.Url || 'https://hasan.tctate.com';
         const apiUrl = `${baseUrl}/api/getPatientById/${patientId}`;
         
         console.log('📡 API URL:', apiUrl);
@@ -1907,11 +1907,20 @@ birth_date: ''
         cancelButtonText: "لا، تراجع"
       }).then((result) => {
         if (result.isConfirmed) {
-          // Find the case in the array
-          const index = this.patientCases.findIndex(c => c.id === caseItem.id);
-          if (index !== -1) {
-            // Remove the case from the array
-            this.patientCases.splice(index, 1);
+          // Make API call to delete case from server
+          this.$axios.delete(`cases/${caseItem.id}`, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          })
+          .then(() => {
+            // Find the case in the array and remove it
+            const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+            if (index !== -1) {
+              this.patientCases.splice(index, 1);
+            }
             
             // Show success message
             this.$swal.fire({
@@ -1920,7 +1929,16 @@ birth_date: ''
               icon: "success",
               confirmButtonText: "موافق"
             });
-          }
+          })
+          .catch(() => {
+            // Show error message
+            this.$swal.fire({
+              title: "خطأ",
+              text: "حدث خطأ أثناء حذف الحالة",
+              icon: "error",
+              confirmButtonText: "موافق"
+            });
+          });
         }
       });
     },
@@ -2155,7 +2173,7 @@ birth_date: ''
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://hasan.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2201,7 +2219,7 @@ birth_date: ''
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://hasan.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2237,7 +2255,7 @@ birth_date: ''
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://hasan.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2275,7 +2293,7 @@ birth_date: ''
             patient_id: this.patient.id.toString()
           };
           
-          const response = await this.$http.post(`https://apismartclinicv3.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://hasan.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2298,7 +2316,7 @@ birth_date: ''
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://apismartclinicv3.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://hasan.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2444,7 +2462,7 @@ birth_date: ''
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the correct base URL that matches your API
-      return `https://apismartclinicv3.tctate.com/case_photo/${imageName}`;
+      return `https://hasan.tctate.com/case_photo/${imageName}`;
     },
 
     // Delete image from server and local array

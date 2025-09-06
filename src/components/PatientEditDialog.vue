@@ -318,7 +318,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://apismartclinicv3.tctate.com/api/cases/uploude_image",
+        url: "https://hasan.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -436,7 +436,7 @@ export default {
     async fetchFromWhereComeList() {
       try {
         this.loadingFromWhereCome = true;
-        const response = await fetch('https://apismartclinicv3.tctate.com/api/from-where-come', {
+        const response = await fetch('https://hasan.tctate.com/api/from-where-come', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -660,7 +660,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://apismartclinicv3.tctate.com/api/patients";
+        const apiUrl = "https://hasan.tctate.com/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
@@ -747,7 +747,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://apismartclinicv3.tctate.com/api/cases/uploude_images', {
+        const response = await fetch('https://hasan.tctate.com/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

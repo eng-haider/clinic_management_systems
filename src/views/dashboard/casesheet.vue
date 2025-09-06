@@ -620,7 +620,7 @@
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
-                let url = `https://apismartclinicv3.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                let url = `https://hasan.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 
                 if (this.searchDocorId && this.searchDocorId !== 0) {
                     url += `&doctor_id=${this.searchDocorId}`;
@@ -987,7 +987,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("https://apismartclinicv3.tctate.com/api/patients/" + item.id, {
+                        Axios.delete("https://hasan.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1157,7 +1157,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Always fetch fresh data - no caching for search
-                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://hasan.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
@@ -1211,7 +1211,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Always fetch fresh data - no caching for patients
-                this.apiRequest(`https://apismartclinicv3.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
+                this.apiRequest(`https://hasan.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}&fully_paid=${this.fullyPaidFilter}`)
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;

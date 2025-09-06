@@ -1009,7 +1009,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        axios.delete("cases/" + item.id, {
+                        axios.delete(`cases/${item.id}`, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1082,7 +1082,7 @@
 
                 }
                 if (this.editedItem.images.length > 0) {
-                    this.imageSource = 'https://apismartclinicv3.tctate.com/public/images/' + this.editedItem.images[0]
+                    this.imageSource = 'https://hasan.tctate.com/public/images/' + this.editedItem.images[0]
                         .image_url;
 
                 }

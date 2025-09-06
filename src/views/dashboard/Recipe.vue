@@ -147,7 +147,7 @@
         valid: false,
         rx_img: '',
         base64Image: '',
-        defaultImageBase64: 'https://apismartclinicv3.tctate.com/rx1.jpg',
+        defaultImageBase64: 'https://hasan.tctate.com/rx1.jpg',
         rules: {
           required: (value) => !!value || this.$t('required'),
           minPhon: (v) => v.length === 13 || this.$t('phone_length'),
@@ -207,7 +207,7 @@
       },
       getClinicLogo() {
         // Get clinic logo from Vuex store
-        return 'https://apismartclinicv3.tctate.com/rx1.jpg';
+        return 'https://hasan.tctate.com/rx1.jpg';
       },
       updateRecipeNotes() {
       // Example of updating RecipeInfo.notes and removing null values
@@ -236,7 +236,7 @@
       },
       async fetchNoteSuggestions() {
         try {
-          const response = await this.axios.get('https://apismartclinicv3.tctate.com/api/getrecipesItem', {
+          const response = await this.axios.get('https://hasan.tctate.com/api/getrecipesItem', {
               headers: {
                 "Content-Type": "multipart/form-data",
                 Accept: "application/json",
@@ -1168,7 +1168,7 @@
             <div class="recipe-content">
               <div class="prescription-header">
                 <div class="header-image">
-                  <img src="https://apismartclinicv3.tctate.com/rx1.jpg" alt="رأس الوصفة" class="header-image-logo" />
+                  <img src="https://hasan.tctate.com/rx1.jpg" alt="رأس الوصفة" class="header-image-logo" />
                 </div>
             
               </div>

@@ -649,7 +649,7 @@
 
           return this.initialize()
         }
-        this.axios.get("https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
+        this.axios.get("https://hasan.tctate.com/api/patientsAccounstsv2/getByDoctor/" + this.searchDocorId, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -677,7 +677,7 @@
           });
       },
       Export() {
-        this.axios.get('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/export', {
+        this.axios.get('https://hasan.tctate.com/api/patientsAccounstsv2/export', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -786,7 +786,7 @@
           this.allItem = true;
 
           console.log('Making search API call with params:', this.search);
-          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
+          this.axios.post('https://hasan.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, this.search, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -807,7 +807,7 @@
             });
         } else {
           console.log('Making general API call without body...');
-          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, {}, {
+          this.axios.post('https://hasan.tctate.com/api/patientsAccounstsv2?page=' + this.current_page, {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -834,7 +834,7 @@
 
         if (this.is_search) {
           // Send search parameters when searching
-          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
+          this.axios.post('https://hasan.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', this
               .search, {
                 headers: {
                   "Content-Type": "application/json",
@@ -859,7 +859,7 @@
             });
         } else {
           // Send empty body when not searching
-          this.axios.post('https://apismartclinicv3.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
+          this.axios.post('https://hasan.tctate.com/api/patientsAccounstsv2/patientsAccounstsReportv2?page=1', {}, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -886,7 +886,7 @@
       getclinicDoctor() {
      
         this.loadingData = true;
-        this.axios.get("https://apismartclinicv3.tctate.com/api/doctors/clinic", {
+        this.axios.get("https://hasan.tctate.com/api/doctors/clinic", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -926,7 +926,7 @@
       getCase_number_stats() {
 
         this.axios
-          .get("https://apismartclinicv3.tctate.com/api/cases/getCaseCategoriesCounts", {
+          .get("https://hasan.tctate.com/api/cases/getCaseCategoriesCounts", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
