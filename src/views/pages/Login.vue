@@ -101,7 +101,7 @@ export default {
           password: this.user.password,
         };
         this.loading = true;
-        this.axios.post("https://smartclinicv5.tctate.com/api/users/login", data)
+        this.axios.post("https://titaniumapi.tctate.com/api/users/login", data)
           .then(res => {
             const result = res.data.result;
             result.clinic_info = res.data.clinic_info;

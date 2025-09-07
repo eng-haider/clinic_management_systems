@@ -426,7 +426,7 @@
           }
           */
 
-          axios.get("https://smartclinicv5.tctate.com/api/patients/searchv2/" + query, {
+          axios.get("https://titaniumapi.tctate.com/api/patients/searchv2/" + query, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -479,7 +479,7 @@
           this.loading = true;
 
           
-          await axios.get("https://smartclinicv5.tctate.com/api/doctors/secretary", {
+          await axios.get("https://titaniumapi.tctate.com/api/doctors/secretary", {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -558,7 +558,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          await axios.delete(`https://smartclinicv5.tctate.com/api/reservations/${this.book_details.id}`, {
+          await axios.delete(`https://titaniumapi.tctate.com/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -711,7 +711,7 @@
         */
         
         this.loadingData = true; // Show loading indicator
-        axios.get("https://smartclinicv5.tctate.com/api/patients/getByUserIdv3", {
+        axios.get("https://titaniumapi.tctate.com/api/patients/getByUserIdv3", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -793,7 +793,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('https://smartclinicv5.tctate.com/api/reservations', reservationData, {
+            const response = await axios.post('https://titaniumapi.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -812,7 +812,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://titaniumapi.tctate.com/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -898,9 +898,9 @@
           */
           
           // Determine API endpoint based on doctor filter
-          let apiEndpoint = 'https://smartclinicv5.tctate.com/api/reservations/formatted';
+          let apiEndpoint = 'https://titaniumapi.tctate.com/api/reservations/formatted';
           if (this.selectedDoctorFilter && (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor')) {
-            apiEndpoint =`https://smartclinicv5.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
+            apiEndpoint =`https://titaniumapi.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
           }
           
           console.log('API Endpoint:', apiEndpoint);
@@ -1069,7 +1069,7 @@
           return;
         }
         this.loadingData = true;
-        axios.get(`https://smartclinicv5.tctate.com/api/patients/search?query=${query}`, {
+        axios.get(`https://titaniumapi.tctate.com/api/patients/search?query=${query}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

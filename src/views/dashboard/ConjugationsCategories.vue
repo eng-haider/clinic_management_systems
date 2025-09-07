@@ -437,7 +437,7 @@
                     if (this.editedCategoryIndex > -1) {
 
                         this.axios
-                            .patch("https://smartclinicv5.tctate.com/api/ConjugationsCategories/" + this.editedItemCategories.id, this
+                            .patch("https://titaniumapi.tctate.com/api/ConjugationsCategories/" + this.editedItemCategories.id, this
                                 .editedItemCategories, {
                                     headers: {
                                         "Content-Type": "application/json",
@@ -469,7 +469,7 @@
                     } else {
 
                         this.axios
-                            .post("https://smartclinicv5.tctate.com/api/ConjugationsCategories", this.editedItemCategories, {
+                            .post("https://titaniumapi.tctate.com/api/ConjugationsCategories", this.editedItemCategories, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -546,7 +546,7 @@
                     } else {
 
                         this.axios
-                            .post("https://smartclinicv5.tctate.com/api/Conjugations", this.editedItem, {
+                            .post("https://titaniumapi.tctate.com/api/Conjugations", this.editedItem, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -592,7 +592,7 @@
 
             getConjugationsCategories() {
                 this.loading = true;
-                Axios.get("https://smartclinicv5.tctate.com/api/Conjugations/ConjugationsCategories", {
+                Axios.get("https://titaniumapi.tctate.com/api/Conjugations/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -612,7 +612,7 @@
             },
 
             fetchDataByCategory(categoryId) {
-                Axios.get(`https://smartclinicv5.tctate.com/api/Conjugations/getByCat/${categoryId}`, {
+                Axios.get(`https://titaniumapi.tctate.com/api/Conjugations/getByCat/${categoryId}`, {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -654,7 +654,7 @@
 
             initialize() {
                 this.loading = true;
-                Axios.get("https://smartclinicv5.tctate.com/api/ConjugationsCategories", {
+                Axios.get("https://titaniumapi.tctate.com/api/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -685,7 +685,7 @@
                 this.menu2 = false;
             },
             updateIsPaid(item) {
-                Axios.patch(`https://smartclinicv5.tctate.com/api/Conjugations/updateIsPaid/${item.id}`, {
+                Axios.patch(`https://titaniumapi.tctate.com/api/Conjugations/updateIsPaid/${item.id}`, {
                         is_paid: item.is_paid
                     }, {
                         headers: {

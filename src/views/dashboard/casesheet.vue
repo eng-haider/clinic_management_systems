@@ -983,7 +983,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build API URL with billing status parameter for doctor search
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://titaniumapi.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -1156,7 +1156,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("https://smartclinicv5.tctate.com/api/patients/" + item.id, {
+                        Axios.delete("https://titaniumapi.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1342,7 +1342,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Don't use cache for search - always fetch fresh data
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(`https://titaniumapi.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
@@ -1454,7 +1454,7 @@
                 }
                 
                 // Build API URL with billing status parameter
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://titaniumapi.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }

@@ -762,7 +762,7 @@
                 }
 
                 this.loading = true;
-                axios.get("https://smartclinicv5.tctate.com/api/doctors/clinic", {
+                axios.get("https://titaniumapi.tctate.com/api/doctors/clinic", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -1069,7 +1069,7 @@
 
                 }
                 if (this.editedItem.images.length > 0) {
-                    this.imageSource = 'https://smartclinicv5.tctate.com/public/images/' + this.editedItem.images[0]
+                    this.imageSource = 'https://titaniumapi.tctate.com/public/images/' + this.editedItem.images[0]
                         .image_url;
 
                 }

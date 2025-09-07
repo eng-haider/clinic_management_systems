@@ -662,7 +662,7 @@
           });
       },
       Export() {
-        this.axios.get('https://smartclinicv5.tctate.com/api/patientsAccounstsv2/export', {
+        this.axios.get('https://titaniumapi.tctate.com/api/patientsAccounstsv2/export', {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -868,7 +868,7 @@
 
       getclinicDoctor() {
         this.loadingData = true;
-        this.axios.get("https://smartclinicv5.tctate.com/api/doctors/clinic", {
+        this.axios.get("https://titaniumapi.tctate.com/api/doctors/clinic", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

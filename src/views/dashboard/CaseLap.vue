@@ -466,7 +466,7 @@ export default {
       this.loadingData = true
       try {
         console.log('Fetching lab cases...')
-        const response = await this.$http.get('https://smartclinicv5.tctate.com/api/lap-cases')
+        const response = await this.$http.get('https://titaniumapi.tctate.com/api/lap-cases')
         
         if (response.data && response.data.success) {
           this.lapCases = response.data.data || []
@@ -582,7 +582,7 @@ export default {
       this.updating = true
       try {
         const response = await this.$http.patch(
-          `https://smartclinicv5.tctate.com/api/lap-cases/${item.id}/status`,
+          `https://titaniumapi.tctate.com/api/lap-cases/${item.id}/status`,
           { status: newStatus }
         )
 
@@ -653,7 +653,7 @@ export default {
         console.log('Updating lap case:', this.editingCase.id, updateData)
         
         const response = await this.$http.patch(
-          `https://smartclinicv5.tctate.com/api/lap-cases/${this.editingCase.id}/status`,
+          `https://titaniumapi.tctate.com/api/lap-cases/${this.editingCase.id}/status`,
           updateData
         )
 
