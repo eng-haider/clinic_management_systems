@@ -497,6 +497,11 @@
                         value: "patient.name"
                     },
                     {
+                        text: this.$t('datatable.phone'),
+                        align: "start",
+                        value: "patient.phone"
+                    },
+                    {
                         text: this.$t('case_type'),
                         align: "start",
                         value: "case_categories.name_ar"
