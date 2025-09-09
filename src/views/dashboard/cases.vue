@@ -153,14 +153,9 @@
                 </template>
 
 
-                <template v-slot:[`item.phones`]="{ item }">
-
-
-                    <p style="    direction: ltr;
-    text-align: end;"> {{item.phone}}</p>
-
-
-
+          
+                <template v-slot:[`item.patient.phone`]="{ item }">
+                    <p style="direction: ltr; text-align: end;">{{item.patient.phone}}</p>
                 </template>
                 <template v-slot:[`item.sex`]="{ item }">
                     <span v-if="item.sex==1">{{ $t("male") }}</span>
@@ -498,7 +493,7 @@
                     },
                     {
                         text: this.$t('datatable.phone'),
-                        align: "start",
+                        align: "left",
                         value: "patient.phone"
                     },
                     {
