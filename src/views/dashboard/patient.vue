@@ -461,21 +461,22 @@
                 </div>
 
                 <!-- Case Selection -->
-                <div class="mobile-field-container mb-2">
-                  <v-select
-                    v-model="bill.case_id"
-                    :items="availableCases"
-                    item-text="case_display"
-                    item-value="id"
-                    dense
-                    outlined
-                    :placeholder="$t('patients.select_case')"
-                    :label="$t('patients.case')"
-                    style="min-width: 300px; width: 100%;"
-                    :disabled="!canEditBills"
-                  >
-                  </v-select>
-                </div>
+                            <div class="mobile-field-container mb-2">
+                              <v-select
+                                v-model="bill.case_id"
+                                :items="availableCases"
+                                item-text="case_display"
+                                item-value="id"
+                                item-disabled="disabled"
+                                dense
+                                outlined
+                                :placeholder="$t('patients.select_case')"
+                                :label="$t('patients.case')"
+                                style="min-width: 300px; width: 100%;"
+                                :disabled="!canEditBills"
+                              >
+                              </v-select>
+                            </div>
 
                 <!-- Payment Amount -->
                 <div class="mobile-field-container mb-2">
@@ -547,6 +548,7 @@
                     :items="availableCases"
                     item-text="case_display"
                     item-value="id"
+                    item-disabled="disabled"
                     dense
                     outlined
                     :placeholder="$t('patients.select_case')"
@@ -2057,6 +2059,9 @@ export default {
         if (!this.patientBills[index].isNew) {
           this.patientBills[index].modified = true;
         }
+        
+        // Refresh available cases to update disabled state in real-time
+        this.refreshAvailableCases();
       }
     },
     
@@ -2129,6 +2134,9 @@ export default {
               icon: "success",
               confirmButtonText: "موافق"
             });
+            
+            // Refresh available cases to update disabled state
+            this.refreshAvailableCases();
           }
         }
       });
@@ -2378,6 +2386,9 @@ export default {
           bill.modified = false;
         }
         
+        // Refresh available cases to update disabled state
+        this.refreshAvailableCases();
+        
       } catch (error) {
         console.error('Error saving bills:', error);
         throw error;
@@ -2500,6 +2511,20 @@ export default {
       return `https://smartclinicv5.tctate.com/case_photo/${imageName}`;
     },
 
+    // Refresh available cases to update disabled state
+    refreshAvailableCases() {
+      // Get current cases from the existing availableCases and reformat them
+      const currentCases = this.availableCases.map(item => ({
+        id: item.id,
+        case_categories: item.case_categories,
+        tooth_num: item.tooth_num,
+        price: item.price
+      }));
+      
+      // Reformat with updated disabled state
+      this.availableCases = this.formatCasesForSelection(currentCases);
+    }
+,
     // Format cases for selection
     formatCasesForSelection(cases) {
       return cases.map(case_item => {
@@ -2514,12 +2539,21 @@ export default {
           toothNumber = case_item.tooth_num || this.$t('patients.not_specified');
         }
 
+        // Calculate sum of bills for this case
+        const caseBills = this.getBillsForCase(case_item.id);
+        const billsSum = caseBills.reduce((sum, bill) => sum + (parseFloat(bill.price) || 0), 0);
+        const casePrice = parseFloat(case_item.price) || 0;
+        
+        // Disable case if bills sum equals or exceeds case price
+        const isDisabled = billsSum >= casePrice && casePrice > 0;
+
         return {
           id: case_item.id,
           case_display: `${case_item.case_categories?.name_ar || this.$t('patients.not_specified')} - ${this.$t('patients.tooth')} ${toothNumber} - ${case_item.price} د.ع`,
           case_categories: case_item.case_categories,
           tooth_num: toothNumber,
-          price: case_item.price
+          price: case_item.price,
+          disabled: isDisabled
         };
       });
     },
