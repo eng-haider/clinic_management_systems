@@ -1030,8 +1030,8 @@ export default {
     canDeleteBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can delete bills, secretaries/accounters cannot
-        return role === 'adminDoctor' || role === 'doctor';
+        // Only doctors, adminDoctors, and accounters can delete bills
+        return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
       } catch (error) {
         console.error('Error checking delete bills permission:', error);
         return false;
@@ -2091,7 +2091,7 @@ export default {
     },
     
     // Delete bill
-    deleteBill(bill) {
+    async deleteBill(bill) {
       // Check if current user can delete bills
       if (!this.canDeleteBills) {
         this.$swal.fire({
@@ -2112,31 +2112,48 @@ export default {
         confirmButtonText: "نعم، احذف",
         cancelButtonText: "إلغاء",
         confirmButtonColor: "#d33"
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          // Find the bill in the array
-          const index = this.patientBills.findIndex(b => b.id === bill.id);
-          if (index !== -1) {
-            // If it's a new bill (not saved to server yet), just remove it
-            if (bill.isNew) {
-              this.patientBills.splice(index, 1);
-            } else {
-              // If it's an existing bill, mark it for deletion
-              this.patientBills[index].deleted = true;
-              this.patientBills[index].modified = true;
-              // Hide it from UI
-              this.patientBills.splice(index, 1);
+          try {
+            // Find the bill in the array
+            const index = this.patientBills.findIndex(b => b.id === bill.id);
+            if (index !== -1) {
+              // If it's a new bill (not saved to server yet), just remove it
+              if (bill.isNew) {
+                this.patientBills.splice(index, 1);
+              } else {
+                // If it's an existing bill, call the DELETE API
+                const billId = bill.server_id || bill.id;
+                await this.$http.delete(`https://smartclinicv5.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                  }
+                });
+                
+                // Remove from UI after successful API call
+                this.patientBills.splice(index, 1);
+              }
+              
+              this.$swal.fire({
+                title: "تم الحذف",
+                text: "تم حذف الفاتورة بنجاح",
+                icon: "success",
+                confirmButtonText: "موافق"
+              });
+              
+              // Refresh available cases to update disabled state
+              this.refreshAvailableCases();
             }
-            
+          } catch (error) {
+            console.error('Error deleting bill:', error);
             this.$swal.fire({
-              title: "تم الحذف",
-              text: "تم حذف الفاتورة بنجاح",
-              icon: "success",
+              title: "خطأ",
+              text: "حدث خطأ أثناء حذف الفاتورة",
+              icon: "error",
               confirmButtonText: "موافق"
             });
-            
-            // Refresh available cases to update disabled state
-            this.refreshAvailableCases();
           }
         }
       });
