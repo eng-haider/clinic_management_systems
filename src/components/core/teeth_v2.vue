@@ -563,38 +563,38 @@ export default {
         // Helper method to get all tooth numbers that map to a display tooth number
         getToothNumbersMapping(displayToothNumber) {
             const mappings = {
-                28: [35, 48, 75, 74, 123, 82, 54],
-                27: [72, 73, 122, 81, 53, 45, 33],
-                26: [70, 71, 133, 80, 52, 42],
-                25: [101, 100, 118, 99, 102, 104],
-                24: [24, 62, 63, 117, 84, 51, 23],
-                23: [93, 94, 115, 96, 59],
-                22: [91, 92, 114, 110, 58, 38],
-                21: [139, 138, 135, 137, 141, 142],
-                11: [89, 90, 113, 95, 57],
-                12: [87, 88, 112, 108, 56, 15],
-                13: [85, 86, 111, 106, 55, 13],
-                14: [83, 61, 120, 105, 60, 12],
-                15: [100, 119, 103, 49, 69],
-                16: [68, 69, 121, 79, 49, 41],
-                17: [66, 67, 120, 78, 44, 34],
-                18: [64, 65, 131, 77, 76, 24],
-                38: [3, 4, 124, 126, 1, 29],
-                37: [5, 6, 125, 2, 30, 7],
-                36: [8, 9, 128, 127, 31, 8],
-                35: [10, 14, 129, 107, 39, 9],
-                34: [15, 16, 130, 109, 40, 10],
-                33: [243, 197, 196, 193, 195, 198],
-                32: [233, 239, 260, 236, 238, 241],
-                31: [22, 136, 44, 34],
-                41: [140, 143, 144, 36],
-                42: [145, 146, 147, 37],
-                43: [148, 149, 150, 35],
-                44: [151, 152, 153, 4],
-                45: [154, 155, 156, 5],
-                46: [157, 158, 159, 6],
-                47: [160, 161, 162, 7],
-                48: [163, 164, 165, 8]
+                  28: [35, 37, 29, 31, 75, 74, 123, 82, 54],
+                27: [21,28,19,53,81,122,72,73],
+                26: [133,70,52,71,80,38,25,33,42,45],
+                25: [104,98,103,102,99,118,100,101],
+                24: [10,5,3,6,51,84,117,63,62],
+                23: [8,3,59,96,115,94,93],
+                22: [16,15,58,100,109,114,91,92],
+                21: [142,134,141,137,136,135,139,138],
+                11: [14,17,13,57,95,113,90,89,76],
+                12: [12,11,56,108,107,88,87],
+                13: [7,2,55,106,105,111,86,85],
+                14: [9,1,0,50,83,116,61,60],
+                15: [131,124,129,130,126,125,127,128],
+                16: [24,32,39,40,41,43,44,46,49,97,121,69,68],
+                17: [20,27,18,48,78,120,67,66],
+                18: [30,36,34,26,47,77,119,65,64],
+                38: [177,174,173,176,175,172,212,184],
+                37: [171,168,167,169,170,166,244,181],
+                36: [165,162,161,164,163,160,180],
+                35: [211,208,207,209,210,206,263],
+                34: [205,202,201,203,204,200,269],
+                33: [198,195,194,197,196,192,243,267],
+                32: [241,238,237,236,240,239,235,260],
+                31: [234,231,230,229,232,233,228,266],
+                41: [227,224,225,222,225,226,221,265],
+                42: [220,217,216,215,219,218,214,259],
+                43: [191,188,187,186,189,190,185,242,262],
+                44: [257,253,252,254,255,251,268],
+                45: [250,247,246,248,249,264,245,261],
+                46: [258,257,156,159,158,155,179,182],
+                47: [154,151,150,152,153,149,178,213],
+                48: [148,145,144,146,147,143,183,199]
             };
             
             return mappings[displayToothNumber] || [];
@@ -841,126 +841,113 @@ export default {
             
             let actualToothNumber = allToothNumbers[pathIndex] || pathIndex; // Fallback to index if mapping fails
             
-            const toothNumbersToMapTo28 = [35, 48, 75, 74, 123, 82,54];
+            const toothNumbersToMapTo28 = [35, 37, 29, 31, 75, 74, 123, 82, 54];
             if (toothNumbersToMapTo28.includes(actualToothNumber)) {
                 actualToothNumber = 28;
             }
             
             // Map specific tooth numbers to 27 as they form one tooth
-            const toothNumbersToMapTo27 = [72, 73, 122, 81, 53, 45, 33];
+            const toothNumbersToMapTo27 = [21,28,19,53,81,122,72,73];
             if (toothNumbersToMapTo27.includes(actualToothNumber)) {
                 actualToothNumber = 27;
             }
 
           
             // Map specific tooth numbers to 26 as they form one tooth
-            const toothNumbersToMapTo26 = [70, 71, 133, 80, 52, 42];
+            const toothNumbersToMapTo26 = [133,70,52,71,80,38,25,33,42,45];
             if (toothNumbersToMapTo26.includes(actualToothNumber)) {
                 actualToothNumber = 26;
             }
 
             // Map specific tooth numbers to 25 as they form one tooth
-            const toothNumbersToMapTo25 = [101, 100, 118, 99, 102, 104];
+            const toothNumbersToMapTo25 = [104,98,103,102,99,118,100,101];
             if (toothNumbersToMapTo25.includes(actualToothNumber)) {
                 actualToothNumber = 25;
             }
 
             // Map specific tooth numbers to 24 as they form one tooth
-            const toothNumbersToMapTo24 = [24, 62, 63,
-                117, 84, 51,23];
+            const toothNumbersToMapTo24 = [10,5,3,6,51,84,117,63,62];
             if (toothNumbersToMapTo24.includes(actualToothNumber)) {
                 actualToothNumber = 24;
             }
 
 
               // Map specific tooth numbers to 23 as they form one tooth
-            const toothNumbersToMapTo23 = [93, 94, 115,
-                96, 59];
+            const toothNumbersToMapTo23 = [8,3,59,96,115,94,93];
             if (toothNumbersToMapTo23.includes(actualToothNumber)) {
                 actualToothNumber = 23;
             }
 
 
                // Map specific tooth numbers to 24 as they form one tooth
-            const toothNumbersToMapTo22 = [91, 92, 114,
-                110, 58, 38];
+            const toothNumbersToMapTo22 =[16,15,58,100,109,114,91,92];
             if (toothNumbersToMapTo22.includes(actualToothNumber)) {
                 actualToothNumber = 22;
             }
 
 
                      // Map specific tooth numbers to 24 as they form one tooth
-            const toothNumbersToMapTo21 = [139, 138, 135,
-                137, 141, 142];
+            const toothNumbersToMapTo21 = [142,134,141,137,136,135,139,138];
             if (toothNumbersToMapTo21.includes(actualToothNumber)) {
                 actualToothNumber = 21;
             }
 
 
             // Map specific tooth numbers to 11 as they form one tooth
-            const toothNumbersToMapTo11 = [89, 90, 113,
-                95, 57];
+            const toothNumbersToMapTo11 =[14,17,13,57,95,113,90,89,76];
             if (toothNumbersToMapTo11.includes(actualToothNumber)) {
                 actualToothNumber = 11;
             }
 
 
             // Map specific tooth numbers to 12 as they form one tooth
-            const toothNumbersToMapTo12 = [87, 88, 112,
-                108, 56, 15];
+            const toothNumbersToMapTo12 = [12,11,56,108,107,88,87];
             if (toothNumbersToMapTo12.includes(actualToothNumber)) {
                 actualToothNumber = 12;
             }
 
 
             // Map specific tooth numbers to 13 as they form one tooth
-            const toothNumbersToMapTo13 = [85, 86, 111,
-                106, 55];       
+            const toothNumbersToMapTo13 =[7,2,55,106,105,111,86,85];       
             if (toothNumbersToMapTo13.includes(actualToothNumber)) {
                 actualToothNumber = 13;
             }
 
             // Map specific tooth numbers to 14 as they form one tooth
-            const toothNumbersToMapTo14 = [60, 61, 116,
-                14, 50, 12];
+            const toothNumbersToMapTo14 =[9,1,0,50,83,116,61,60];
             if (toothNumbersToMapTo14.includes(actualToothNumber)) {
                 actualToothNumber = 14;
             }
 
 
             // Map specific tooth numbers to 15 as they form one tooth
-            const toothNumbersToMapTo15 = [128, 127, 125,
-                126, 130,131];
+            const toothNumbersToMapTo15 =[131,124,129,130,126,125,127,128];
             if (toothNumbersToMapTo15.includes(actualToothNumber)) {
                 actualToothNumber = 15;
             }
 
             // Map specific tooth numbers to 16 as they form one tooth
-            const toothNumbersToMapTo16 = [68, 69, 121,
-                79, 49, 41];
+            const toothNumbersToMapTo16 =[24,32,39,40,41,43,44,46,49,97,121,69,68];
             if (toothNumbersToMapTo16.includes(actualToothNumber)) {
                 actualToothNumber = 16;
             }
 
             // Map specific tooth numbers to 17 as they form one tooth
-            const toothNumbersToMapTo17 = [66, 67, 120,
-                78, 44, 34];
+            const toothNumbersToMapTo17 =[20,27,18,48,78,120,67,66];
             if (toothNumbersToMapTo17.includes(actualToothNumber)) {
                 actualToothNumber = 17;
             }
 
 
             // Map specific tooth numbers to 18 as they form one tooth
-            const toothNumbersToMapTo18 = [64, 65, 119,
-                77, 47, 17, 47];
+            const toothNumbersToMapTo18 =[30,36,34,26,47,77,119,65,64];
             if (toothNumbersToMapTo18.includes(actualToothNumber)) {
                 actualToothNumber = 18;
             }
 
 
 
-                const toothNumbersToMapTo38 = [184, 176, 175,
-                173, 174,177];
+                const toothNumbersToMapTo38 = [177,174,173,176,175,172,212,184];
             if (toothNumbersToMapTo38.includes(actualToothNumber)) {
                 actualToothNumber = 38;
             }
@@ -968,44 +955,38 @@ export default {
 
 
 
-               const toothNumbersToMapTo37 = [170, 169, 181,
-                167, 168,171];
+               const toothNumbersToMapTo37 = [171,168,167,169,170,166,244,181];
             if (toothNumbersToMapTo37.includes(actualToothNumber)) {
                 actualToothNumber = 37;
             }
 
             // Map specific tooth numbers to 36 as they form one tooth
-            const toothNumbersToMapTo36 = [164, 163, 165,
-                162, 161,180];
+            const toothNumbersToMapTo36 =[165,162,161,164,163,160,180];
             if (toothNumbersToMapTo36.includes(actualToothNumber)) {
                 actualToothNumber = 36;
             }
 
 
-               const toothNumbersToMapTo35 = [210, 209, 263,
-                207, 208,211];
+               const toothNumbersToMapTo35 =[211,208,207,209,210,206,263];
             if (toothNumbersToMapTo35.includes(actualToothNumber)) {
                 actualToothNumber = 35;
             }
 
 
-                 const toothNumbersToMapTo34 = [204, 203, 269,
-                201, 202,205];
+                 const toothNumbersToMapTo34 =[205,202,201,203,204,200,269];
             if (toothNumbersToMapTo34.includes(actualToothNumber)) {
                 actualToothNumber = 34;
             }
 
 
 
-                 const toothNumbersToMapTo33 = [243, 197, 196,
-                193, 195,198];
+                 const toothNumbersToMapTo33 = [198,195,194,197,196,192,243,267];
             if (toothNumbersToMapTo33.includes(actualToothNumber)) {
                 actualToothNumber = 33;
             }
 
 
-               const toothNumbersToMapTo32 = [233, 239, 260,
-                236, 238,241];
+               const toothNumbersToMapTo32 =[241,238,237,236,240,239,235,260];
             if (toothNumbersToMapTo32.includes(actualToothNumber)) {
                 actualToothNumber = 32;
             }
@@ -1013,68 +994,59 @@ export default {
 
 
 
-               const toothNumbersToMapTo31 = [32, 232, 266,
-                229, 231,234];
+               const toothNumbersToMapTo31 =[234,231,230,229,232,233,228,266];
             if (toothNumbersToMapTo31.includes(actualToothNumber)) {
                 actualToothNumber = 31;
             }
 
-          const toothNumbersToMapTo41 = [226, 225, 265,
-                222, 224,227,34];
+          const toothNumbersToMapTo41 =[227,224,225,222,225,226,221,265];
             if (toothNumbersToMapTo41.includes(actualToothNumber)) {
                 actualToothNumber = 41;
             } 
 
 
 
-                 const toothNumbersToMapTo42 = [219, 218, 259,
-                215, 217,220];
+                 const toothNumbersToMapTo42 =[220,217,216,215,219,218,214,259];
             if (toothNumbersToMapTo42.includes(actualToothNumber)) {
                 actualToothNumber = 42;
             } 
            
 
 
-              const toothNumbersToMapTo43 = [190, 189, 242,
-                186, 188,191,34];
+              const toothNumbersToMapTo43 = [191,188,187,186,189,190,185,242,262];
             if (toothNumbersToMapTo43.includes(actualToothNumber)) {
                 actualToothNumber = 43;
             } 
            
 
 
-               const toothNumbersToMapTo44 = [255, 254, 268,
-                252, 253,256];
+               const toothNumbersToMapTo44 =[257,253,252,254,255,251,268];
             if (toothNumbersToMapTo44.includes(actualToothNumber)) {
                 actualToothNumber = 44;
             } 
            
 
 
-              const toothNumbersToMapTo45 = [249, 248, 261,
-                246, 247,250,34,245];
+              const toothNumbersToMapTo45 = [250,247,246,248,249,264,245,261];
             if (toothNumbersToMapTo45.includes(actualToothNumber)) {
                 actualToothNumber = 45;
             } 
 
 
-               const toothNumbersToMapTo46 = [159, 158, 179,
-                156, 157,258];
+               const toothNumbersToMapTo46 = [258,257,156,159,158,155,179,182];
             if (toothNumbersToMapTo46.includes(actualToothNumber)) {
                 actualToothNumber = 46;
             }
 
 
 
-            const toothNumbersToMapTo47 = [153, 152, 178,
-                150, 151,154];
+            const toothNumbersToMapTo47 =[154,151,150,152,153,149,178,213];
             if (toothNumbersToMapTo47.includes(actualToothNumber)) {
                 actualToothNumber = 47;
             } 
           
 
-               const toothNumbersToMapTo48 = [147, 146, 183,
-                144, 145,148];
+               const toothNumbersToMapTo48 =[148,145,144,146,147,143,183,199];
             if (toothNumbersToMapTo48.includes(actualToothNumber)) {
                 actualToothNumber = 48;
             } 
