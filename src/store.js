@@ -73,7 +73,10 @@ export default new Vuex.Store({
       return hasPermission && showLap;
     },
     getApiWhatsapp: state => state.AdminInfo.api_whatsapp || 0,
-    getPaidToDoctor: state => state.AdminInfo.paid_to_doctor || 0
+    getPaidToDoctor: state => state.AdminInfo.paid_to_doctor || 0,
+    useCreditSystem: state => {
+      return state.AdminInfo.clinics_info && state.AdminInfo.clinics_info.use_credit === 1;
+    }
   },
   mutations: {
     SET_DRAWER(state, payload) {

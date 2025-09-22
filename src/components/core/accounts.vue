@@ -115,7 +115,7 @@
             </v-flex> -->
 
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -144,7 +144,7 @@
               </v-card>
             </v-flex>
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -165,7 +165,7 @@
               </v-card>
             </v-flex>
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -186,9 +186,7 @@
               </v-card>
             </v-flex>
             
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
-
-
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -197,12 +195,25 @@
                     <div class="text-h5 font-weight-bold mt-1">
                       {{ accounts_statistic.Conjugationsprice|currency}}
                     </div>
-                  
                   </div>
                 </v-card-text>
               </v-card>
+            </v-flex>
 
-
+            <!-- Credit Balance Card - only show if credit system is enabled -->
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4 v-if="$store.getters.useCreditSystem">
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#4CAF50">fa-solid fa-wallet</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #4CAF50;">رصيد المرضى</div>
+                    <div class="text-h5 font-weight-bold mt-1" style="color: #4CAF50;">
+                      {{ accounts_statistic.total_credit_balance | currency }}
+                    </div>
+                    <div class="text-caption text--secondary mt-1">الرصيد المتاح</div>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-flex>
 
 
@@ -477,7 +488,8 @@
           case_count: '',
           paid: '',
           remainingamount: '',
-          Conjugationsprice: ''
+          Conjugationsprice: '',
+          total_credit_balance: 0
 
 
 
@@ -836,6 +848,7 @@
 
               this.accounts_statistic.remainingamount = res.data.remainingamount;
               this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.accounts_statistic.total_credit_balance = res.data.total_credit_balance || 0;
               this.Conjugations = res.data.Conjugations;
             })
             .catch((error) => {
@@ -858,6 +871,7 @@
               this.accounts_statistic.paid = res.data.paid;
               this.accounts_statistic.remainingamount = res.data.remainingamount;
               this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.accounts_statistic.total_credit_balance = res.data.total_credit_balance || 0;
               this.Conjugations = res.data.Conjugations;
             })
             .catch((error) => {

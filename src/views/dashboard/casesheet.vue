@@ -201,19 +201,19 @@
            
 
 
-                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="doctor-select">
+                        <!-- <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="doctor-select">
                             <v-select dense @input="page=1;current_page=1;pageCount=0;getByDocor()"
                                 v-if="$store.state.AdminInfo.Permissions.includes('show_all_clinic_doctors') && doctorsAll.length>2"
                                 v-model="searchDocorId" :label="$t('doctor')" :items="doctorsAll" outlined
                                 item-text="name" item-value="id" style="width: 100%; max-width: 300px;">
                             </v-select>
-                        </v-flex>
+                        </v-flex> -->
 
                         <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="payment-filter">
                             <v-select
                                 v-model="billingStatusFilter"
                                 :items="[
-                                    { text: 'جميع المرضى', value: null },
+                                    { text: 'جميع المراجعين', value: null },
                                     { text: 'مدفوع بالكامل', value: 'all_paid' },
                                     { text: 'غير مدفوع نهائياً', value: 'none_paid' },
                                     { text: 'مدفوع جزئياً', value: 'some_paid' }
@@ -221,6 +221,25 @@
                                 item-text="text"
                                 item-value="value"
                                 label="حالة الدفع"
+                                @change="initialize()"
+                                clearable
+                                dense
+                                outlined
+                                style="width: 100%; max-width: 300px;"
+                            ></v-select>
+                        </v-flex>
+
+                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="credit-filter" v-if="$store.getters.useCreditSystem">
+                            <v-select
+                                v-model="creditStatusFilter"
+                                :items="[
+                                    { text: 'جميع المراجعين', value: null },
+                                    { text: 'لديه رصيد', value: 'has_credit' },
+                                    { text: 'ليس لديه رصيد', value: 'no_credit' }
+                                ]"
+                                item-text="text"
+                                item-value="value"
+                                label="حالة الرصيد"
                                 @change="initialize()"
                                 clearable
                                 dense
@@ -425,6 +444,9 @@
                 
                 // Add billing status filter
                 billingStatusFilter: null, // null = all, 'all_paid' = fully paid, 'none_paid' = not paid, 'some_paid' = partially paid
+                
+                // Add credit status filter
+                creditStatusFilter: null, // null = all, 'has_credit' = has credit balance, 'no_credit' = no credit balance
                 
                 // Cache configuration
                 cacheConfig: {
@@ -677,8 +699,8 @@
             },
 
             // Generate cache key for paginated data
-            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', billingStatus = null) {
-                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_bs${billingStatus}`;
+            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', billingStatus = null, creditStatus = null) {
+                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_bs${billingStatus}_cs${creditStatus}`;
             },
 
             // WhatsApp Methods
@@ -987,6 +1009,9 @@
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
+                if (this.creditStatusFilter) {
+                    apiUrl += `&credit_status=${this.creditStatusFilter}`;
+                }
                 
                 // Don't use cache for doctor search - always fetch fresh data
                 this.apiRequest(apiUrl)
@@ -1000,7 +1025,7 @@
                             this.page = currentPage;
                             
                             // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.billingStatusFilter);
+                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.billingStatusFilter, this.creditStatusFilter);
                             this.setCache(cacheKey, {
                                 data: res.data.data,
                                 total: this.totalItems,
@@ -1045,7 +1070,7 @@
             clearPatientCache() {
                 // Clear all patient-related cache keys
                 Object.keys(localStorage).forEach(key => {
-                    if (key.includes('patients') || key.includes('search_patients') || key.includes('all_patients')) {
+                    if (key.includes('patients') || key.includes('search_patients') || key.includes('all_patients') || key.includes('doctor_patients')) {
                         localStorage.removeItem(key);
                     }
                 });
@@ -1341,8 +1366,17 @@
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
+                // Build search API URL with filters
+                let searchUrl = `https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
+                if (this.billingStatusFilter) {
+                    searchUrl += `&billing_status=${this.billingStatusFilter}`;
+                }
+                if (this.creditStatusFilter) {
+                    searchUrl += `&credit_status=${this.creditStatusFilter}`;
+                }
+                
                 // Don't use cache for search - always fetch fresh data
-                this.apiRequest(`https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(searchUrl)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
@@ -1355,7 +1389,7 @@
                             this.page = currentPage;
                             
                             // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search);
+                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search, '', this.billingStatusFilter, this.creditStatusFilter);
                             this.setCache(cacheKey, {
                                 data: res.data.data,
                                 total: res.data.meta ? res.data.meta.total : res.data.data.length,
@@ -1440,7 +1474,7 @@
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.billingStatusFilter);
+                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.billingStatusFilter, this.creditStatusFilter);
                 
                 const cached = this.getCache(cacheKey);
                 if (cached) {
@@ -1457,6 +1491,9 @@
                 let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
+                }
+                if (this.creditStatusFilter) {
+                    apiUrl += `&credit_status=${this.creditStatusFilter}`;
                 }
                 
                 this.apiRequest(apiUrl)
