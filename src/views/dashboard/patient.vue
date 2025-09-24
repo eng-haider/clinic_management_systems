@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="patient-detail-page">
+  <v-container fluid class="patient-detail-page no-horizontal-scroll">
     <!-- Patient Header Card -->
     <v-card class="mb-4 patient-header-card" outlined>
       <v-row no-gutters align="center">
@@ -33,47 +33,122 @@
                 </a>
               </div>
             </div>
+            <!-- Credit Balance Display -->
+            <div class="patient-credit-info mt-2" v-if="useCreditSystem">
+              <v-chip
+                small
+                :color="patient.credit_balance > 0 ? 'success' : 'grey'"
+                text-color="white"
+                class="mr-2"
+              >
+                <v-icon left size="16">mdi-wallet</v-icon>
+                {{ $t('patients.credit_balance') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+              </v-chip>
+            </div>
           </div>
         </v-col>
 
         <!-- Action Buttons (Hidden for secretaries) -->
-        <v-col cols="auto" class="pa-4 text-right">
-          <v-btn 
-            class="mr-2" 
-            color="primary" 
-            rounded 
-            @click="editPatient"
-          >
-            {{ $t('edit') }}
-          </v-btn>
-          
-          <v-btn 
-            class="mr-2" 
-            rounded
-            style="background-color: rgb(59, 106, 117); color: white;"
-            @click="bookAppointment()"
-   
-          >
-            <v-icon left>mdi-calendar-clock</v-icon>
-            {{ $t('book_appointment') }}
-          </v-btn>
-          
-          <v-btn 
-            class="mr-2" 
-            color="success" 
-            rounded
-            @click="generateBill"
-          >
-            <v-icon left>mdi-file-document-outline</v-icon>
-            {{ $t('patients.bill') }}
-          </v-btn>
+        <v-col cols="auto" class="pa-2 pa-md-4">
+          <!-- Mobile: Show buttons vertically in smaller size -->
+          <div class="d-flex d-sm-none flex-column">
+            <v-btn 
+              small
+              class="mb-1" 
+              color="primary" 
+              rounded 
+              @click="editPatient"
+            >
+              <v-icon left small>mdi-pencil</v-icon>
+              {{ $t('edit') }}
+            </v-btn>
+            
+            <v-btn 
+              small
+              class="mb-1" 
+              rounded
+              style="background-color: rgb(59, 106, 117); color: white;"
+              @click="bookAppointment()"
+            >
+              <v-icon left small>mdi-calendar-clock</v-icon>
+              {{ $t('book_appointment') }}
+            </v-btn>
+            
+            <v-btn 
+              small
+              class="mb-1" 
+              color="success" 
+              rounded
+              @click="generateBill"
+            >
+              <v-icon left small>mdi-file-document-outline</v-icon>
+              {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- Add Credit Button (Only shown when credit system is enabled) -->
+            <v-btn 
+              v-if="useCreditSystem"
+              small
+              class="mb-1" 
+              color="orange" 
+              rounded
+              @click="openAddCreditDialog"
+            >
+              <v-icon left small>mdi-wallet-plus</v-icon>
+              {{ $t('patients.add_credit') }}
+            </v-btn>
+          </div>
+
+          <!-- Desktop: Show buttons horizontally -->
+          <div class="d-none d-sm-flex">
+            <v-btn 
+              class="mr-2" 
+              color="primary" 
+              rounded 
+              @click="editPatient"
+            >
+              {{ $t('edit') }}
+            </v-btn>
+            
+            <v-btn 
+              class="mr-2" 
+              rounded
+              style="background-color: rgb(59, 106, 117); color: white;"
+              @click="bookAppointment()"
+            >
+              <v-icon left>mdi-calendar-clock</v-icon>
+              {{ $t('book_appointment') }}
+            </v-btn>
+            
+            <v-btn 
+              class="mr-2" 
+              color="success" 
+              rounded
+              @click="generateBill"
+            >
+              <v-icon left>mdi-file-document-outline</v-icon>
+              {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- Add Credit Button (Only shown when credit system is enabled) -->
+            <v-btn 
+              v-if="useCreditSystem"
+              class="mr-2" 
+              color="orange" 
+              rounded
+              @click="openAddCreditDialog"
+            >
+              <v-icon left>mdi-wallet-plus</v-icon>
+              {{ $t('patients.add_credit') }}
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
     </v-card>
 
     <!-- Main Content Card -->
-    <v-card>
-      <v-card-text>
+    <v-card class="main-content-card">
+      <v-card-text class="main-content-text">
         <v-row>
           <v-col cols="12" md="12">
             <!-- Secretary Welcome Message (Only shown for secretaries) -->
@@ -137,12 +212,17 @@
                       <v-data-table
                         :headers="caseHeaders"
                         :items="patientCases"
-                        class="elevation-1"
+                        class="elevation-1 mobile-responsive-table"
                         dense
-                        hide-default-footer
                         :sort-by="['id']"
                         :sort-desc="[true]"
                         @click="handleDataTableClick"
+                        :items-per-page="-1"
+                        :footer-props="{
+                          'items-per-page-options': [-1, 10, 25, 50, 100],
+                          'items-per-page-text': 'عدد العناصر في الصفحة:',
+                          'items-per-page-all-text': 'الكل'
+                        }"
                       >
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
@@ -461,21 +541,22 @@
                 </div>
 
                 <!-- Case Selection -->
-                <div class="mobile-field-container mb-2">
-                  <v-select
-                    v-model="bill.case_id"
-                    :items="availableCases"
-                    item-text="case_display"
-                    item-value="id"
-                    dense
-                    outlined
-                    :placeholder="$t('patients.select_case')"
-                    :label="$t('patients.case')"
-                    style="min-width: 300px; width: 100%;"
-                    :disabled="!canEditBills"
-                  >
-                  </v-select>
-                </div>
+                            <div class="mobile-field-container mb-2">
+                              <v-select
+                                v-model="bill.case_id"
+                                :items="availableCases"
+                                item-text="case_display"
+                                item-value="id"
+                                item-disabled="disabled"
+                                dense
+                                outlined
+                                :placeholder="$t('patients.select_case')"
+                                :label="$t('patients.case')"
+                                class="mobile-responsive-select"
+                                :disabled="!canEditBills"
+                              >
+                              </v-select>
+                            </div>
 
                 <!-- Payment Amount -->
                 <div class="mobile-field-container mb-2">
@@ -523,6 +604,25 @@
                   </div>
                 </div>
 
+                <!-- Use Credit Row for Mobile -->
+                <div class="mobile-credit-row mb-2" v-if="useCreditSystem">
+                  <v-switch
+                    v-model="bill.use_credit"
+                    :label="$t('patients.use_credit_for_this_bill')"
+                    color="orange"
+                    inset
+                    dense
+                    :disabled="!canEditBills || patient.credit_balance <= 0"
+                    @change="onBillCreditToggle(bill)"
+                  />
+                  <div v-if="bill.use_credit && patient.credit_balance > 0" class="text-caption grey--text mt-1">
+                    {{ $t('patients.available_credit') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+                  </div>
+                  <div v-if="patient.credit_balance <= 0" class="text-caption red--text mt-1">
+                    {{ $t('patients.no_credit_available_message') }}
+                  </div>
+                </div>
+
                 <!-- Delete Button -->
                 <div class="mobile-actions text-center" v-if="canDeleteBills">
                   <v-btn
@@ -537,7 +637,7 @@
               </div>
 
               <!-- Desktop Layout -->
-              <v-layout row wrap class="d-none d-sm-flex">
+              <v-layout row wrap class="d-none d-sm-flex desktop-bill-layout">
                 <v-flex md1 class="d-none d-md-flex"></v-flex>
                 
                 <!-- Case Selection -->
@@ -547,10 +647,11 @@
                     :items="availableCases"
                     item-text="case_display"
                     item-value="id"
+                    item-disabled="disabled"
                     dense
                     outlined
                     :placeholder="$t('patients.select_case')"
-                    style="min-width: 250px; width: 100%;"
+                    class="desktop-responsive-select"
                     :disabled="!canEditBills"
                   >
                   </v-select>
@@ -591,20 +692,41 @@
                   </v-text-field>
                 </v-flex>
 
+
+                     <!-- Use Credit Column -->
+                     <v-flex md1 sm1 class="mt-2 text-center credit-column" v-if="useCreditSystem" pr-2>
+                  <v-switch
+                    v-model="bill.use_credit"
+                    :disabled="!canEditBills || patient.credit_balance <= 0"
+                    color="orange"
+                    inset
+                    dense
+                    style="position: relative; bottom: 10px;"
+                    @change="onBillCreditToggle(bill)"
+                  />
+                  <div class="caption text-center credit-label" :class="patient.credit_balance <= 0 ? 'red--text' : 'grey--text'">
+                    {{ $t('patients.use_credit') }}
+                  </div>
+                </v-flex>
+
+
+                
                 <!-- Payment Status -->
-                <v-flex md2 sm2 class="mt-2 text-center">
+                <v-flex md1 sm2 class="mt-2 text-center payment-status-column">
                   <v-switch
                     :input-value="bill.is_paid == 1"
                     :disabled="!canEditBills"
                     inset
-                    style="position: relative; padding-right: 10px; bottom: 21px;"
+                    dense
+                    style="position: relative; padding-right: 10px;"
                     @change="toggleBillPaymentStatus(bill)"
                   />
-                  <div class="caption text-center payment-status-label grey--text desktop-status-positioning">
+                  <div class="caption text-center payment-status-label grey--text">
                     {{ bill.is_paid == 1 ? $t('paid') : $t('patients.awaiting_payment') }}
                   </div>
                 </v-flex>
 
+           
                 <!-- Delete Button -->
                 <v-flex md1 sm1 class="text-center" v-if="canDeleteBills">
                   <v-btn
@@ -627,12 +749,27 @@
             <v-btn
               color="primary"
               @click="addPayment"
-              class="add-payment-btn"
+              class="add-payment-btn mr-3"
             >
               <v-icon left>mdi-plus</v-icon>
               {{ $t('patients.add_new_payment') }}
             </v-btn>
+            
+       
           </v-card-actions>
+
+          <!-- Credit System Actions for non-bill editors -->
+          <v-card-actions class="justify-center" v-else-if="useCreditSystem && !canEditBills">
+            <v-btn
+              color="orange"
+              @click="openAddCreditDialog"
+              class="add-credit-btn"
+            >
+              <v-icon left>mdi-wallet-plus</v-icon>
+              {{ $t('patients.add_credit') }}
+            </v-btn>
+          </v-card-actions>
+
 
           <!-- Message for non-accountants -->
           <v-alert
@@ -723,6 +860,74 @@
       </v-card>
     </v-dialog>
 
+    <!-- Add Credit Dialog -->
+    <v-dialog v-model="addCreditDialog" max-width="500px" persistent>
+      <v-card>
+        <v-card-title class="headline">
+          <v-icon left color="orange">mdi-wallet-plus</v-icon>
+          {{ $t('patients.add_credit_to_patient') }}
+        </v-card-title>
+        
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <div class="text-center mb-4">
+                  <h3>{{ patient.name }}</h3>
+                  <v-chip small color="primary" class="mt-2">
+                    {{ $t('patients.current_balance') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+                  </v-chip>
+                </div>
+              </v-col>
+              
+              <v-col cols="12">
+                <v-text-field
+                  v-model="creditAmount"
+                  :label="$t('patients.credit_amount')"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  outlined
+                  suffix="IQ"
+                  :rules="creditAmountRules"
+                  :error-messages="creditAmountErrors"
+                  @input="clearCreditErrors"
+                  class="credit-amount-input"
+                />
+              </v-col>
+              
+              <v-col cols="12" v-if="creditAmount && parseFloat(creditAmount) > 0">
+                <v-alert type="info" outlined class="mb-0">
+                  {{ $t('patients.new_balance_will_be') }}: 
+                  <strong>{{ formatCreditBalance((patient.credit_balance || 0) + parseFloat(creditAmount)) }} IQ</strong>
+                </v-alert>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            text
+            @click="closeAddCreditDialog"
+            :disabled="addingCredit"
+          >
+            {{ $t('cancel') }}
+          </v-btn>
+          <v-btn
+            color="orange"
+            :loading="addingCredit"
+            :disabled="!creditAmount || parseFloat(creditAmount) <= 0"
+            @click="addCreditToPatient"
+          >
+            <v-icon left>mdi-wallet-plus</v-icon>
+            {{ $t('patients.add_credit') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Fancybox is handling image viewing now -->
   </v-container>
 </template>
@@ -766,7 +971,8 @@ export default {
         sex: '',
         systemic_conditions: '',
         birth_date: '',
-        notes: ''
+        notes: '',
+        credit_balance: 0
       },
       
       // Dental Operations (will be loaded from API)
@@ -805,6 +1011,13 @@ export default {
       editDialog: false,
       appointmentDialog: false,
       billDialog: false,
+      addCreditDialog: false,
+      
+      // Credit System
+      creditAmount: '',
+      addingCredit: false,
+      creditAmountErrors: [],
+      useCreditForBills: false,
 
       // Pagination and search
       options: {
@@ -1028,8 +1241,8 @@ export default {
     canDeleteBills() {
       try {
         const role = this.$store.state.role;
-        // Only doctors and adminDoctors can delete bills, secretaries/accounters cannot
-        return role === 'adminDoctor' || role === 'doctor';
+        // Only doctors, adminDoctors, and accounters can delete bills
+        return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
       } catch (error) {
         console.error('Error checking delete bills permission:', error);
         return false;
@@ -1089,6 +1302,18 @@ export default {
         dictCancelUpload: this.$t('patients.cancel_upload'),
         autoProcessQueue: true
       };
+    },
+
+    // Credit System
+    useCreditSystem() {
+      return this.$store.getters.useCreditSystem;
+    },
+
+    creditAmountRules() {
+      return [
+        v => !!v || this.$t('patients.credit_amount_required'),
+        v => (!isNaN(parseFloat(v)) && parseFloat(v) > 0) || this.$t('patients.credit_amount_must_be_positive')
+      ];
     }
   },
   
@@ -1097,6 +1322,133 @@ export default {
         generateBill() {
       this.billDialog = true;
     },
+
+    // Credit System Methods
+    openAddCreditDialog() {
+      this.addCreditDialog = true;
+      this.creditAmount = '';
+      this.creditAmountErrors = [];
+    },
+
+    closeAddCreditDialog() {
+      this.addCreditDialog = false;
+      this.creditAmount = '';
+      this.creditAmountErrors = [];
+      this.addingCredit = false;
+    },
+
+    clearCreditErrors() {
+      this.creditAmountErrors = [];
+    },
+
+    formatCreditBalance(balance) {
+      if (!balance || isNaN(balance)) return '0';
+      return parseFloat(balance).toLocaleString();
+    },
+
+    async addCreditToPatient() {
+      try {
+        // Validate input
+        if (!this.creditAmount || parseFloat(this.creditAmount) <= 0) {
+          this.creditAmountErrors = [this.$t('patients.credit_amount_must_be_positive')];
+          return;
+        }
+
+        this.addingCredit = true;
+        this.creditAmountErrors = [];
+
+        const token = this.$store.state.AdminInfo?.token;
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        console.log('🏦 Adding credit to patient:', {
+          patientId: this.patient.id,
+          amount: this.creditAmount
+        });
+
+        const response = await this.$http.post(`/patients/${this.patient.id}/add-credit`, {
+          amount: parseFloat(this.creditAmount)
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('🏦 Credit added successfully:', response.data);
+
+        // Update patient credit balance
+        this.patient.credit_balance = response.data.current_balance;
+
+        // Show success message
+        this.$swal.fire({
+          title: this.$t('success'),
+          text: this.$t('patients.credit_added_successfully'),
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Close dialog
+        this.closeAddCreditDialog();
+
+      } catch (error) {
+        console.error('❌ Error adding credit:', error);
+        
+        let errorMessage = this.$t('patients.error_adding_credit');
+        
+        if (error.response) {
+          if (error.response.status === 422 && error.response.data.errors) {
+            // Validation errors
+            this.creditAmountErrors = Object.values(error.response.data.errors).flat();
+            return;
+          } else if (error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
+        }
+
+        this.$swal.fire({
+          title: this.$t('error'),
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: this.$t('close')
+        });
+      } finally {
+        this.addingCredit = false;
+      }
+    },
+
+    onUseCreditToggle() {
+      console.log('Use credit toggled:', this.useCreditForBills);
+      if (this.useCreditForBills && this.patient.credit_balance <= 0) {
+        this.useCreditForBills = false;
+        this.$swal.fire({
+          title: this.$t('patients.no_credit_available_title'),
+          text: this.$t('patients.no_credit_available_message'),
+          icon: 'warning',
+          confirmButtonText: this.$t('close')
+        });
+      }
+    },
+
+    onBillCreditToggle(bill) {
+      console.log('Bill credit toggled for bill:', bill.id, 'use_credit:', bill.use_credit);
+      if (bill.use_credit && this.patient.credit_balance <= 0) {
+        bill.use_credit = false;
+        this.$swal.fire({
+          title: this.$t('patients.no_credit_available_title'),
+          text: this.$t('patients.no_credit_available_message'),
+          icon: 'warning',
+          confirmButtonText: this.$t('close')
+        });
+      }
+      
+      // Mark bill as modified
+      bill.modified = true;
+    },
+
     // Clear cache and reload data
     async clearCacheAndReload() {
       try {
@@ -1323,7 +1675,8 @@ export default {
           systemic_conditions: data.systemic_conditions,
           birth_date: data.birth_date,
           notes: data.notes,
-          rx_id: data.rx_id
+          rx_id: data.rx_id,
+          credit_balance: data.credit_balance || 0
         };
         console.log('👤 Patient basic info set:', this.patient.name);
 
@@ -1383,27 +1736,33 @@ export default {
 
         // Process bills data
         console.log('💰 Processing bills data...');
-        this.patientBills = data.bills ? data.bills.map(bill => ({
-          id: bill.id,
-          server_id: bill.id,
-          billable_id: bill.billable_id,
-          patient_id: bill.patient_id,
-          price: bill.price,
-          PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : '',
-          is_paid: bill.is_paid,
-          billable_type: bill.billable_type,
-          user_id: bill.user_id,
-          clinics_id: bill.clinics_id,
-          user: bill.user || {},
-          user_name: bill.user ? bill.user.name : '',
-          created_at: bill.created_at,
-          updated_at: bill.updated_at,
-          case_id: bill.billable_id, // Use billable_id as case_id
-          billable: bill.billable, // Store the complete billable object
-          isNew: false,
-          modified: false
-        })) : [];
+        console.log('💰 Raw bills from API:', data.bills);
+        this.patientBills = data.bills ? data.bills.map(bill => {
+          console.log('💰 Processing bill:', bill.id, 'use_credit:', bill.use_credit);
+          return {
+            id: bill.id,
+            server_id: bill.id,
+            billable_id: bill.billable_id,
+            patient_id: bill.patient_id,
+            price: bill.price,
+            PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : '',
+            is_paid: bill.is_paid,
+            billable_type: bill.billable_type,
+            user_id: bill.user_id,
+            clinics_id: bill.clinics_id,
+            user: bill.user || {},
+            user_name: bill.user ? bill.user.name : '',
+            created_at: bill.created_at,
+            updated_at: bill.updated_at,
+            case_id: bill.billable_id, // Use billable_id as case_id
+            billable: bill.billable, // Store the complete billable object
+            isNew: false,
+            modified: false,
+            use_credit: bill.use_credit == 1 || bill.use_credit === true // Convert to boolean from API response
+          };
+        }) : [];
         console.log('💰 Bills processed:', this.patientBills.length);
+        console.log('💰 Bills with credit usage:', this.patientBills.filter(bill => bill.use_credit).length);
 
         // Create available cases from bills' billable objects and existing cases
         const casesFromBills = data.bills ? data.bills
@@ -2022,6 +2381,7 @@ export default {
         user_id: this.$store.state.AdminInfo.user_id,
         clinics_id: this.$store.state.AdminInfo.clinics_id,
         isNew: true, // Mark as new bill to be saved
+        use_credit: false, // Default to not using credit
         user: {
           id: this.$store.state.AdminInfo.user_id,
           name: this.$store.state.AdminInfo.name
@@ -2057,6 +2417,9 @@ export default {
         if (!this.patientBills[index].isNew) {
           this.patientBills[index].modified = true;
         }
+        
+        // Refresh available cases to update disabled state in real-time
+        this.refreshAvailableCases();
       }
     },
     
@@ -2086,7 +2449,7 @@ export default {
     },
     
     // Delete bill
-    deleteBill(bill) {
+    async deleteBill(bill) {
       // Check if current user can delete bills
       if (!this.canDeleteBills) {
         this.$swal.fire({
@@ -2107,26 +2470,46 @@ export default {
         confirmButtonText: "نعم، احذف",
         cancelButtonText: "إلغاء",
         confirmButtonColor: "#d33"
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          // Find the bill in the array
-          const index = this.patientBills.findIndex(b => b.id === bill.id);
-          if (index !== -1) {
-            // If it's a new bill (not saved to server yet), just remove it
-            if (bill.isNew) {
-              this.patientBills.splice(index, 1);
-            } else {
-              // If it's an existing bill, mark it for deletion
-              this.patientBills[index].deleted = true;
-              this.patientBills[index].modified = true;
-              // Hide it from UI
-              this.patientBills.splice(index, 1);
+          try {
+            // Find the bill in the array
+            const index = this.patientBills.findIndex(b => b.id === bill.id);
+            if (index !== -1) {
+              // If it's a new bill (not saved to server yet), just remove it
+              if (bill.isNew) {
+                this.patientBills.splice(index, 1);
+              } else {
+                // If it's an existing bill, call the DELETE API
+                const billId = bill.server_id || bill.id;
+                await this.$http.delete(`https://smartclinicv5.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                  }
+                });
+                
+                // Remove from UI after successful API call
+                this.patientBills.splice(index, 1);
+              }
+              
+              this.$swal.fire({
+                title: "تم الحذف",
+                text: "تم حذف الفاتورة بنجاح",
+                icon: "success",
+                confirmButtonText: "موافق"
+              });
+              
+              // Refresh available cases to update disabled state
+              this.refreshAvailableCases();
             }
-            
+          } catch (error) {
+            console.error('Error deleting bill:', error);
             this.$swal.fire({
-              title: "تم الحذف",
-              text: "تم حذف الفاتورة بنجاح",
-              icon: "success",
+              title: "خطأ",
+              text: "حدث خطأ أثناء حذف الفاتورة",
+              icon: "error",
               confirmButtonText: "موافق"
             });
           }
@@ -2335,12 +2718,17 @@ export default {
             PaymentDate: bill.PaymentDate,
             is_paid: bill.is_paid ? 1 :  0,
             billable_id: bill.case_id,
-            user_id: bill.user_id
+            user_id: bill.user_id,
+            use_credit: bill.use_credit || false
           }));
+          
+          // Check if any bill wants to use credit
+          const anyBillUsesCredit = newBills.some(bill => bill.use_credit);
           
           const requestBody = {
             bills: billsData,
-            case_id: newBills[0]?.case_id?.toString() || this.patient.id.toString() // Use selected case_id as patient_id
+            case_id: newBills[0]?.case_id?.toString() || this.patient.id.toString(), // Use selected case_id as patient_id
+            use_credit: anyBillUsesCredit
           };
           
           const response = await this.$http.post(`https://titaniumapi.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
@@ -2350,6 +2738,31 @@ export default {
               Authorization: "Bearer " + this.$store.state.AdminInfo.token
             }
           });
+          
+          // Handle credit usage response
+          if (response.data && anyBillUsesCredit) {
+            // Update patient credit balance if credit was used
+            if (response.data.remaining_credit !== undefined) {
+              this.patient.credit_balance = response.data.remaining_credit;
+            }
+            
+            // Show credit usage message
+            if (response.data.credit_used > 0) {
+              this.$swal.fire({
+                title: this.$t('success'),
+                html: `
+                  <div>
+                    <p>${this.$t('patients.bills_added_successfully')}</p>
+                    <p><strong>${this.$t('patients.credit_used')}: ${this.formatCreditBalance(response.data.credit_used)} IQ</strong></p>
+                    <p>${this.$t('patients.remaining_credit')}: ${this.formatCreditBalance(response.data.remaining_credit)} IQ</p>
+                  </div>
+                `,
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+              });
+            }
+          }
           
           // Mark new bills as saved
           newBills.forEach(bill => {
@@ -2377,6 +2790,9 @@ export default {
           // Mark existing bill as saved
           bill.modified = false;
         }
+        
+        // Refresh available cases to update disabled state
+        this.refreshAvailableCases();
         
       } catch (error) {
         console.error('Error saving bills:', error);
@@ -2500,6 +2916,20 @@ export default {
       return `https://titaniumapi.tctate.com/case_photo/${imageName}`;
     },
 
+    // Refresh available cases to update disabled state
+    refreshAvailableCases() {
+      // Get current cases from the existing availableCases and reformat them
+      const currentCases = this.availableCases.map(item => ({
+        id: item.id,
+        case_categories: item.case_categories,
+        tooth_num: item.tooth_num,
+        price: item.price
+      }));
+      
+      // Reformat with updated disabled state
+      this.availableCases = this.formatCasesForSelection(currentCases);
+    }
+,
     // Format cases for selection
     formatCasesForSelection(cases) {
       return cases.map(case_item => {
@@ -2514,12 +2944,21 @@ export default {
           toothNumber = case_item.tooth_num || this.$t('patients.not_specified');
         }
 
+        // Calculate sum of bills for this case
+        const caseBills = this.getBillsForCase(case_item.id);
+        const billsSum = caseBills.reduce((sum, bill) => sum + (parseFloat(bill.price) || 0), 0);
+        const casePrice = parseFloat(case_item.price) || 0;
+        
+        // Disable case if bills sum equals or exceeds case price
+        const isDisabled = billsSum >= casePrice && casePrice > 0;
+
         return {
           id: case_item.id,
           case_display: `${case_item.case_categories?.name_ar || this.$t('patients.not_specified')} - ${this.$t('patients.tooth')} ${toothNumber} - ${case_item.price} د.ع`,
           case_categories: case_item.case_categories,
           tooth_num: toothNumber,
-          price: case_item.price
+          price: case_item.price,
+          disabled: isDisabled
         };
       });
     },
@@ -2784,19 +3223,48 @@ async mounted() {
 </script>
 
 <style scoped>
+/* Prevent horizontal scrolling globally */
+.no-horizontal-scroll {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.no-horizontal-scroll * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* Styles for the patient detail page */
 .patient-detail-page {
-  padding: 16px;
+  padding: 8px;
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .patient-detail-page {
+    padding: 16px;
+  }
 }
 
 /* Styles for patient info section */
 .patient-header-card {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin: 0 4px 16px 4px;
+}
+
+@media (min-width: 600px) {
+  .patient-header-card {
+    margin: 0 0 16px 0;
+  }
 }
 
 .patient-info-container {
   padding: 8px 0;
+  min-width: 0; /* Prevent flex items from overflowing */
+  flex: 1;
 }
 
 /* Styles for WhatsApp link */
@@ -2890,6 +3358,254 @@ async mounted() {
   position: relative;
   margin-bottom: 16px;
   padding: 0 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive select fields */
+.mobile-responsive-select,
+.desktop-responsive-select {
+  width: 100% !important;
+  min-width: unset !important;
+  max-width: 100% !important;
+}
+
+@media (min-width: 960px) {
+  .desktop-responsive-select {
+    min-width: 200px;
+  }
+}
+
+/* Prevent horizontal overflow in mobile layout */
+.mobile-bill-layout * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix for v-flex elements on small screens */
+@media (max-width: 599px) {
+  .v-layout.row .v-flex {
+    flex-basis: auto !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Ensure containers don't overflow */
+.v-container {
+  max-width: 100%;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (min-width: 600px) {
+  .v-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Fix for data table on mobile */
+.v-data-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mobile-responsive-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-responsive-table .v-data-table__wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make table cells more compact on mobile */
+@media (max-width: 599px) {
+  .mobile-responsive-table .v-data-table td,
+  .mobile-responsive-table .v-data-table th {
+    padding: 0 8px !important;
+    font-size: 0.8rem;
+  }
+  
+  .mobile-responsive-table .v-chip {
+    font-size: 0.7rem;
+    height: 20px;
+  }
+  
+  .mobile-responsive-table .v-text-field {
+    font-size: 0.8rem;
+  }
+  
+  .mobile-responsive-table .v-textarea {
+    font-size: 0.8rem;
+  }
+}
+
+/* Credit column responsive styling */
+.credit-column {
+  min-width: 80px;
+  flex: 0 0 auto;
+}
+
+.credit-label {
+  position: relative;
+  bottom: 15px;
+  float: right;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .credit-label {
+    font-size: 0.6rem;
+    bottom: 10px;
+  }
+}
+
+/* Payment status column responsive styling */
+.payment-status-column {
+  min-width: 100px;
+  flex: 0 0 auto;
+}
+
+.payment-status-label {
+  position: relative;
+  top: -10px;
+  float: right;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .payment-status-label {
+    font-size: 0.6rem;
+    top: -5px;
+  }
+}
+
+/* Prevent text overflow in patient name */
+.patient-info-container h2 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Fix for WhatsApp phone number display */
+.patient-phone {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.patient-phone .case-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive buttons in header */
+@media (max-width: 599px) {
+  .patient-header-card .v-btn {
+    font-size: 0.75rem;
+    padding: 0 8px;
+    min-width: auto;
+  }
+  
+  .patient-header-card .v-btn .v-icon {
+    font-size: 16px;
+  }
+}
+
+/* Fix flex layout issues on mobile */
+@media (max-width: 959px) {
+  .v-layout.row .v-flex {
+    flex-wrap: wrap;
+  }
+}
+
+/* Ensure proper spacing for mobile credit info */
+.patient-credit-info .v-chip {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 599px) {
+  .patient-credit-info .v-chip {
+    font-size: 0.7rem;
+    height: 24px;
+  }
+  
+  .patient-credit-info .v-chip .v-icon {
+    font-size: 14px;
+  }
+}
+
+/* Desktop bill layout improvements */
+.desktop-bill-layout {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.desktop-bill-layout .v-flex {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* Improve responsive behavior of bill layout */
+@media (max-width: 1263px) and (min-width: 600px) {
+  .desktop-bill-layout .v-flex.md3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  
+  .desktop-bill-layout .v-flex.md2 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+  
+  .desktop-bill-layout .v-flex.md1 {
+    flex: 0 0 10%;
+    max-width: 10%;
+  }
+}
+
+/* Improve tablet layout */
+@media (max-width: 959px) and (min-width: 600px) {
+  .desktop-bill-layout .v-flex.sm4 {
+    flex: 0 0 40%;
+    max-width: 40%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm3 {
+    flex: 0 0 30%;
+    max-width: 30%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm2 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm1 {
+    flex: 0 0 10%;
+    max-width: 10%;
+  }
+}
+
+/* Responsive text sizing */
+@media (max-width: 599px) {
+  .text-h5 {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .patient-phone .case-title {
+    font-size: 0.9rem;
+  }
 }
 
 .mobile-date-status-row {

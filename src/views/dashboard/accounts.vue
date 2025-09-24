@@ -98,7 +98,7 @@
 
 
               <v-flex xs2 md1 sm1 pt-2>
-                <v-btn color="green" dense style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
+                <v-btn color="green" dense style="color:#fff" @click="is_search=true;page=1;current_page=1;initialize()">بحــث</v-btn>
               </v-flex>
 
               <!-- Salary Delivery Button -->
@@ -141,7 +141,7 @@
             </v-flex> -->
 
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md3 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -170,7 +170,7 @@
               </v-card>
             </v-flex>
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -191,7 +191,7 @@
               </v-card>
             </v-flex>
 
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4>
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4>
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -212,9 +212,7 @@
               </v-card>
             </v-flex>
             
-            <v-flex xs6 md3 sm6 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
-
-
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4 @click="is_Conjugations=true">
               <v-card class="mx-auto" outlined>
                 <v-card-text>
                   <div class="text-center">
@@ -223,12 +221,25 @@
                     <div class="text-h5 font-weight-bold mt-1">
                       {{ accounts_statistic.Conjugationsprice|currency}}
                     </div>
-                  
                   </div>
                 </v-card-text>
               </v-card>
+            </v-flex>
 
-
+            <!-- Credit Balance Card - only show if credit system is enabled -->
+            <v-flex xs6 md2 sm4 pr-2 pb-4 pt-4 v-if="$store.getters.useCreditSystem">
+              <v-card class="mx-auto" outlined>
+                <v-card-text>
+                  <div class="text-center">
+                    <v-icon large color="#4CAF50">fa-solid fa-wallet</v-icon>
+                    <div class="text-h6 font-weight-bold mt-2" style="color: #4CAF50;">رصيد المرضى</div>
+                    <div class="text-h5 font-weight-bold mt-1" style="color: #4CAF50;">
+                      {{ accounts_statistic.total_credit_balance | currency }}
+                    </div>
+                    <div class="text-caption text--secondary mt-1">الرصيد المتاح</div>
+                  </div>
+                </v-card-text>
+              </v-card>
             </v-flex>
 
 
@@ -277,7 +288,7 @@
           {{ new Date(item.PaymentDate).toLocaleDateString('ar-IQ') }}
         </template>
 
-        <template v-slot:[`item.user.name`]="{ item }">
+        <template v-slot:[`item.doctor.name`]="{ item }">
           {{ getDoctorName(item) }}
         </template>
 
@@ -373,7 +384,7 @@
 
 
             <v-flex xs2 md1 sm1 pa-5>
-              <v-btn color="green" style="color:#fff" @click="is_search=true;initialize()">بحــث</v-btn>
+              <v-btn color="green" style="color:#fff" @click="is_search=true;page=1;current_page=1;initialize()">بحــث</v-btn>
             </v-flex>
 
             <v-flex xs3 md1 sm1 pt-5 pb-5 pr-2 v-if="allItem">
@@ -586,7 +597,8 @@
           case_count: '',
           paid: '',
           remainingamount: '',
-          Conjugationsprice: ''
+          Conjugationsprice: '',
+          total_credit_balance: 0
 
 
 
@@ -689,7 +701,7 @@
 
           {
             text: 'الطبيب',
-            value: "user.name",
+            value: "doctor.name",
             sortable: false
           }
         ],
@@ -853,9 +865,12 @@
 
       // Helper method to safely get doctor name
       getDoctorName(item) {
-   console.log('Getting doctor name for item:', item);
-        // Handle different API response structures
-        if (item.billable.doctors && item.billable.doctors.length > 0) {
+        console.log('Getting doctor name for item:', item);
+        // Handle different API response structures - prioritize doctor object
+        if (item.doctor && item.doctor.name) {
+          return item.doctor.name;
+        }
+        if (item.billable && item.billable.doctors && item.billable.doctors.length > 0) {
           return item.billable.doctors[0].name; // Get first doctor from doctors array
         }
         return item.user?.name || 'غير محدد';
@@ -998,6 +1013,7 @@
 
               this.accounts_statistic.remainingamount = res.data.remainingamount;
               this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.accounts_statistic.total_credit_balance = res.data.total_credit_balance || 0;
               this.Conjugations = res.data.Conjugations;
             })
             .catch((error) => {
@@ -1020,6 +1036,7 @@
               this.accounts_statistic.paid = res.data.paid;
               this.accounts_statistic.remainingamount = res.data.remainingamount;
               this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
+              this.accounts_statistic.total_credit_balance = res.data.total_credit_balance || 0;
               this.Conjugations = res.data.Conjugations;
             })
             .catch((error) => {
