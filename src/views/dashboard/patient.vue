@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="patient-detail-page">
+  <v-container fluid class="patient-detail-page no-horizontal-scroll">
     <!-- Patient Header Card -->
     <v-card class="mb-4 patient-header-card" outlined>
       <v-row no-gutters align="center">
@@ -49,55 +49,106 @@
         </v-col>
 
         <!-- Action Buttons (Hidden for secretaries) -->
-        <v-col cols="auto" class="pa-4 text-right">
-          <v-btn 
-            class="mr-2" 
-            color="primary" 
-            rounded 
-            @click="editPatient"
-          >
-            {{ $t('edit') }}
-          </v-btn>
-          
-          <v-btn 
-            class="mr-2" 
-            rounded
-            style="background-color: rgb(59, 106, 117); color: white;"
-            @click="bookAppointment()"
-   
-          >
-            <v-icon left>mdi-calendar-clock</v-icon>
-            {{ $t('book_appointment') }}
-          </v-btn>
-          
-          <v-btn 
-            class="mr-2" 
-            color="success" 
-            rounded
-            @click="generateBill"
-          >
-            <v-icon left>mdi-file-document-outline</v-icon>
-            {{ $t('patients.bill') }}
-          </v-btn>
-          
-          <!-- Add Credit Button (Only shown when credit system is enabled) -->
-          <v-btn 
-            v-if="useCreditSystem"
-            class="mr-2" 
-            color="orange" 
-            rounded
-            @click="openAddCreditDialog"
-          >
-            <v-icon left>mdi-wallet-plus</v-icon>
-            {{ $t('patients.add_credit') }}
-          </v-btn>
+        <v-col cols="auto" class="pa-2 pa-md-4">
+          <!-- Mobile: Show buttons vertically in smaller size -->
+          <div class="d-flex d-sm-none flex-column">
+            <v-btn 
+              small
+              class="mb-1" 
+              color="primary" 
+              rounded 
+              @click="editPatient"
+            >
+              <v-icon left small>mdi-pencil</v-icon>
+              {{ $t('edit') }}
+            </v-btn>
+            
+            <v-btn 
+              small
+              class="mb-1" 
+              rounded
+              style="background-color: rgb(59, 106, 117); color: white;"
+              @click="bookAppointment()"
+            >
+              <v-icon left small>mdi-calendar-clock</v-icon>
+              {{ $t('book_appointment') }}
+            </v-btn>
+            
+            <v-btn 
+              small
+              class="mb-1" 
+              color="success" 
+              rounded
+              @click="generateBill"
+            >
+              <v-icon left small>mdi-file-document-outline</v-icon>
+              {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- Add Credit Button (Only shown when credit system is enabled) -->
+            <v-btn 
+              v-if="useCreditSystem"
+              small
+              class="mb-1" 
+              color="orange" 
+              rounded
+              @click="openAddCreditDialog"
+            >
+              <v-icon left small>mdi-wallet-plus</v-icon>
+              {{ $t('patients.add_credit') }}
+            </v-btn>
+          </div>
+
+          <!-- Desktop: Show buttons horizontally -->
+          <div class="d-none d-sm-flex">
+            <v-btn 
+              class="mr-2" 
+              color="primary" 
+              rounded 
+              @click="editPatient"
+            >
+              {{ $t('edit') }}
+            </v-btn>
+            
+            <v-btn 
+              class="mr-2" 
+              rounded
+              style="background-color: rgb(59, 106, 117); color: white;"
+              @click="bookAppointment()"
+            >
+              <v-icon left>mdi-calendar-clock</v-icon>
+              {{ $t('book_appointment') }}
+            </v-btn>
+            
+            <v-btn 
+              class="mr-2" 
+              color="success" 
+              rounded
+              @click="generateBill"
+            >
+              <v-icon left>mdi-file-document-outline</v-icon>
+              {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- Add Credit Button (Only shown when credit system is enabled) -->
+            <v-btn 
+              v-if="useCreditSystem"
+              class="mr-2" 
+              color="orange" 
+              rounded
+              @click="openAddCreditDialog"
+            >
+              <v-icon left>mdi-wallet-plus</v-icon>
+              {{ $t('patients.add_credit') }}
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
     </v-card>
 
     <!-- Main Content Card -->
-    <v-card>
-      <v-card-text>
+    <v-card class="main-content-card">
+      <v-card-text class="main-content-text">
         <v-row>
           <v-col cols="12" md="12">
             <!-- Secretary Welcome Message (Only shown for secretaries) -->
@@ -161,7 +212,7 @@
                       <v-data-table
                         :headers="caseHeaders"
                         :items="patientCases"
-                        class="elevation-1"
+                        class="elevation-1 mobile-responsive-table"
                         dense
                         :sort-by="['id']"
                         :sort-desc="[true]"
@@ -501,7 +552,7 @@
                                 outlined
                                 :placeholder="$t('patients.select_case')"
                                 :label="$t('patients.case')"
-                                style="min-width: 300px; width: 100%;"
+                                class="mobile-responsive-select"
                                 :disabled="!canEditBills"
                               >
                               </v-select>
@@ -586,7 +637,7 @@
               </div>
 
               <!-- Desktop Layout -->
-              <v-layout row wrap class="d-none d-sm-flex">
+              <v-layout row wrap class="d-none d-sm-flex desktop-bill-layout">
                 <v-flex md1 class="d-none d-md-flex"></v-flex>
                 
                 <!-- Case Selection -->
@@ -600,7 +651,7 @@
                     dense
                     outlined
                     :placeholder="$t('patients.select_case')"
-                    style="min-width: 250px; width: 100%;"
+                    class="desktop-responsive-select"
                     :disabled="!canEditBills"
                   >
                   </v-select>
@@ -643,17 +694,17 @@
 
 
                      <!-- Use Credit Column -->
-                     <v-flex md1 sm1 class="mt-2 text-center" v-if="useCreditSystem" pr-2>
+                     <v-flex md1 sm1 class="mt-2 text-center credit-column" v-if="useCreditSystem" pr-2>
                   <v-switch
                     v-model="bill.use_credit"
                     :disabled="!canEditBills || patient.credit_balance <= 0"
                     color="orange"
                     inset
-                    
+                    dense
                     style="position: relative; bottom: 10px;"
                     @change="onBillCreditToggle(bill)"
                   />
-                  <div class="caption text-center" style="position: relative; bottom: 15px;float: right;" :class="patient.credit_balance <= 0 ? 'red--text' : 'grey--text'">
+                  <div class="caption text-center credit-label" :class="patient.credit_balance <= 0 ? 'red--text' : 'grey--text'">
                     {{ $t('patients.use_credit') }}
                   </div>
                 </v-flex>
@@ -661,15 +712,16 @@
 
                 
                 <!-- Payment Status -->
-                <v-flex md1 sm2 class="mt-2 text-center">
+                <v-flex md1 sm2 class="mt-2 text-center payment-status-column">
                   <v-switch
                     :input-value="bill.is_paid == 1"
                     :disabled="!canEditBills"
                     inset
+                    dense
                     style="position: relative; padding-right: 10px;"
                     @change="toggleBillPaymentStatus(bill)"
                   />
-                  <div class="caption text-center payment-status-label grey--text" style="position: relative; top: -10px;float: right;">
+                  <div class="caption text-center payment-status-label grey--text">
                     {{ bill.is_paid == 1 ? $t('paid') : $t('patients.awaiting_payment') }}
                   </div>
                 </v-flex>
@@ -3171,19 +3223,48 @@ async mounted() {
 </script>
 
 <style scoped>
+/* Prevent horizontal scrolling globally */
+.no-horizontal-scroll {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.no-horizontal-scroll * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* Styles for the patient detail page */
 .patient-detail-page {
-  padding: 16px;
+  padding: 8px;
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .patient-detail-page {
+    padding: 16px;
+  }
 }
 
 /* Styles for patient info section */
 .patient-header-card {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin: 0 4px 16px 4px;
+}
+
+@media (min-width: 600px) {
+  .patient-header-card {
+    margin: 0 0 16px 0;
+  }
 }
 
 .patient-info-container {
   padding: 8px 0;
+  min-width: 0; /* Prevent flex items from overflowing */
+  flex: 1;
 }
 
 /* Styles for WhatsApp link */
@@ -3277,6 +3358,254 @@ async mounted() {
   position: relative;
   margin-bottom: 16px;
   padding: 0 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive select fields */
+.mobile-responsive-select,
+.desktop-responsive-select {
+  width: 100% !important;
+  min-width: unset !important;
+  max-width: 100% !important;
+}
+
+@media (min-width: 960px) {
+  .desktop-responsive-select {
+    min-width: 200px;
+  }
+}
+
+/* Prevent horizontal overflow in mobile layout */
+.mobile-bill-layout * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix for v-flex elements on small screens */
+@media (max-width: 599px) {
+  .v-layout.row .v-flex {
+    flex-basis: auto !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Ensure containers don't overflow */
+.v-container {
+  max-width: 100%;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (min-width: 600px) {
+  .v-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Fix for data table on mobile */
+.v-data-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mobile-responsive-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-responsive-table .v-data-table__wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make table cells more compact on mobile */
+@media (max-width: 599px) {
+  .mobile-responsive-table .v-data-table td,
+  .mobile-responsive-table .v-data-table th {
+    padding: 0 8px !important;
+    font-size: 0.8rem;
+  }
+  
+  .mobile-responsive-table .v-chip {
+    font-size: 0.7rem;
+    height: 20px;
+  }
+  
+  .mobile-responsive-table .v-text-field {
+    font-size: 0.8rem;
+  }
+  
+  .mobile-responsive-table .v-textarea {
+    font-size: 0.8rem;
+  }
+}
+
+/* Credit column responsive styling */
+.credit-column {
+  min-width: 80px;
+  flex: 0 0 auto;
+}
+
+.credit-label {
+  position: relative;
+  bottom: 15px;
+  float: right;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .credit-label {
+    font-size: 0.6rem;
+    bottom: 10px;
+  }
+}
+
+/* Payment status column responsive styling */
+.payment-status-column {
+  min-width: 100px;
+  flex: 0 0 auto;
+}
+
+.payment-status-label {
+  position: relative;
+  top: -10px;
+  float: right;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .payment-status-label {
+    font-size: 0.6rem;
+    top: -5px;
+  }
+}
+
+/* Prevent text overflow in patient name */
+.patient-info-container h2 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Fix for WhatsApp phone number display */
+.patient-phone {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.patient-phone .case-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive buttons in header */
+@media (max-width: 599px) {
+  .patient-header-card .v-btn {
+    font-size: 0.75rem;
+    padding: 0 8px;
+    min-width: auto;
+  }
+  
+  .patient-header-card .v-btn .v-icon {
+    font-size: 16px;
+  }
+}
+
+/* Fix flex layout issues on mobile */
+@media (max-width: 959px) {
+  .v-layout.row .v-flex {
+    flex-wrap: wrap;
+  }
+}
+
+/* Ensure proper spacing for mobile credit info */
+.patient-credit-info .v-chip {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 599px) {
+  .patient-credit-info .v-chip {
+    font-size: 0.7rem;
+    height: 24px;
+  }
+  
+  .patient-credit-info .v-chip .v-icon {
+    font-size: 14px;
+  }
+}
+
+/* Desktop bill layout improvements */
+.desktop-bill-layout {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.desktop-bill-layout .v-flex {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* Improve responsive behavior of bill layout */
+@media (max-width: 1263px) and (min-width: 600px) {
+  .desktop-bill-layout .v-flex.md3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  
+  .desktop-bill-layout .v-flex.md2 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+  
+  .desktop-bill-layout .v-flex.md1 {
+    flex: 0 0 10%;
+    max-width: 10%;
+  }
+}
+
+/* Improve tablet layout */
+@media (max-width: 959px) and (min-width: 600px) {
+  .desktop-bill-layout .v-flex.sm4 {
+    flex: 0 0 40%;
+    max-width: 40%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm3 {
+    flex: 0 0 30%;
+    max-width: 30%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm2 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+  
+  .desktop-bill-layout .v-flex.sm1 {
+    flex: 0 0 10%;
+    max-width: 10%;
+  }
+}
+
+/* Responsive text sizing */
+@media (max-width: 599px) {
+  .text-h5 {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .patient-phone .case-title {
+    font-size: 0.9rem;
+  }
 }
 
 .mobile-date-status-row {
