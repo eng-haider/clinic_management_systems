@@ -1,213 +1,38 @@
 <template>
   <div>
     
-    <!-- Enhanced Categories Context Menu -->
+    <!-- Categories Context Menu -->
     <div 
       v-if="showContextMenu"
       class="tooth-context-menu"
       :style="contextMenuStyle"
-      @click.stop
     >
-      <!-- Menu Header -->
-      <div class="menu-header">
-        <div class="tooth-info">
-          <v-icon size="20" color="primary">mdi-tooth</v-icon>
-          <span>{{ $t('teeth.tooth_number') }} {{ contextTooth }}</span>
-        </div>
-        <v-btn 
-          icon 
-          small 
-          @click="hideContextMenu"
-          class="close-btn"
-        >
-          <v-icon size="18">mdi-close</v-icon>
-        </v-btn>
-      </div>
-
-      <!-- Search Bar for Categories -->
-      <div class="search-section">
-        <v-autocomplete
-          v-model="selectedCategory"
-          :items="filteredCategories"
-          :search-input.sync="categorySearch"
-          item-text="name"
-          item-value="id"
-          :label="$t('teeth.search_category')"
-          dense
-          outlined
-          hide-details
-          clearable
-          :no-data-text="$t('teeth.no_results')"
-          :loading="loadingCategories"
-          prepend-inner-icon="mdi-magnify"
-          return-object
-          @input="selectCategory"
-          :filter="filterCategories"
-          class="category-search"
-        >
-          <template v-slot:item="{ item }">
-            <v-list-item-content>
-              <v-list-item-title>{{ item.name || item.name_ar || $t('teeth.no_name') }}</v-list-item-title>
-              <v-list-item-subtitle v-if="item.item_cost">
-                {{ $t('teeth.cost') }}: {{ formatCurrency(item.item_cost) }} {{ $t('teeth.currency') }}
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </template>
-          
-          <template v-slot:no-data>
-            <div class="px-4 py-2">
-              <div class="text-center text-caption grey--text">
-                {{ categorySearch ? $t('teeth.no_matching_categories') : $t('teeth.start_typing') }}
-              </div>
-            </div>
-          </template>
-        </v-autocomplete>
-      </div>
-
-      <!-- Quick Categories List -->
-      <div class="quick-categories" v-if="!categorySearch">
-        <div class="section-title">
-          <v-icon size="16" class="ml-1">mdi-flash</v-icon>
-          {{ $t('teeth.frequent_categories') }}
-        </div>
-        <div class="categories-grid">
-          <v-chip
-            v-for="cat in frequentCategories"
-            :key="'frequent-' + cat.id"
-            @click="selectCategory(cat)"
-            class="category-chip"
-            outlined
-            color="primary"
-          >
-            <v-icon left size="14">mdi-medical-bag</v-icon>
-            {{ cat.name || cat.name_ar || $t('teeth.no_name') }}
-          </v-chip>
-        </div>
-      </div>
-
-      <!-- All Categories List (when searching) -->
-      <div class="all-categories" v-if="categorySearch && filteredCategories.length > 0">
-        <div class="section-title">
-          <v-icon size="16" class="ml-1">mdi-format-list-bulleted</v-icon>
-          {{ $t('all') }}
-        </div>
-        <div class="categories-list">
-          <v-list dense>
-            <v-list-item
-              v-for="cat in filteredCategories.slice(0, 5)"
-              :key="'search-' + cat.id"
-              @click="selectCategory(cat)"
-              class="category-list-item"
-            >
-              <v-list-item-icon>
-                <v-icon size="18" color="primary">mdi-medical-bag</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ cat.name || cat.name_ar || $t('teeth.no_name') }}</v-list-item-title>
-                <v-list-item-subtitle v-if="cat.item_cost">
-                  {{ $t('teeth.cost') }}: {{ formatCurrency(cat.item_cost) }} {{ $t('teeth.currency') }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </div>
-      </div>
-
-      <!-- Add New Category Section -->
-      <div v-if="showAddCategoryForm" class="add-category-section">
-        <div class="section-title">
-          <v-icon size="16" class="ml-1">mdi-plus</v-icon>
-          {{ $t('teeth.add_new_category') }}
-        </div>
-        
-        <v-form ref="newCategoryForm" v-model="validNewCategory" class="pa-3">
-          <v-text-field
-            v-model="newCategory.name_ar"
-            :label="$t('teeth.category_name')"
-            :rules="[rules.required]"
-            outlined
-            dense
-            hide-details="auto"
-            prepend-inner-icon="mdi-medical-bag"
-            style="direction: rtl; text-align: right;"
-            class="mb-3"
-            autofocus
-          ></v-text-field>
-          
-          <div class="d-flex gap-2">
-            <v-btn
-              @click="addNewCategory"
-              color="success"
-              small
-              :loading="savingNewCategory"
-              :disabled="!validNewCategory || !newCategory.name_ar.trim()"
-              class="flex-grow-1"
-            >
-              <v-icon left size="14">mdi-check</v-icon>
-              {{ $t('teeth.add_category') }}
-            </v-btn>
-            
-            <v-btn
-              @click="cancelAddCategory"
-              color="grey"
-              text
-              small
-              class="flex-grow-1"
-            >
-              <v-icon left size="14">mdi-close</v-icon>
-              {{ $t('teeth.cancel') }}
-            </v-btn>
+  
+      <ul style="list-style:none; margin:0; padding:0; min-width:150px; max-height:300px; overflow:auto;">
+        <li v-if="!categories || categories.length === 0" style="padding:8px; color:#888;">
+          <div v-if="loadingCategories" style="text-align: center;">
+            <v-progress-circular size="20" width="2" indeterminate></v-progress-circular>
+            <span style="margin-left: 8px;">جاري التحميل...</span>
           </div>
-        </v-form>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="action-buttons" v-if="!showAddCategoryForm">
-        <v-btn
-          @click="showAddCategoryForm = true"
-          color="success"
-          text
-          small
-          block
-          class="add-category-btn"
+          <div v-else>لا توجد عمليات</div>
+        </li>
+        <li 
+          v-for="cat in categories" 
+          :key="cat.id"
+          @click.stop="selectCategory(cat)"
+          style="padding:8px 16px; cursor:pointer; border-bottom:1px solid #eee;display: block;"
         >
-          <v-icon left size="16">mdi-plus</v-icon>
-          {{ $t('teeth.add_new_category') }}
-        </v-btn>
-        
-        <v-btn
-          @click="refreshCategories"
-          color="primary"
-          text
-          small
-          block
-          :loading="loadingCategories"
-          class="refresh-btn"
-        >
-          <v-icon left size="16">mdi-refresh</v-icon>
-          {{ $t('ui.refresh') }}
-        </v-btn>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="loadingCategories && (!localCategories || localCategories.length === 0)" class="loading-state">
-        <v-progress-circular size="24" width="2" indeterminate color="primary"></v-progress-circular>
-        <span class="ml-2">{{ $t('loading.loading') }}...</span>
-      </div>
-
-      <!-- Empty State -->
-      <div v-if="!loadingCategories && (!localCategories || localCategories.length === 0)" class="empty-state">
-        <v-icon size="48" color="grey lighten-2">mdi-medical-bag-outline</v-icon>
-        <p class="text-caption grey--text mt-2">{{ $t('teeth.no_categories') }}</p>
-      </div>
+          {{ cat.name || cat.name_ar }}
+        </li>
+      </ul>
+      <div v-if="!categories || categories.length === 0" style="padding:8px; color:#888;">لا توجد عمليات</div>
     </div>
-
     <div>
       <div class="teeth-svg">
 
         <svg version="1.1" class="toomain" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 481 150"
-          style="enable-background:new 0 0 481 150;direction: rtl !important;" xml:space="preserve">
+          style="enable-background:new 0 0 481 150;" xml:space="preserve">
 
           <a href="#">
             <g>
@@ -686,206 +511,13 @@ fill: #000;
 
 .tooth-context-menu {
   background: #fff;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  min-width: 280px;
-  max-width: 320px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  min-width: 160px;
   z-index: 1000;
-  padding: 0;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.tooth-info {
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.tooth-info .v-icon {
-  margin-left: 8px;
-}
-
-.close-btn {
-  color: white !important;
-}
-
-.search-section {
-  padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  background: #fafbfc;
-}
-
-.category-search {
-  font-family: 'Cairo', sans-serif;
-}
-
-.quick-categories, .all-categories {
-  padding: 16px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-  font-size: 13px;
-  color: #475569;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.categories-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.category-chip {
-  margin: 0 !important;
-  height: 32px !important;
-  font-size: 12px !important;
-  border-radius: 16px !important;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.category-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-}
-
-.categories-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.category-list-item {
-  border-radius: 8px;
-  margin-bottom: 4px;
-  transition: all 0.2s ease;
-}
-
-.category-list-item:hover {
-  background-color: #f1f5f9;
-  transform: translateX(-2px);
-}
-
-.action-buttons {
-  padding: 12px 16px;
-  border-top: 1px solid #f1f5f9;
-  background: #fafbfc;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.add-category-section {
-  padding: 16px;
-  border-top: 1px solid #f1f5f9;
-  background: linear-gradient(135deg, #f8fffe 0%, #f0fdf4 100%);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.add-category-section .section-title {
-  color: #059669;
-  margin-bottom: 16px;
-}
-
-.gap-2 {
-  gap: 8px;
-}
-
-.add-category-btn, .refresh-btn {
-  font-weight: 600 !important;
-  text-transform: none !important;
-  letter-spacing: 0.3px !important;
-  height: 36px !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
-}
-
-.add-category-btn:hover {
-  background-color: rgba(76, 175, 80, 0.1) !important;
-  transform: translateY(-1px);
-}
-
-.refresh-btn:hover {
-  background-color: rgba(25, 118, 210, 0.1) !important;
-  transform: translateY(-1px);
-}
-
-.loading-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  text-align: center;
-}
-
-.loading-state {
-  color: #64748b;
-  font-size: 14px;
-}
-
-.empty-state {
-  color: #94a3b8;
-}
-
-/* Scrollbar Styling */
-.categories-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.categories-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 2px;
-}
-
-.categories-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
-}
-
-.categories-list::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .tooth-context-menu {
-    min-width: 250px;
-    max-width: 280px;
-  }
-  
-  .search-section {
-    padding: 12px;
-  }
-  
-  .quick-categories, .all-categories {
-    padding: 12px;
-  }
-  
-  .category-chip {
-    height: 36px !important;
-    font-size: 13px !important;
-  }
+  padding: 4px 0;
 }
 
 .tooth-context-menu li {
@@ -975,20 +607,6 @@ fill: #000;
                 },
                 contextTooth: null,
                 selectedTeeth: [], // Track selected teeth for coloring
-                
-                // Enhanced category selection
-                selectedCategory: null,
-                categorySearch: '',
-                filteredCategories: [],
-                
-                // Add new category form (inline)
-                showAddCategoryForm: false,
-                newCategory: {
-                    name_ar: ''
-                },
-                validNewCategory: false,
-                savingNewCategory: false,
-                
                 // Cache configuration
                 cacheConfig: {
                     caseCategories: {
@@ -997,12 +615,7 @@ fill: #000;
                     }
                 },
                 loadingCategories: false,
-                localCategories: [],
-                
-                // Validation rules
-                rules: {
-                    required: value => !!value || 'هذا الحقل مطلوب'
-                }
+                localCategories: []
             }
         },
         mounted() {
@@ -1043,31 +656,6 @@ fill: #000;
             // Use cached categories or prop categories
             availableCategories() {
                 return this.localCategories.length > 0 ? this.localCategories : this.categories;
-            },
-            
-            // Get most frequently used categories (top 6)
-            frequentCategories() {
-                const cats = this.localCategories.length > 0 ? this.localCategories : this.categories;
-                
-                if (!cats || !Array.isArray(cats)) {
-                    return [];
-                }
-                
-                const result = cats.slice(0, 6);
-                return result;
-            },
-            
-            // Categories filtered by search
-            searchFilteredCategories() {
-                const cats = this.localCategories.length > 0 ? this.localCategories : this.categories;
-                if (!cats || !Array.isArray(cats)) return [];
-                if (!this.categorySearch) return cats;
-                
-                const search = this.categorySearch.toLowerCase().trim();
-                return cats.filter(cat => {
-                    const name = (cat.name || cat.name_ar || '').toLowerCase();
-                    return name.includes(search);
-                });
             }
         },
         methods: {
@@ -1118,8 +706,7 @@ fill: #000;
             loadCategories() {
                 // First check if categories are passed as props
                 if (this.categories && this.categories.length > 0) {
-                    this.localCategories = [...this.categories];
-                    this.filteredCategories = [...this.categories];
+                    this.localCategories = this.categories;
                     return;
                 }
 
@@ -1127,7 +714,6 @@ fill: #000;
                 const cached = this.getCache(this.cacheConfig.caseCategories.key);
                 if (cached) {
                     this.localCategories = cached;
-                    this.filteredCategories = cached;
                     return;
                 }
 
@@ -1153,7 +739,7 @@ fill: #000;
                     return;
                 }
 
-                apiRequest.get('case-categories', {
+                apiRequest.get('cases/CaseCategories', {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
@@ -1162,7 +748,6 @@ fill: #000;
                 })
                 .then(res => {
                     this.localCategories = res.data;
-                    this.filteredCategories = res.data;
                     this.setCache(this.cacheConfig.caseCategories.key, res.data, this.cacheConfig.caseCategories.ttl);
                     this.loadingCategories = false;
                 })
@@ -1231,6 +816,7 @@ fill: #000;
 
             reply_click(id, event) {
                 // Enhanced click handler for teeth with mobile support
+                console.log('Tooth clicked:', id, event);
                 
                 // Check if it's a mobile device or touch event
                 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1283,6 +869,8 @@ fill: #000;
                 event.preventDefault();
                 event.stopPropagation();
                 
+                console.log('Tooth right-clicked:', id, event);
+                
                 this.contextTooth = id;
                 this.showContextMenu = true;
                 
@@ -1322,30 +910,23 @@ fill: #000;
                 this.contextTooth = null;
                 this.contextMenuStyle.display = 'none';
                 
-                // Reset add category form
-                this.showAddCategoryForm = false;
-                this.cancelAddCategory();
-                
-                // Clear search
-                this.categorySearch = '';
-                this.selectedCategory = null;
-                
                 // Remove both click and touch event listeners
                 document.removeEventListener('click', this.hideContextMenu);
                 document.removeEventListener('touchstart', this.hideContextMenu);
             },
 
             selectCategory(category) {
+              console.log('🦷 Category selected:', category);
+              console.log('🦷 Context tooth:', this.contextTooth);
+              
               if (this.contextTooth && category) {
-                // Clear search when category is selected
-                this.categorySearch = '';
-                this.selectedCategory = null;
-                
                 // Emit event for parent to add case row
                 this.$emit('case-added', {
                   toothNumber: this.contextTooth,
                   operation: category
                 });
+                
+                console.log('🦷 case-added event emitted');
               }
               
               // Always hide menu immediately after selection
@@ -1362,141 +943,6 @@ fill: #000;
               document.removeEventListener('click', this.hideContextMenu);
               document.removeEventListener('touchstart', this.hideContextMenu);
             },
-            
-            // Enhanced category filtering
-            filterCategories(item, queryText) {
-              if (!queryText) return true;
-              const search = queryText.toLowerCase().trim();
-              const name = (item.name || item.name_ar || '').toLowerCase();
-              return name.includes(search);
-            },
-            
-            // Format currency for display
-            formatCurrency(amount) {
-              if (!amount) return '0';
-              return new Intl.NumberFormat('ar-EG').format(amount);
-            },
-            
-            // Refresh categories from API
-            async refreshCategories() {
-              this.loadingCategories = true;
-              try {
-                // Clear cache first
-                this.clearCache(this.cacheConfig.caseCategories.key);
-                
-                // Fetch fresh data
-                await this.getCaseCategories();
-                
-                // Show success message
-                if (this.$swal) {
-                  this.$swal.fire({
-                    icon: 'success',
-                    title: 'تم التحديث',
-                    text: 'تم تحديث قائمة فئات العمليات بنجاح',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                  });
-                }
-              } catch (error) {
-                console.error('Error refreshing categories:', error);
-                if (this.$swal) {
-                  this.$swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: 'فشل في تحديث قائمة فئات العمليات',
-                    confirmButtonText: 'موافق'
-                  });
-                }
-              } finally {
-                this.loadingCategories = false;
-              }
-            },
-            
-            // Add new category
-            async addNewCategory() {
-              if (!this.newCategory.name_ar.trim()) {
-                return;
-              }
-              
-              this.savingNewCategory = true;
-              try {
-                const apiRequest = this.$axios || this.$http || window.axios;
-                if (!apiRequest) {
-                  throw new Error('No HTTP client available');
-                }
-                
-                const categoryData = {
-                  name_ar: this.newCategory.name_ar.trim()
-                };
-                
-                const response = await apiRequest.post('case-categories', categoryData, {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + (this.$store?.state?.AdminInfo?.token || '')
-                  }
-                });
-                
-                // Add new category to local array
-                const newCat = response.data.data || response.data;
-                this.localCategories.push(newCat);
-                this.filteredCategories = [...this.localCategories];
-                
-                // Update cache
-                this.setCache(this.cacheConfig.caseCategories.key, this.localCategories, this.cacheConfig.caseCategories.ttl);
-                
-                // Emit event to parent to refresh their categories
-                this.$emit('category-added', newCat);
-                
-                // Show success message and reset form
-                if (this.$swal) {
-                  this.$swal.fire({
-                    icon: 'success',
-                    title: 'نجح',
-                    text: 'تم إضافة فئة العملية بنجاح',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                  });
-                }
-                
-                this.cancelAddCategory();
-                
-              } catch (error) {
-                console.error('Error adding new category:', error);
-                
-                let errorMessage = 'فشل في إضافة فئة العملية';
-                if (error.response && error.response.data && error.response.data.message) {
-                  errorMessage = error.response.data.message;
-                }
-                
-                if (this.$swal) {
-                  this.$swal.fire({
-                    icon: 'error',
-                    title: 'خطأ',
-                    text: errorMessage,
-                    confirmButtonText: 'موافق'
-                  });
-                }
-              } finally {
-                this.savingNewCategory = false;
-              }
-            },
-            
-            // Cancel add category form
-            cancelAddCategory() {
-              this.showAddCategoryForm = false;
-              this.newCategory = {
-                name_ar: ''
-              };
-              this.validNewCategory = false;
-              if (this.$refs.newCategoryForm) {
-                this.$refs.newCategoryForm.reset();
-              }
-            },
         },
         
         watch: {
@@ -1504,21 +950,12 @@ fill: #000;
             categories: {
                 handler(newCategories) {
                     if (newCategories && newCategories.length > 0) {
-                        this.localCategories = [...newCategories];
-                        this.filteredCategories = [...newCategories];
+                        this.localCategories = newCategories;
                         // Cache the new categories
                         this.setCache(this.cacheConfig.caseCategories.key, newCategories, this.cacheConfig.caseCategories.ttl);
                     }
                 },
                 deep: true,
-                immediate: true
-            },
-            
-            // Update filtered categories when search changes
-            categorySearch: {
-                handler() {
-                    this.filteredCategories = this.searchFilteredCategories;
-                },
                 immediate: true
             }
         }
