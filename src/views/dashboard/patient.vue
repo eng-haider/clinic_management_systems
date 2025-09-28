@@ -401,13 +401,13 @@
             </v-card>
 
             <!-- Case Images Section (Hidden for secretaries) -->
-            <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode && patientImages.length > 0">
+            <v-card class="case-images-card mb-4" outlined v-if="!secretaryBillsOnlyMode && patientImages.length > 0">
               <v-card-title class="subtitle-1">
                 <v-icon left class="primary--text">mdi-image-multiple</v-icon>
                 <span style="font-family: Cairo !important;">{{ $t('patients.case_images') }}</span>
               </v-card-title>
-              <v-card-text>
-                <v-row>
+              <v-card-text class="case-images-content">
+                <v-row class="image-gallery-row">
                   <v-col
                     v-for="(image, index) in patientImages"
                     :key="image.id"
@@ -415,8 +415,9 @@
                     sm="4"
                     md="3"
                     lg="2"
+                    class="image-col"
                   >
-                    <v-card class="position-relative">
+                    <v-card class="image-item-card position-relative">
                       <a
                         :href="getImageUrl(image.image_url)"
                         :data-fancybox="'patient-gallery'"
@@ -459,8 +460,8 @@
 
         
         <!-- Image Upload Section (Hidden for secretaries) -->
-        <v-row style="height: auto;" v-if="!secretaryBillsOnlyMode">
-          <v-col cols="12" md="12">
+        <v-row class="image-upload-row" style="height: auto;" v-if="!secretaryBillsOnlyMode">
+          <v-col cols="12" md="12" class="image-upload-col">
             <vue2-dropzone 
               ref="patientDropzone" 
               id="dropzone" 
@@ -468,7 +469,7 @@
               @vdropzone-success="handleImageSuccess"
               @vdropzone-error="handleImageError"
               @vdropzone-removed-file="handleImageRemoved"
-              class="dropzone-container"
+              class="dropzone-container mobile-safe-dropzone"
             />
           </v-col>
         </v-row>
@@ -854,15 +855,15 @@
             />
 
     <!-- Bill Report Dialog -->
-    <v-dialog v-model="billDialog" max-width="900px" v-track-dialog>
-      <v-card>
+    <v-dialog v-model="billDialog" max-width="900px" class="mobile-safe-dialog" v-track-dialog>
+      <v-card class="mobile-safe-card">
         <Bill :patient="completePatientData" />
       </v-card>
     </v-dialog>
 
     <!-- Add Credit Dialog -->
-    <v-dialog v-model="addCreditDialog" max-width="500px" persistent>
-      <v-card>
+    <v-dialog v-model="addCreditDialog" max-width="500px" class="mobile-safe-dialog" persistent>
+      <v-card class="mobile-safe-card">
         <v-card-title class="headline">
           <v-icon left color="orange">mdi-wallet-plus</v-icon>
           {{ $t('patients.add_credit_to_patient') }}
@@ -3667,6 +3668,194 @@ async mounted() {
   padding-top: 24px !important;
   margin-top: 24px !important;
   border-top: 2px solid #e0e0e0;
+}
+
+/* Mobile-safe image upload and gallery styles */
+.image-upload-row {
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0 !important;
+  padding: 0 8px !important;
+}
+
+.image-upload-col {
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 8px !important;
+}
+
+.mobile-safe-dropzone {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile-safe styles for case images */
+.case-images-card {
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0 4px 16px 4px !important;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .case-images-card {
+    margin: 0 0 16px 0 !important;
+  }
+}
+
+.case-images-content {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 8px !important;
+}
+
+.image-gallery-row {
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0 !important;
+}
+
+.image-col {
+  max-width: 50% !important; /* 2 images per row on mobile */
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 4px !important;
+}
+
+@media (min-width: 600px) {
+  .image-col {
+    max-width: 33.333% !important; /* 3 images per row on tablet */
+  }
+}
+
+@media (min-width: 960px) {
+  .image-col {
+    max-width: 25% !important; /* 4 images per row on desktop */
+  }
+}
+
+@media (min-width: 1264px) {
+  .image-col {
+    max-width: 16.666% !important; /* 6 images per row on large desktop */
+  }
+}
+
+.image-item-card {
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.patient-image {
+  max-width: 100% !important;
+  width: 100% !important;
+  object-fit: cover;
+}
+
+.delete-image-btn {
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Global dropzone overrides for mobile safety */
+.vue-dropzone {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.vue-dropzone .dz-preview {
+  max-width: calc(50% - 10px) !important;
+  margin: 5px !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 599px) {
+  .vue-dropzone .dz-preview {
+    max-width: calc(100% - 10px) !important;
+  }
+}
+
+/* Dialog/Modal overflow prevention */
+.v-dialog {
+  max-width: 95vw !important;
+  overflow-x: hidden !important;
+}
+
+.v-dialog .v-card {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.v-dialog .v-card-text {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Mobile-safe dialog classes */
+.mobile-safe-dialog {
+  max-width: 95vw !important;
+  overflow-x: hidden !important;
+  margin: 0 8px !important;
+}
+
+.mobile-safe-card {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.mobile-safe-card .v-card-text {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  padding: 8px 16px !important;
+}
+
+.mobile-safe-card .v-container {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+}
+
+.mobile-safe-card .v-row {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+}
+
+.mobile-safe-card .v-col {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 599px) {
+  .mobile-safe-dialog {
+    max-width: 100vw !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-safe-card {
+    border-radius: 0 !important;
+  }
+}
+
+/* Ensure all child elements stay within bounds */
+.case-images-card * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.image-upload-row * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Override styles for desktop layout within billing section */
