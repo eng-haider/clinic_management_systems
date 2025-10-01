@@ -452,16 +452,8 @@
             <!-- Bills History Card (Always shown) -->
        
           </v-col>
-        </v-row>
 
-
-
-
-
-        
-        <!-- Image Upload Section (Hidden for secretaries) -->
-        <v-row class="image-upload-row" style="height: auto;" v-if="!secretaryBillsOnlyMode">
-          <v-col cols="12" md="12" class="image-upload-col">
+          <!-- <v-col cols="12" md="12"  v-if="!secretaryBillsOnlyMode">
             <vue2-dropzone 
               ref="patientDropzone" 
               id="dropzone" 
@@ -469,10 +461,17 @@
               @vdropzone-success="handleImageSuccess"
               @vdropzone-error="handleImageError"
               @vdropzone-removed-file="handleImageRemoved"
-              class="dropzone-container mobile-safe-dropzone"
+              class="dropzone-container"
             />
-          </v-col>
+          </v-col> -->
         </v-row>
+
+
+
+
+
+        
+    
 
         <!-- Billing Section - Visible to all but only accountants can add bills -->
         <v-card class="cre_bill mt-4">
@@ -2322,20 +2321,18 @@ export default {
         cancelButtonText: "لا، تراجع"
       }).then((result) => {
         if (result.isConfirmed) {
-          // Make API call to delete case from server
-          this.$http.delete(`cases/${caseItem.id}`, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(() => {
-            // Find the case in the array and remove it after successful API call
-            const index = this.patientCases.findIndex(c => c.id === caseItem.id);
-            if (index !== -1) {
-              this.patientCases.splice(index, 1);
-            }
+          // Find the case in the array first
+          const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+          if (index === -1) {
+            console.error('Case not found in array');
+            return;
+          }
+
+          // Check if this is a new case (not saved to server yet) or existing case
+          if (!caseItem.server_id) {
+            // This is a newly created case that hasn't been saved to server yet
+            // Just remove it from the local array
+            this.patientCases.splice(index, 1);
             
             // Show success message
             this.$swal.fire({
@@ -2344,17 +2341,38 @@ export default {
               icon: "success",
               confirmButtonText: "موافق"
             });
-          })
-          .catch((error) => {
-            console.error('Delete case error:', error);
-            // Show error message
-            this.$swal.fire({
-              title: "خطأ",
-              text: "حدث خطأ أثناء حذف الحالة",
-              icon: "error",
-              confirmButtonText: "موافق"
+          } else {
+            // This is an existing case saved on server, make API call to delete it
+            this.$http.delete(`cases/${caseItem.server_id}`, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(() => {
+              // Remove from local array after successful API call
+              this.patientCases.splice(index, 1);
+              
+              // Show success message
+              this.$swal.fire({
+                title: "تم الحذف",
+                text: "تم حذف الحالة بنجاح",
+                icon: "success",
+                confirmButtonText: "موافق"
+              });
+            })
+            .catch((error) => {
+              console.error('Delete case error:', error);
+              // Show error message
+              this.$swal.fire({
+                title: "خطأ",
+                text: "حدث خطأ أثناء حذف الحالة",
+                icon: "error",
+                confirmButtonText: "موافق"
+              });
             });
-          });
+          }
         }
       });
     },
@@ -3685,11 +3703,7 @@ async mounted() {
   padding: 8px !important;
 }
 
-.mobile-safe-dropzone {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-}
+
 
 /* Mobile-safe styles for case images */
 .case-images-card {
@@ -3759,24 +3773,8 @@ async mounted() {
   background: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Global dropzone overrides for mobile safety */
-.vue-dropzone {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-}
 
-.vue-dropzone .dz-preview {
-  max-width: calc(50% - 10px) !important;
-  margin: 5px !important;
-  box-sizing: border-box !important;
-}
 
-@media (max-width: 599px) {
-  .vue-dropzone .dz-preview {
-    max-width: calc(100% - 10px) !important;
-  }
-}
 
 /* Dialog/Modal overflow prevention */
 .v-dialog {
