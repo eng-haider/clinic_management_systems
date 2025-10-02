@@ -208,6 +208,7 @@
 "select_case":"Select case",
 "payment_amount":"Payment amount",
 "tooth":"Tooth",
+"general_treatment":"General Treatment",
 "awaiting_payment":"Awaiting payment",
 "add_new_payment":"Add new payment",
 "amount_paid":"Amount paid",

@@ -216,6 +216,7 @@
 "select_case":"اختر الحالة",
 "payment_amount":"مبلغ الدفعة",
 "tooth":"السن",
+"general_treatment":"علاج عام",
 "awaiting_payment":"بانتظار التسديد",
 "add_new_payment":"إضافة دفعة جديدة",
 "amount_paid":"المبلغ المدفوع",

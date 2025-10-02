@@ -227,8 +227,12 @@
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip small color="primary" text-color="white">
-                              {{ item.tooth_number }}
+                            <v-chip 
+                              small 
+                              :color="item.isGeneralTreatment || !item.tooth_number ? 'success' : 'primary'" 
+                              text-color="white"
+                            >
+                              {{ item.isGeneralTreatment || !item.tooth_number ? $t('patients.general_treatment') : item.tooth_number }}
                             </v-chip>
                           </div>
                         </template>
@@ -1053,7 +1057,9 @@ export default {
   computed: {
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      return this.patientCases.map(case_item => case_item.tooth_number);
+      return this.patientCases
+        .filter(case_item => !case_item.isGeneralTreatment && case_item.tooth_number) // Exclude general treatments
+        .map(case_item => case_item.tooth_number);
     },
     
     totalAmount() {
@@ -1494,7 +1500,7 @@ export default {
     handleCaseAdded(caseData) {
       console.log('Case added from teeth component:', caseData);
       
-      if (!caseData || !caseData.toothNumber || !caseData.operation) {
+      if (!caseData || !caseData.operation) {
         console.error('Invalid case data received:', caseData);
         return;
       }
@@ -1502,11 +1508,23 @@ export default {
       // Get operation name
       const operationName = caseData.operation.name || caseData.operation.name_ar;
       
-      // Create new case object (allowing multiple categories for same tooth)
+      // Check if this is a general treatment (like teeth cleaning) that doesn't require a specific tooth
+      const isGeneralTreatment = caseData.operation.id === 7 || 
+                                operationName === 'تنضيف الاسنان' ||
+                                operationName.toLowerCase().includes('cleaning') ||
+                                operationName.toLowerCase().includes('تنضيف');
+      
+      // For general treatments, don't require tooth number
+      if (!isGeneralTreatment && (!caseData.toothNumber)) {
+        console.error('Tooth number required for specific treatments:', caseData);
+        return;
+      }
+      
+      // Create new case object
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
         server_id: null, // Will be set after saving to server
-        tooth_number: caseData.toothNumber,
+        tooth_number: isGeneralTreatment ? null : caseData.toothNumber, // No tooth number for general treatments
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
@@ -1517,7 +1535,8 @@ export default {
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
+        isGeneralTreatment: isGeneralTreatment // Mark as general treatment
       };
       
       // Add to the beginning of the cases array
@@ -1529,8 +1548,7 @@ export default {
       });
       
       console.log('New case added:', newCase);
-      
-     
+      console.log('Is general treatment:', isGeneralTreatment);
     },
 
     // Fetch dental operations from API
@@ -2658,7 +2676,7 @@ export default {
       try {
         const requestBody = {
           case_categores_id: caseItem.operation_id,
-          tooth_num: [parseInt(caseItem.tooth_number)],
+          tooth_num: caseItem.isGeneralTreatment || !caseItem.tooth_number ? [] : [parseInt(caseItem.tooth_number)],
           status_id: caseItem.completed ? 43 : 42,
           sessions: [{
             note: caseItem.notes || "",
@@ -2674,6 +2692,12 @@ export default {
           price: caseItem.price ? caseItem.price.toString() : "0",
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
+        
+        console.log('💾 Saving case:', {
+          isGeneralTreatment: caseItem.isGeneralTreatment,
+          toothNumber: caseItem.tooth_number,
+          requestBody: requestBody
+        });
         
         const response = await this.$http.post('https://titaniumapi.tctate.com/api/cases', requestBody, {
           headers: {
@@ -2700,11 +2724,17 @@ export default {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
           images: [],
-          tooth_num: `[${caseItem.tooth_number}]`,
+          tooth_num: caseItem.isGeneralTreatment || !caseItem.tooth_number ? "[]" : `[${caseItem.tooth_number}]`,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
           sessions: caseItem.sessions || []
         };
+        
+        console.log('💾 Updating case:', {
+          isGeneralTreatment: caseItem.isGeneralTreatment,
+          toothNumber: caseItem.tooth_number,
+          requestBody: requestBody
+        });
         
         const response = await this.$http.patch(`https://titaniumapi.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
