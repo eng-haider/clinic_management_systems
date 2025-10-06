@@ -249,6 +249,32 @@
                           <span>{{ item.date }}</span>
                         </template>
 
+                        <!-- Doctor Column -->
+                        <template v-slot:item.doctor_name="{ item }">
+                          <v-chip 
+                            v-if="item.doctor_name" 
+                            small 
+                            color="teal" 
+                            text-color="white"
+                            class="font-weight-medium"
+                            style="font-size: 12px;"
+                          >
+                            <v-icon left size="12">mdi-doctor</v-icon>
+                            {{ item.doctor_name }}
+                          </v-chip>
+                          <v-chip 
+                            v-else 
+                            small 
+                            color="grey" 
+                            text-color="white"
+                            class="font-weight-medium"
+                            style="font-size: 12px;"
+                          >
+                            <v-icon left size="12">mdi-help-circle</v-icon>
+                            غير محدد
+                          </v-chip>
+                        </template>
+
                         <!-- Price Column -->
                         <template v-slot:item.price="{ item }">
                           <v-text-field
@@ -300,7 +326,7 @@
 
                         <!-- Notes Column -->
                         <template v-slot:item.notes="{ item }">
-                          <div class="notes-container">
+                          <div class="notes-container case-notes-mobile-full">
                             <!-- Main case notes field -->
                             <div class="mb-2">
                               <v-textarea
@@ -1272,11 +1298,12 @@ export default {
       return [
         { text: this.$t('patients.tooth'), value: 'tooth_number', align: 'center', width: '2%' },
         { text: this.$t('datatable.type'), value: 'case_type', align: 'start', width: '5%' },
-        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
-        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
-        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
-        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
-        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '36%' },
+        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '8%' },
+        { text: this.$t('datatable.doctor'), value: 'doctor_name', align: 'center', width: '10%' },
+        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '10%' },
+        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '10%' },
+        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '12%' },
+        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '35%', class: 'notes-column-header' },
         { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '8%' }
       ];
     },
@@ -1527,7 +1554,7 @@ export default {
         tooth_number: isGeneralTreatment ? null : caseData.toothNumber, // No tooth number for general treatments
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: null,
+        price: 0,
         displayPrice: '',
         completed: false,
         notes: '',
@@ -1535,6 +1562,7 @@ export default {
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
+        doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
         modified: true, // Mark as new/modified for save
         isGeneralTreatment: isGeneralTreatment // Mark as general treatment
       };
@@ -1727,6 +1755,7 @@ export default {
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,
+            doctor_name: caseItem.user ? caseItem.user.name : (this.$store.state.AdminInfo?.name || 'غير محدد'),
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -2171,13 +2200,14 @@ export default {
           tooth_number: this.selectedTooth,
           case_type: operationName,
           date: new Date().toISOString().substr(0, 10),
-          price: null,
+          price: 0,
           completed: false,
           notes: '',
           operation_id: operation.id,
           status_id: 42,
           sessions: [],
           additionalSessions: [],
+          doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
           modified: true
         };
         this.patientCases.unshift(newCase);
@@ -2206,7 +2236,7 @@ export default {
         tooth_number: toothNumber,
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: null,
+        price: 0,
         displayPrice: '',
         completed: false,
         notes: '',
@@ -2214,6 +2244,7 @@ export default {
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
+        doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
         modified: true // Mark as new/modified for save
       };
       
@@ -3488,6 +3519,91 @@ async mounted() {
   
   .mobile-responsive-table .v-textarea {
     font-size: 0.8rem;
+  }
+
+  /* Hide mobile header for notes column and make notes take full width */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell:nth-last-child(2) .v-data-table__mobile-row__header {
+    display: none !important;
+  }
+  
+  /* Make notes column take full width on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell:nth-last-child(2) {
+    display: block !important;
+    width: 100% !important;
+    padding: 8px 16px !important;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f5f5f5;
+  }
+  
+  /* Target notes column specifically on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="notes"] .v-data-table__mobile-row__header {
+    display: none !important;
+  }
+  
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="notes"] {
+    width: 100% !important;
+    display: block !important;
+    padding: 12px 16px !important;
+    background-color: #f8f9fa;
+    border-left: 3px solid #2196f3;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  
+  /* Ensure notes container takes full width on mobile */
+  .mobile-responsive-table .notes-container,
+  .mobile-responsive-table .case-notes-mobile-full {
+    width: 100% !important;
+    display: block !important;
+  }
+  
+  /* Style all textareas in notes column on mobile */
+  .mobile-responsive-table .case-notes-mobile-full .notes-textarea {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Ensure notes inputs have proper spacing on mobile */
+  .mobile-responsive-table .case-notes-mobile-full .notes-textarea .v-input__control {
+    min-height: 60px !important;
+  }
+
+  /* Add a visual separator between main note and session notes on mobile */
+  .mobile-responsive-table .case-notes-mobile-full .main-note {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Style session notes on mobile */
+  .mobile-responsive-table .case-notes-mobile-full .session-note {
+    background-color: #fafafa;
+  }
+
+  /* Style the add session button on mobile */
+  .mobile-responsive-table .case-notes-mobile-full + .v-btn {
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  /* Ensure chips in case type column float left on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="case_type"] {
+    text-align: left !important;
+  }
+
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="case_type"] .v-chip {
+    float: left !important;
+    margin-right: 8px !important;
+  }
+
+  /* Ensure doctor chips float left on mobile as well */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="doctor_name"] {
+    text-align: left !important;
+  }
+
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="doctor_name"] .v-chip {
+    float: left !important;
+    margin-right: 8px !important;
   }
 }
 
