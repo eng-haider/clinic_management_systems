@@ -232,7 +232,7 @@
                               :color="item.isGeneralTreatment || !item.tooth_number ? 'success' : 'primary'" 
                               text-color="white"
                             >
-                              {{ item.isGeneralTreatment || !item.tooth_number ? $t('patients.general_treatment') : item.tooth_number }}
+                              {{ item.isGeneralTreatment || !item.tooth_number ? 'علاج عام' : item.tooth_number }}
                             </v-chip>
                           </div>
                         </template>
@@ -280,7 +280,7 @@
                           <v-text-field
                             v-model="item.displayPrice"
                             type="text"
-                            :placeholder="$t('patients.case_amount')"
+                            placeholder="مبلغ الحالة"
                             suffix="IQ"
                             dense
                             hide-details
@@ -295,7 +295,7 @@
                         <template v-slot:item.status="{ item }">
                           <v-switch
                             v-model="item.completed"
-                            :label="item.completed ? $t('completed') : $t('not_completed')"
+                            :label="item.completed ? 'مكتمل' : 'غير مكتمل'"
                             color="green"
                             inset
                             @change="updateCaseStatus(item)"
@@ -313,13 +313,13 @@
                                 :color="bill.is_paid == 1 ? 'success' : 'warning'"
                                 text-color="white"
                                 class="ma-1"
-                                :title="`${$t('patients.bill_number')} ${bill.id} - ${bill.is_paid == 1 ? $t('paid') : $t('not_paid')}`"
+                                :title="`فاتورة رقم ${bill.id} - ${bill.is_paid == 1 ? 'مدفوع' : 'غير مدفوع'}`"
                               >
                                 {{ bill.price }} IQ
                               </v-chip>
                             </div>
                             <span v-else class="grey--text text--darken-1 caption">
-                              {{ $t('patients.no_bills') }}
+                              لا توجد فواتير
                             </span>
                           </div>
                         </template>
@@ -331,7 +331,7 @@
                             <div class="mb-2">
                               <v-textarea
                                 v-model="item.notes"
-                                :placeholder="$t('patients.main_case_notes')"
+                                placeholder="ملاحظات الحالة الرئيسية..."
                                 rows="1"
                                 auto-grow
                                 no-resize
@@ -343,16 +343,17 @@
                               />
                             </div>
                             
-                            <!-- Existing sessions from server -->
-                            <div 
-                              v-for="(session, index) in item.sessions" 
-                              :key="`server-session-${session.id || index}`"
-                              class="mb-2"
-                            >
+                            <!-- Existing sessions from server (only show if sessions exist and have actual content) -->
+                            <template v-if="item.sessions && item.sessions.length > 0 && item.sessions.some(session => session.note && session.note.trim())">
+                              <div 
+                                v-for="(session, index) in item.sessions.filter(session => session.note && session.note.trim())" 
+                                :key="`server-session-${session.id || index}`"
+                                class="mb-2"
+                              >
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`${$t('patients.session_notes')} ${index + 1}...`"
+                                  :placeholder="`ملاحظات الجلسة ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -371,17 +372,19 @@
                                 </v-chip>
                               </div>
                             </div>
+                            </template>
                             
-                            <!-- New additional session notes -->
-                            <div 
-                              v-for="(session, index) in item.additionalSessions" 
-                              :key="`new-session-${index}`"
-                              class="mb-2"
-                            >
+                            <!-- New additional session notes (only show if they exist and have been added) -->
+                            <template v-if="item.additionalSessions && item.additionalSessions.length > 0">
+                              <div 
+                                v-for="(session, index) in item.additionalSessions" 
+                                :key="`new-session-${index}`"
+                                class="mb-2"
+                              >
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`${$t('patients.new_session_notes')} ${index + 1}...`"
+                                  :placeholder="`ملاحظات جلسة جديدة ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -396,10 +399,11 @@
                                   class="ml-2 session-date-chip"
                                   color="green lighten-3"
                                 >
-                                  {{ $t('patients.new') }}
+                                  جديد
                                 </v-chip>
                               </div>
                             </div>
+                            </template>
                           </div>
                           
                           <v-btn
@@ -410,7 +414,7 @@
                             @click="addNote(item)"
                           >
                             <v-icon left size="16">mdi-plus</v-icon>
-                            {{ $t('patients.add_session') }}
+                            إضافة جلسة
                           </v-btn>
                         </template>
 
@@ -1583,6 +1587,7 @@ export default {
   async fetchDentalOperations() {
     try {
       console.log('🦷 Fetching dental operations...');
+      console.log('🔑 Token available:', !!this.$store.state.AdminInfo?.token);
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
@@ -1605,25 +1610,49 @@ export default {
         timeoutPromise
       ]);
       
+      console.log('🦷 API Response status:', response.status);
       console.log('🦷 Raw API response:', response.data);
       
-      this.dentalOperations = response.data.map(category => ({
-        id: category.id,
-        name: category.name_ar,
-        name_en: category.name_en,
-        order: category.order
-      }));
-      
-      console.log('🦷 Dental operations loaded:', this.dentalOperations.length, this.dentalOperations);
+      if (response.data && Array.isArray(response.data)) {
+        this.dentalOperations = response.data.map(category => ({
+          id: category.id,
+          name: category.name_ar || category.name || 'Unknown',
+          name_en: category.name_en || category.name || 'Unknown',
+          order: category.order || 0
+        }));
+        
+        console.log('🦷 Dental operations loaded:', this.dentalOperations.length, this.dentalOperations);
+      } else {
+        throw new Error('Invalid API response format');
+      }
       
       // Force reactivity update
       this.$forceUpdate();
       
     } catch (error) {
-      console.error('❌ Error fetching dental operations, using fallback:', error);
+      console.error('❌ Error fetching dental operations:', error);
+      console.error('❌ Response data:', error.response?.data);
+      console.error('❌ Response status:', error.response?.status);
+      
+      // Show a warning to user but don't block the UI
+      this.$swal.fire({
+        title: "تحذير",
+        text: "لم يتم تحميل قائمة العمليات من الخادم. سيتم استخدام القائمة الافتراضية.",
+        icon: "warning",
+        confirmButtonText: "موافق",
+        timer: 4000,
+        timerProgressBar: true
+      });
+      
       // Fallback to default operations if API fails
       this.dentalOperations = [
-       
+        { id: 1, name: 'حشوة عادية', name_en: 'Regular Filling', order: 1 },
+        { id: 2, name: 'حشوة تجميلية', name_en: 'Cosmetic Filling', order: 2 },
+        { id: 3, name: 'علاج عصب', name_en: 'Root Canal', order: 3 },
+        { id: 4, name: 'تلبيسة', name_en: 'Crown', order: 4 },
+        { id: 5, name: 'خلع سن', name_en: 'Tooth Extraction', order: 5 },
+        { id: 6, name: 'تنظيف أسنان', name_en: 'Teeth Cleaning', order: 6 },
+        { id: 7, name: 'علاج عام', name_en: 'General Treatment', order: 7 }
       ];
       console.log('🦷 Using fallback dental operations:', this.dentalOperations);
       
@@ -3123,6 +3152,72 @@ export default {
       }
     },
 
+    // Handle mobile notes headers to prevent duplication
+    handleMobileNotesHeaders() {
+      // Only apply on mobile screens
+      if (window.innerWidth > 600) return;
+      
+      // Wait for DOM to be fully rendered
+      this.$nextTick(() => {
+        // Find all mobile table rows in the mobile-responsive-table
+        const mobileTable = document.querySelector('.mobile-responsive-table');
+        if (!mobileTable) return;
+        
+        const mobileRows = mobileTable.querySelectorAll('.v-data-table__mobile-row');
+        
+        mobileRows.forEach(row => {
+          // Look for notes content
+          const notesContainer = row.querySelector('.case-notes-mobile-full');
+          if (notesContainer) {
+            // Find all headers in this row
+            const headers = row.querySelectorAll('.v-data-table__mobile-row__header');
+            
+            // Hide headers that contain "ملاحظات" or "Notes"
+            headers.forEach(header => {
+              const headerText = header.textContent.trim();
+              if (headerText.includes('ملاحظات') || headerText.includes('Notes') || headerText.includes('notes')) {
+                header.style.display = 'none';
+                console.log('Hidden notes header:', headerText);
+              }
+            });
+            
+            // Find the cell containing notes and remove any header that appears right before it
+            const notesCell = row.querySelector('.v-data-table__mobile-row__cell:has(.case-notes-mobile-full)');
+            if (notesCell) {
+              // Get the previous sibling (which is likely the header)
+              const previousElement = notesCell.previousElementSibling;
+              if (previousElement && previousElement.classList.contains('v-data-table__mobile-row__header')) {
+                previousElement.style.display = 'none';
+                console.log('Hidden notes header by position');
+              }
+            }
+            
+            // Alternative approach: Find headers by position
+            // Usually the notes column is the last or second-to-last column
+            const allCells = Array.from(row.querySelectorAll('.v-data-table__mobile-row__cell'));
+            const notesCellIndex = allCells.findIndex(cell => cell.querySelector('.case-notes-mobile-full'));
+            
+            if (notesCellIndex !== -1 && headers[notesCellIndex]) {
+              headers[notesCellIndex].style.display = 'none';
+              console.log('Hidden notes header by index:', notesCellIndex);
+            }
+          }
+        });
+        
+        // Also handle chips alignment for case type and doctor columns
+        const chipContainers = mobileTable.querySelectorAll('.v-data-table__mobile-row__cell .v-chip');
+        chipContainers.forEach(chip => {
+          const cell = chip.closest('.v-data-table__mobile-row__cell');
+          if (cell) {
+            cell.style.textAlign = 'left';
+            chip.style.float = 'left';
+            chip.style.marginRight = '8px';
+            chip.style.marginBottom = '4px';
+          }
+        });
+      });
+    },
+
   },
 
 async mounted() {
@@ -3192,6 +3287,18 @@ async mounted() {
     
     // Load patient data and dental operations
     await this.loadPatientData();
+    
+    // Handle mobile table headers after data is loaded
+    this.$nextTick(() => {
+      this.handleMobileNotesHeaders();
+    });
+    
+    // Watch for window resize to handle mobile layout changes
+    window.addEventListener('resize', () => {
+      this.$nextTick(() => {
+        this.handleMobileNotesHeaders();
+      });
+    });
     
     // Add global handler for input fields to ensure context menu is hidden
     document.addEventListener('click', (e) => {
@@ -4018,6 +4125,127 @@ async mounted() {
   
   .bill-payment-item .v-flex {
     padding: 0 12px;
+  }
+}
+
+/* Enhanced Mobile Table Styles for Notes and Case Type */
+@media (max-width: 600px) {
+  /* Target the mobile-responsive-table specifically */
+  .mobile-responsive-table .v-data-table__mobile-table {
+    overflow-x: hidden !important;
+  }
+  
+  /* Hide the mobile header for notes column */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__header:nth-last-child(2) {
+    display: none !important;
+  }
+  
+  /* Alternative approach - hide headers containing notes-related text */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__header {
+    font-size: 14px !important;
+  }
+  
+  /* Hide any header that precedes a notes container */
+  .mobile-responsive-table .v-data-table__mobile-row:has(.case-notes-mobile-full) .v-data-table__mobile-row__header {
+    display: none !important;
+  }
+  
+  /* Make notes container take full width on mobile */
+  .case-notes-mobile-full {
+    width: 100% !important;
+    min-width: 100% !important;
+    padding: 12px 0 !important;
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+    margin: 8px 0 !important;
+  }
+  
+  /* Ensure notes content spans full width */
+  .case-notes-mobile-full .notes-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Style the notes input fields on mobile */
+  .case-notes-mobile-full .notes-textarea {
+    width: 100% !important;
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Main note styling on mobile */
+  .case-notes-mobile-full .main-note {
+    border: 2px solid #2196f3 !important;
+    border-radius: 8px !important;
+    background-color: white !important;
+  }
+  
+  /* Session notes styling on mobile */
+  .case-notes-mobile-full .session-note {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 6px !important;
+    background-color: #fafafa !important;
+  }
+  
+  /* New session notes styling */
+  .case-notes-mobile-full .new-session {
+    border: 1px solid #4caf50 !important;
+    background-color: #f1f8e9 !important;
+  }
+  
+  /* Session date chips on mobile */
+  .case-notes-mobile-full .session-date-chip {
+    font-size: 10px !important;
+    height: 20px !important;
+    min-width: 60px !important;
+  }
+  
+  /* Add session button on mobile */
+  .case-notes-mobile-full + .v-btn {
+    width: 100% !important;
+    margin-top: 12px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Float case type chips to the left on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row .v-chip {
+    float: none !important;
+    display: inline-block !important;
+    margin: 2px 4px 2px 0 !important;
+  }
+  
+  /* Ensure case type column content is left-aligned on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row__cell:has(.v-chip) {
+    text-align: left !important;
+  }
+  
+  /* Specific targeting for case type and doctor chips */
+  .mobile-responsive-table .v-data-table__mobile-row__cell .v-chip {
+    margin-bottom: 4px !important;
+    margin-right: 8px !important;
+    float: left !important;
+    clear: both !important;
+  }
+  
+  /* Override center alignment for chips on mobile */
+  .mobile-responsive-table .v-data-table__mobile-row__cell[style*="text-align: center"] {
+    text-align: left !important;
+  }
+  
+  /* Hide specific headers by position for notes */
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__header:contains("ملاحظات"),
+  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__header:contains("Notes") {
+    display: none !important;
+  }
+  
+  /* Additional safety - hide any header immediately before notes cell */
+  .mobile-responsive-table .v-data-table__mobile-row__cell:has(.case-notes-mobile-full) {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  .mobile-responsive-table .v-data-table__mobile-row__cell:has(.case-notes-mobile-full):before {
+    content: none !important;
   }
 }
 </style>
