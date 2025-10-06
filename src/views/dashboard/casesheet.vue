@@ -244,11 +244,11 @@
 
 
                 <template v-slot:[`item.phone`]="{ item }">
-                    <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone}}</p>
+                    <p @click="editItem(item)" >{{item.phone}}</p>
                 </template>
 
                 <template v-slot:[`item.age`]="{ item }">
-                    <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.age}}</p>
+                    <p @click="editItem(item)" >{{item.age}}</p>
                       
                 </template>
 

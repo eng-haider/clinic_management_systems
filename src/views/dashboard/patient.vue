@@ -114,7 +114,7 @@
 
                     <v-card-text style="padding-top: 20px;">
                       <v-data-table
-                        :headers="caseHeaders"
+                        :headers="dynamicCaseHeaders"
                         :items="patientCases"
                         class="elevation-1"
                         dense
@@ -164,7 +164,31 @@
                           </div>
                         </template>
 
-                        
+                        <!-- Doctor Column -->
+                        <template v-slot:item.doctor_name="{ item }">
+                          <v-chip 
+                            v-if="item.doctor_name" 
+                            small 
+                            color="teal" 
+                            text-color="white"
+                            class="font-weight-medium"
+                            style="font-size: 14px;"
+                          >
+                            <v-icon left size="14">mdi-doctor</v-icon>
+                            {{ item.doctor_name }}
+                          </v-chip>
+                          <v-chip 
+                            v-else 
+                            small 
+                            color="grey" 
+                            text-color="white"
+                            class="font-weight-medium"
+                            style="font-size: 14px;"
+                          >
+                            <v-icon left size="14">mdi-help-circle</v-icon>
+                            غير محدد
+                          </v-chip>
+                        </template>
 
                         <!-- Price Column -->
                         <template v-slot:item.price="{ item }">
@@ -175,11 +199,13 @@
                             suffix="IQ"
                             dense
                             hide-details
+                            outlined
                             class="price-input"
+                            min="0"
+                            step="1"
                             @input="updateCasePrice(item)"
                             @click.stop="hideContextMenu()"
                             @focus.stop="hideContextMenu()"
-                            :value="item.price || ''"
                           />
                         </template>
 
@@ -197,91 +223,65 @@
                         <!-- Notes Column -->
                         <template v-slot:item.notes="{ item }">
                           <div class="notes-container">
-                            <!-- Main case notes field -->
-                            <div class="mb-2">
+                            <!-- Main Notes Textarea -->
+                            <div class="d-flex align-center mb-1">
                               <v-textarea
                                 v-model="item.notes"
-                                placeholder="ملاحضات الحالة الرئيسية ..."
-                                rows="1"
+                                placeholder="ملاحظات الحالة..."
                                 auto-grow
+                                rows="1"
                                 no-resize
                                 dense
                                 outlined
                                 hide-details
-                                class="notes-textarea main-note"
+                                class="notes-textarea flex-grow-1"
                                 @input="updateCaseNotes(item)"
+                                @click.stop="hideContextMenu()"
+                                @focus.stop="hideContextMenu()"
                               />
+                              <v-btn
+                                icon
+                                x-small
+                                color="primary"
+                                class="ml-1"
+                                @click="addAdditionalNote(item)"
+                                style="margin-top: -8px;"
+                              >
+                                <v-icon size="16">mdi-note-plus</v-icon>
+                              </v-btn>
                             </div>
                             
-                            <!-- Existing sessions from server -->
-                            <div 
-                              v-for="(session, index) in item.sessions" 
-                              :key="`server-session-${session.id || index}`"
-                              class="mb-2"
-                            >
-                              <div class="d-flex align-center">
-                                <v-textarea
-                                  v-model="session.note"
-                                  :placeholder="`ملاحظات الجلسة ${index + 1}...`"
-                                  rows="1"
-                                  auto-grow
-                                  no-resize
-                                  dense
-                                  outlined
-                                  hide-details
-                                  class="notes-textarea session-note flex-grow-1"
-                                  @input="updateExistingSessionNote(item)"
-                                />
-                                <v-chip
-                                  small
-                                  class="ml-2 session-date-chip"
-                                  color="blue-grey lighten-3"
-                                >
-                                  {{ formatSessionDate(session.date) }}
-                                </v-chip>
-                              </div>
-                            </div>
-                            
-                            <!-- New additional session notes -->
-                            <div 
-                              v-for="(session, index) in item.additionalSessions" 
-                              :key="`new-session-${index}`"
-                              class="mb-2"
-                            >
-                              <div class="d-flex align-center">
-                                <v-textarea
-                                  v-model="session.note"
-                                  :placeholder="`ملاحظات الجلسة الجديدة ${index + 1}...`"
-                                  rows="1"
-                                  auto-grow
-                                  no-resize
-                                  dense
-                                  outlined
-                                  hide-details
-                                  class="notes-textarea session-note new-session flex-grow-1"
-                                  @input="updateSessionNote(item)"
-                                />
-                                <v-chip
-                                  small
-                                  class="ml-2 session-date-chip"
-                                  color="green lighten-3"
-                                >
-                                  جديد
-                                </v-chip>
-                              </div>
+                            <!-- Additional Notes -->
+                            <div v-if="item.additionalNotes && item.additionalNotes.length > 0">
+                              <v-textarea
+                                v-for="(note, index) in item.additionalNotes"
+                                :key="index"
+                                v-model="item.additionalNotes[index]"
+                                :placeholder="`ملاحظة إضافية ${index + 1}...`"
+                                auto-grow
+                                rows="1"
+                                no-resize
+                                dense
+                                outlined
+                                hide-details
+                                class="notes-textarea mt-1"
+                                @input="updateCaseNotes(item)"
+                                @click.stop="hideContextMenu()"
+                                @focus.stop="hideContextMenu()"
+                              >
+                                <template v-slot:append>
+                                  <v-btn
+                                    icon
+                                    x-small
+                                    color="error"
+                                    @click="removeAdditionalNote(item, index)"
+                                  >
+                                    <v-icon size="14">mdi-close</v-icon>
+                                  </v-btn>
+                                </template>
+                              </v-textarea>
                             </div>
                           </div>
-                          
-                          <v-btn
-                            text
-                            small
-                            color="primary"
-                            class="mt-1"
-                            @click="addNote(item)"
-                          >
-                            <v-icon left size="16">mdi-plus</v-icon>
-                            إضافة جلسة
-                          </v-btn>
                         </template>
 
                         <!-- Actions Column -->
@@ -721,9 +721,10 @@ birth_date: ''
         { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
         { text: 'النوع', value: 'case_type', align: 'start', width: '5%' },
         { text: 'التاريخ', value: 'date', align: 'center', width: '10%' },
+        { text: 'الطبيب', value: 'doctor_name', align: 'center', width: '10%' },
         { text: 'السعر', value: 'price', align: 'center', width: '15%' },
         { text: 'الحالة', value: 'status', align: 'center', width: '15%' },
-        { text: 'ملاحظات', value: 'notes', align: 'start', width: '45%' },
+        { text: 'ملاحظات', value: 'notes', align: 'start', width: '35%' },
         { text: 'الإجراءات', value: 'actions', align: 'center', width: '8%' }
       ],
       
@@ -814,6 +815,26 @@ birth_date: ''
   },
   
   computed: {
+    // Dynamic case headers - hide notes text on mobile
+    dynamicCaseHeaders() {
+      return [
+        { text: 'السن', value: 'tooth_number', align: 'center', width: '2%' },
+        { text: 'النوع', value: 'case_type', align: 'start', width: '5%' },
+        { text: 'التاريخ', value: 'date', align: 'center', width: '10%' },
+        { text: 'الطبيب', value: 'doctor_name', align: 'center', width: '10%' },
+        { text: 'السعر', value: 'price', align: 'center', width: '15%' },
+        { text: 'الحالة', value: 'status', align: 'center', width: '15%' },
+        { 
+          text: this.$vuetify.breakpoint.mobile ? '' : 'ملاحظات', 
+          value: 'notes', 
+          align: 'start', 
+          width: '35%',
+          class: this.$vuetify.breakpoint.mobile ? 'mobile-notes-header' : ''
+        },
+        { text: 'الإجراءات', value: 'actions', align: 'center', width: '8%' }
+      ];
+    },
+
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
       const allTeeth = [];
@@ -989,11 +1010,39 @@ birth_date: ''
       this.billDialog = true;
     },
 
+    // Add additional note textarea to a case
+    addAdditionalNote(item) {
+      // Initialize additionalNotes array if it doesn't exist
+      if (!item.additionalNotes) {
+        this.$set(item, 'additionalNotes', []);
+      }
+      
+      // Add a new empty note
+      item.additionalNotes.push('');
+      
+      // Mark the item as modified
+      this.$set(item, 'modified', true);
+      
+      console.log('Added additional note to case:', item.id);
+    },
+
+    // Remove additional note textarea from a case
+    removeAdditionalNote(item, index) {
+      if (item.additionalNotes && index >= 0 && index < item.additionalNotes.length) {
+        item.additionalNotes.splice(index, 1);
+        
+        // Mark the item as modified
+        this.$set(item, 'modified', true);
+        
+        console.log('Removed additional note from case:', item.id, 'at index:', index);
+      }
+    },
+
     // Handle case added from teeth component
     handleCaseAdded(caseData) {
       console.log('Case added from teeth component:', caseData);
       
-      if (!caseData || !caseData.toothNumber || !caseData.operation) {
+      if (!caseData || !caseData.operation) {
         console.error('Invalid case data received:', caseData);
         return;
       }
@@ -1002,9 +1051,23 @@ birth_date: ''
       const operationName = caseData.operation.name || caseData.operation.name_ar;
       const operationId = caseData.operation.id;
       
-      // Check for special case categories that require multiple teeth
-      let teethToSelect = [caseData.toothNumber]; // Default: single tooth
-      let toothNumbers = [caseData.toothNumber];
+      // Check for special case categories that require multiple teeth or no specific tooth
+      let teethToSelect = []; // Default: no teeth (for special cases)
+      let toothNumbers = []; // Array for API
+      
+      // For cosmetic cases and some special cases, we don't need a tooth number initially
+      const specialCaseIds = [56, 57, 58, 59, 103, 104, 105, 106];
+      
+      if (!specialCaseIds.includes(operationId) && !caseData.toothNumber) {
+        console.error('Tooth number required for this operation:', caseData);
+        return;
+      }
+      
+      // Set default teeth for regular operations
+      if (!specialCaseIds.includes(operationId) && caseData.toothNumber) {
+        teethToSelect = [caseData.toothNumber];
+        toothNumbers = [caseData.toothNumber];
+      }
       
       if (operationId === 56) {
         // Check if this case category already exists
@@ -1118,24 +1181,139 @@ birth_date: ''
           toast: true,
           position: 'top-end'
         });
+      } else if (operationId === 103) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 103);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Cosmetic case: "تجميل 8 upper" - select teeth 14,13,12,11,21,22,23,24,25
+        teethToSelect = [14, 13, 12, 11, 21, 22, 23, 24, 25];
+        toothNumbers = [14, 13, 12, 11, 21, 22, 23, 24, 25];
+        console.log('🦷 Cosmetic case category 103 detected - selecting upper 8 teeth:', teethToSelect);
+        
+        // Show notification for cosmetic upper case
+        this.$swal.fire({
+          title: "حالة تجميل الأسنان",
+          text: `تم إضافة حالة "${operationName}" للأسنان العلوية: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (operationId === 104) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 104);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Cosmetic case: "تجميل 8 lower" - select teeth 44 to 34
+        teethToSelect = [44, 43, 42, 41, 31, 32, 33, 34];
+        toothNumbers = [44, 43, 42, 41, 31, 32, 33, 34];
+        console.log('🦷 Cosmetic case category 104 detected - selecting lower 8 teeth:', teethToSelect);
+        
+        // Show notification for cosmetic lower case
+        this.$swal.fire({
+          title: "حالة تجميل الأسنان",
+          text: `تم إضافة حالة "${operationName}" للأسنان السفلية: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (operationId === 105) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 105);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Cosmetic case: "تجميل 10 lower" - select teeth 45 to 35
+        teethToSelect = [45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
+        toothNumbers = [45, 44, 43, 42, 41, 31, 32, 33, 34, 35];
+        console.log('🦷 Cosmetic case category 105 detected - selecting lower 10 teeth:', teethToSelect);
+        
+        // Show notification for cosmetic lower 10 case
+        this.$swal.fire({
+          title: "حالة تجميل الأسنان",
+          text: `تم إضافة حالة "${operationName}" للأسنان السفلية: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (operationId === 106) {
+        // Check if this case category already exists
+        const existingCase = this.patientCases.find(c => c.operation_id === 106);
+        if (existingCase) {
+          this.$swal.fire({
+            title: "تحذير",
+            text: `الحالة "${operationName}" موجودة بالفعل. لا يمكن إضافتها مرة أخرى.`,
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return; // Don't add duplicate case
+        }
+        
+        // Cosmetic case: "تجميل 10 upper" - select teeth 15 to 25 (upper front teeth)
+        teethToSelect = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        toothNumbers = [15, 14, 13, 12, 11, 21, 22, 23, 24, 25];
+        console.log('🦷 Cosmetic case category 106 detected - selecting upper 10 teeth:', teethToSelect);
+        
+        // Show notification for cosmetic upper 10 case
+        this.$swal.fire({
+          title: "حالة تجميل الأسنان",
+          text: `تم إضافة حالة "${operationName}" للأسنان العلوية: ${teethToSelect.join(', ')}`,
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
       }
       
       // Create new case object with multiple teeth support
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
         server_id: null, // Will be set after saving to server
-        tooth_number: teethToSelect[0], // Primary tooth for backward compatibility
-        tooth_numbers: toothNumbers, // Array of all teeth for this case
+        tooth_number: teethToSelect.length > 0 ? teethToSelect[0] : null, // Primary tooth for backward compatibility, null for general treatments
+        tooth_numbers: toothNumbers, // Array of all teeth for this case (empty for general treatments)
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: null,
+        price: 0,
         completed: false,
         notes: '',
         operation_id: operationId,
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        additionalNotes: [], // Initialize empty array for additional notes
+        doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
+        modified: true, // Mark as new/modified for save
+        is_general_treatment: specialCaseIds.includes(operationId) && teethToSelect.length === 0 // Flag for general treatments
       };
       
       // Add to the beginning of the cases array
@@ -1339,6 +1517,26 @@ birth_date: ''
             toothNumbers = [caseItem.tooth_num];
           }
 
+          // Parse additional notes from API response
+          let additionalNotes = [];
+          let mainNotes = caseItem.notes || '';
+          
+          // Check if additional_notes field exists in API response
+          if (caseItem.additional_notes && Array.isArray(caseItem.additional_notes)) {
+            additionalNotes = caseItem.additional_notes.filter(note => note && note.trim());
+          } else if (mainNotes.includes('--- Additional Notes ---')) {
+            // Parse additional notes from combined notes string (fallback)
+            const noteParts = mainNotes.split('--- Additional Notes ---');
+            if (noteParts.length > 1) {
+              mainNotes = noteParts[0].trim();
+              const additionalSection = noteParts[1];
+              additionalNotes = additionalSection
+                .split('--- Additional Note ---')
+                .map(note => note.trim())
+                .filter(note => note);
+            }
+          }
+
           return {
             id: caseItem.id,
             server_id: caseItem.id,
@@ -1346,15 +1544,18 @@ birth_date: ''
             tooth_numbers: toothNumbers, // Array of all teeth for this case
             case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
             date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
-            price: caseItem.price,
+            price: caseItem.price || 0,
             completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
-            notes: caseItem.notes || '',
+            notes: mainNotes,
             operation_id: caseItem.case_categores_id,
             status_id: caseItem.status_id,
             doctors: caseItem.doctors || [],
             sessions: caseItem.sessions || [],
             additionalSessions: [],
+            additionalNotes: additionalNotes, // Parse additional notes from API
             doctor_id: caseItem.doctor_id,
+            doctor_name: caseItem.doctors && caseItem.doctors.length > 0 ? caseItem.doctors[0].name : 
+                        (caseItem.user ? caseItem.user.name : 'غير محدد'),
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -1772,13 +1973,14 @@ birth_date: ''
           tooth_number: this.selectedTooth,
           case_type: operationName,
           date: new Date().toISOString().substr(0, 10),
-          price: null,
+          price: 0,
           completed: false,
           notes: '',
           operation_id: operation.id,
           status_id: 42,
           sessions: [],
           additionalSessions: [],
+          doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
           modified: true
         };
         this.patientCases.unshift(newCase);
@@ -1807,13 +2009,14 @@ birth_date: ''
         tooth_number: toothNumber,
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
-        price: null,
+        price: 0,
         completed: false,
         notes: '',
         operation_id: operation.id,
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
+        doctor_name: this.$store.state.AdminInfo?.name || 'غير محدد', // Current user as doctor
         modified: true // Mark as new/modified for save
       };
       
@@ -1827,8 +2030,8 @@ birth_date: ''
       // Find the case in the array
       const index = this.patientCases.findIndex(c => c.id === caseItem.id);
       if (index !== -1) {
-        // Update the price locally
-        this.patientCases[index].price = caseItem.price;
+        // Update the price locally, ensure it's never null or undefined
+        this.patientCases[index].price = caseItem.price || 0;
         this.patientCases[index].modified = true; // Mark as modified for save
       }
     },
@@ -1851,7 +2054,19 @@ birth_date: ''
       if (index !== -1) {
         // Update the notes locally
         this.patientCases[index].notes = caseItem.notes;
+        
+        // Update additional notes if they exist
+        if (caseItem.additionalNotes) {
+          this.patientCases[index].additionalNotes = [...caseItem.additionalNotes];
+        }
+        
         this.patientCases[index].modified = true; // Mark as modified for save
+        
+        console.log('Updated case notes:', {
+          id: caseItem.id,
+          notes: caseItem.notes,
+          additionalNotes: caseItem.additionalNotes
+        });
       }
     },
     
@@ -2182,12 +2397,23 @@ birth_date: ''
           ? caseItem.tooth_numbers.map(num => parseInt(num))
           : [parseInt(caseItem.tooth_number)];
         
+        // Prepare additional notes data for API
+        const allNotes = caseItem.notes || "";
+        const additionalNotesStr = caseItem.additionalNotes && caseItem.additionalNotes.length > 0 
+          ? caseItem.additionalNotes.filter(note => note.trim()).join('\n--- Additional Note ---\n')
+          : "";
+        
+        // Combine main notes with additional notes
+        const combinedNotes = additionalNotesStr 
+          ? allNotes + (allNotes ? '\n--- Additional Notes ---\n' : '') + additionalNotesStr
+          : allNotes;
+
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           tooth_num: toothNums,
           status_id: caseItem.completed ? 43 : 42,
           sessions: [{
-            note: caseItem.notes || "",
+            note: combinedNotes,
             date: caseItem.date
           }],
           bills: [{
@@ -2196,9 +2422,10 @@ birth_date: ''
             patient_id: this.patient.id ? this.patient.id.toString() : ""
           }],
           images: [],
-          notes: caseItem.notes || "",
+          notes: combinedNotes,
           price: caseItem.price ? caseItem.price.toString() : "0",
-          patient_id: this.patient.id ? this.patient.id.toString() : ""
+          patient_id: this.patient.id ? this.patient.id.toString() : "",
+          additional_notes: caseItem.additionalNotes || []
         };
         
         const response = await this.$http.post('https://apismartclinicv3.tctate.com/api/cases', requestBody, {
@@ -2227,14 +2454,26 @@ birth_date: ''
           ? JSON.stringify(caseItem.tooth_numbers.map(num => parseInt(num)))
           : `[${parseInt(caseItem.tooth_number)}]`;
         
+        // Prepare additional notes data for API
+        const allNotes = caseItem.notes || "";
+        const additionalNotesStr = caseItem.additionalNotes && caseItem.additionalNotes.length > 0 
+          ? caseItem.additionalNotes.filter(note => note.trim()).join('\n--- Additional Note ---\n')
+          : "";
+        
+        // Combine main notes with additional notes
+        const combinedNotes = additionalNotesStr 
+          ? allNotes + (allNotes ? '\n--- Additional Notes ---\n' : '') + additionalNotesStr
+          : allNotes;
+
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
           images: [],
           tooth_num: toothNumString,
-          notes: caseItem.notes || "",
+          notes: combinedNotes,
           price: caseItem.price.toString(),
-          sessions: caseItem.sessions || []
+          sessions: caseItem.sessions || [],
+          additional_notes: caseItem.additionalNotes || []
         };
         
         const response = await this.$http.patch(`https://apismartclinicv3.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
@@ -2247,6 +2486,12 @@ birth_date: ''
         
         // Clear modified flag
         caseItem.modified = false;
+        
+        console.log('✅ Case updated successfully with additional notes:', {
+          id: caseItem.server_id,
+          notes: combinedNotes,
+          additionalNotes: caseItem.additionalNotes
+        });
         
       } catch (error) {
         console.error('Error updating case:', error);
@@ -2855,7 +3100,13 @@ async mounted() {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
   gap: 4px;
+}
+
+.case-type-cell .v-chip {
+  align-self: flex-start;
 }
 
 .multiple-teeth-indicator {
@@ -2920,5 +3171,82 @@ async mounted() {
 .fancybox-caption {
   font-family: 'Cairo', sans-serif;
   font-size: 16px;
+}
+
+/* Mobile-specific styles for notes column */
+@media (max-width: 600px) {
+  .mobile-notes-header {
+    min-width: 0 !important;
+    width: auto !important;
+  }
+  
+  .notes-container {
+    min-width: 200px;
+  }
+  
+  .notes-textarea {
+    font-size: 12px !important;
+  }
+  
+  .notes-textarea .v-input__control {
+    min-height: auto !important;
+  }
+  
+  .notes-textarea .v-text-field__details {
+    display: none !important;
+  }
+  
+  /* Hide column header text on mobile but keep the column */
+  .mobile-notes-header .v-data-table-header__content {
+    font-size: 0 !important;
+    overflow: hidden;
+  }
+  
+  /* Float case type chips to the left on mobile */
+  .case-type-cell {
+    align-items: flex-start !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    float: left !important;
+  }
+  
+  .case-type-cell .v-chip {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    float: left !important;
+    clear: both !important;
+  }
+  
+  /* Ensure case type column content is left-aligned on mobile */
+  .v-data-table__mobile-row__cell .case-type-cell,
+  .v-data-table__mobile-row__cell .case-type-cell * {
+    text-align: left !important;
+    justify-content: flex-start !important;
+  }
+  
+  /* Override any center alignment for case type chips on mobile */
+  .v-data-table__mobile-row .case-type-cell .v-chip,
+  .v-data-table .case-type-cell .v-chip {
+    display: inline-block !important;
+    float: none !important;
+    margin-right: 4px !important;
+    margin-bottom: 4px !important;
+  }
+}
+
+.v-data-table__mobile-row__cell
+{
+  width: 100%;
+}
+
+/* Ensure price input suffix is always visible */
+.price-input .v-text-field__suffix {
+  color: #666 !important;
+  font-weight: 500 !important;
+  padding-left: 8px !important;
+}
+
+.price-input.v-text-field--outlined .v-text-field__suffix {
+  margin-top: -8px !important;
 }
 </style>
