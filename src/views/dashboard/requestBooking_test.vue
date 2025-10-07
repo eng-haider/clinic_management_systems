@@ -239,6 +239,7 @@
 <script>
   import axios from 'axios';
   import Multiselect from 'vue-multiselect'
+  import { EventBus } from './event-bus.js';
   // import cacheManager from '@/utils/cache'; // Commented out - cache not working properly
 
   export default {
@@ -282,9 +283,9 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-09-01", // Focus on December by default
-        startDate: "2025-09-01", // Start of December
-        endDate: "2025-10-30", // End of December,
+        focus: "2025-10-01", // Focus on October by default
+        startDate: "2025-10-01", // Start of October
+        endDate: "2025-11-30", // End of November
 
         valid: true,
 
@@ -317,30 +318,54 @@
       };
     },
     mounted() {
-      // Initialize cache check
-      console.log('🚀 RequestBooking component mounted - initializing cache system');
+      // Auto-detect and show current month
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // +1 because getMonth() is 0-indexed
+      const currentYear = now.getFullYear();
       
-      // this.fetchReservations(); 
-      this.getclinicDoctor();
-      this.getPatient(); // Fetch patients for autocomplete
-      this.getOwnerTctateitemsById();
+      console.log('📅 Auto-detected current month dates:', {
+        focus: this.focus,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        currentMonth: currentMonth,
+        currentYear: currentYear
+      });
+      
+      console.log(`🗓️ Calendar will automatically show ${currentYear}-${currentMonth.toString().padStart(2, '0')} (current month)`);
+      
+      // Initialize cache check
+      console.log('🚀 RequestBooking component mounted - initializing cache system');        // Force calendar to show current month (October)
+        this.$nextTick(() => {
+          if (this.$refs.calendar) {
+            this.$refs.calendar.updateTimes();
+          }
+        });
+        
+        // this.fetchReservations(); 
+        this.getclinicDoctor();
+        this.getPatient(); // Fetch patients for autocomplete
+        this.getOwnerTctateitemsById();
      // Ensure reservations are loaded when the page opens
      
       // Listen for status changes to clear cache and refresh colors
-      this.$eventBus.$on('changeStatus', () => {
-        console.log('📡 Status change detected - clearing reservations cache');
-        // Clear reservations cache to force refresh with updated colors
-        // cacheManager.delete(this.currentReservationsCacheKey); // Commented out - cache not working
-        // Refresh reservations to get updated colors
-        this.fetchReservations();
-      });
+      if (EventBus) {
+        EventBus.$on('changeStatus', () => {
+          console.log('📡 Status change detected - clearing reservations cache');
+          // Clear reservations cache to force refresh with updated colors
+          // cacheManager.delete(this.currentReservationsCacheKey); // Commented out - cache not working
+          // Refresh reservations to get updated colors
+          this.fetchReservations();
+        });
+      }
     },
 
     // beforeDestroy method - COMMENTED OUT (cache not working properly)
     /*
     beforeDestroy() {
       // Clean up EventBus listener to prevent memory leaks
-      this.$eventBus.$off('changeStatus');
+      if (EventBus) {
+        EventBus.$off('changeStatus');
+      }
     },
     */
 
@@ -389,6 +414,21 @@
     },
    
     methods: {
+      // Auto-generate current month dates
+      getCurrentMonthStart() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+        return new Date(year, month, 1).toISOString().split('T')[0]; // First day of current month
+      },
+
+      getCurrentMonthEnd() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+        return new Date(year, month + 1, 0).toISOString().split('T')[0]; // Last day of current month
+      },
+
       // Extract first name from doctor's full name
       getDoctorFirstName(doctorName) {
         if (!doctorName) return '';
@@ -923,6 +963,12 @@
               // Debug: log reservation structure to understand doctor data
               console.log('🔍 Reservation data:', reservation);
               
+              // Validate required date/time fields to prevent null timestamp errors
+              if (!reservation.reservation_start_date || !reservation.reservation_from_time) {
+                console.warn('⚠️ Skipping reservation with missing date/time:', reservation);
+                return null; // Skip this reservation
+              }
+              
               // Try multiple possible doctor field locations
               const doctorName = reservation.doctor?.name || 
                                 reservation.owner?.name || 
@@ -955,7 +1001,7 @@
               eventData.color = this.getEventColor(eventData);
               
               return eventData;
-            });
+            }).filter(event => event !== null); // Remove null entries
 
             this.reservations = formattedReservations;
             
@@ -1017,22 +1063,6 @@
           reservation_from_time: null,
           reservation_to_time: null,
         };
-      },
-      getEventColor(event) {
-        const currentDateTime = new Date(); // Get the current date and time
-        const eventDateTime = new Date(event.start); // Parse the event's start date and time
-
-        // Check status_id first
-        if (event.status_id === 2) {
-          return "blue"; // Status 2 gets blue color
-        }
-
-        // Check if the event is in the past
-        if (eventDateTime < currentDateTime) {
-          return "green"; // Event is in the past
-        }
-
-        return "#FFA500"; // Default to event color or lightblue
       },
       // Get event color based on status_id and date/time
       getEventColor(event) {
@@ -1107,8 +1137,22 @@
 
       // Force refresh data by clearing cache and refetching
       forceRefreshData() {
-        this.clearAllCache();
-        this.selectedDoctorFilter = null; // Reset doctor filter
+        // Reset doctor filter
+        this.selectedDoctorFilter = null;
+        
+        // Reset calendar to current month
+        this.focus = this.getCurrentMonthStart();
+        this.startDate = this.getCurrentMonthStart();
+        this.endDate = this.getCurrentMonthEnd();
+        
+        console.log('🔄 Force refreshed to current month:', {
+          focus: this.focus,
+          startDate: this.startDate,
+          endDate: this.endDate,
+          currentMonth: new Date().getMonth() + 1
+        });
+        
+        // Refresh data
         this.getclinicDoctor();
         this.getPatient();
         this.getOwnerTctateitemsById();
