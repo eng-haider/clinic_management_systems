@@ -374,6 +374,46 @@
                             </div>
                             </template>
                             
+                            <!-- Additional Notes from server (parsed from API response) -->
+                            <template v-if="item.additionalNotes && item.additionalNotes.length > 0">
+                              <div 
+                                v-for="(note, index) in item.additionalNotes" 
+                                :key="`additional-note-${index}`"
+                                class="mb-2"
+                              >
+                                <div class="d-flex align-center">
+                                  <v-textarea
+                                    v-model="item.additionalNotes[index]"
+                                    :placeholder="`ملاحظة إضافية ${index + 1}...`"
+                                    rows="1"
+                                    auto-grow
+                                    no-resize
+                                    dense
+                                    outlined
+                                    hide-details
+                                    class="notes-textarea additional-note flex-grow-1"
+                                    @input="updateCaseNotes(item)"
+                                  />
+                                  <v-chip
+                                    small
+                                    class="ml-2 session-date-chip"
+                                    color="orange lighten-3"
+                                  >
+                                    إضافية
+                                  </v-chip>
+                                  <!-- <v-btn
+                                    icon
+                                    x-small
+                                    color="error"
+                                    class="ml-1"
+                                    @click="removeAdditionalNote(item, index)"
+                                  >
+                                    <v-icon size="14">mdi-close</v-icon>
+                                  </v-btn> -->
+                                </div>
+                              </div>
+                            </template>
+                            
                             <!-- New additional session notes (only show if they exist and have been added) -->
                             <template v-if="item.additionalSessions && item.additionalSessions.length > 0">
                               <div 
@@ -401,21 +441,42 @@
                                 >
                                   جديد
                                 </v-chip>
+                                <v-btn
+                                  icon
+                                  x-small
+                                  color="error"
+                                  class="ml-1"
+                                  @click="removeNewSession(item, index)"
+                                >
+                                  <v-icon size="14">mdi-close</v-icon>
+                                </v-btn>
                               </div>
                             </div>
                             </template>
                           </div>
                           
-                          <v-btn
-                            text
-                            small
-                            color="primary"
-                            class="mt-1"
-                            @click="addNote(item)"
-                          >
-                            <v-icon left size="16">mdi-plus</v-icon>
-                            إضافة جلسة
-                          </v-btn>
+                          <div class="d-flex">
+                            <!-- <v-btn
+                              text
+                              small
+                              color="primary"
+                              class="mt-1 mr-2"
+                              @click="addNote(item)"
+                            >
+                              <v-icon left size="16">mdi-plus</v-icon>
+                              إضافة جلسة
+                            </v-btn> -->
+                            <v-btn
+                              text
+                              small
+                              color="orange"
+                              class="mt-1"
+                              @click="addAdditionalNote(item)"
+                            >
+                              <v-icon left size="16">mdi-note-plus</v-icon>
+                              ملاحظة إضافية
+                            </v-btn>
+                          </div>
                         </template>
 
                         <!-- Actions Column -->
@@ -1769,6 +1830,26 @@ export default {
             toothNumber = caseItem.tooth_num;
           }
 
+          // Parse additional notes from API response
+          let additionalNotes = [];
+          let mainNotes = caseItem.notes || '';
+          
+          // Check if additional_notes field exists in API response
+          if (caseItem.additional_notes && Array.isArray(caseItem.additional_notes)) {
+            additionalNotes = caseItem.additional_notes.filter(note => note && note.trim());
+          } else if (mainNotes.includes('--- Additional Notes ---')) {
+            // Parse additional notes from combined notes string (fallback)
+            const noteParts = mainNotes.split('--- Additional Notes ---');
+            if (noteParts.length > 1) {
+              mainNotes = noteParts[0].trim();
+              const additionalSection = noteParts[1];
+              additionalNotes = additionalSection
+                .split('\n')
+                .map(note => note.trim())
+                .filter(note => note);
+            }
+          }
+
           return {
             id: caseItem.id,
             server_id: caseItem.id,
@@ -1778,13 +1859,14 @@ export default {
             price: caseItem.price,
             displayPrice: this.formatNumberWithCommas(caseItem.price || ''),
             completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
-            notes: caseItem.notes || '',
+            notes: mainNotes,
+            additionalNotes: additionalNotes, // Parse additional notes from API
             operation_id: caseItem.case_categores_id,
             status_id: caseItem.status_id,
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,
-            doctor_name: caseItem.user ? caseItem.user.name : (this.$store.state.AdminInfo?.name || 'غير محدد'),
+            doctor_name: caseItem.doctors.name || 'غير محدد',
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -1904,7 +1986,7 @@ export default {
         
         if (error.message === 'Request timeout') {
           errorMessage = this.$t('patients.connection_timeout');
-          errorTitle = this.$t('patients.connection_timeout_title');
+          errorTitle = this.$t('patients.authentication_error_title');
         } else if (error.response && error.response.status === 401) {
           errorMessage = this.$t('patients.session_expired');
           errorTitle = this.$t('patients.authentication_error_title');
@@ -2070,7 +2152,7 @@ export default {
         
         console.log('Context menu should be visible now');
         
-        // Hide menu when clicking elsewhere (with a small delay to avoid immediate hiding)
+        // // Hide menu when clicking elsewhere (with a small delay to avoid immediate hiding)
         setTimeout(() => {
           document.addEventListener('click', this.hideContextMenu);
         }, 10);
@@ -2354,6 +2436,8 @@ export default {
       if (index !== -1) {
         // Update the sessions array
         this.patientCases[index].sessions = caseItem.sessions;
+        // Mark case as modified
+        this.patientCases[index].modified = true;
       }
     },
     
@@ -2364,6 +2448,8 @@ export default {
       if (index !== -1) {
         // Update the additionalSessions array
         this.patientCases[index].additionalSessions = caseItem.additionalSessions;
+        // Mark case as modified
+        this.patientCases[index].modified = true;
       }
     },
     
@@ -2383,6 +2469,45 @@ export default {
         this.patientCases[index].additionalSessions.push(newSession);
         
         // Optimistically update the UI
+        this.$forceUpdate();
+      }
+    },
+
+    // Add a new additional note
+    addAdditionalNote(caseItem) {
+      // Find the case in the array
+      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (index !== -1) {
+        // Initialize additionalNotes array if it doesn't exist
+        if (!this.patientCases[index].additionalNotes) {
+          this.$set(this.patientCases[index], 'additionalNotes', []);
+        }
+        
+        // Add a new empty note
+        this.patientCases[index].additionalNotes.push('');
+        this.patientCases[index].modified = true;
+        
+        // Optimistically update the UI
+        this.$forceUpdate();
+      }
+    },
+
+    // Remove an additional note
+    removeAdditionalNote(caseItem, index) {
+      const caseIndex = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (caseIndex !== -1) {
+        this.patientCases[caseIndex].additionalNotes.splice(index, 1);
+        this.patientCases[caseIndex].modified = true;
+        this.$forceUpdate();
+      }
+    },
+
+    // Remove a new session
+    removeNewSession(caseItem, index) {
+      const caseIndex = this.patientCases.findIndex(c => c.id === caseItem.id);
+      if (caseIndex !== -1) {
+        this.patientCases[caseIndex].additionalSessions.splice(index, 1);
+        this.patientCases[caseIndex].modified = true;
         this.$forceUpdate();
       }
     },
@@ -2734,6 +2859,33 @@ export default {
     // Save new case
     async saveNewCase(caseItem) {
       try {
+        // Prepare additional notes from both additionalSessions and additionalNotes
+        const additionalNotes = [];
+        
+        // Add notes from additionalSessions
+        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
+          caseItem.additionalSessions.forEach(session => {
+            if (session.note && session.note.trim()) {
+              additionalNotes.push(session.note.trim());
+            }
+          });
+        }
+        
+        // Add notes from additionalNotes array
+        if (caseItem.additionalNotes && caseItem.additionalNotes.length > 0) {
+          caseItem.additionalNotes.forEach(note => {
+            if (note && note.trim()) {
+              additionalNotes.push(note.trim());
+            }
+          });
+        }
+
+        // Prepare combined notes: main notes + additional notes with separator
+        let combinedNotes = caseItem.notes || "";
+        if (additionalNotes.length > 0) {
+          combinedNotes += (combinedNotes ? '\n' : '') + '--- Additional Notes ---\n' + additionalNotes.join('\n');
+        }
+
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           tooth_num: caseItem.isGeneralTreatment || !caseItem.tooth_number ? [] : [parseInt(caseItem.tooth_number)],
@@ -2748,14 +2900,18 @@ export default {
             patient_id: this.patient.id ? this.patient.id.toString() : ""
           }],
           images: [],
-          notes: caseItem.notes || "",
+          notes: combinedNotes,
           price: caseItem.price ? caseItem.price.toString() : "0",
-          patient_id: this.patient.id ? this.patient.id.toString() : ""
+          patient_id: this.patient.id ? this.patient.id.toString() : "",
+          additional_notes: additionalNotes
         };
         
-        console.log('💾 Saving case:', {
+        console.log('💾 Saving new case with additional notes:', {
           isGeneralTreatment: caseItem.isGeneralTreatment,
           toothNumber: caseItem.tooth_number,
+          mainNotes: caseItem.notes,
+          additionalNotes: additionalNotes,
+          combinedNotes: combinedNotes,
           requestBody: requestBody
         });
         
@@ -2771,6 +2927,8 @@ export default {
         caseItem.server_id = response.data.id;
         caseItem.modified = false;
         
+        console.log('✅ New case saved successfully with additional notes');
+        
       } catch (error) {
         console.error('Error saving new case:', error);
         throw error;
@@ -2780,19 +2938,49 @@ export default {
     // Update existing case
     async updateExistingCase(caseItem) {
       try {
+        // Prepare additional notes from both additionalSessions and additionalNotes
+        const additionalNotes = [];
+        
+        // Add notes from additionalSessions
+        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
+          caseItem.additionalSessions.forEach(session => {
+            if (session.note && session.note.trim()) {
+              additionalNotes.push(session.note.trim());
+            }
+          });
+        }
+        
+        // Add notes from additionalNotes array
+        if (caseItem.additionalNotes && caseItem.additionalNotes.length > 0) {
+          caseItem.additionalNotes.forEach(note => {
+            if (note && note.trim()) {
+              additionalNotes.push(note.trim());
+            }
+          });
+        }
+
+        // Prepare combined notes: main notes + additional notes with separator
+        let combinedNotes = caseItem.notes || "";
+        if (additionalNotes.length > 0) {
+          combinedNotes += (combinedNotes ? '\n' : '') + '--- Additional Notes ---\n' + additionalNotes.join('\n');
+        }
+
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
           images: [],
           tooth_num: caseItem.isGeneralTreatment || !caseItem.tooth_number ? "[]" : `[${caseItem.tooth_number}]`,
-          notes: caseItem.notes || "",
+          notes: combinedNotes,
           price: caseItem.price.toString(),
-          sessions: caseItem.sessions || []
+          sessions: caseItem.sessions || [],
+          additional_notes: additionalNotes
         };
         
-        console.log('💾 Updating case:', {
-          isGeneralTreatment: caseItem.isGeneralTreatment,
-          toothNumber: caseItem.tooth_number,
+        console.log('💾 Updating case with additional notes:', {
+          caseId: caseItem.server_id,
+          mainNotes: caseItem.notes,
+          additionalNotes: additionalNotes,
+          combinedNotes: combinedNotes,
           requestBody: requestBody
         });
         
@@ -2806,6 +2994,8 @@ export default {
         
         // Clear modified flag
         caseItem.modified = false;
+        
+        console.log('✅ Case updated successfully with additional notes');
         
       } catch (error) {
         console.error('Error updating case:', error);
@@ -3669,7 +3859,7 @@ async mounted() {
     width: 100% !important;
     margin-bottom: 8px !important;
   }
-
+  
   /* Ensure notes inputs have proper spacing on mobile */
   .mobile-responsive-table .case-notes-mobile-full .notes-textarea .v-input__control {
     min-height: 60px !important;
@@ -3694,20 +3884,13 @@ async mounted() {
   }
 
   /* Ensure chips in case type column float left on mobile */
-  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="case_type"] {
-    text-align: left !important;
+  .mobile-responsive-table .v-data-table__mobile-row .v-chip {
+    float: none !important;
+    display: inline-block !important;
+    margin: 2px 4px 2px 0 !important;
   }
-
-  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="case_type"] .v-chip {
-    float: left !important;
-    margin-right: 8px !important;
-  }
-
+  
   /* Ensure doctor chips float left on mobile as well */
-  .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="doctor_name"] {
-    text-align: left !important;
-  }
-
   .mobile-responsive-table .v-data-table__mobile-row .v-data-table__mobile-row__cell[data-column="doctor_name"] .v-chip {
     float: left !important;
     margin-right: 8px !important;
@@ -4037,6 +4220,13 @@ async mounted() {
 
 .v-dialog .v-card {
   max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.v-dialog .v-card-text {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
   overflow-x: hidden !important;
   box-sizing: border-box !important;
 }
