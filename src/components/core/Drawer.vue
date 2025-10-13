@@ -56,7 +56,7 @@
             style="color:#fff !important" 
             link 
             :to="item.to"
-            v-if="$store.state.AdminInfo.Permissions.includes(item.name)"
+            v-if="shouldShowMenuItem(item)"
           >
        
             
@@ -140,6 +140,13 @@
             auth: true,
             to: '/accounts',
             name: 'show_accounts'
+          },
+          {
+            title: "header.notifications",
+            icon: 'fa-solid fa-bell',
+            auth: true,
+            to: '/notifications',
+            name: 'show_notifications'
           },
 
           {
@@ -241,6 +248,15 @@
         }
         // For all other permissions, check the regular way
         return this.$store.state.AdminInfo.Permissions.includes(item.name);
+      },
+      shouldShowMenuItem(item) {
+        // Special case for notifications - only show to accountants
+        if (item.name === 'show_notifications') {
+          return this.$store.state.AdminInfo?.role === 'accounter';
+        }
+        
+        // Use existing permission check logic
+        return this.hasItemPermission(item);
       },
       mapItem(item) {
         return {

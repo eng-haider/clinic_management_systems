@@ -122,13 +122,16 @@ async function initializeApp() {
     document.body.classList.toggle('rtl', currentLang === "ar");
     document.body.classList.toggle('ltr', currentLang === "en");
     
-    new Vue({
+    const app = new Vue({
       router,
       store,
       i18n,
       vuetify,
       render: h => h(App)
     }).$mount('#app')
+    
+    // Make app globally available for notification service
+    window.app = app
     
   } catch (error) {
     console.error('Failed to initialize app:', error)

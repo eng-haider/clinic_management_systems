@@ -49,6 +49,9 @@
         </template>
         <span>{{ $i18n.locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية' }}</span>
       </v-tooltip>
+
+      <!-- Notification System - Only for accountants -->
+      <NotificationSystem v-if="$store.state.AdminInfo?.role === 'accounter'" />
       
       <!-- PWA Install Button -->
       <!-- <InstallButton /> -->
@@ -145,10 +148,12 @@
     mapMutations
   } from "vuex";
   import Axios from "axios";
+  import NotificationSystem from '@/components/NotificationSystem.vue'
   // import InstallButton from '@/components/InstallButton.vue'
 
   export default {
     components: {
+      NotificationSystem
       // InstallButton
     },
     

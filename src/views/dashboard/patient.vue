@@ -646,9 +646,12 @@
                                 dense
                                 outlined
                                 :placeholder="$t('patients.select_case')"
-                                :label="$t('patients.case')"
+                                :label="$t('patients.case') + ' *'"
                                 class="mobile-responsive-select"
                                 :disabled="!canEditBills"
+                                :error="bill.isNew && !bill.case_id"
+                                :error-messages="bill.isNew && !bill.case_id ? 'يجب اختيار حالة' : ''"
+                                required
                               >
                               </v-select>
                             </div>
@@ -746,8 +749,12 @@
                     dense
                     outlined
                     :placeholder="$t('patients.select_case')"
+                    :label="$t('patients.case') + ' *'"
                     class="desktop-responsive-select"
                     :disabled="!canEditBills"
+                    :error="bill.isNew && !bill.case_id"
+                    :error-messages="bill.isNew && !bill.case_id ? 'يجب اختيار حالة' : ''"
+                    required
                   >
                   </v-select>
                 </v-flex>
@@ -2592,6 +2599,29 @@ export default {
         });
         return;
       }
+
+      // Check if remaining amount is 0
+      const remainingAmountNumber = this.totalAmountNumber - this.paidAmountNumber;
+      if (remainingAmountNumber <= 0) {
+        this.$swal.fire({
+          title: "لا يمكن إضافة فاتورة",
+          text: "المبلغ المتبقي هو 0. لا يمكن إضافة فواتير جديدة.",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
+
+      // Check if there are available cases
+      if (!this.availableCases || this.availableCases.length === 0) {
+        this.$swal.fire({
+          title: "لا توجد حالات متاحة",
+          text: "يجب إضافة حالات أولاً قبل إنشاء فواتير",
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        return;
+      }
       
       // Create a new bill object with case selection
       const newBill = {
@@ -2599,7 +2629,7 @@ export default {
         price: 0,
         PaymentDate: new Date().toISOString().substr(0, 10),
         is_paid: 0,
-        case_id: null, // Add case selection
+        case_id: null, // Add case selection - REQUIRED
         user_id: this.$store.state.AdminInfo.user_id,
         clinics_id: this.$store.state.AdminInfo.clinics_id,
         isNew: true, // Mark as new bill to be saved
@@ -2627,6 +2657,28 @@ export default {
           icon: "warning",
           confirmButtonText: "موافق"
         });
+        return;
+      }
+
+      
+
+      // Check if bill amount exceeds remaining amount
+      const remainingAmountNumber = this.totalAmountNumber - this.paidAmountNumber;
+      const billPrice = parseFloat(bill.price) || 0;
+      
+      if (billPrice > remainingAmountNumber) {
+        this.$swal.fire({
+          title: "مبلغ غير صحيح",
+          text: `لا يمكن إضافة فاتورة بمبلغ ${billPrice.toLocaleString()} د.ع لأنه يتجاوز المبلغ المتبقي ${remainingAmountNumber.toLocaleString()} د.ع`,
+          icon: "warning",
+          confirmButtonText: "موافق"
+        });
+        
+        // Reset the bill price to 0 or previous valid value
+        const index = this.patientBills.findIndex(b => b.id === bill.id);
+        if (index !== -1) {
+          this.patientBills[index].price = 0;
+        }
         return;
       }
 
@@ -3006,6 +3058,18 @@ export default {
     // Save bills
     async saveBills(bills) {
       try {
+        // Validate that all new bills have case_id selected
+        const invalidBills = bills.filter(bill => bill.isNew && (!bill.case_id || bill.case_id === null));
+        if (invalidBills.length > 0) {
+          this.$swal.fire({
+            title: "حالة مطلوبة",
+            text: "يجب اختيار حالة لكل فاتورة قبل الحفظ",
+            icon: "warning",
+            confirmButtonText: "موافق"
+          });
+          return;
+        }
+
         // Separate new bills from existing bills
         const newBills = bills.filter(bill => !bill.server_id);
         const existingBills = bills.filter(bill => bill.server_id);

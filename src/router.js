@@ -201,6 +201,14 @@ const router = new Router({
             requiresPermission: 'show_lap_cases',
             title: 'حالات المختبر'
           }
+        },
+        {
+          path: 'notifications',
+          name: 'notifications',
+          component: () => import(/* webpackChunkName: "notifications" */ '@/views/dashboard/notifications'),
+          meta: { 
+            title: 'التنبيهات'
+          }
         }
       ]
     }

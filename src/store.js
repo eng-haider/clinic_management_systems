@@ -42,6 +42,11 @@ export default new Vuex.Store({
         show_lap: 0,
         api_whatsapp: 0,
         paid_to_doctor: 0
+    },
+    // Add notification state
+    notifications: {
+      items: [],
+      unreadCount: 0
     }
  
   },
@@ -76,7 +81,11 @@ export default new Vuex.Store({
     getPaidToDoctor: state => state.AdminInfo.paid_to_doctor || 0,
     useCreditSystem: state => {
       return state.AdminInfo.clinics_info && state.AdminInfo.clinics_info.use_credit === 1;
-    }
+    },
+    // Add notification getters
+    notifications: state => state.notifications.items,
+    unreadNotificationsCount: state => state.notifications.unreadCount,
+    hasUnreadNotifications: state => state.notifications.unreadCount > 0
   },
   mutations: {
     SET_DRAWER(state, payload) {
@@ -189,7 +198,50 @@ export default new Vuex.Store({
       updatePaidToDoctor(state, paidToDoctorValue) {
         state.AdminInfo.paid_to_doctor = paidToDoctorValue || 0;
       },
-
+      
+      // Add notification mutations
+      SET_NOTIFICATIONS(state, payload) {
+        state.notifications.items = payload.notifications || [];
+        state.notifications.unreadCount = payload.unreadCount || 0;
+      },
+      
+      ADD_NOTIFICATION(state, notification) {
+        state.notifications.items.unshift(notification);
+        if (!notification.isRead) {
+          state.notifications.unreadCount++;
+        }
+      },
+      
+      MARK_NOTIFICATION_READ(state, notificationId) {
+        const notification = state.notifications.items.find(n => n.id === notificationId);
+        if (notification && !notification.isRead) {
+          notification.isRead = true;
+          state.notifications.unreadCount = Math.max(0, state.notifications.unreadCount - 1);
+        }
+      },
+      
+      MARK_ALL_NOTIFICATIONS_READ(state) {
+        state.notifications.items.forEach(notification => {
+          notification.isRead = true;
+        });
+        state.notifications.unreadCount = 0;
+      },
+      
+      REMOVE_NOTIFICATION(state, notificationId) {
+        const index = state.notifications.items.findIndex(n => n.id === notificationId);
+        if (index !== -1) {
+          const notification = state.notifications.items[index];
+          if (!notification.isRead) {
+            state.notifications.unreadCount = Math.max(0, state.notifications.unreadCount - 1);
+          }
+          state.notifications.items.splice(index, 1);
+        }
+      },
+      
+      CLEAR_ALL_NOTIFICATIONS(state) {
+        state.notifications.items = [];
+        state.notifications.unreadCount = 0;
+      },
   
     
     
@@ -347,7 +399,21 @@ updatePaidToDoctor({
   commit('updatePaidToDoctor', paidToDoctorValue);
 },
    
-
-   
+    // Add action to add a notification
+    addNotification({ commit }, notification) {
+      commit('ADD_NOTIFICATION', notification);
+    },
+    // Add action to mark all notifications as read
+    markAllNotificationsAsRead({ commit }) {
+      commit('MARK_ALL_NOTIFICATIONS_AS_READ');
+    },
+    // Add action to remove a notification by index
+    removeNotification({ commit }, index) {
+      commit('REMOVE_NOTIFICATION', index);
+    },
+    // Add action to clear all notifications
+    clearNotifications({ commit }) {
+      commit('CLEAR_NOTIFICATIONS');
+    },
   }
 })
