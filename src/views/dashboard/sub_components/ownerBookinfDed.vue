@@ -131,6 +131,7 @@
 
 <script>
 import { EventBus } from '../event-bus.js';
+import axios from 'axios';
 
 export default {
   props: {
@@ -259,45 +260,85 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
     save() {
       if (this.$refs.form.validate()) {
         this.loadSave = true;
-        this.prepareReservationData();
         
+        // Use the exact API body structure that works
+        const reservationData = {
+          patient_id: this.patientFound && this.patientInfo ? this.patientInfo.id : (this.patient ? this.patient.id : null),
+          reservation_start_date: this.editedItem.reservation_start_date,
+          reservation_end_date: this.editedItem.reservation_start_date,
+          reservation_from_time: this.editedItem.reservation_from_time,
+          reservation_to_time: this.owner_item.possib_reserving_period == null ? this.editedItem.reservation_to_time : this.addtime(this.owner_item.possib_reserving_period),
+          item_id: this.item_id,
+          reservation_number: 1,
+          appointmentMessage: this.editedItem.appointmentMessage || "",
+          reservation_date: this.editedItem.reservation_start_date,
+          ReservationRequirements: [],
+          item_features: [],
+          phone: "",
+          withoutBills: 0,
+          deliverable: false,
+          doctor_id: this.patientInfo && this.patientInfo.doctors ? this.patientInfo.doctors.id : null,
+          user: {
+            phone: `964${this.patientFound && this.patientInfo.phone ? this.patientInfo.phone.replace(/ /g, "") : (this.patient.phone ? this.patient.phone.replace(/ /g, "") : "")}`,
+            name: this.patientFound && this.patientInfo ? this.patientInfo.name : (this.patient ? this.patient.name : ""),
+          }
+        };
 
-        if(this.doctors.length>1 && this.patientInfo.doctors && this.patientInfo.doctors.length > 0 && this.patientInfo.doctors[0] && this.patientInfo.doctors[0].user){
-     
-     this.tokx=this.patientInfo.doctors[0].user.tctate_token;
-    }else{
-     this.tokx=this.$store.state.AdminInfo.tctate_token;
-    }
-
-
-        this.$http.post("https://tctate.com/api/api/reservation/owner/setv2", this.post_data, {
+        // Use axios instead of this.$http to match requestBooking_test.vue
+        axios.post("https://smartclinicv5.tctate.com/api/reservations", reservationData, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.tokx}`,
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
           },
-        }).then(response => {
-          response
+        }).then(() => {
           this.BookingDetails = false;
           this.close();
           EventBus.$emit('GetResCancel', true);
         
           this.$swal.fire({
-                    position: "top-end",
-  icon: "success",
-  title: "تم الحجز بنجاح",
-  showConfirmButton: false,
-  timer: 1500
-              });
-        })
+            position: "top-end",
+            icon: "success",
+            title: "تم الحجز بنجاح",
+            showConfirmButton: false,
+            timer: 1500
+          });
 
-        .catch(response => {
-          response
-          this.BookingDetails = false;
-          this.close();
-          EventBus.$emit('GetResCancel', true);
-          console.error("Failed ", 'error');
-          // this.$swal('', "تم الحجز بنجاح", 'success');
+          // Send WhatsApp message if enabled
+          if (this.send_msg && this.editedItem.appointmentMessage && (this.patientFound ? this.patientInfo : this.patient)) {
+            try {
+              const whatsappData = {
+                patient_id: this.patientFound ? this.patientInfo.id : this.patient.id,
+                message: this.editedItem.appointmentMessage,
+                date: `${reservationData.reservation_start_date} ${reservationData.reservation_from_time}`
+              };
+
+              axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                },
+              });
+            } catch (whatsappError) {
+              console.error('Error sending WhatsApp message:', whatsappError);
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Booking failed:", error);
+          let errorMessage = "حدث خطأ أثناء الحجز";
+          
+          if (error.response && error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
+          
+          this.$swal.fire({
+            title: "فشل الحجز",
+            text: errorMessage,
+            icon: "error",
+            confirmButtonText: "اغلاق",
+          });
         })
         .finally(() => {
           this.loadSave = false;
