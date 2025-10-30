@@ -158,15 +158,50 @@
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
               <v-card-text class="text-center">
                 <!-- Context menu and right-click are now handled inside teeth component -->
-                <div class="teeth-container">
-               
-                  <teeth 
-                    :categories="dentalOperations"
-                    :tooth_num="selectedTeethNumbers" 
-                    :id="1"
-                    @case-added="handleCaseAdded"
-                  />
-                </div>
+              
+                  <!-- Teeth Type Tabs -->
+                <v-tabs
+                  v-model="activeTeethTab"
+                  centered
+                  color="primary"
+                  class="mb-4"
+                >
+                  <v-tab>
+                    <v-icon left>mdi-tooth</v-icon>
+                    {{ $t('patients.permanent_teeth') }}
+                  </v-tab>
+                  <v-tab>
+                    <v-icon left>mdi-baby-face</v-icon>
+                    {{ $t('patients.baby_teeth') }}
+                  </v-tab>
+                </v-tabs>
+
+                <!-- Tabs Content -->
+                <v-tabs-items v-model="activeTeethTab">
+                  <!-- Permanent Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <teeth 
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="1"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+
+                  <!-- Baby Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <babyTeeth 
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="2"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+                </v-tabs-items>
               </v-card-text>
 
 
