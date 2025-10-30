@@ -1811,24 +1811,30 @@ export default {
         return;
       }
 
-      // Get the last case (most recent)
-      const lastCase = cases[cases.length - 1];
-      console.log('🦷 Last case:', lastCase);
+      // Find the most recent case by sorting by created_at date
+      const sortedCases = [...cases].sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || 0);
+        const dateB = new Date(b.created_at || b.date || 0);
+        return dateB - dateA; // Most recent first
+      });
 
-      // Parse tooth number from the last case
+      const mostRecentCase = sortedCases[0];
+      console.log('🦷 Most recent case by date:', mostRecentCase);
+
+      // Parse tooth number from the most recent case
       let toothNumber = null;
       try {
-        if (lastCase.tooth_num) {
-          const parsed = JSON.parse(lastCase.tooth_num);
+        if (mostRecentCase.tooth_num) {
+          const parsed = JSON.parse(mostRecentCase.tooth_num);
           toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
         }
       } catch (e) {
-        toothNumber = lastCase.tooth_num;
+        toothNumber = mostRecentCase.tooth_num;
       }
 
       // Convert to number if it's a string
       const toothNum = parseInt(toothNumber);
-      console.log('🦷 Last case tooth number:', toothNum);
+      console.log('🦷 Most recent case tooth number:', toothNum);
 
       // Check if tooth number is between 1 and 20 (baby teeth range)
       if (toothNum >= 1 && toothNum <= 20) {

@@ -285,7 +285,7 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
         };
 
         // Use axios instead of this.$http to match requestBooking_test.vue
-        axios.post("https://smartclinicv5.tctate.com/api/reservations", reservationData, {
+        axios.post("https://titaniumapi.tctate.com/api/reservations", reservationData, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -313,7 +313,7 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
                 date: `${reservationData.reservation_start_date} ${reservationData.reservation_from_time}`
               };
 
-              axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
+              axios.post('https://titaniumapi.tctate.com/api/whatsapp', whatsappData, {
                 headers: {
                   "Content-Type": "application/json",
                   Accept: "application/json",
