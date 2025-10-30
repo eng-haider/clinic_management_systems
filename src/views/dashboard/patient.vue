@@ -1459,6 +1459,43 @@ export default {
   
   methods: {
 
+
+     // Automatically select teeth tab based on last case's tooth number
+    autoSelectTeethTab(cases) {
+      if (!cases || cases.length === 0) {
+        console.log('🦷 No cases found, keeping default tab (permanent teeth)');
+        this.activeTeethTab = 0; // Default to permanent teeth
+        return;
+      }
+
+      // Get the last case (most recent)
+      const lastCase = cases[cases.length - 1];
+      console.log('🦷 Last case:', lastCase);
+
+      // Parse tooth number from the last case
+      let toothNumber = null;
+      try {
+        if (lastCase.tooth_num) {
+          const parsed = JSON.parse(lastCase.tooth_num);
+          toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
+        }
+      } catch (e) {
+        toothNumber = lastCase.tooth_num;
+      }
+
+      // Convert to number if it's a string
+      const toothNum = parseInt(toothNumber);
+      console.log('🦷 Last case tooth number:', toothNum);
+
+      // Check if tooth number is between 1 and 20 (baby teeth range)
+      if (toothNum >= 1 && toothNum <= 20) {
+        console.log('🦷 Auto-selecting Baby Teeth tab (tooth number in range 1-20)');
+        this.activeTeethTab = 1; // Switch to baby teeth tab
+      } else {
+        console.log('🦷 Auto-selecting Permanent Teeth tab (tooth number > 20)');
+        this.activeTeethTab = 0; // Keep permanent teeth tab
+      }
+    },
         generateBill() {
       this.billDialog = true;
     },
