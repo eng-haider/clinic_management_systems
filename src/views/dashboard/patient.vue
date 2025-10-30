@@ -157,16 +157,49 @@
 
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
               <v-card-text class="text-center">
-                <!-- Context menu and right-click are now handled inside teeth component -->
-                <div class="teeth-container">
-               
-                  <teeth 
-                    :categories="dentalOperations"
-                    :tooth_num="selectedTeethNumbers" 
-                    :id="1"
-                    @case-added="handleCaseAdded"
-                  />
-                </div>
+                <!-- Teeth Type Tabs -->
+                <v-tabs
+                  v-model="activeTeethTab"
+                  centered
+                  color="primary"
+                  class="mb-4"
+                >
+                  <v-tab>
+                    <v-icon left>mdi-tooth</v-icon>
+                    {{ $t('patients.permanent_teeth') }}
+                  </v-tab>
+                  <v-tab>
+                    <v-icon left>mdi-baby-face</v-icon>
+                    {{ $t('patients.baby_teeth') }}
+                  </v-tab>
+                </v-tabs>
+
+                <!-- Tabs Content -->
+                <v-tabs-items v-model="activeTeethTab">
+                  <!-- Permanent Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <teeth 
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="1"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+
+                  <!-- Baby Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <babyTeeth 
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="2"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+                </v-tabs-items>
               </v-card-text>
 
 
@@ -934,6 +967,7 @@
 
 <script>
 import teeth from '@/components/core/teeth.vue';
+import babyTeeth from '@/components/core/babyTeeth.vue';
 import OwnerBooking from './sub_components/ownerBookinfDed.vue';
 import Bill from './sub_components/billsReport.vue';
 import PatientEditDialog from '@/components/PatientEditDialog.vue';
@@ -949,6 +983,7 @@ export default {
   mixins: [LazyLoadingMixin],
   components: {
     teeth,
+    babyTeeth,
     OwnerBooking,
     Bill,
     PatientEditDialog,
@@ -959,6 +994,9 @@ export default {
     return {
       saving: false,
       loadingDoctors: false,
+      
+      // Teeth tab selection
+      activeTeethTab: 0, // 0 for permanent teeth, 1 for baby teeth
       
       // Patient Data (will be loaded from API)
       patient: {
@@ -1622,6 +1660,43 @@ export default {
       }
     },
 
+    // Automatically select teeth tab based on last case's tooth number
+    autoSelectTeethTab(cases) {
+      if (!cases || cases.length === 0) {
+        console.log('🦷 No cases found, keeping default tab (permanent teeth)');
+        this.activeTeethTab = 0; // Default to permanent teeth
+        return;
+      }
+
+      // Get the last case (most recent)
+      const lastCase = cases[cases.length - 1];
+      console.log('🦷 Last case:', lastCase);
+
+      // Parse tooth number from the last case
+      let toothNumber = null;
+      try {
+        if (lastCase.tooth_num) {
+          const parsed = JSON.parse(lastCase.tooth_num);
+          toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
+        }
+      } catch (e) {
+        toothNumber = lastCase.tooth_num;
+      }
+
+      // Convert to number if it's a string
+      const toothNum = parseInt(toothNumber);
+      console.log('🦷 Last case tooth number:', toothNum);
+
+      // Check if tooth number is between 1 and 20 (baby teeth range)
+      if (toothNum >= 1 && toothNum <= 20) {
+        console.log('🦷 Auto-selecting Baby Teeth tab (tooth number in range 1-20)');
+        this.activeTeethTab = 1; // Switch to baby teeth tab
+      } else {
+        console.log('🦷 Auto-selecting Permanent Teeth tab (tooth number > 20)');
+        this.activeTeethTab = 0; // Keep permanent teeth tab
+      }
+    },
+
     // Load patient data from API
     // Override loadInitialData from mixin
     async loadInitialData() {
@@ -1777,6 +1852,9 @@ export default {
         );
         
         this.availableCases = this.formatCasesForSelection(uniqueCases);
+
+        // Automatically select teeth tab based on last case's tooth number
+        this.autoSelectTeethTab(data.cases);
 
         // Load dental operations and doctors with individual error handling
         try {

@@ -259,7 +259,9 @@
 "credit_used":"الرصيد المستخدم",
 "remaining_credit":"الرصيد المتبقي",
 "use_credit_for_this_bill":"استخدام الرصيد لهذه الفاتورة",
-"use_credit":"استخدام الرصيد"
+"use_credit":"استخدام الرصيد",
+"permanent_teeth":"الأسنان الدائمة",
+"baby_teeth":"الأسنان اللبنية"
 },
 "doctors": {
   "title": "دكاتره العيادة",
