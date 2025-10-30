@@ -252,7 +252,9 @@
 "credit_used":"Credit Used",
 "remaining_credit":"Remaining Credit",
 "use_credit_for_this_bill":"Use Credit for This Bill",
-"use_credit":"Use Credit"
+"use_credit":"Use Credit",
+"permanent_teeth":"Permanent Teeth",
+"baby_teeth":"Baby Teeth"
     },
 "doctors": {
   "title": "Clinic Doctors",
