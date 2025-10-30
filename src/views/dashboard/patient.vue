@@ -1080,7 +1080,7 @@ import '@/axios.js';
 import LazyLoadingMixin from '@/mixins/lazyLoadingMixin';
 import vue2Dropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
-
+import babyTeeth from '@/components/core/babyTeeth.vue';
 export default {
   name: 'PatientDetail',
   mixins: [LazyLoadingMixin],
@@ -1089,14 +1089,15 @@ export default {
     OwnerBooking,
     Bill,
     PatientEditDialog,
-    vue2Dropzone
+    vue2Dropzone,
+        babyTeeth,
   },
   
   data() {
     return {
       saving: false,
       loadingDoctors: false,
-      
+        activeTeethTab: 0, 
       // Patient Data (will be loaded from API)
       patient: {
         id: null,
@@ -2015,6 +2016,9 @@ export default {
         
         this.availableCases = this.formatCasesForSelection(uniqueCases);
 
+
+         // Automatically select teeth tab based on last case's tooth number
+        this.autoSelectTeethTab(data.cases);
         // Load dental operations and doctors with individual error handling
         try {
           await this.fetchDentalOperations();
