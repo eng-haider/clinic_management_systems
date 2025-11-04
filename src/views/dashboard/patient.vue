@@ -86,6 +86,7 @@
                 <div class="teeth-container">
                
                   <teeth_v2 
+                    ref="teethComponent"
                     :categories="dentalOperations"
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
@@ -2091,6 +2092,9 @@ export default {
           await this.savePatientNotes();
         }
         
+        // Save tooth colors from teeth_v2 component
+        await this.saveToothColors();
+        
         // Show success message
         this.$swal.fire({
           title: "نجاح",
@@ -2347,6 +2351,33 @@ export default {
     // Handle image removal
     handleImageRemoved(file, error, xhr) {
       console.log('Image removed:', file);
+    },
+    
+    // Save tooth colors from teeth component
+    async saveToothColors() {
+      try {
+        // Use the ref to access the teeth component directly
+        const teethComponent = this.$refs.teethComponent;
+        
+        if (!teethComponent) {
+          console.log('Teeth component ref not found, skipping color save');
+          return;
+        }
+        
+        console.log('Found teeth component:', teethComponent);
+        
+        // Check if the component has the saveColoredParts method
+        if (typeof teethComponent.saveColoredParts === 'function') {
+          console.log('Saving tooth colors from teeth component...');
+          await teethComponent.saveColoredParts();
+          console.log('Tooth colors saved successfully');
+        } else {
+          console.log('saveColoredParts method not found in teeth component');
+        }
+      } catch (error) {
+        console.error('Error saving tooth colors:', error);
+        // Don't throw error to prevent blocking the main save process
+      }
     },
     
     // Format session date

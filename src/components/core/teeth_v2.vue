@@ -1,23 +1,46 @@
 <template>
   <div class="teeth-component">
+
        <div class="teeth-numbers-grid top-teeth">
               <div v-for="(toothNum, index) in topTeethNumbers" :key="'top-' + toothNum" class="tooth-number-item">
-                <div 
-                  class="tooth-number" 
-               :class="{ active: isToothActive(toothNum) }"
-                  :data-tooth-index="index" 
-                  :data-tooth-number="toothNum"
-                >
-                  {{ toothNum }}
-                </div>
+                <v-tooltip bottom :disabled="!getToothCases(toothNum).length">
+                  <template v-slot:activator="{ on, attrs }">
+                    <div 
+                      class="tooth-number" 
+                      :class="{ active: isToothActive(toothNum) }"
+                      :data-tooth-index="index" 
+                      :data-tooth-number="toothNum"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      {{ toothNum }}
+                    </div>
+                  </template>
+                  <div class="tooth-tooltip-content">
+                    <div class="tooltip-header">السن رقم {{ toothNum }}</div>
+                    <div v-for="(caseItem, idx) in getToothCases(toothNum)" :key="idx" class="tooltip-case">
+                      <div class="case-name">
+                        <v-icon small color="white">mdi-medical-bag</v-icon>
+                        {{ getCaseName(caseItem) }}
+                      </div>
+                      <div class="case-status" :class="getCaseStatusClass(caseItem)">
+                        <v-icon small :color="getCaseStatusColor(caseItem)">{{ getCaseStatusIcon(caseItem) }}</v-icon>
+                        {{ getCaseStatus(caseItem) }}
+                      </div>
+                      <div v-if="caseItem.price" class="case-price">
+                        السعر: {{ caseItem.price }} IQD
+                      </div>
+                      <div v-if="caseItem.sessions && caseItem.sessions.length" class="case-sessions">
+                        الجلسات: {{ caseItem.sessions.length }}
+                      </div>
+                    </div>
+                  </div>
+                </v-tooltip>
                 <div class="dotted-line"></div>
               </div>
             </div>
 
     <svg viewBox="0 0 1792 539" @click="handleClick" @contextmenu.prevent="handleContextMenu">
-      <!-- Tooth number labels for upper teeth -->
-
-
       <!-- Render teeth from teeth array -->
       <g
         v-for="tooth in teeth"
@@ -25,90 +48,267 @@
         :id="tooth.id"
         :class="{ active: selectedTooth === tooth.id }"
         :data-tooth-num="tooth.tooth_num"
-        @click.stop="copyToothIdOnClick(tooth.id)"
-        @contextmenu.stop.prevent="handleContextMenu"
       >
         <g 
           v-for="part in tooth.parts" 
-          :key="part.id" 
-          v-html="part.svg"
-          @click.stop="copyToothIdOnClick(tooth.id)"
-        ></g>
+          :key="`${tooth.id}-part-${part.id}`"
+          @click.stop="handleToothPartClick(tooth, part, $event)"
+          @contextmenu.stop.prevent="handleToothPartContextMenu(tooth, $event)"
+          class="tooth-part-group"
+        >
+          <path
+            :d="extractPathData(part.svg)"
+            :fill="getPartColor(tooth.id, part.id)"
+            :stroke="getPartStroke(tooth.id, part.id)"
+            stroke-width="2"
+            class="tooth-part"
+            style="cursor: pointer; transition: all 0.2s ease;"
+          />
+        </g>
       </g>
-
-  
     </svg>
 
     <!-- Context Menu - Outside SVG for better z-index control -->
     <div 
       v-if="contextMenu.visible"
-      class="context-menu-wrapper"
+      class="tooth-context-menu"
       :style="{
         left: contextMenu.x + 'px',
         top: contextMenu.y + 'px'
       }"
       @click.stop
     >
-      <div class="context-menu">
-        <div class="context-menu-header">
-          <span>Select Category</span>
-          <button @click="hideContextMenu" class="close-btn">&times;</button>
+      <!-- Menu Header -->
+      <div class="menu-header">
+        <div class="tooth-info">
+          <v-icon color="primary" size="20">mdi-tooth</v-icon>
+          <span>السن رقم {{ contextMenu.toothNum }}</span>
         </div>
-        
-        <!-- Search Box -->
-        <div class="search-container">
-          <i class="mdi mdi-magnify search-icon"></i>
-          <input 
-            type="text" 
-            v-model="categorySearchTerm"
-            placeholder="Search categories..."
-            class="category-search-input"
-            @input="filterCategories"
-          />
-        </div>
-        
-        <div class="context-menu-items">
-          <div v-if="!filteredCaseCategories || filteredCaseCategories.length === 0" class="no-categories">
-            No categories found
-          </div>
-          <template v-else>
-            <div
-              v-for="(category, index) in filteredCaseCategories"
-              :key="`category-${index}`"
-              class="menu-item category-item"
-              @click="selectCaseCategory(category)"
-            >
-              <div class="category-content">
-                <span class="category-name">{{ category }}</span>
-              </div>
-              <i class="mdi mdi-chevron-right arrow-icon"></i>
-            </div>
-            <div class="menu-item remove-category" @click="removeCategory()">
-              <div class="category-content">
-                <i class="mdi mdi-delete category-icon"></i>
-                <span class="category-name">Remove Category</span>
-              </div>
-            </div>
+        <v-btn icon x-small @click="hideContextMenu" class="close-btn">
+          <v-icon size="18">mdi-close</v-icon>
+        </v-btn>
+      </div>
+      
+      <!-- Search Section -->
+      <div class="search-section">
+        <v-autocomplete
+          v-model="selectedCategory"
+          :items="filteredCaseCategories"
+          :search-input.sync="categorySearchTerm"
+          label="ابحث عن فئة العملية"
+          prepend-inner-icon="mdi-magnify"
+          dense
+          outlined
+          hide-details
+          class="category-search"
+          item-text="name"
+          item-value="id"
+          return-object
+        >
+          <template v-slot:no-data>
+            <div class="px-4 py-2">لا توجد نتائج</div>
           </template>
+        </v-autocomplete>
+      </div>
+      
+      <!-- Quick Categories -->
+      <div class="quick-categories" v-if="quickCategories.length > 0">
+        <div class="section-title">
+          <v-icon size="16" class="ml-1">mdi-format-list-bulleted</v-icon>
+          فئات العمليات المتاحة
+        </div>
+        <div class="categories-grid">
+          <v-chip
+            v-for="(category, index) in quickCategories"
+            :key="`quick-${index}`"
+            outlined
+            color="primary"
+            class="category-chip"
+            @click="selectCaseCategory(category)"
+          >
+            <v-icon left size="14">mdi-medical-bag</v-icon>
+            {{ getCategoryName(category) }}
+          </v-chip>
         </div>
       </div>
+      
+      <!-- Loading State -->
+      <div v-else-if="categoriesLoading" class="quick-categories">
+        <div class="text-center py-3">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="24"
+          ></v-progress-circular>
+          <div class="mt-2 text-caption grey--text">جاري تحميل الفئات...</div>
+        </div>
+      </div>
+      
+      <!-- No Categories Message -->
+      <div v-else class="quick-categories">
+        <div class="text-center py-3 grey--text text-caption">
+          <v-icon color="grey">mdi-information</v-icon>
+          <div>لا توجد فئات متاحة</div>
+        </div>
+      </div>
+      
+      <!-- Current Selection Display (if category exists) -->
+      <div class="current-selection" v-if="getCurrentToothCategory()">
+        <div class="section-title">
+          <v-icon size="16" class="ml-1">mdi-check-circle</v-icon>
+          الفئة الحالية
+        </div>
+        <v-chip
+          color="success"
+          text-color="white"
+          class="current-chip"
+        >
+          {{ getCategoryName(getCurrentToothCategory()) }}
+        </v-chip>
+      </div>
+      
+      <!-- Add New Category Section (Inline) -->
+      <div v-if="showAddCategoryForm" class="add-category-section">
+        <div class="section-title">
+          <v-icon class="ml-1" size="16">mdi-plus</v-icon>
+          إضافة فئة جديدة
+        </div>
+        <v-form ref="inlineCategoryForm" v-model="categoryFormValid" class="pa-3">
+          <v-text-field
+            v-model="newCategory.name_ar"
+            label="اسم الفئة"
+            dense
+            outlined
+            autofocus
+            :rules="[v => !!v || 'هذا الحقل مطلوب']"
+            prepend-inner-icon="mdi-medical-bag"
+            class="mb-3"
+            style="direction: rtl; text-align: right;"
+          ></v-text-field>
+          
+          <div class="d-flex gap-2">
+            <v-btn
+              small
+              class="flex-grow-1"
+              color="primary"
+              :disabled="!categoryFormValid || categorySubmitting"
+              :loading="categorySubmitting"
+              @click="submitNewCategory"
+            >
+              <v-icon left size="14">mdi-check</v-icon>
+              إضافة الفئة
+            </v-btn>
+            
+            <v-btn
+              small
+              text
+              class="flex-grow-1 grey--text"
+              @click="closeAddCategoryForm"
+            >
+              <v-icon left size="14">mdi-close</v-icon>
+              إلغاء
+            </v-btn>
+          </div>
+        </v-form>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div v-if="!showAddCategoryForm" class="action-buttons">
+        <v-btn
+          text
+          block
+          x-small
+          color="success"
+          class="add-category-btn"
+          @click="toggleAddCategoryForm"
+        >
+          <v-icon left size="16">mdi-plus</v-icon>
+          إضافة فئة جديدة
+        </v-btn>
+        <v-btn
+          text
+          block
+          x-small
+          color="primary"
+          class="refresh-btn"
+          @click="refreshCategories"
+        >
+          <v-icon left size="16">mdi-refresh</v-icon>
+          تحديث
+        </v-btn>
+      </div>
+      
+      <!-- Remove Category Button (if category exists) -->
+      <div class="remove-section" v-if="getCurrentToothCategory()">
+        <v-btn
+          text
+          block
+          small
+          color="error"
+          @click="removeCategory()"
+        >
+          <v-icon left>mdi-delete</v-icon>
+          إزالة الفئة
+        </v-btn>
+      </div>
     </div>
-
 
       <!-- Bottom teeth numbers with dotted lines -->
             <div class="teeth-numbers-grid bottom-teeth">
               <div v-for="(toothNum, index) in bottomTeethNumbers" :key="'bottom-' + toothNum" class="tooth-number-item">
                 <div class="dotted-line"></div>
-                <div 
-                  class="tooth-number" 
-                  :class="{ active: isToothActive(toothNum) }"
-                  :data-tooth-index="index" 
-                  :data-tooth-number="toothNum"
-                >
-                  {{ toothNum }}
-                </div>
+                <v-tooltip top :disabled="!getToothCases(toothNum).length">
+                  <template v-slot:activator="{ on, attrs }">
+                    <div 
+                      class="tooth-number" 
+                      :class="{ active: isToothActive(toothNum) }"
+                      :data-tooth-index="index" 
+                      :data-tooth-number="toothNum"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      {{ toothNum }}
+                    </div>
+                  </template>
+                  <div class="tooth-tooltip-content">
+                    <div class="tooltip-header">السن رقم {{ toothNum }}</div>
+                    <div v-for="(caseItem, idx) in getToothCases(toothNum)" :key="idx" class="tooltip-case">
+                      <div class="case-name">
+                        <v-icon small color="white">mdi-medical-bag</v-icon>
+                        {{ getCaseName(caseItem) }}
+                      </div>
+                      <div class="case-status" :class="getCaseStatusClass(caseItem)">
+                        <v-icon small :color="getCaseStatusColor(caseItem)">{{ getCaseStatusIcon(caseItem) }}</v-icon>
+                        {{ getCaseStatus(caseItem) }}
+                      </div>
+                      <div v-if="caseItem.price" class="case-price">
+                        السعر: {{ caseItem.price }} IQD
+                      </div>
+                      <div v-if="caseItem.sessions && caseItem.sessions.length" class="case-sessions">
+                        الجلسات: {{ caseItem.sessions.length }}
+                      </div>
+                    </div>
+                  </div>
+                </v-tooltip>
               </div>
             </div>
+
+    <!-- Color Picker Row at Bottom -->
+    <div class="color-picker-bottom">
+      <div class="color-circles">
+        <div
+          v-for="color in availableColors"
+          :key="color.value"
+          class="color-circle"
+          :class="{ active: selectedColor === color.value }"
+          :style="{ backgroundColor: color.value }"
+          @click="selectedColor = color.value"
+          :title="color.name"
+        ></div>
+      </div>
+     
+    </div>
+
     <!-- Toast notification for copy feedback -->
     <transition name="toast">
       <div v-if="showToast" class="toast-notification">
@@ -120,6 +320,26 @@
 
 <script>
 export default {
+  props: {
+    categories: {
+      type: Array,
+      default: () => [
+        'Crown',
+        'Bridge',
+        'Implant',
+        'Root Canal',
+        'Extraction',
+        'Filling',
+        'Cleaning',
+        'Whitening'
+      ]
+    },
+    patientCases: {
+      type: Array,
+      default: () => []
+    }
+  },
+  
   data() {
     return {
       selectedTooth: null,
@@ -133,19 +353,34 @@ export default {
         partId: null,
         toothNum: null
       },
-      caseCategories: [
-        'Crown',
-        'Bridge',
-        'Implant',
-        'Root Canal',
-        'Extraction',
-        'Filling',
-        'Cleaning',
-        'Whitening'
-      ],
       categorySearchTerm: '',
       selectedCases: [], // Array to store selected tooth cases: { toothNum, category }
       toothCategories: new Map(), // Initialize as Map
+      selectedCategory: null,
+      quickCategories: [],
+      categoriesLoading: false,
+      showAddCategoryForm: false,
+      addCategoryDialog: false,
+      categoryFormValid: false,
+      categorySubmitting: false,
+      newCategory: {
+        name_ar: '',
+        name_en: '',
+        name_ku: '',
+        description: '',
+        price: null
+      },
+      // Color selection for tooth parts
+      selectedColor: '#FF5252', // Default red color
+      availableColors: [
+        { name: 'أحمر', value: '#FF5252', icon: 'mdi-circle' },
+        { name: 'أزرق', value: '#2196F3', icon: 'mdi-circle' },
+        { name: 'أخضر', value: '#4CAF50', icon: 'mdi-circle' },
+        { name: 'أصفر', value: '#FFEB3B', icon: 'mdi-circle' }
+      ],
+      coloredParts: [], // Array of { toothId, toothNum, partId, color }
+      showColorPicker: true,
+      savingColors: false,
      teeth: [
         { id: "tooth-1",  parts: [ { id: 1, svg: `<path d="M 494.5,-0.5 C 495.167,-0.5 495.833,-0.5 496.5,-0.5C 481.665,52.1739 474.331,105.841 474.5,160.5C 493.86,149.524 512.86,150.191 531.5,162.5C 531.83,134.296 529.33,106.296 524,78.5C 516.722,51.8366 508.556,25.5033 499.5,-0.5C 500.167,-0.5 500.833,-0.5 501.5,-0.5C 501.628,1.08979 502.295,2.42312 503.5,3.5C 504.874,2.2887 506.374,1.2887 508,0.5C 508.772,0.644803 509.439,0.978136 510,1.5C 512.742,6.51257 514.742,11.8459 516,17.5C 520.342,45.3073 525.008,72.974 530,100.5C 532.509,122.456 534.509,144.456 536,166.5C 541.166,171.335 545.166,177.001 548,183.5C 555.249,206.339 550.083,225.839 532.5,242C 506.611,258.451 483.111,255.617 462,233.5C 445.417,207.299 448.417,183.632 471,162.5C 471.897,107.124 479.73,52.7906 494.5,-0.5 Z" fill="#1e1e1e" style="opacity:1"/>` } ] },
         { id: "tooth-2", tooth_num: 14, parts: [ { id: 1, svg: `<path class="" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z" fill="#fcfcfc" style="opacity: 1;"/>` } ] },
@@ -423,13 +658,31 @@ export default {
 
   computed: {
     filteredCaseCategories() {
+      // Use quickCategories (loaded from API) if available, otherwise fall back to props
+      const categoriesList = this.quickCategories.length > 0 ? this.quickCategories : this.categories;
+      
       if (!this.categorySearchTerm) {
-        return this.caseCategories;
+        return categoriesList;
       }
       const searchTerm = this.categorySearchTerm.toLowerCase();
-      return this.caseCategories.filter(category => 
-        category.toLowerCase().includes(searchTerm)
-      );
+      return categoriesList.filter(category => {
+        // Handle both string categories and object categories with name property
+        const categoryName = typeof category === 'string' ? category : (category.name || category.name_ar || category.name_en);
+        return categoryName.toLowerCase().includes(searchTerm);
+      });
+    }
+  },
+
+  watch: {
+    patientCases: {
+      handler(newCases) {
+        if (newCases && newCases.length > 0) {
+          console.log('Patient cases updated:', newCases.length);
+          this.$forceUpdate(); // Force re-render to show active teeth
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
 
@@ -489,11 +742,20 @@ export default {
     },
 
     /**
+     * Helper: Get tooth number mapping (if any alternative numbering systems exist)
+     */
+    getToothNumbersMapping() {
+      // For now, just return empty array
+      // You can add alternative numbering systems here if needed (e.g., FDI vs Universal)
+      return [];
+    },
+
+    /**
      * Helper: Parse tooth numbers from various formats
      */
     parseToothNumbers(toothNumString) {
       try {
-        // Try JSON parse first (e.g., "[42]")
+        // Try JSON parse first (e.g., "[42]" or "[22]")
         const parsed = JSON.parse(toothNumString);
         return Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
@@ -536,13 +798,23 @@ export default {
         category: category
       });
       
+      // Emit to parent component with correct format for case table
+      this.$emit('case-added', {
+        toothNumber: toothNum,
+        operation: category
+      });
+      
+      // Show success message
+      const categoryName = this.getCategoryName(category);
+      this.$toast?.success(`تم إضافة "${categoryName}" للسن ${toothNum}`);
+      
       // Clean up and emit
       this.hideContextMenu();
       this.emitCaseSelection();
       
-      console.log('Category assigned:', {
+      console.log('Category assigned and case added:', {
         tooth: toothNum,
-        category: category,
+        category: categoryName,
         totalCases: this.selectedCases.length
       });
       
@@ -683,6 +955,167 @@ export default {
       }
 
       document.body.removeChild(textArea);
+    },
+
+    /**
+     * Handle clicking on a tooth part to color it
+     */
+    handleToothPartClick(tooth, part, event) {
+      event.stopPropagation();
+      
+      const toothId = tooth.id;
+      const partId = part.id;
+      const toothNum = tooth.tooth_num;
+      
+      // Check if this part is already colored
+      const existingIndex = this.coloredParts.findIndex(
+        p => p.toothId === toothId && p.partId === partId
+      );
+      
+      if (existingIndex !== -1) {
+        // If already colored, remove it (toggle off)
+        this.coloredParts.splice(existingIndex, 1);
+        console.log('Removed color from part:', { toothId, partId, toothNum });
+      } else {
+        // Add new colored part
+        this.coloredParts.push({
+          toothId,
+          toothNum,
+          partId,
+          color: this.selectedColor
+        });
+        console.log('Colored part:', { toothId, partId, toothNum, color: this.selectedColor });
+      }
+      
+      // Force reactivity
+      this.$forceUpdate();
+    },
+
+    /**
+     * Handle right-click on a tooth part to show context menu
+     */
+    handleToothPartContextMenu(tooth, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const toothNum = tooth.tooth_num;
+      
+      console.log('Right-click on tooth part:', toothNum);
+      
+      // Show context menu
+      this.contextMenu = {
+        visible: true,
+        x: event.clientX,
+        y: event.clientY,
+        toothNum: toothNum,
+        toothId: tooth.id
+      };
+    },
+
+    /**
+     * Get the color for a specific tooth part
+     */
+    getPartColor(toothId, partId) {
+      const coloredPart = this.coloredParts.find(
+        p => p.toothId === toothId && p.partId === partId
+      );
+      return coloredPart ? coloredPart.color : 'transparent';
+    },
+
+    /**
+     * Get the stroke color for a specific tooth part
+     */
+    getPartStroke(toothId, partId) {
+      const coloredPart = this.coloredParts.find(
+        p => p.toothId === toothId && p.partId === partId
+      );
+      return coloredPart ? coloredPart.color : '#1e1e1e';
+    },
+
+    /**
+     * Extract path data from SVG string
+     */
+    extractPathData(svgString) {
+      const match = svgString.match(/d="([^"]+)"/);
+      return match ? match[1] : '';
+    },
+
+    /**
+     * Save colored parts to API
+     */
+    async saveColoredParts() {
+      if (!this.coloredParts.length) {
+        console.log('No colored parts to save');
+        return;
+      }
+
+      this.savingColors = true;
+
+      try {
+        const apiRequest = require('@/axios').default;
+        const patientId = this.$route?.params?.id;
+        
+        if (!patientId) {
+          console.error('Patient ID not found');
+          this.$toast?.error('معرف المريض غير موجود');
+          this.savingColors = false;
+          return;
+        }
+        
+        // Prepare the data array with tooth number, id, and color
+        const toothPartsData = this.coloredParts.map(part => ({
+          tooth_number: part.toothNum,
+          tooth_id: part.toothId,
+          part_id: part.partId,
+          color: part.color
+        }));
+        
+        // Store tooth parts as JSON string in notes field
+        const requestData = {
+          notes: JSON.stringify({
+            tooth_parts: toothPartsData
+          })
+        };
+
+        console.log('Saving tooth parts to API:', {
+          patientId,
+          data: requestData,
+          parsedData: toothPartsData
+        });
+
+        const response = await apiRequest.patch(
+          `https://smartclinicv5.tctate.com/api/patients/${patientId}/notes`,
+          requestData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + (this.$store?.state?.AdminInfo?.token || '')
+            }
+          }
+        );
+
+        if (response.data) {
+          this.$toast?.success('تم حفظ الألوان بنجاح');
+          console.log('Tooth parts saved successfully:', response.data);
+        }
+      } catch (error) {
+        console.error('Error saving colored parts:', error);
+        this.$toast?.error(error.response?.data?.message || 'فشل في حفظ الألوان');
+      } finally {
+        this.savingColors = false;
+      }
+    },
+
+    /**
+     * Clear all colored parts
+     */
+    clearAllColors() {
+      if (confirm('هل أنت متأكد من مسح جميع الألوان؟')) {
+        this.coloredParts = [];
+        this.$forceUpdate();
+        this.$toast?.success('تم مسح جميع الألوان');
+      }
     },
 
     /**
@@ -873,6 +1306,106 @@ export default {
     },
 
     /**
+     * Get all cases for a specific tooth number
+     */
+    getToothCases(toothNumber) {
+      if (!this.patientCases || !this.patientCases.length) {
+        return [];
+      }
+      
+      return this.patientCases.filter(caseItem => {
+        return this.isToothInCase(caseItem, toothNumber);
+      });
+    },
+
+    /**
+     * Get case name from case item
+     */
+    getCaseName(caseItem) {
+      // Try to get name from case_categories object
+      if (caseItem.case_categories) {
+        return caseItem.case_categories.name_ar || 
+               caseItem.case_categories.name_en || 
+               caseItem.case_categories.name || 
+               'غير محدد';
+      }
+      
+      // Fallback to case_type field
+      if (caseItem.case_type) {
+        return caseItem.case_type;
+      }
+      
+      return 'غير محدد';
+    },
+
+    /**
+     * Get case status text
+     */
+    getCaseStatus(caseItem) {
+      // Check completed field
+      if (caseItem.completed === true || caseItem.completed === 1) {
+        return 'مكتمل';
+      }
+      
+      // Check status_id field (42 = not completed)
+      if (caseItem.status_id === 42) {
+        return 'قيد المعالجة';
+      }
+      
+      // Check if there are sessions
+      if (caseItem.sessions && caseItem.sessions.length > 0) {
+        return 'قيد المعالجة';
+      }
+      
+      return 'جديد';
+    },
+
+    /**
+     * Get case status icon
+     */
+    getCaseStatusIcon(caseItem) {
+      if (caseItem.completed === true || caseItem.completed === 1) {
+        return 'mdi-check-circle';
+      }
+      
+      if (caseItem.status_id === 42 || (caseItem.sessions && caseItem.sessions.length > 0)) {
+        return 'mdi-clock-outline';
+      }
+      
+      return 'mdi-new-box';
+    },
+
+    /**
+     * Get case status color
+     */
+    getCaseStatusColor(caseItem) {
+      if (caseItem.completed === true || caseItem.completed === 1) {
+        return '#4CAF50'; // Green for completed
+      }
+      
+      if (caseItem.status_id === 42 || (caseItem.sessions && caseItem.sessions.length > 0)) {
+        return '#FF9800'; // Orange for in progress
+      }
+      
+      return '#2196F3'; // Blue for new
+    },
+
+    /**
+     * Get case status CSS class
+     */
+    getCaseStatusClass(caseItem) {
+      if (caseItem.completed === true || caseItem.completed === 1) {
+        return 'status-completed';
+      }
+      
+      if (caseItem.status_id === 42 || (caseItem.sessions && caseItem.sessions.length > 0)) {
+        return 'status-in-progress';
+      }
+      
+      return 'status-new';
+    },
+
+    /**
      * Hide context menu
      */
     hideContextMenu() {
@@ -880,8 +1413,223 @@ export default {
       this.contextMenu.toothId = null;
       this.contextMenu.partId = null;
       this.contextMenu.toothNum = null;
+    },
+
+    /**
+     * Get category name (handles both string and object formats)
+     */
+    getCategoryName(category) {
+      if (!category) return '';
+      if (typeof category === 'string') return category;
+      return category.name_ar || category.name || category.name_en || category.name_ku || '';
+    },
+
+    /**
+     * Get current tooth category
+     */
+    getCurrentToothCategory() {
+      if (!this.contextMenu.toothNum) return null;
+      const caseEntry = this.selectedCases.find(
+        c => String(c.toothNum) === String(this.contextMenu.toothNum)
+      );
+      return caseEntry ? caseEntry.category : null;
+    },
+
+    /**
+     * Show add category dialog
+     */
+    showAddCategoryDialog() {
+      this.addCategoryDialog = true;
+      this.resetCategoryForm();
+    },
+    
+    /**
+     * Toggle inline add category form
+     */
+    toggleAddCategoryForm() {
+      this.showAddCategoryForm = !this.showAddCategoryForm;
+      if (!this.showAddCategoryForm) {
+        this.resetCategoryForm();
+      }
+    },
+    
+    /**
+     * Close inline add category form
+     */
+    closeAddCategoryForm() {
+      this.showAddCategoryForm = false;
+      this.resetCategoryForm();
+    },
+
+    /**
+     * Close add category dialog
+     */
+    closeAddCategoryDialog() {
+      this.addCategoryDialog = false;
+      this.resetCategoryForm();
+    },
+
+    /**
+     * Reset category form
+     */
+    resetCategoryForm() {
+      this.newCategory = {
+        name_ar: '',
+        name_en: '',
+        name_ku: '',
+        description: '',
+        price: null
+      };
+      if (this.$refs.categoryForm) {
+        this.$refs.categoryForm.resetValidation();
+      }
+      if (this.$refs.inlineCategoryForm) {
+        this.$refs.inlineCategoryForm.resetValidation();
+      }
+    },
+
+    /**
+     * Submit new category via API
+     */
+    async submitNewCategory() {
+      // Validate the correct form (inline or dialog)
+      const formRef = this.showAddCategoryForm ? this.$refs.inlineCategoryForm : this.$refs.categoryForm;
+      if (!formRef || !formRef.validate()) {
+        return;
+      }
+
+      this.categorySubmitting = true;
+
+      try {
+        // Import axios if not already imported
+        const apiRequest = require('@/axios').default;
+        
+        const categoryData = {
+          name_ar: this.newCategory.name_ar,
+          name_en: this.newCategory.name_en || this.newCategory.name_ar,
+          name_ku: this.newCategory.name_ku || this.newCategory.name_ar,
+          description: this.newCategory.description || '',
+          price: this.newCategory.price || 0
+        };
+
+        const response = await apiRequest.post('case-categories', categoryData, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + (this.$store?.state?.AdminInfo?.token || '')
+          }
+        });
+
+        if (response.data) {
+          // Success
+          this.$emit('category-added', response.data);
+          
+          // Refresh categories list
+          await this.refreshCategories();
+          
+          // Close both dialog and inline form
+          this.closeAddCategoryDialog();
+          this.closeAddCategoryForm();
+          
+          // Show success message
+          if (this.$toast || this.$snotify) {
+            const message = 'تم إضافة الفئة بنجاح';
+            if (this.$toast) {
+              this.$toast.success(message);
+            } else if (this.$snotify) {
+              this.$snotify.success(message);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error adding category:', error);
+        
+        const errorMessage = error.response?.data?.message || 'فشل في إضافة الفئة';
+        
+        if (this.$toast || this.$snotify) {
+          if (this.$toast) {
+            this.$toast.error(errorMessage);
+          } else if (this.$snotify) {
+            this.$snotify.error(errorMessage);
+          }
+        } else {
+          alert(errorMessage);
+        }
+      } finally {
+        this.categorySubmitting = false;
+      }
+    },
+
+    /**
+     * Refresh categories list
+     */
+    async refreshCategories() {
+      this.categoriesLoading = true;
+      try {
+        const apiRequest = require('@/axios').default;
+        
+        const response = await apiRequest.get('case-categories', {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: "Bearer " + (this.$store?.state?.AdminInfo?.token || '')
+          }
+        });
+
+        if (response.data) {
+          // Update categories - emit to parent or update locally
+          this.$emit('categories-refreshed', response.data);
+          
+          // Handle different response structures
+          let categoriesData = response.data;
+          
+          // Check if data is wrapped in a 'data' property
+          if (response.data.data && Array.isArray(response.data.data)) {
+            categoriesData = response.data.data;
+          } else if (!Array.isArray(response.data)) {
+            categoriesData = [];
+          }
+          
+          // Update quick categories - show all categories
+          this.quickCategories = categoriesData;
+          
+          console.log('Categories loaded:', this.quickCategories.length);
+        }
+      } catch (error) {
+        console.error('Error refreshing categories:', error);
+        this.$toast?.error('فشل في تحميل الفئات');
+      } finally {
+        this.categoriesLoading = false;
+      }
     }
   },
+  
+  /**
+   * Lifecycle hook - load categories on component mount
+   */
+  mounted() {
+    // Load categories when component is mounted
+    this.refreshCategories();
+    
+    // Log patient cases for debugging
+    if (this.patientCases && this.patientCases.length > 0) {
+      console.log('Patient cases loaded:', this.patientCases.length);
+      console.log('Cases data:', this.patientCases);
+      
+      // Log which teeth should be active
+      const activeTeeth = [];
+      this.patientCases.forEach(caseItem => {
+        if (caseItem.tooth_num) {
+          const toothNumbers = this.parseToothNumbers(caseItem.tooth_num);
+          activeTeeth.push(...toothNumbers);
+        }
+        if (caseItem.tooth_number) {
+          activeTeeth.push(parseInt(caseItem.tooth_number));
+        }
+      });
+      console.log('Active teeth from cases:', [...new Set(activeTeeth)]);
+    }
+  }
 };
 
 
@@ -889,14 +1637,246 @@ export default {
 <style scoped>
 /* ...existing styles... */
 
-/* Context Menu Wrapper - Absolute positioning */
+/* Tooth Context Menu - Modern Design */
+.tooth-context-menu {
+  position: fixed;
+  z-index: 1000;
+  display: block;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  max-height: 500px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Menu Header */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+}
+
+.tooth-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.close-btn {
+  background: rgba(25, 118, 210, 0.1) !important;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(25, 118, 210, 0.2) !important;
+  transform: scale(1.1);
+}
+
+/* Search Section */
+.search-section {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.category-search >>> .v-input__slot {
+  background: white !important;
+}
+
+/* Quick Categories */
+.quick-categories {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.categories-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-chip {
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+  font-size: 13px !important;
+}
+
+.category-chip:hover {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+}
+
+/* Current Selection */
+.current-selection {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f5f5f5;
+}
+
+.current-chip {
+  width: 100%;
+  justify-content: center;
+  height: 36px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.add-category-btn,
+.refresh-btn {
+  justify-content: flex-start !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+}
+
+.add-category-btn:hover {
+  background: rgba(76, 175, 80, 0.08) !important;
+}
+
+.refresh-btn:hover {
+  background: rgba(33, 150, 243, 0.08) !important;
+}
+
+/* Remove Section */
+.remove-section {
+  padding: 12px;
+}
+
+.remove-section .v-btn {
+  text-transform: none !important;
+}
+
+/* Add Category Section (Inline Form) */
+.add-category-section {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f9f9f9;
+}
+
+.add-category-section .section-title {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4caf50;
+  margin-bottom: 10px;
+}
+
+.add-category-section .v-form {
+  background: white;
+  border-radius: 8px;
+  padding: 12px !important;
+}
+
+.add-category-section .v-text-field {
+  margin-bottom: 8px;
+}
+
+.add-category-section .gap-2 {
+  gap: 8px;
+}
+
+.add-category-section .flex-grow-1 {
+  flex: 1;
+}
+
+/* Color Picker Bottom Row */
+.color-picker-bottom {
+    background: #f5f5f5;
+    border-radius: 30px;
+    padding: 8px 16px;
+    display: flex
+;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    direction: ltr;
+    width: -moz-fit-content;
+    width: auto;
+    float: left;
+    display: block;
+    position: relative;
+    top: 22px;
+    z-index: 78;
+
+}
+
+.color-circles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.color-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.color-circle.active {
+  border-color: #333;
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Tooth Part Styling */
+.tooth-part {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tooth-part:hover {
+  filter: brightness(1.2);
+  stroke-width: 3;
+}
+
+.tooth-part-group {
+  cursor: pointer;
+}
+
+/* Context Menu Wrapper - Legacy Support */
 .context-menu-wrapper {
   position: fixed;
   z-index: 99999;
   pointer-events: auto;
 }
 
-/* Context Menu Styles */
+/* Context Menu Styles - Legacy */
 .context-menu {
   background: white;
   border-radius: 12px;
@@ -1119,6 +2099,84 @@ export default {
   transform: translateY(20px);
 }
 
+/* Tooth Tooltip Styles */
+.tooth-tooltip-content {
+  direction: rtl;
+  text-align: right;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.tooltip-header {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.tooltip-case {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.tooltip-case:last-child {
+  margin-bottom: 0;
+}
+
+.case-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.case-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.status-completed {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.status-in-progress {
+  background: rgba(255, 152, 0, 0.2);
+  color: #FF9800;
+}
+
+.status-new {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+}
+
+.case-price {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4px;
+  padding-right: 24px;
+}
+
+.case-sessions {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 2px;
+  padding-right: 24px;
+}
+
 /* Tooth numbers grid system */
 .teeth-numbers-grid {
   display: grid;
@@ -1171,6 +2229,12 @@ export default {
   color: #1976D2;
   font-weight: 700;
   box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+  cursor: help; /* Show help cursor on hover for teeth with cases */
+}
+
+.tooth-number.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
 }
 
 .dotted-line {
