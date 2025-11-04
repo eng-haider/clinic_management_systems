@@ -348,7 +348,7 @@
                     }
                     
                     this.axios
-                        .post("https://smartclinicv5.tctate.com/api/users/adddoctors", data, {
+                        .post("https://titaniumapi.tctate.com/api/users/adddoctors", data, {
                             headers: {
                                 "Content-Type": "application/json",
                                 Accept: "application/json",
@@ -538,7 +538,7 @@
 
             initialize() {
                 this.loading = true;
-                Axios.get("https://smartclinicv5.tctate.com/api/doctors/clinicDoctorInfo", {
+                Axios.get("https://titaniumapi.tctate.com/api/doctors/clinicDoctorInfo", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

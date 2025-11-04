@@ -1328,7 +1328,7 @@ export default {
 
     dropzoneOptions() {
       return {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        url: "https://titaniumapi.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -2560,7 +2560,7 @@ export default {
               } else {
                 // If it's an existing bill, call the DELETE API
                 const billId = bill.server_id || bill.id;
-                await this.$http.delete(`https://smartclinicv5.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
+                await this.$http.delete(`https://titaniumapi.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -2693,7 +2693,7 @@ export default {
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://titaniumapi.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2734,7 +2734,7 @@ export default {
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://titaniumapi.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2765,7 +2765,7 @@ export default {
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://smartclinicv5.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://titaniumapi.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2809,7 +2809,7 @@ export default {
             use_credit: anyBillUsesCredit
           };
           
-          const response = await this.$http.post(`https://smartclinicv5.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://titaniumapi.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2857,7 +2857,7 @@ export default {
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://smartclinicv5.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://titaniumapi.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2991,7 +2991,7 @@ export default {
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://smartclinicv5.tctate.com/case_photo/${imageName}`;
+      return `https://titaniumapi.tctate.com/case_photo/${imageName}`;
     },
 
     // Refresh available cases to update disabled state

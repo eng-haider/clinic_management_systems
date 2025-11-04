@@ -1367,7 +1367,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build search API URL with filters
-                let searchUrl = `https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let searchUrl = `https://titaniumapi.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     searchUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
