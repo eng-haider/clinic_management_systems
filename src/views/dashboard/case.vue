@@ -538,7 +538,7 @@
 <script>
     import vue2Dropzone from 'vue2-dropzone'
     import 'vue2-dropzone/dist/vue2Dropzone.min.css'
-    import teeth from '../../components/core/teeth.vue';
+    import teeth from '../../components/core/teeth_v2.vue';
     import {
         EventBus
     } from "./event-bus.js";
