@@ -337,6 +337,10 @@ export default {
     patientCases: {
       type: Array,
       default: () => []
+    },
+    patientData: {
+      type: Object,
+      default: () => null
     }
   },
   
@@ -679,6 +683,16 @@ export default {
         if (newCases && newCases.length > 0) {
           console.log('Patient cases updated:', newCases.length);
           this.$forceUpdate(); // Force re-render to show active teeth
+        }
+      },
+      deep: true,
+      immediate: true
+    },
+    patientData: {
+      handler(newVal) {
+        if (newVal && newVal.tooth_parts) {
+          console.log('🦷 Patient data updated, loading colored parts');
+          this.loadColoredParts();
         }
       },
       deep: true,
@@ -1043,7 +1057,7 @@ export default {
     /**
      * Save colored parts to API
      */
-    async saveColoredParts() {
+    async saveColoredParts(notes = null) {
       if (!this.coloredParts.length) {
         console.log('No colored parts to save');
         return;
@@ -1053,10 +1067,26 @@ export default {
 
       try {
         const apiRequest = require('@/axios').default;
-        const patientId = this.$route?.params?.id;
+        
+        // Get patient ID from route or parent
+        let patientId = this.$route?.params?.id;
+        
+        // If not in route, try to get from parent component
+        if (!patientId && this.$parent && this.$parent.patient) {
+          patientId = this.$parent.patient.id;
+        }
+        
+        // If still not found, try from store
+        if (!patientId && this.$store?.state?.currentPatientId) {
+          patientId = this.$store.state.currentPatientId;
+        }
+        
+        console.log('Patient ID:', patientId);
+        console.log('Route params:', this.$route?.params);
+        console.log('Parent patient:', this.$parent?.patient);
         
         if (!patientId) {
-          console.error('Patient ID not found');
+          console.error('Patient ID not found in route, parent, or store');
           this.$toast?.error('معرف المريض غير موجود');
           this.savingColors = false;
           return;
@@ -1070,17 +1100,21 @@ export default {
           color: part.color
         }));
         
-        // Store tooth parts as JSON string in notes field
+        // Send both notes and tooth_parts as separate parameters
         const requestData = {
-          notes: JSON.stringify({
-            tooth_parts: toothPartsData
-          })
+          tooth_parts: JSON.stringify(toothPartsData)
         };
+        
+        // Add notes if provided
+        if (notes !== null) {
+          requestData.notes = notes;
+        }
 
-        console.log('Saving tooth parts to API:', {
-          patientId,
-          data: requestData,
-          parsedData: toothPartsData
+        console.log('Saving to API:', {
+          patientId: patientId,
+          url: `https://smartclinicv5.tctate.com/api/patients/${patientId}/notes`,
+          requestData: requestData,
+          toothPartsArray: toothPartsData
         });
 
         const response = await apiRequest.patch(
@@ -1101,9 +1135,75 @@ export default {
         }
       } catch (error) {
         console.error('Error saving colored parts:', error);
+        console.error('Error response:', error.response?.data);
         this.$toast?.error(error.response?.data?.message || 'فشل في حفظ الألوان');
       } finally {
         this.savingColors = false;
+      }
+    },
+
+    /**
+     * Load colored parts from patient data
+     */
+    loadColoredParts() {
+      try {
+        // Check if patient data exists and has tooth_parts
+        if (!this.patientData || !this.patientData.tooth_parts) {
+          console.log('🦷 No tooth_parts data to load');
+          return;
+        }
+
+        console.log('🦷 Loading tooth_parts from patient data:', this.patientData.tooth_parts);
+
+        // Parse the JSON string
+        let toothPartsData;
+        if (typeof this.patientData.tooth_parts === 'string') {
+          toothPartsData = JSON.parse(this.patientData.tooth_parts);
+        } else {
+          toothPartsData = this.patientData.tooth_parts;
+        }
+
+        console.log('🦷 Parsed tooth_parts:', toothPartsData);
+
+        // Clear existing colored parts
+        this.coloredParts = [];
+
+        // Convert the saved format to our internal format
+        if (Array.isArray(toothPartsData)) {
+          toothPartsData.forEach(part => {
+            // Use tooth_id directly from the saved data
+            const toothId = part.tooth_id;
+            
+            // Extract tooth number from tooth_id if not provided
+            const toothNum = part.tooth_number || (toothId ? parseInt(toothId.split('-')[1]) : null);
+            
+            const coloredPart = {
+              toothId: toothId,
+              toothNum: toothNum,
+              partId: part.part_id,
+              color: part.color
+            };
+            
+            this.coloredParts.push(coloredPart);
+            
+            console.log(`🎨 Added colored part:`, {
+              toothId: toothId,
+              toothNum: toothNum,
+              partId: part.part_id,
+              color: part.color
+            });
+          });
+
+          console.log(`✅ Loaded ${this.coloredParts.length} colored tooth parts:`, this.coloredParts);
+          
+          // Force re-render to show the colors
+          this.$forceUpdate();
+          
+          this.$toast?.success(`تم تحميل ${this.coloredParts.length} جزء ملون`);
+        }
+      } catch (error) {
+        console.error('❌ Error loading colored parts:', error);
+        this.$toast?.error('فشل في تحميل الألوان المحفوظة');
       }
     },
 
@@ -1610,6 +1710,9 @@ export default {
   mounted() {
     // Load categories when component is mounted
     this.refreshCategories();
+    
+    // Load colored parts from patient data
+    this.loadColoredParts();
     
     // Log patient cases for debugging
     if (this.patientCases && this.patientCases.length > 0) {

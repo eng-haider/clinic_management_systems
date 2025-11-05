@@ -90,7 +90,8 @@
                     :categories="dentalOperations"
                     :tooth_num="selectedTeethNumbers" 
                     :id="1"
-                    :patientCases="patientCases" 
+                    :patientCases="patientCases"
+                    :patientData="patient"
                     @case-added="handleCaseAdded"
                   />
                 </div>
@@ -1289,9 +1290,11 @@ export default {
           systemic_conditions: data.systemic_conditions,
           birth_date: data.birth_date,
           notes: data.notes,
-          rx_id: data.rx_id
+          rx_id: data.rx_id,
+          tooth_parts: data.tooth_parts  // Add tooth_parts data
         };
         console.log('👤 Patient basic info set:', this.patient.name);
+        console.log('🦷 Patient tooth_parts:', this.patient.tooth_parts);
 
         // Process cases data
         console.log('📋 Processing cases data...');
@@ -2369,8 +2372,9 @@ export default {
         // Check if the component has the saveColoredParts method
         if (typeof teethComponent.saveColoredParts === 'function') {
           console.log('Saving tooth colors from teeth component...');
-          await teethComponent.saveColoredParts();
-          console.log('Tooth colors saved successfully');
+          // Pass the patient notes to save both notes and tooth_parts together
+          await teethComponent.saveColoredParts(this.patient.notes);
+          console.log('Tooth colors and notes saved successfully');
         } else {
           console.log('saveColoredParts method not found in teeth component');
         }
