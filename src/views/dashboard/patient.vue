@@ -156,20 +156,59 @@
 
 
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
+              <!-- Teeth Type Tabs -->
+              <v-tabs
+                v-model="activeTeethTab"
+                centered
+                background-color="transparent"
+                color="primary"
+                grow
+              >
+                <v-tab>
+                  <v-icon left>mdi-tooth</v-icon>
+                  الأسنان الدائمة
+                </v-tab>
+                <v-tab>
+                  <v-icon left>mdi-tooth-outline</v-icon>
+                  الأسنان اللبنية
+                </v-tab>
+              </v-tabs>
+
+              <v-divider></v-divider>
+
               <v-card-text class="text-center">
                 <!-- Context menu and right-click are now handled inside teeth component -->
-                <div class="teeth-container">
-               
-                  <teeth_v2 
-                    ref="teethComponent"
-                    :categories="dentalOperations"
-                    :tooth_num="selectedTeethNumbers" 
-                    :id="1"
-                    :patientCases="patientCases"
-                    :patientData="patient"
-                    @case-added="handleCaseAdded"
-                  />
-                </div>
+                <v-tabs-items v-model="activeTeethTab">
+                  <!-- Permanent Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <teeth_v2 
+                        ref="teethComponent"
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="1"
+                        :patientCases="patientCases"
+                        :patientData="patient"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+
+                  <!-- Baby Teeth Tab -->
+                  <v-tab-item>
+                    <div class="teeth-container">
+                      <teeth_baby 
+                        ref="babyTeethComponent"
+                        :categories="dentalOperations"
+                        :tooth_num="selectedTeethNumbers" 
+                        :id="2"
+                        :patientCases="patientCases"
+                        :patientData="patient"
+                        @case-added="handleCaseAdded"
+                      />
+                    </div>
+                  </v-tab-item>
+                </v-tabs-items>
               </v-card-text>
 
 
@@ -938,6 +977,7 @@
 <script>
 import teeth from '@/components/core/teeth.vue';
 import teeth_v2 from '@/components/core/teeth_v2.vue';
+import teeth_baby from '@/components/core/teeth_baby.vue';
 import OwnerBooking from './sub_components/ownerBookinfDed.vue';
 import Bill from './sub_components/billsReport.vue';
 import PatientEditDialog from '@/components/PatientEditDialog.vue';
@@ -954,6 +994,7 @@ export default {
   components: {
     teeth,
     teeth_v2,
+    teeth_baby,
     OwnerBooking,
     Bill,
     PatientEditDialog,
@@ -964,6 +1005,7 @@ export default {
     return {
       saving: false,
       loadingDoctors: false,
+      activeTeethTab: 0, // 0 for permanent teeth, 1 for baby teeth
       
       // Patient Data (will be loaded from API)
       patient: {
