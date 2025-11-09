@@ -1245,6 +1245,20 @@ export default {
       };
     },
 
+    // Complete patient data for bill report
+    completePatientData() {
+      console.log('📋 Preparing complete patient data for bill report');
+      console.log('Patient:', this.patient);
+      console.log('Cases:', this.patientCases);
+      console.log('Bills:', this.patientBills);
+      
+      return {
+        ...this.patient,
+        cases: this.patientCases,
+        bills: this.patientBills
+      };
+    },
+
     // Check if current user is a secretary with limited permissions
     secretaryBillsOnlyMode() {
       try {
