@@ -5,7 +5,7 @@
                 <h3 style="color:#fff;font-family: 'Cairo'"> تقرير الحساب </h3>
             </v-toolbar-title>
             <v-spacer />
-            <v-btn @click="printReport()" icon title="طباعة التقرير" style="touch-action: manipulation;">
+            <v-btn @click="printReport()" icon title="طباعة التقرير">
                 <v-icon>mdi-printer</v-icon>
             </v-btn>
             <v-btn @click="close()" icon>
@@ -31,34 +31,27 @@
                     </div>
                 </div>
                 <div class="clinic-logo">
-                    <img style="width:100px;height:100px" :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
+                    <img :src="getLogoUrl()" alt="Clinic Logo" class="clinic-logo-image" />
                     <div class="clinic-name">{{ getClinicName() }} </div>
-                    <div class="clinic-phone" v-if="getClinicPhone()" style="font-size: 12px; color: #666; direction: ltr;">{{ getClinicPhone() }}</div>
                 </div>
             </div>
 
             <v-divider class="my-3"></v-divider>
 
-        
-
-            <!-- Bills Table - Force Desktop Layout -->
-            <div class="table-container">
-                <v-data-table 
-                    class="bill-table"
-                    :headers="headers"
-                    :items="billItems"
-                    hide-default-footer
-                    disable-pagination
-                    :mobile-breakpoint="0"
-                    fixed-header>
-                    
-                 
-                    
-                    <template v-slot:no-data>
-                        <div class="text-center pa-4">لا توجد فواتير</div>
-                    </template>
-                </v-data-table>
-            </div>
+            <!-- Bills Table -->
+            <v-data-table 
+                class="bill-table"
+                :headers="headers"
+                :items="billItems"
+                hide-default-footer
+                disable-pagination>
+                
+             
+                
+                <template v-slot:no-data>
+                    <div class="text-center pa-4">لا توجد فواتير</div>
+                </template>
+            </v-data-table>
 
             <v-divider class="my-3"></v-divider>
 
@@ -98,7 +91,7 @@
 <script>
     import {
         EventBus
-    } from "./event-bus.js";
+    } from "../event-bus.js";
     
     export default {
         inheritAttrs: false,
@@ -111,26 +104,44 @@
             return {
                 headers: [
                     {
-                        text: 'رقم الدفعة',
-                        value: 'payment_number',
+                        text: 'نوع الحاله',
+                        value: 'case_type',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'المبلغ المدفوع',
-                        value: 'amount_formatted',
+                        text: 'رقم السن',
+                        value: 'tooth_number',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'تاريخ الدفع',
-                        value: 'payment_date',
+                        text: 'اسم الطبيب',
+                        value: 'doctor_name',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'ملاحظات',
-                        value: 'notes',
+                        text: 'السعر',
+                        value: 'price_formatted',
+                        align: 'right',
+                        sortable: false
+                    },
+                    {
+                        text: 'المدفوع',
+                        value: 'paid_formatted',
+                        align: 'right',
+                        sortable: false
+                    },
+                    {
+                        text: 'المتبقي',
+                        value: 'remaining_formatted',
+                        align: 'right',
+                        sortable: false
+                    },
+                    {
+                        text: 'التاريخ',
+                        value: 'date',
                         align: 'right',
                         sortable: false
                     }
@@ -151,23 +162,115 @@
                 // Debug logging
                 console.log('Patient data:', this.patient);
                 
-                // Show only bills/payments data
-                if (this.patient.bills && this.patient.bills.length > 0) {
-                    console.log('Bills found:', this.patient.bills);
-                    items = this.patient.bills.map((bill, index) => {
-                        console.log('Processing bill:', bill);
+                // Add case items
+                if (this.patient.cases && this.patient.cases.length > 0) {
+                    console.log('Cases found:', this.patient.cases);
+                    items = this.patient.cases.map(item => {
+                        console.log('Processing case item:', item);
+                        console.log('Case ID:', item.id);
+                        console.log('Tooth data available:', {
+                            tooth_num: item.tooth_num,
+                            tooth_number: item.tooth_number,
+                            toothNumber: item.toothNumber,
+                            teeth: item.teeth
+                        });
+                        console.log('Date data available:', {
+                            created_at: item.created_at,
+                            date: item.date,
+                            updated_at: item.updated_at,
+                            PaymentDate: item.PaymentDate
+                        });
                         
-                        const billDate = bill.PaymentDate || bill.created_at || bill.date || bill.updated_at;
-                        const billAmount = parseFloat(bill.price) || 0;
+                        const toothData = item.tooth_num || item.tooth_number || item.toothNumber || item.teeth;
+                        const dateData = item.created_at || item.date || item.updated_at || item.PaymentDate;
+                        
+                        // Calculate paid amount for this case
+                        // First check if case has bills array attached
+                        let paidAmount = 0;
+                        if (item.bills && item.bills.length > 0) {
+                            paidAmount = item.bills.reduce((total, bill) => {
+                                return total + (parseFloat(bill.price) || 0);
+                            }, 0);
+                            console.log('Paid from case.bills:', paidAmount);
+                        } 
+                        // Otherwise, check patient.bills for bills matching this case_id
+                        else if (this.patient.bills && this.patient.bills.length > 0) {
+                            const caseBills = this.patient.bills.filter(bill => {
+                                return bill.case_id == item.id || bill.cases_id == item.id;
+                            });
+                            paidAmount = caseBills.reduce((total, bill) => {
+                                return total + (parseFloat(bill.price) || 0);
+                            }, 0);
+                            console.log('Paid from patient.bills filtered by case_id:', paidAmount, 'Case ID:', item.id);
+                        }
+                        
+                        const casePrice = parseFloat(item.price) || 0;
+                        const remainingAmount = casePrice - paidAmount;
+                        
+                        console.log('Case pricing:', { price: casePrice, paid: paidAmount, remaining: remainingAmount });
                         
                         return {
-                            payment_number: index + 1,
-                            amount_formatted: `${this.$options.filters.currency(billAmount)} د.ع`,
-                            payment_date: this.formatDate(billDate),
-                            notes: bill.notes || bill.description || '-',
-                            amount: billAmount
+                            case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
+                            tooth_number: this.formatToothNumbers(toothData),
+                            doctor_name: this.getDoctorName(item),
+                            price_formatted: `${this.$options.filters.currency(casePrice)} د.ع`,
+                            paid_formatted: `${this.$options.filters.currency(paidAmount)} د.ع`,
+                            remaining_formatted: `${this.$options.filters.currency(remainingAmount)} د.ع`,
+                            date: this.formatDate(dateData),
+                            price: casePrice,
+                            paid: paidAmount,
+                            remaining: remainingAmount
                         };
                     });
+                }
+                
+                // Remove payment items display - bills are now shown as paid amounts in each case
+                /*
+                if (this.patient.bills && this.patient.bills.length > 0) {
+                    const paymentItems = this.patient.bills.map(bill => {
+                        console.log('Processing bill item:', bill);
+                        console.log('Bill date data:', {
+                            PaymentDate: bill.PaymentDate,
+                            created_at: bill.created_at,
+                            date: bill.date,
+                            updated_at: bill.updated_at
+                        });
+                        
+                        const billDate = bill.PaymentDate || bill.created_at || bill.date || bill.updated_at;
+                        
+                        return {
+                            case_type: bill.is_paid ? 'دفعة مالية' : 'فاتورة غير مدفوعة',
+                            tooth_number: '-',
+                            doctor_name: this.getDoctorName(bill) || '-',
+                            price_formatted: `${this.$options.filters.currency(bill.price || 0)} د.ع`,
+                            date: this.formatDate(billDate),
+                            price: bill.price || 0,
+                            is_payment: true,
+                            is_paid: bill.is_paid
+                        };
+                    });
+                    items = items.concat(paymentItems);
+                }
+                */
+                
+                // If no cases but has direct price (fallback)
+                if (items.length === 0 && this.patient.price) {
+                    const patientDate = this.patient.PaymentDate || this.patient.created_at || this.patient.date || this.patient.updated_at;
+                    console.log('Fallback patient date data:', {
+                        PaymentDate: this.patient.PaymentDate,
+                        created_at: this.patient.created_at,
+                        date: this.patient.date,
+                        updated_at: this.patient.updated_at
+                    });
+                    
+                    items = [{
+                        case_type: 'فاتورة مباشرة',
+                        tooth_number: '-',
+                        doctor_name: this.getDoctorName(this.patient) || '-',
+                        price_formatted: `${this.$options.filters.currency(this.patient.price || 0)} د.ع`,
+                        date: this.formatDate(patientDate),
+                        price: this.patient.price || 0
+                    }];
                 }
                 
                 console.log('Final bill items:', items);
@@ -194,10 +297,10 @@
                 // Check if patient has bills array (new structure)
                 if (this.patient.bills && this.patient.bills.length > 0) {
                     return this.patient.bills.reduce((total, bill) => {
-                        // if (bill.is_paid) {
+                        if (bill.is_paid) {
                             return total + (parseFloat(bill.price) || 0);
-                        // }
-                        // return total;
+                        }
+                        return total;
                     }, 0);
                 }
                 // Fallback to old structure
@@ -290,20 +393,54 @@
                 
                 console.log('getDoctorName input:', item);
                 
-                // Only check for doctors array from cases - removed all other sources
-                if (item.doctors && Array.isArray(item.doctors) && item.doctors.length > 0) {
-                    console.log('Found doctors array:', item.doctors);
-                    return item.doctors[0].name; // Get first doctor's name
+                // Try different possible doctor field names
+                if (item.doctor && item.doctor.name) {
+                    console.log('Found doctor.name:', item.doctor.name);
+                    return item.doctor.name;
+                }
+                if (item.doctor_name) {
+                    console.log('Found doctor_name:', item.doctor_name);
+                    return item.doctor_name;
+                }
+                if (item.doctorName) {
+                    console.log('Found doctorName:', item.doctorName);
+                    return item.doctorName;
+                }
+                if (item.user && item.user.name) {
+                    console.log('Found user.name:', item.user.name);
+                    return item.user.name;
+                }
+                if (item.created_by && item.created_by.name) {
+                    console.log('Found created_by.name:', item.created_by.name);
+                    return item.created_by.name;
+                }
+                if (item.doctor_id) {
+                    console.log('Found doctor_id:', item.doctor_id);
+                    if (this.$store.state.doctors) {
+                        const doctor = this.$store.state.doctors.find(d => d.id === item.doctor_id);
+                        if (doctor) {
+                            console.log('Found doctor from store:', doctor.name);
+                            return doctor.name;
+                        }
+                    }
+                    // Try to get from AdminInfo doctors list
+                    if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.doctors) {
+                        const doctor = this.$store.state.AdminInfo.doctors.find(d => d.id === item.doctor_id);
+                        if (doctor) {
+                            console.log('Found doctor from AdminInfo:', doctor.name);
+                            return doctor.name;
+                        }
+                    }
                 }
                 
-                // Check if item has a single doctors object (from cases)
-                if (item.doctors && !Array.isArray(item.doctors) && item.doctors.name) {
-                    console.log('Found doctors object:', item.doctors);
-                    return item.doctors.name;
+                // Fallback to store current user if available
+                if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.name) {
+                    console.log('Using fallback AdminInfo.name:', this.$store.state.AdminInfo.name);
+                    return this.$store.state.AdminInfo.name;
                 }
                 
-                console.log('No doctor name found from cases');
-                return '-';
+                console.log('No doctor name found');
+                return null;
             },
 
             formatCurrency(amount) {
@@ -397,22 +534,8 @@
                 }
             },
 
-            getClinicPhone() {
-                try {
-                    return this.$store.state.AdminInfo?.clinics_info?.whatsapp_phone || '';
-                } catch (error) {
-                    return '';
-                }
-            },
-
             getLogoUrl() {
-                // Try to get clinic logo from store first
-                const clinicLogo = this.$store.getters.getClinicLogo;
-                if (clinicLogo) {
-                    return clinicLogo;
-                }
-                
-                // Fallback to default logo
+                // Get the current window location origin to build the correct URL
                 const origin = window.location.origin;
                 return `${origin}/111.png`;
             },
@@ -442,7 +565,7 @@
                         // Use desktop print method
                         if (this.$print && this.$print.printWithIframe) {
                             await this.$print.printWithIframe(billElement, {
-                                paperSize: 'A4', // Changed from A5 to A4
+                                paperSize: 'A4',
                                 title: 'تقرير الحساب',
                                 customStyles: this.getPrintStyles() + this.getMobilePrintStyles()
                             });
@@ -511,7 +634,7 @@
 
             // Print in current window (reliable mobile method)
             printInCurrentWindow(element) {
-                // Show mobile-specific confirmation dialog with A5 instructions
+                // Show mobile-specific confirmation dialog with A4 instructions
                 this.$swal.fire({
                     title: 'طباعة التقرير',
                     html: `
@@ -675,7 +798,6 @@
                                 box-sizing: border-box;
                             }
                             
-                            /* Print controls styling */
                             .print-controls {
                                 text-align: center;
                                 margin: 10px 0;
@@ -713,11 +835,10 @@
                                 background: #c82333;
                             }
                             
-                            /* Bill card styling for A4 */
                             .bill-card {
                                 width: 100%;
                                 margin: 0;
-                                padding: 12px;
+                                padding: 15px;
                                 background: white;
                                 border: none;
                                 box-shadow: none;
@@ -729,7 +850,6 @@
                                 overflow: visible;
                             }
                             
-                            /* Patient header */
                             .patient-header {
                                 display: flex;
                                 justify-content: space-between;
@@ -739,14 +859,12 @@
                                 border-bottom: 2px solid #333;
                                 align-items: flex-start;
                                 width: 100%;
-                                /* Ensure proper spacing for A4 */
                                 gap: 15px;
                             }
                             
                             .patient-details {
                                 flex: 1;
                                 max-width: 65%;
-                                /* Ensure text doesn't get cut */
                                 overflow: visible;
                             }
                             
@@ -755,8 +873,7 @@
                                 align-items: center;
                                 gap: 8px;
                                 margin-bottom: 8px;
-                                font-size: 12px;
-                                /* Ensure content fits */
+                                font-size: 14px;
                                 flex-wrap: wrap;
                             }
                             
@@ -764,13 +881,12 @@
                                 font-weight: bold;
                                 white-space: nowrap;
                                 min-width: 80px;
-                                font-size: 12px;
+                                font-size: 14px;
                             }
                             
                             .info-value {
                                 font-weight: 500;
-                                font-size: 12px;
-                                /* Allow text to wrap if needed */
+                                font-size: 14px;
                                 word-break: break-word;
                             }
                             
@@ -778,7 +894,6 @@
                                 text-align: center;
                                 flex-shrink: 0;
                                 max-width: 30%;
-                                /* Better positioning for A4 */
                                 display: flex;
                                 flex-direction: column;
                                 align-items: center;
@@ -786,30 +901,26 @@
                             }
                             
                             .clinic-logo-image {
-                                width: 80px;
-                                height: 80px;
+                                width: 100px;
+                                height: 100px;
                                 object-fit: contain;
                                 margin-bottom: 8px;
-                                /* Ensure image doesn't get cut */
                                 max-width: 100%;
                             }
                             
                             .clinic-name {
                                 font-weight: bold;
-                                font-size: 12px;
+                                font-size: 14px;
                                 text-align: center;
                                 line-height: 1.4;
-                                /* Ensure text wraps properly */
                                 word-break: break-word;
                                 max-width: 100%;
                             }
                             
-                            /* Table styling */
                             .table-container {
-                                margin: 10px 0;
+                                margin: 15px 0;
                                 width: 100%;
                                 overflow: visible;
-                                box-sizing: border-box;
                             }
                             
                             table {
@@ -817,7 +928,7 @@
                                 border-collapse: collapse;
                                 font-size: 14px;
                                 table-layout: fixed;
-                                margin: 0;
+                                margin: 10px 0;
                                 box-sizing: border-box;
                             }
                             
@@ -831,19 +942,16 @@
                                 overflow: visible;
                                 box-sizing: border-box;
                             }
-                                overflow: hidden;
-                            }
                             
                             th {
                                 background-color: #f5f5f5;
                                 font-weight: bold;
-                                font-size: 10px;
+                                font-size: 14px;
                             }
                             
-                            /* Bill summary */
                             .bill-summary {
                                 margin: 15px 0;
-                                padding: 10px;
+                                padding: 20px;
                                 background-color: #f9f9f9;
                                 border: 1px solid #333;
                                 border-radius: 4px;
@@ -854,19 +962,18 @@
                             .summary-row {
                                 display: flex;
                                 justify-content: space-between;
-                                margin-bottom: 8px;
-                                padding: 4px 0;
-                                font-size: 11px;
-                                /* Ensure content fits */
+                                margin-bottom: 10px;
+                                padding: 8px 0;
+                                font-size: 16px;
                                 align-items: center;
                             }
                             
                             .summary-row.remaining {
                                 border-top: 2px solid #333;
-                                margin-top: 10px;
-                                padding-top: 10px;
+                                margin-top: 15px;
+                                padding-top: 15px;
                                 font-weight: bold;
-                                font-size: 12px;
+                                font-size: 18px;
                             }
                             
                             .summary-label {
@@ -879,12 +986,11 @@
                                 flex-shrink: 0;
                             }
                             
-                            /* Signature section */
                             .signature-section {
                                 display: flex;
                                 justify-content: space-between;
-                                margin-top: 20px;
-                                padding-top: 15px;
+                                margin-top: 40px;
+                                padding-top: 20px;
                                 border-top: 2px solid #333;
                                 gap: 30px;
                                 width: 100%;
@@ -898,23 +1004,21 @@
                             
                             .signature-label {
                                 font-weight: bold;
-                                margin-bottom: 20px;
-                                font-size: 11px;
+                                margin-bottom: 30px;
+                                font-size: 14px;
                                 line-height: 1.3;
                             }
                             
                             .signature-line {
                                 border-bottom: 2px solid #333;
-                                height: 30px;
+                                height: 50px;
                                 width: 100%;
                             }
                             
-                            /* Hide dividers and buttons */
                             .v-divider {
                                 display: none;
                             }
                             
-                            /* Print media query for A4 */
                             @media print {
                                 .print-controls {
                                     display: none !important;
@@ -945,15 +1049,6 @@
                                     box-sizing: border-box;
                                 }
                                 
-                                .bill-card {
-                                    padding: 10mm;
-                                    font-size: 11px;
-                                    width: 100%;
-                                    max-width: none;
-                                    /* Ensure all content fits */
-                                    overflow: visible;
-                                }
-                                
                                 .patient-info {
                                     font-size: 14px;
                                     margin-bottom: 6px;
@@ -977,6 +1072,7 @@
                                     font-size: 14px;
                                     padding: 10px 6px;
                                     box-sizing: border-box;
+                                    overflow: visible;
                                 }
                                 
                                 .summary-row {
@@ -988,27 +1084,24 @@
                                 }
                                 
                                 .signature-label {
-                                    font-size: 9px;
+                                    font-size: 14px;
                                 }
                                 
                                 .signature-line {
-                                    height: 20px;
+                                    height: 50px;
                                 }
                             }
                             
-                            /* Responsive adjustments */
                             @media screen and (max-width: 480px) {
                                 body {
                                     max-width: 100vw;
                                     width: 100vw;
                                     padding: 3px;
-                                    /* Prevent horizontal scroll */
                                     overflow-x: hidden;
                                 }
                                 
                                 .bill-card {
                                     padding: 3px;
-                                    /* Ensure content fits on mobile */
                                     overflow-x: hidden;
                                 }
                                 
@@ -1101,36 +1194,81 @@
             // Get mobile-specific print styles to ensure table displays properly
             getMobilePrintStyles() {
                 return `
-                    /* Hide screen-only elements during print */
                     @media print {
                         .screen-only {
                             display: none !important;
                         }
                         
-                        /* Hide all buttons when printing */
                         button {
                             display: none !important;
                         }
                         
-                        /* A4 page setup */
                         @page {
                             size: A4;
                             margin: 15mm;
                         }
                         
+                        @supports not (size: A4) {
+                            @page {
+                                margin: 15mm;
+                            }
+                            
+                            body {
+                                transform: scale(1.0);
+                                transform-origin: top center;
+                                width: 210mm;
+                                max-width: 210mm;
+                            }
+                        }
+                        
+                        @media print and (max-width: 480px) {
+                            body {
+                                font-size: 8px !important;
+                                padding: 5mm !important;
+                            }
+                            
+                            .bill-card {
+                                padding: 3mm !important;
+                                max-width: 140mm !important;
+                            }
+                        }
+                        
                         body {
                             font-family: 'Cairo', sans-serif !important;
                             direction: rtl !important;
+                            font-size: 14px !important;
+                            line-height: 1.4 !important;
                             margin: 0 !important;
                             padding: 0 !important;
+                            max-width: 210mm !important;
+                            max-height: 297mm !important;
                         }
                         
                         .bill-card {
                             margin: 0 !important;
                             padding: 20px !important;
+                            font-size: 14px !important;
                         }
                         
-                        /* Force table to display properly */
+                        .patient-header {
+                            margin-bottom: 15px !important;
+                            font-size: 14px !important;
+                        }
+                        
+                        .patient-info {
+                            margin-bottom: 6px !important;
+                            font-size: 14px !important;
+                        }
+                        
+                        .clinic-logo-image {
+                            width: 100px !important;
+                            height: 100px !important;
+                        }
+                        
+                        .clinic-name {
+                            font-size: 14px !important;
+                        }
+                        
                         .v-data-table,
                         .bill-table {
                             width: 100% !important;
@@ -1145,29 +1283,59 @@
                         .v-data-table table {
                             width: 100% !important;
                             border-collapse: collapse !important;
+                            font-size: 14px !important;
                         }
                         
                         .v-data-table th,
                         .v-data-table td {
-                            border: 1px solid #e0e0e0 !important;
+                            border: 1px solid #333 !important;
                             padding: 12px 16px !important;
                             font-size: 14px !important;
                             text-align: right !important;
                             white-space: nowrap !important;
+                            line-height: 1.2 !important;
                         }
                         
                         .v-data-table thead th {
                             background-color: #f5f5f5 !important;
                             font-weight: bold !important;
+                            font-size: 14px !important;
                         }
                         
-                        /* Hide dividers */
+                        .bill-summary {
+                            margin: 15px 0 !important;
+                            padding: 20px !important;
+                            font-size: 16px !important;
+                        }
+                        
+                        .summary-row {
+                            margin-bottom: 10px !important;
+                            font-size: 16px !important;
+                        }
+                        
+                        .summary-row.remaining {
+                            font-size: 18px !important;
+                        }
+                        
+                        .signature-section {
+                            margin-top: 40px !important;
+                            padding-top: 20px !important;
+                        }
+                        
+                        .signature-label {
+                            font-size: 14px !important;
+                            margin-bottom: 30px !important;
+                        }
+                        
+                        .signature-line {
+                            height: 50px !important;
+                        }
+                        
                         .v-divider {
                             display: none !important;
                         }
                     }
                     
-                    /* Screen styles for better view before print */
                     @media screen {
                         .screen-only {
                             display: block !important;
@@ -1187,9 +1355,9 @@
                             <ol style="text-align: right;">
                                 <li>اضغط على زر القائمة (⋮) في المتصفح</li>
                                 <li>اختر "طباعة" أو "Print"</li>
-                                <li>في إعدادات الطباعة، اختر حجم الورق A5</li>
-                                <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب: العرض 148mm، الطول 210mm</li>
-                                <li>اختر الاتجاه "أفقي" أو "Landscape" لعرض أفضل للجدول</li>
+                                <li>في إعدادات الطباعة، اختر حجم الورق A4</li>
+                                <li>إذا لم يكن A4 متاحاً، اختر "مخصص" واكتب: العرض 210mm، الطول 297mm</li>
+                                <li>اختر الهوامش "عادي" أو "Normal"</li>
                                 <li>اضغط "طباعة"</li>
                             </ol>
                         </div>
@@ -1199,7 +1367,7 @@
                 });
             },
 
-            // Check if device is mobile (keep for reference but use desktop print for all)
+            // Check if device is mobile
             isMobileDevice() {
                 const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile Safari|Chrome Mobile|Samsung Internet/i.test(navigator.userAgent);
                 const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -1246,8 +1414,8 @@
                         display: flex;
                         justify-content: space-between;
                         flex-wrap: nowrap;
-                        margin-bottom: 20px;
-                        padding-bottom: 15px;
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
                         border-bottom: 2px solid #333;
                         align-items: flex-start;
                     }
@@ -1260,21 +1428,19 @@
                     .patient-info {
                         display: flex;
                         align-items: center;
-                        gap: 10px;
-                        margin-bottom: 8px;
+                        gap: 8px;
+                        margin-bottom: 6px;
                         font-size: 14px;
                     }
                     
                     .info-label {
                         font-weight: bold;
                         white-space: nowrap;
-                        min-width: 80px;
-                        color: #333;
+                        min-width: 70px;
                     }
                     
                     .info-value {
                         font-weight: 500;
-                        color: #555;
                     }
                     
                     .clinic-logo {
@@ -1287,43 +1453,28 @@
                         width: 100px;
                         height: 100px;
                         object-fit: contain;
-                        margin-bottom: 10px;
+                        margin-bottom: 8px;
                     }
                     
                     .clinic-name {
                         font-weight: bold;
                         font-size: 14px;
-                        color: #333;
-                    }
-                    
-                    .clinic-phone {
-                        font-size: 12px;
-                        color: #666;
-                        direction: ltr;
-                    }
-                    
-                    /* Table styling - keep same as screen */
-                    .table-container {
-                        width: 100%;
-                        overflow-x: visible;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 4px;
-                        margin: 10px 0;
                     }
                     
                     table {
                         width: 100%;
                         border-collapse: collapse;
-                        margin: 0;
+                        margin: 15px 0;
+                        font-size: 14px;
                         box-sizing: border-box;
                     }
                     
                     th, td {
                         padding: 10px 8px;
                         text-align: right;
-                        border: 1px solid #e0e0e0;
-                        font-size: 14px;
+                        border: 1px solid #333;
                         white-space: nowrap;
+                        font-size: 14px;
                         box-sizing: border-box;
                     }
                     
@@ -1333,10 +1484,11 @@
                     }
                     
                     .bill-summary {
-                        margin: 20px 0;
+                        margin: 15px 0;
                         padding: 20px;
                         background-color: #f9f9f9;
-                        border-radius: 8px;
+                        border: 1px solid #333;
+                        border-radius: 3px;
                     }
                     
                     .summary-row {
@@ -1348,7 +1500,7 @@
                     }
                     
                     .summary-row.remaining {
-                        border-top: 2px solid #ddd;
+                        border-top: 2px solid #333;
                         margin-top: 15px;
                         padding-top: 15px;
                         font-weight: bold;
@@ -1357,17 +1509,6 @@
                     
                     .summary-label {
                         font-weight: bold;
-                        color: #333;
-                    }
-                    
-                    .summary-value {
-                        font-weight: 500;
-                        color: #555;
-                    }
-                    
-                    .money {
-                        font-size: 0.9em;
-                        color: #666;
                     }
                     
                     .signature-section {
@@ -1376,56 +1517,98 @@
                         margin-top: 40px;
                         padding-top: 20px;
                         border-top: 1px solid #333;
-                        gap: 30px;
+                        gap: 20px;
                     }
                     
                     .signature-box {
                         text-align: center;
-                        width: 200px;
+                        flex: 1;
+                        max-width: 150px;
                     }
                     
                     .signature-label {
                         font-weight: bold;
                         margin-bottom: 30px;
                         font-size: 14px;
-                        color: #333;
                     }
                     
                     .signature-line {
                         border-bottom: 2px solid #333;
                         height: 50px;
                         width: 100%;
-                        margin-top: 10px;
                     }
                     
-                    /* Hide toolbar, buttons and dividers */
-                    .v-toolbar,
                     .v-divider,
                     .v-btn,
                     button {
                         display: none !important;
                     }
                     
-                    /* A4 print page setup */
                     @media print {
                         @page {
                             size: A4;
                             margin: 10mm 12mm;
                         }
                         
+                        @supports not (size: A4) {
+                            @page {
+                                margin: 10mm 12mm;
+                            }
+                            
+                            body {
+                                max-width: 210mm !important;
+                                margin: 0 auto !important;
+                                transform: scale(1.0) !important;
+                                transform-origin: top center !important;
+                                padding: 0 !important;
+                            }
+                        }
+                        
+                        @media (max-width: 480px) {
+                            body {
+                                transform: scale(0.9) !important;
+                                max-width: 200mm !important;
+                            }
+                            
+                            .bill-card {
+                                padding: 8mm !important;
+                                font-size: 9px !important;
+                            }
+                            
+                            table {
+                                font-size: 7px !important;
+                            }
+                            
+                            th, td {
+                                padding: 2px !important;
+                                font-size: 7px !important;
+                            }
+                        }
+                        
                         body {
-                            margin: 0;
-                            padding: 0;
+                            font-size: 14px !important;
+                            line-height: 1.4 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
                         }
                         
                         .bill-card {
                             padding: 12px !important;
+                            font-size: 14px !important;
+                            width: 100% !important;
+                            max-width: none !important;
+                            margin: 0 !important;
                             box-sizing: border-box !important;
                         }
                         
-                        /* Maintain same sizes for print */
+                        .patient-header {
+                            margin-bottom: 15px !important;
+                            padding-bottom: 10px !important;
+                        }
+                        
                         .patient-info {
                             font-size: 14px !important;
+                            margin-bottom: 6px !important;
                         }
                         
                         .clinic-logo-image {
@@ -1437,12 +1620,27 @@
                             font-size: 14px !important;
                         }
                         
-                        th, td {
-                            padding: 12px 16px !important;
+                        table {
+                            margin: 10px 0 !important;
                             font-size: 14px !important;
+                            width: 100% !important;
+                            box-sizing: border-box !important;
+                        }
+                        
+                        th, td {
+                            padding: 10px 6px !important;
+                            font-size: 14px !important;
+                            box-sizing: border-box !important;
+                        }
+                        
+                        .bill-summary {
+                            margin: 15px 0 !important;
+                            padding: 20px !important;
+                            font-size: 16px !important;
                         }
                         
                         .summary-row {
+                            margin-bottom: 10px !important;
                             font-size: 16px !important;
                         }
                         
@@ -1450,65 +1648,21 @@
                             font-size: 18px !important;
                         }
                         
+                        .signature-section {
+                            margin-top: 40px !important;
+                            padding-top: 20px !important;
+                        }
+                        
                         .signature-label {
                             font-size: 14px !important;
+                            margin-bottom: 30px !important;
+                        }
+                        
+                        .signature-line {
+                            height: 50px !important;
                         }
                     }
                 `;
-            },
-
-            // Show instructions for manual printing on mobile
-            showMobilePrintInstructions() {
-                this.$swal.fire({
-                    icon: 'info',
-                    title: 'تعليمات الطباعة',
-                    html: `
-                        <div style="text-align: right; direction: rtl;">
-                            <p><strong>للطباعة بحجم A5:</strong></p>
-                            <ol style="text-align: right;">
-                                <li>في نافذة الطباعة، اختر "خيارات أكثر" أو "More settings"</li>
-                                <li>في "حجم الورق" أو "Paper size"، اختر A5</li>
-                                <li>إذا لم يكن A5 متاحاً، اختر "مخصص" واكتب:</li>
-                                <ul style="margin: 10px 0;">
-                                    <li>العرض: 148mm أو 5.8 inches</li>
-                                    <li>الطول: 210mm أو 8.3 inches</li>
-                                </ul>
-                                <li>تأكد من أن الهوامش مضبوطة على "ضيق" أو "Narrow"</li>
-                                <li>اضغط على "طباعة"</li>
-                            </ol>
-                            <p><strong>على الهاتف المحمول:</strong></p>
-                            <ol style="text-align: right;">
-                                <li>اضغط على زر القائمة (⋮) في المتصفح</li>
-                                <li>اختر "مشاركة" أو "Share"</li>
-                                <li>اختر "طباعة" أو "Print"</li>
-                                <li>أو احفظ الصفحة كـ PDF ثم اطبعها</li>
-                            </ol>
-                        </div>
-                    `,
-                    confirmButtonText: 'حسناً',
-                    confirmButtonColor: '#2196F3',
-                    width: '600px'
-                });
-            },
-
-            // Alternative: Download as PDF (fallback)
-            downloadAsPDF(element) {
-                // TODO: Implement PDF generation using element content
-                console.log('PDF generation requested for element:', element);
-                
-                this.$swal.fire({
-                    icon: 'info', 
-                    title: 'تنزيل التقرير',
-                    text: 'سيتم تحويل التقرير إلى PDF للتنزيل...',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                
-                // You can implement PDF generation here using libraries like jsPDF or html2canvas
-                // For now, we'll show the print instructions
-                setTimeout(() => {
-                    this.showMobilePrintInstructions();
-                }, 2000);
             },
 
             close() {
@@ -1531,22 +1685,6 @@
 <style scoped>
 .bill-card {
     font-family: 'Cairo', sans-serif;
-}
-
-/* Table container for proper scrolling */
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    margin: 10px 0;
-}
-
-/* Mobile scroll hint */
-.mobile-scroll-hint {
-    text-align: center;
-    direction: rtl;
 }
 
 .patient-header {
@@ -1594,113 +1732,17 @@
 
 .bill-table {
     margin: 20px 0;
-    /* Force desktop table layout on all devices */
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* Force desktop table behavior globally */
-.bill-table >>> .v-data-table__wrapper {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-.bill-table >>> table {
-    width: 100% !important;
-    min-width: 600px !important; /* Ensure minimum width for desktop layout */
-    border-collapse: collapse !important;
-    table-layout: auto !important;
 }
 
 .bill-table >>> th {
     background-color: #f5f5f5 !important;
     font-weight: bold !important;
     text-align: right !important;
-    /* Desktop-style headers */
-    padding: 12px 16px !important;
-    border: 1px solid #e0e0e0 !important;
-    white-space: nowrap !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 2 !important;
 }
 
 .bill-table >>> td {
     text-align: right !important;
     padding: 12px 16px !important;
-    /* Desktop-style cells */
-    border: 1px solid #e0e0e0 !important;
-    white-space: nowrap !important;
-    min-width: 100px !important;
-}
-
-/* Disable Vuetify mobile breakpoints for this table */
-.bill-table >>> .v-data-table {
-    /* Force desktop layout regardless of screen size */
-    display: table !important;
-    width: 100% !important;
-}
-
-.bill-table >>> .v-data-table__wrapper {
-    /* Ensure table wrapper doesn't collapse on mobile */
-    overflow-x: auto !important;
-    display: block !important;
-}
-
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table {
-    /* Force table display (not block) */
-    display: table !important;
-    width: 100% !important;
-    min-width: 600px !important;
-}
-
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead,
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody {
-    /* Force table-row-group display */
-    display: table-row-group !important;
-}
-
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead > tr,
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody > tr {
-    /* Force table-row display */
-    display: table-row !important;
-}
-
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > thead > tr > th,
-.bill-table >>> .v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
-    /* Force table-cell display */
-    display: table-cell !important;
-}
-
-/* Override any mobile responsive CSS from Vuetify */
-@media screen and (max-width: 960px) {
-    .bill-table >>> .v-data-table {
-        display: table !important;
-    }
-    
-    .bill-table >>> .v-data-table__wrapper {
-        overflow-x: auto !important;
-    }
-    
-    .bill-table >>> table {
-        display: table !important;
-        min-width: 600px !important;
-    }
-    
-    .bill-table >>> thead,
-    .bill-table >>> tbody {
-        display: table-row-group !important;
-    }
-    
-    .bill-table >>> tr {
-        display: table-row !important;
-    }
-    
-    .bill-table >>> th,
-    .bill-table >>> td {
-        display: table-cell !important;
-    }
 }
 
 .payment-item {
@@ -1785,132 +1827,108 @@
     margin-top: 10px;
 }
 
-/* Print styles */
+/* Print styles - maintain same appearance as on screen */
 @media print {
-    /* Remove all the complex print styles since we're using a separate window */
-    .v-toolbar {
+    /* Hide toolbar and buttons */
+    .v-toolbar,
+    .v-btn,
+    button {
+        display: none !important;
+    }
+    
+    /* A4 page setup */
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    
+    .bill-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 20px !important;
+    }
+    
+    /* Keep same patient header styling */
+    .patient-header {
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .patient-info {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .clinic-logo-image {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .clinic-name {
+        font-size: 14px !important;
+    }
+    
+    /* Keep same table styling */
+    .bill-table >>> th,
+    .bill-table >>> td {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #e0e0e0 !important;
+    }
+    
+    .bill-table >>> th {
+        background-color: #f5f5f5 !important;
+    }
+    
+    /* Keep same summary styling */
+    .bill-summary {
+        margin: 20px 0 !important;
+        padding: 20px !important;
+        background-color: #f9f9f9 !important;
+        border-radius: 8px !important;
+    }
+    
+    .summary-row {
+        font-size: 16px !important;
+        margin-bottom: 10px !important;
+        padding: 8px 0 !important;
+    }
+    
+    .summary-row.remaining {
+        font-size: 18px !important;
+        margin-top: 15px !important;
+        padding-top: 15px !important;
+    }
+    
+    /* Keep same signature styling */
+    .signature-section {
+        margin-top: 40px !important;
+        padding-top: 20px !important;
+    }
+    
+    .signature-label {
+        font-size: 14px !important;
+        margin-bottom: 30px !important;
+    }
+    
+    .signature-line {
+        height: 50px !important;
+    }
+    
+    /* Hide dividers */
+    .v-divider {
         display: none !important;
     }
 }
 
-/* Mobile-specific print overrides */
-@media print and (max-width: 768px) {
-    /* Even more aggressive mobile print styles */
-    body {
-        zoom: 0.75 !important;
-        -webkit-transform: scale(0.75) !important;
-        transform: scale(0.75) !important;
-        transform-origin: top left !important;
-    }
-    
-    .bill-card {
-        font-size: 8px !important;
-        padding: 8px !important;
-        zoom: 1 !important;
-        transform: none !important;
-    }
-    
-    .patient-header {
-        margin-bottom: 8px !important;
-        padding-bottom: 6px !important;
-    }
-    
-    .patient-info {
-        font-size: 8px !important;
-        gap: 3px !important;
-    }
-    
-    .info-label {
-        min-width: 50px !important;
-        font-size: 8px !important;
-    }
-    
-    .clinic-logo-image {
-        width: 35px !important;
-        height: 35px !important;
-    }
-    
-    .clinic-name {
-        font-size: 7px !important;
-    }
-    
-    .bill-table {
-        margin: 6px 0 !important;
-        font-size: 7px !important;
-    }
-    
-    .bill-table >>> th,
-    .bill-table >>> td {
-        padding: 1px !important;
-        font-size: 7px !important;
-        line-height: 1 !important;
-    }
-    
-    /* Even more compact columns for mobile */
-    .bill-table >>> th:first-child,
-    .bill-table >>> td:first-child {
-        width: 32% !important;
-    }
-    
-    .bill-table >>> th:nth-child(2),
-    .bill-table >>> td:nth-child(2) {
-        width: 10% !important;
-    }
-    
-    .bill-table >>> th:nth-child(3),
-    .bill-table >>> td:nth-child(3) {
-        width: 16% !important;
-    }
-    
-    .bill-table >>> th:nth-child(4),
-    .bill-table >>> td:nth-child(4) {
-        width: 21% !important;
-    }
-    
-    .bill-table >>> th:nth-child(5),
-    .bill-table >>> td:nth-child(5) {
-        width: 21% !important;
-    }
-    
-    .bill-summary {
-        padding: 4px !important;
-        font-size: 8px !important;
-        margin: 6px 0 !important;
-    }
-    
-    .summary-row {
-        font-size: 8px !important;
-        margin-bottom: 2px !important;
-    }
-    
-    .summary-row.remaining {
-        font-size: 9px !important;
-        margin-top: 4px !important;
-        padding-top: 4px !important;
-    }
-    
-    .signature-section {
-        margin-top: 10px !important;
-        padding-top: 6px !important;
-        gap: 15px !important;
-    }
-    
-    .signature-box {
-        width: 100px !important;
-    }
-    
-    .signature-label {
-        font-size: 7px !important;
-        margin-bottom: 10px !important;
-    }
-    
-    .signature-line {
-        height: 15px !important;
-    }
-}
-
-/* Mobile responsive - force desktop table layout on mobile */
-@media screen and (max-width: 768px) {
+/* Mobile responsive */
+@media (max-width: 768px) {
     .patient-header {
         flex-direction: column;
         gap: 10px;
@@ -1928,178 +1946,6 @@
     
     .signature-box {
         width: 100%;
-    }
-    
-    /* Force desktop table layout on mobile - NO mobile responsive table */
-    .bill-table {
-        overflow-x: auto !important;
-        width: 100% !important;
-        margin: 10px 0 !important;
-        /* Force table to display as desktop */
-        min-width: 600px !important;
-    }
-    
-    .bill-table >>> .v-data-table__wrapper {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        /* Ensure table shows full width */
-        min-width: 600px !important;
-    }
-    
-    .bill-table >>> table {
-        /* Force table to maintain desktop layout */
-        width: 100% !important;
-        min-width: 600px !important;
-        table-layout: auto !important;
-        border-collapse: collapse !important;
-    }
-    
-    .bill-table >>> th,
-    .bill-table >>> td {
-        /* Desktop-style cells on mobile */
-        padding: 12px 8px !important;
-        font-size: 13px !important;
-        white-space: nowrap !important;
-        min-width: 100px !important;
-        border: 1px solid #e0e0e0 !important;
-        text-align: right !important;
-        /* Prevent text wrapping to maintain desktop look */
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-    
-    .bill-table >>> thead th {
-        background-color: #f5f5f5 !important;
-        font-weight: bold !important;
-        position: sticky !important;
-        top: 0 !important;
-        z-index: 1 !important;
-    }
-    
-    .v-card {
-        overflow-x: auto !important;
-        /* Add padding to allow horizontal scroll */
-        padding: 10px !important;
-    }
-    
-    /* Add scroll hint for mobile users */
-    .bill-table::before {
-        content: "← اسحب يميناً ويساراً لرؤية جميع البيانات →" !important;
-        display: block !important;
-        text-align: center !important;
-        font-size: 12px !important;
-        color: #666 !important;
-        padding: 8px !important;
-        background-color: #e3f2fd !important;
-        border-radius: 4px !important;
-        margin-bottom: 10px !important;
-        font-family: 'Cairo', sans-serif !important;
-    }
-}
-
-/* Mobile print button enhancement */
-@media screen and (max-width: 768px) {
-    .v-toolbar .v-btn {
-        /* Ensure print button is large enough for touch */
-        min-width: 48px !important;
-        min-height: 48px !important;
-        padding: 12px !important;
-    }
-    
-    .v-toolbar .v-btn .v-icon {
-        font-size: 24px !important;
-    }
-    
-    /* Add touch feedback */
-    .v-toolbar .v-btn:active {
-        background-color: rgba(255, 255, 255, 0.2) !important;
-        transform: scale(0.98) !important;
-        transition: all 0.1s ease !important;
-    }
-    
-    /* Prevent text selection on buttons */
-    .v-toolbar .v-btn {
-        -webkit-user-select: none !important;
-        user-select: none !important;
-        -webkit-touch-callout: none !important;
-    }
-}
-
-/* A5 page size support for new window printing only */
-@media print {
-    @page {
-        size: A5;
-        margin: 10mm;
-    }
-}
-
-/* Mobile print modal styles */
-.mobile-print-modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 10000 !important;
-    background: rgba(0, 0, 0, 0.8) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: auto !important;
-}
-
-.mobile-print-content {
-    background: white !important;
-    margin: 10px !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    max-height: calc(100vh - 20px) !important;
-}
-
-.mobile-print-header {
-    background: #2196F3 !important;
-    color: white !important;
-    padding: 15px !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    flex-shrink: 0 !important;
-}
-
-.mobile-print-body {
-    padding: 20px !important;
-    overflow: auto !important;
-    flex: 1 !important;
-    font-family: Cairo, sans-serif !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-.mobile-print-footer {
-    background: #f5f5f5 !important;
-    padding: 15px !important;
-    border-top: 1px solid #ddd !important;
-    flex-shrink: 0 !important;
-}
-
-/* Responsive adjustments for mobile modal */
-@media screen and (max-width: 480px) {
-    .mobile-print-content {
-        margin: 5px !important;
-        border-radius: 4px !important;
-    }
-    
-    .mobile-print-header {
-        padding: 12px !important;
-    }
-    
-    .mobile-print-body {
-        padding: 15px !important;
-    }
-    
-    .mobile-print-footer {
-        padding: 12px !important;
     }
 }
 </style>

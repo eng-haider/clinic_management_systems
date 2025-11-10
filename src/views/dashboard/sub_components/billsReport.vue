@@ -56,7 +56,7 @@
             <v-divider class="my-3"></v-divider>
 
             <!-- Bill Summary -->
-            <div class="bill-summary">
+            <!-- <div class="bill-summary">
                 <div class="summary-row">
                     <div class="summary-label">إجمالي الفاتورة:</div>
                     <div class="summary-value">
@@ -71,7 +71,7 @@
                     <div class="summary-label">المبلغ المتبقي:</div>
                     <div class="summary-value">{{ totalRemaining | currency }} <span class="money">د.ع</span></div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Signature Section -->
             <div class="signature-section">
@@ -104,44 +104,26 @@
             return {
                 headers: [
                     {
-                        text: 'نوع الحاله',
-                        value: 'case_type',
+                        text: 'رقم الدفعة',
+                        value: 'payment_number',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'رقم السن',
-                        value: 'tooth_number',
+                        text: 'المبلغ المدفوع',
+                        value: 'amount_formatted',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'اسم الطبيب',
-                        value: 'doctor_name',
+                        text: 'تاريخ الدفع',
+                        value: 'payment_date',
                         align: 'right',
                         sortable: false
                     },
                     {
-                        text: 'السعر',
-                        value: 'price_formatted',
-                        align: 'right',
-                        sortable: false
-                    },
-                    {
-                        text: 'المدفوع',
-                        value: 'paid_formatted',
-                        align: 'right',
-                        sortable: false
-                    },
-                    {
-                        text: 'المتبقي',
-                        value: 'remaining_formatted',
-                        align: 'right',
-                        sortable: false
-                    },
-                    {
-                        text: 'التاريخ',
-                        value: 'date',
+                        text: 'ملاحظات',
+                        value: 'notes',
                         align: 'right',
                         sortable: false
                     }
@@ -162,115 +144,23 @@
                 // Debug logging
                 console.log('Patient data:', this.patient);
                 
-                // Add case items
-                if (this.patient.cases && this.patient.cases.length > 0) {
-                    console.log('Cases found:', this.patient.cases);
-                    items = this.patient.cases.map(item => {
-                        console.log('Processing case item:', item);
-                        console.log('Case ID:', item.id);
-                        console.log('Tooth data available:', {
-                            tooth_num: item.tooth_num,
-                            tooth_number: item.tooth_number,
-                            toothNumber: item.toothNumber,
-                            teeth: item.teeth
-                        });
-                        console.log('Date data available:', {
-                            created_at: item.created_at,
-                            date: item.date,
-                            updated_at: item.updated_at,
-                            PaymentDate: item.PaymentDate
-                        });
-                        
-                        const toothData = item.tooth_num || item.tooth_number || item.toothNumber || item.teeth;
-                        const dateData = item.created_at || item.date || item.updated_at || item.PaymentDate;
-                        
-                        // Calculate paid amount for this case
-                        // First check if case has bills array attached
-                        let paidAmount = 0;
-                        if (item.bills && item.bills.length > 0) {
-                            paidAmount = item.bills.reduce((total, bill) => {
-                                return total + (parseFloat(bill.price) || 0);
-                            }, 0);
-                            console.log('Paid from case.bills:', paidAmount);
-                        } 
-                        // Otherwise, check patient.bills for bills matching this case_id
-                        else if (this.patient.bills && this.patient.bills.length > 0) {
-                            const caseBills = this.patient.bills.filter(bill => {
-                                return bill.case_id == item.id || bill.cases_id == item.id;
-                            });
-                            paidAmount = caseBills.reduce((total, bill) => {
-                                return total + (parseFloat(bill.price) || 0);
-                            }, 0);
-                            console.log('Paid from patient.bills filtered by case_id:', paidAmount, 'Case ID:', item.id);
-                        }
-                        
-                        const casePrice = parseFloat(item.price) || 0;
-                        const remainingAmount = casePrice - paidAmount;
-                        
-                        console.log('Case pricing:', { price: casePrice, paid: paidAmount, remaining: remainingAmount });
-                        
-                        return {
-                            case_type: item.case_categories ? item.case_categories.name_ar : 'غير محدد',
-                            tooth_number: this.formatToothNumbers(toothData),
-                            doctor_name: this.getDoctorName(item),
-                            price_formatted: `${this.$options.filters.currency(casePrice)} د.ع`,
-                            paid_formatted: `${this.$options.filters.currency(paidAmount)} د.ع`,
-                            remaining_formatted: `${this.$options.filters.currency(remainingAmount)} د.ع`,
-                            date: this.formatDate(dateData),
-                            price: casePrice,
-                            paid: paidAmount,
-                            remaining: remainingAmount
-                        };
-                    });
-                }
-                
-                // Remove payment items display - bills are now shown as paid amounts in each case
-                /*
+                // Show only bills/payments data
                 if (this.patient.bills && this.patient.bills.length > 0) {
-                    const paymentItems = this.patient.bills.map(bill => {
-                        console.log('Processing bill item:', bill);
-                        console.log('Bill date data:', {
-                            PaymentDate: bill.PaymentDate,
-                            created_at: bill.created_at,
-                            date: bill.date,
-                            updated_at: bill.updated_at
-                        });
+                    console.log('Bills found:', this.patient.bills);
+                    items = this.patient.bills.map((bill, index) => {
+                        console.log('Processing bill:', bill);
                         
                         const billDate = bill.PaymentDate || bill.created_at || bill.date || bill.updated_at;
+                        const billAmount = parseFloat(bill.price) || 0;
                         
                         return {
-                            case_type: bill.is_paid ? 'دفعة مالية' : 'فاتورة غير مدفوعة',
-                            tooth_number: '-',
-                            doctor_name: this.getDoctorName(bill) || '-',
-                            price_formatted: `${this.$options.filters.currency(bill.price || 0)} د.ع`,
-                            date: this.formatDate(billDate),
-                            price: bill.price || 0,
-                            is_payment: true,
-                            is_paid: bill.is_paid
+                            payment_number: index + 1,
+                            amount_formatted: `${this.$options.filters.currency(billAmount)} د.ع`,
+                            payment_date: this.formatDate(billDate),
+                            notes: bill.notes || bill.description || '-',
+                            amount: billAmount
                         };
                     });
-                    items = items.concat(paymentItems);
-                }
-                */
-                
-                // If no cases but has direct price (fallback)
-                if (items.length === 0 && this.patient.price) {
-                    const patientDate = this.patient.PaymentDate || this.patient.created_at || this.patient.date || this.patient.updated_at;
-                    console.log('Fallback patient date data:', {
-                        PaymentDate: this.patient.PaymentDate,
-                        created_at: this.patient.created_at,
-                        date: this.patient.date,
-                        updated_at: this.patient.updated_at
-                    });
-                    
-                    items = [{
-                        case_type: 'فاتورة مباشرة',
-                        tooth_number: '-',
-                        doctor_name: this.getDoctorName(this.patient) || '-',
-                        price_formatted: `${this.$options.filters.currency(this.patient.price || 0)} د.ع`,
-                        date: this.formatDate(patientDate),
-                        price: this.patient.price || 0
-                    }];
                 }
                 
                 console.log('Final bill items:', items);
