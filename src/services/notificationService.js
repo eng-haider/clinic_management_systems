@@ -9,7 +9,28 @@ class NotificationService {
     this.lastBrowserNotificationTime = new Map() // Track last browser notification per patient
     this.audioEnabled = true // Default enable sound
     this.notificationSound = null
+    this.dismissedNotifications = this.loadDismissedNotifications() // Track dismissed notifications
     this.initSound()
+  }
+
+  // Load dismissed notification IDs from localStorage
+  loadDismissedNotifications() {
+    try {
+      const dismissed = localStorage.getItem('dismissed-notifications')
+      return dismissed ? new Set(JSON.parse(dismissed)) : new Set()
+    } catch (error) {
+      console.warn('Error loading dismissed notifications:', error)
+      return new Set()
+    }
+  }
+
+  // Save dismissed notification IDs to localStorage
+  saveDismissedNotifications() {
+    try {
+      localStorage.setItem('dismissed-notifications', JSON.stringify([...this.dismissedNotifications]))
+    } catch (error) {
+      console.warn('Error saving dismissed notifications:', error)
+    }
   }
 
   // Initialize notification sound
@@ -286,14 +307,14 @@ class NotificationService {
     return false
   }
 
-  // Get all notifications
+  // Get all notifications (excluding dismissed ones)
   getNotifications() {
-    return this.notifications
+    return this.notifications.filter(n => !this.dismissedNotifications.has(n.id))
   }
 
-  // Get unread notifications count
+  // Get unread notifications count (excluding dismissed ones)
   getUnreadCount() {
-    return this.notifications.filter(n => !n.isRead).length
+    return this.notifications.filter(n => !n.isRead && !this.dismissedNotifications.has(n.id)).length
   }
 
   // Mark notification as read
@@ -303,6 +324,13 @@ class NotificationService {
       notification.isRead = true
       this.updateNotificationStore()
     }
+  }
+
+  // Dismiss notification (hide permanently)
+  dismissNotification(notificationId) {
+    this.dismissedNotifications.add(notificationId)
+    this.saveDismissedNotifications()
+    this.updateNotificationStore()
   }
 
   // Mark all notifications as read
@@ -322,6 +350,8 @@ class NotificationService {
   // Clear all notifications
   clearAll() {
     this.notifications = []
+    this.dismissedNotifications.clear()
+    this.saveDismissedNotifications()
     this.updateNotificationStore()
   }
 

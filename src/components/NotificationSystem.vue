@@ -250,8 +250,8 @@ export default {
     },
 
     handleNotificationClick(notification) {
-      // Mark as read
-      notificationService.markAsRead(notification.id)
+      // Dismiss notification (hide permanently)
+      notificationService.dismissNotification(notification.id)
       
       // Navigate to patient page
       if (notification.patientId) {

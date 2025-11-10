@@ -101,90 +101,90 @@
     C72.3,110.2,73.9,111.2,75.6,111.7z" />
           </g>                    <a href="#">
               <g>
-                <path class="comon st2" @click="reply_click(3, $event)" @contextmenu.prevent="right_click(3, $event)" @touchstart="reply_click(3, $event)"
-                  :class="[tooth_num.includes(3) ?  'activeClass comon st3' : 'comon st3']" id="13"
+                <path class="comon st2" @click="reply_click(3, $event)" @contextmenu.prevent="right_click(53, $event)" @touchstart="reply_click(3, $event)"
+                  :class="[tooth_num.includes(53) ?  'activeClass comon st3' : 'comon st3']" id="13"
                   d="M162.9,14.5c3.6-1.9,8.1-0.5,10.9,2.1c5,5.9,6.5,13.9,5.8,21.4c-1.1,4.5-4.7,7.9-8.3,10.7
         c-2.2,1.4-4.5,3.8-7.4,2.7c-4.8-2.3-8.9-6.3-10.8-11.4C152.2,30.9,153.1,18.8,162.9,14.5z" />
               </g>
             </a>
             <a href="#">
               <g>
-                <path @click="reply_click(5, $event)" @contextmenu.prevent="right_click(5, $event)" @touchstart="reply_click(5, $event)"
-                  :class="[tooth_num.includes(5) ?  'activeClass comon st3' : 'comon st3']" id="11"
+                <path @click="reply_click(51, $event)" @contextmenu.prevent="right_click(51, $event)" @touchstart="reply_click(51, $event)"
+                  :class="[tooth_num.includes(51) ?  'activeClass comon st3' : 'comon st3']" id="11"
                   d="M224.1,14.8c4-1.2,7.9,1.4,9.8,4.8c5.2,7.1,3.6,16.3,3.9,24.5c-0.1,2.9,0.5,7.2-3.1,8.2
         c-4,0.7-8.2,1.4-12.3,0.7c-3.7-0.5-7.5-0.1-10.9-1.9c-0.8-4.6-0.1-9.4-0.4-14.1C210.9,28,215.4,18.2,224.1,14.8z" />
-                <path @click="reply_click(6, $event)" @contextmenu.prevent="right_click(6, $event)" @touchstart="reply_click(6, $event)"
-                  :class="[tooth_num.includes(6) ?  'activeClass comon st3' : 'comon st4']" id="21" d="M250,14.7c3.3-0.9,6.5,1,8.8,3c5.5,4.7,8,12.1,8,19.3c-0.1,4.4,0.1,8.8-0.1,13.2c-2,2.8-6.1,2.1-9.1,2.5
+                <path @click="reply_click(61, $event)" @contextmenu.prevent="right_click(61, $event)" @touchstart="reply_click(61, $event)"
+                  :class="[tooth_num.includes(61) ?  'activeClass comon st3' : 'comon st4']" id="21" d="M250,14.7c3.3-0.9,6.5,1,8.8,3c5.5,4.7,8,12.1,8,19.3c-0.1,4.4,0.1,8.8-0.1,13.2c-2,2.8-6.1,2.1-9.1,2.5
         c-5,0.8-10.2,0.5-15.1-0.7c-2.8-1.6-2.3-5.3-2.4-8c0.3-7.7-1.3-16.2,3.1-23.2C244.9,18.2,246.9,15.4,250,14.7z" />
-                <path @click="reply_click(13, $event)" @contextmenu.prevent="right_click(13, $event)"
-                  :class="[tooth_num.includes(13) ?  'activeClass comon st5' : 'comon st5']" id="43"
+                <path @click="reply_click(43,$event)" @contextmenu.prevent="right_click(43, $event)"
+                  :class="[tooth_num.includes(43) ?  'activeClass comon st5' : 'comon st5']" id="43"
                   d="M163.9,102.6c2.9-0.8,5.4,1.5,7.6,3.2c3.1,2.7,6.1,5.6,8.2,9.2c-0.1,6.1-0.3,12.8-4.5,17.7c-2.2,3-6.3,4-9.7,3
         c-5.8-2-10.5-6.8-12.3-12.6c0-4.3-1.2-9.1,1.4-12.9C156.7,106.7,160,103.8,163.9,102.6z" />
-                <path @click="reply_click(14, $event)" @contextmenu.prevent="right_click(14, $event)"
-                  :class="[tooth_num.includes(14) ?  'activeClass comon st5' : 'comon st6']" id="42"
+                <path @click="reply_click(42,$event)" @contextmenu.prevent="right_click(42, $event)"
+                  :class="[tooth_num.includes(42) ?  'activeClass comon st5' : 'comon st6']" id="42"
                   d="M192.5,104.1c4.7-0.4,9.5-0.3,14.1,0.8c1.3,0,1.9,0.7,1.8,1.9c0.2,6.8,0.3,13.8-2.2,20.3
         c-1,3.4-4.6,5.1-7.7,6.2c-5.1,0.9-10.3-1.9-13.4-5.9c-4.1-5.8-2.8-13.2-2.9-19.8C184.4,104.4,189,104.8,192.5,104.1z" />
-                <path @click="reply_click(15, $event)" @contextmenu.prevent="right_click(15, $event)"
-                  :class="[tooth_num.includes(15) ?  'activeClass comon st7' : 'comon st7']" id="41"
+                <path @click="reply_click(41,$event)" @contextmenu.prevent="right_click(41, $event)"
+                  :class="[tooth_num.includes(41) ?  'activeClass comon st7' : 'comon st7']" id="41"
                   d="M211.2,105.7c8.5-2.8,17.9-3.1,26.6-0.7c0,5.7,0.2,11.4-0.1,17c-1.1,5.3-4.8,10.6-10.1,12.4
         c-3.1,0.4-5.9-1.6-8.1-3.5c-3.4-3.3-5.8-7.4-7.3-11.9C210.5,114.8,211.4,110.1,211.2,105.7z" />
               </g>
             </a>
             <a href="#">
               <g>
-                <path class="comon st8" @click="reply_click(8, $event)" @contextmenu.prevent="right_click(8, $event)"
-                  :class="[tooth_num.includes(8) ?  'activeClass comon st3' : 'comon st3']" id="23" d="M304.6,16.2c3.9-3.4,9.8-3.2,13.6,0.3c7.3,5.4,7,15.5,6.8,23.6c-2.3,4.9-6,9.1-11,11.3
+                <path class="comon st8" @click="reply_click(63, $event)" @contextmenu.prevent="right_click(63, $event)"
+                  :class="[tooth_num.includes(63) ?  'activeClass comon st3' : 'comon st3']" id="23" d="M304.6,16.2c3.9-3.4,9.8-3.2,13.6,0.3c7.3,5.4,7,15.5,6.8,23.6c-2.3,4.9-6,9.1-11,11.3
         c-3.1,1.2-5.6-1.5-7.8-3.1c-3.3-2.7-6.7-6-7.7-10.2C297.6,30.4,299.2,22,304.6,16.2z" />
-                <path class="comon st9" id="14" @click="reply_click(2, $event)" @contextmenu.prevent="right_click(2, $event)"
-                  :class="[tooth_num.includes(2) ?  'activeClass comon st3' : 'comon st3']" d="M133.8,18.4c2.1-1.6,4.8-1,6.8,0.4c4.4,2.9,7.4,7.5,9.6,12.2c0.3,3.7,1.3,8.3-1.6,11.3
+                <path class="comon st9" id="14" @click="reply_click(2, $event)" @contextmenu.prevent="right_click(54, $event)"
+                  :class="[tooth_num.includes(54) ?  'activeClass comon st3' : 'comon st3']" d="M133.8,18.4c2.1-1.6,4.8-1,6.8,0.4c4.4,2.9,7.4,7.5,9.6,12.2c0.3,3.7,1.3,8.3-1.6,11.3
         c-3.1,4.4-8.6,7.8-14.1,6.8c-3.7-0.8-7.6-2.3-10.1-5.3C122.8,34.5,125.3,23.6,133.8,18.4z" />
 
 
-                <path class="comon st10" id="12" @click="reply_click(4, $event)" @contextmenu.prevent="right_click(4, $event)"
-                  :class="[tooth_num.includes(4) ?  'activeClass comon st3' : 'comon st3']" d="M184.3,25.8c3.6-5.1,10.4-8.2,16.6-6c3.9,1.9,7,5.6,7.4,10.1c0.4,5.8,0.3,11.6,0.1,17.3
+                <path class="comon st10" id="12" @click="reply_click(4, $event)" @contextmenu.prevent="right_click(52, $event)"
+                  :class="[tooth_num.includes(52) ?  'activeClass comon st3' : 'comon st3']" d="M184.3,25.8c3.6-5.1,10.4-8.2,16.6-6c3.9,1.9,7,5.6,7.4,10.1c0.4,5.8,0.3,11.6,0.1,17.3
         c-5.3,3.3-11.8,3.4-17.8,2.6c-3.2-0.5-6.2-1.9-8.4-4.2C182.9,39,180.5,31.7,184.3,25.8z" />
 
 
-                <path class="comon st11" id="24" @click="reply_click(9, $event)" @contextmenu.prevent="right_click(9, $event)"
-                  :class="[tooth_num.includes(9) ?  'activeClass comon st3' : 'comon st3']" d="M338.5,18.1c3.2-1.9,6.5,0.8,8.8,3c5.9,5.9,7.6,14.9,6.1,22.8c-4.6,5.1-13.1,7.4-19.1,3.4
+                <path class="comon st11" id="24" @click="reply_click(64, $event)" @contextmenu.prevent="right_click(64, $event)"
+                  :class="[tooth_num.includes(64) ?  'activeClass comon st3' : 'comon st3']" d="M338.5,18.1c3.2-1.9,6.5,0.8,8.8,3c5.9,5.9,7.6,14.9,6.1,22.8c-4.6,5.1-13.1,7.4-19.1,3.4
         c-3-1.6-4.9-4.5-6.9-7.2c0.1-3.2-0.5-6.5,0.4-9.6C330.3,25.5,333.5,20.6,338.5,18.1z" />
-                <path class="comon st12" id="22" @click="reply_click(7, $event)" @contextmenu.prevent="right_click(7, $event)"
-                  :class="[tooth_num.includes(7) ?  'activeClass comon st3' : 'comon st3']" d="M270.7,26.4c2.9-8.1,14.4-9.4,20.2-3.7c6.6,4.7,4.8,13.3,5,20.2c0.8,4.1-3.8,5.5-6.8,6.5
+                <path class="comon st12" id="22" @click="reply_click(62, $event)" @contextmenu.prevent="right_click(62, $event)"
+                  :class="[tooth_num.includes(62) ?  'activeClass comon st3' : 'comon st3']" d="M270.7,26.4c2.9-8.1,14.4-9.4,20.2-3.7c6.6,4.7,4.8,13.3,5,20.2c0.8,4.1-3.8,5.5-6.8,6.5
         c-6.4,1.3-13.4,1.2-19.2-2.1C269.3,40.4,268.6,33.1,270.7,26.4z" />
-                <path class="comon st13" id="44" @click="reply_click(12, $event)" @contextmenu.prevent="right_click(12, $event)"
-                  :class="[tooth_num.includes(12) ?  'activeClass comon st3' : 'comon st3']" d="M131.1,106c6.1-3.2,13.9-0.8,17.4,5c2.5,2.4,1.8,5.9,1.9,9c0.4,4-2.5,7.2-4.9,10c-3,3.5-8.5,5-12.6,2.3
+                <path class="comon st13" id="44" @click="reply_click(44 ,$event)" @contextmenu.prevent="right_click(44, $event)"
+                  :class="[tooth_num.includes(44) ?  'activeClass comon st3' : 'comon st3']" d="M131.1,106c6.1-3.2,13.9-0.8,17.4,5c2.5,2.4,1.8,5.9,1.9,9c0.4,4-2.5,7.2-4.9,10c-3,3.5-8.5,5-12.6,2.3
         c-4.1-3-8.4-6.9-8.8-12.3c0-3.1-0.8-6.6,0.9-9.5C126.7,108.5,128.9,107,131.1,106z" />
-                <path class="comon st14" id="34" @click="reply_click(19, $event)" @contextmenu.prevent="right_click(19, $event)"
-                  :class="[tooth_num.includes(19) ?  'activeClass comon st3' : 'comon st3']"
+                <path class="comon st14" id="34" @click="reply_click(34,$event)" @contextmenu.prevent="right_click(34, $event)"
+                  :class="[tooth_num.includes(34) ?  'activeClass comon st3' : 'comon st3']"
                   d="M335.9,105.4c4.5-1.8,9.8-0.6,13.7,2.1c2.1,1.5,4.3,3.6,4.3,6.4c0.3,4.8-0.1,10.2-3.7,13.7
         c-2.7,2.6-5.6,6.2-9.7,5.9c-6.2,0.3-10.4-5.6-12.7-10.6c-0.1-4-1.3-8.8,1.7-12C331.1,108.6,333.2,106.6,335.9,105.4z" />
               </g>
             </a>
             <a href="#">
               <g>
-                <path class="comon st15" @click="reply_click(1, $event)" @contextmenu.prevent="right_click(1, $event)"
-                  :class="[tooth_num.includes(1) ?  'activeClass comon st3' : 'comon st3']" id="15"
+                <path class="comon st15" @click="reply_click(55, $event)" @contextmenu.prevent="right_click(55, $event)"
+                  :class="[tooth_num.includes(55) ?  'activeClass comon st3' : 'comon st3']" id="15"
                   d="M99.3,25.8c3.3-3.1,7.6-6.3,12.3-4.8c4.2,1.6,6.4,6.1,8.2,9.9c1.9,3.3,1.6,7.2,1.2,10.8
         c-2.3,3.4-6.4,4.9-10.1,6c-2.8,1-5.7,0-8.5-0.4c-2.6-1.1-5.3-2.2-7.4-4.1C94.4,37.3,94.5,30.1,99.3,25.8z" />
-                <path class="comon st16" id="25" @click="reply_click(10, $event)" @contextmenu.prevent="right_click(10, $event)"
-                  :class="[tooth_num.includes(10) ?  'activeClass comon st3' : 'comon st3']" d="M366.5,20.9c5.2-1.5,9.9,2.5,13.3,5.9c4,4.5,3.5,10.9,3.4,16.5c-5,3.4-11.5,6.3-17.6,4
+                <path class="comon st16" id="25" @click="reply_click(65, $event)" @contextmenu.prevent="right_click(65, $event)"
+                  :class="[tooth_num.includes(65) ?  'activeClass comon st3' : 'comon st3']" d="M366.5,20.9c5.2-1.5,9.9,2.5,13.3,5.9c4,4.5,3.5,10.9,3.4,16.5c-5,3.4-11.5,6.3-17.6,4
         c-3.3-1-6.1-2.8-8.7-5.1c0-3.8-0.8-7.9,1.2-11.3C360,27,362.1,22.5,366.5,20.9z" />
-                <path class="comon st17" id="16" @click="reply_click(16, $event)" @contextmenu.prevent="right_click(16, $event)"
-                  :class="[tooth_num.includes(16) ?  'activeClass comon st3' : 'comon st3']" d="M66.3,34.6c1.7-5.5,4.4-11.7,10.1-13.8c3.9-0.9,8.6-0.2,11.2,3.2c2.9,4.1,4.7,9,4.6,14.1
+                <path class="comon st17" id="16" @click="reply_click(31,$event)" @contextmenu.prevent="right_click(31, $event)"
+                  :class="[tooth_num.includes(31) ?  'activeClass comon st3' : 'comon st3']" d="M66.3,34.6c1.7-5.5,4.4-11.7,10.1-13.8c3.9-0.9,8.6-0.2,11.2,3.2c2.9,4.1,4.7,9,4.6,14.1
         c-0.1,3,0.7,6.6-2.1,8.7c-2.4,2.8-6.6,1.8-8.8-0.6c-2-1.7-4.2-5-7-3.2c1,1,2.1,2,3.1,3c-3.3,2.8-7.7,2.9-11.5,1.5
         C66,43.2,65.4,38.8,66.3,34.6z" />
                 <path class="comon st18" id="28" @click="reply_click(28, $event)" @contextmenu.prevent="right_click(28, $event)"
                   :class="[tooth_num.includes(28) ?  'activeClass comon st3' : 'comon st3']" d="M448.5,25.9c2.6-2.8,6.6-2.3,10-2.1c4.1,0.6,8.1,2,11.7,4.1c-0.1,4.5,0.4,9.1-0.2,13.6
         c-1.4,1.9-4.2,1.3-6.3,1.8c0.1-0.8,0.2-2.3,0.2-3c-4.4,1.6-9,3.2-12.5,6.4c-2.7-0.1-6.3-0.2-7.4-3.1
         C443.6,37.5,443.4,30.2,448.5,25.9z" />
-                <path class="comon st19" id="33" @click="reply_click(18, $event)" @contextmenu.prevent="right_click(18, $event)"
-                  :class="[tooth_num.includes(18) ?  'activeClass comon st3' : 'comon st3']" d="M298.4,114.8c3-4.8,7.3-9.2,12.3-11.9c2.5-1.4,5.2,0.1,7.3,1.5c3.2,2,5.3,5.2,7,8.4c-0.3,4.4,1,9.3-1.4,13.3
+                <path class="comon st19" id="33" @click="reply_click(33,$event)" @contextmenu.prevent="right_click(33, $event)"
+                  :class="[tooth_num.includes(33) ?  'activeClass comon st3' : 'comon st3']" d="M298.4,114.8c3-4.8,7.3-9.2,12.3-11.9c2.5-1.4,5.2,0.1,7.3,1.5c3.2,2,5.3,5.2,7,8.4c-0.3,4.4,1,9.3-1.4,13.3
         c-2.3,4-5.9,7.3-10.1,9.1c-3.3,1.4-7.6,0.8-10-2.1C298.8,128.3,298.1,121.2,298.4,114.8z" />
-                <path class="comon st20" id="45" @click="reply_click(11, $event)" @contextmenu.prevent="right_click(11, $event)"
-                  :class="[tooth_num.includes(11) ?  'activeClass comon st3' : 'comon st3']" d="M106.7,104.3c5.4-0.9,10.7,2.8,13.6,7.2c1.5,1.8,1,4.4,1,6.5c-0.1,5.3-3.9,9.7-8,12.7
+                <path class="comon st20" id="45" @click="reply_click(45, $event)" @contextmenu.prevent="right_click(45, $event)"
+                  :class="[tooth_num.includes(45) ?  'activeClass comon st3' : 'comon st3']" d="M106.7,104.3c5.4-0.9,10.7,2.8,13.6,7.2c1.5,1.8,1,4.4,1,6.5c-0.1,5.3-3.9,9.7-8,12.7
         c-2.7,2.6-7.3,2.7-10.3,0.6c-3.4-2.1-6.4-5-8-8.7c-0.4-3.4-0.3-6.9-0.1-10.3C97.1,107.8,102,105.3,106.7,104.3z" />
-                <path class="comon st21" id="35" @click="reply_click(20, $event)" @contextmenu.prevent="right_click(20, $event)"
-                  :class="[tooth_num.includes(20) ?  'activeClass comon st3' : 'comon st3']" d="M366,104.8c6.2-2,13.4,1.7,16.8,7c0.7,3.5,0.4,7.2,0.2,10.8c-2,4.5-5.9,8.2-10.4,10
+                <path class="comon st21" id="35" @click="reply_click(35,$event)" @contextmenu.prevent="right_click(34, $event)"
+                  :class="[tooth_num.includes(35) ?  'activeClass comon st3' : 'comon st3']" d="M366,104.8c6.2-2,13.4,1.7,16.8,7c0.7,3.5,0.4,7.2,0.2,10.8c-2,4.5-5.9,8.2-10.4,10
         c-5.7,1.6-10.2-3.2-13.3-7.3c-2.8-3.6-2.9-8.5-2.1-12.8C359.1,109,362.2,106.1,366,104.8z" />
               </g>
             </a>
@@ -197,15 +197,15 @@
             </a>
             <a href="#">
               <g>
-                <path class="comon st23" id="18" @click="reply_click(18, $event)" @contextmenu.prevent="right_click(18, $event)"
-                  :class="[tooth_num.includes(18) ?  'activeClass comon st3' : 'comon st3']" d="M7.7,28c5.3-3.3,11.7-4.9,18-4.1c6,1.6,8.7,8.4,8.3,14.2c-0.3,2.4,0.9,5.6-1.5,7.3c-2.1,1.4-5.4,2-7.4,0.2
+                <path class="comon st23" id="18" @click="reply_click(33,$event)" @contextmenu.prevent="right_click(33, $event)"
+                  :class="[tooth_num.includes(33) ?  'activeClass comon st3' : 'comon st3']" d="M7.7,28c5.3-3.3,11.7-4.9,18-4.1c6,1.6,8.7,8.4,8.3,14.2c-0.3,2.4,0.9,5.6-1.5,7.3c-2.1,1.4-5.4,2-7.4,0.2
         c-3.2-2.5-7.1-3.7-10.7-5.3c-0.1,0.7-0.3,2.2-0.4,2.9c-2.1,0.2-4.4,0.1-6-1.5C7.4,37.1,7.9,32.5,7.7,28z" />
               </g>
             </a>
             <a href="#">
               <g>
-                <path class="comon st24" id="17" @click="reply_click(17, $event)" @contextmenu.prevent="right_click(17, $event)"
-                  :class="[tooth_num.includes(17) ?  'activeClass comon st3' : 'comon st3']" d="M40.8,27.4c4.6-5.3,13-4.1,18.8-1.6c5.1,5.5,3.4,13.7,3.5,20.5c-2.2,0.2-4.4,0.4-6.6,0.4l-0.7,0.5
+                <path class="comon st24" id="17" @click="reply_click(32,$event)" @contextmenu.prevent="right_click(32, $event)"
+                  :class="[tooth_num.includes(32) ?  'activeClass comon st3' : 'comon st3']" d="M40.8,27.4c4.6-5.3,13-4.1,18.8-1.6c5.1,5.5,3.4,13.7,3.5,20.5c-2.2,0.2-4.4,0.4-6.6,0.4l-0.7,0.5
         c-6.3,0.1-13,0.1-18.8-2.6C35.8,38.7,37.6,32.5,40.8,27.4z" />
               </g>
             </a>
@@ -221,8 +221,8 @@
             <a href="#">
               <g>
 
-                <path class="comon st26" id="31" @click="reply_click(16, $event)" @contextmenu.prevent="right_click(16, $event)"
-                  :class="[tooth_num.includes(16) ?  'activeClass comon st3' : 'comon st3']" d="M240.2,105c8.6-2.5,18-2.1,26.5,0.6c0,3.5,0,6.9,0,10.4c-2,7-5.6,14.3-12.4,17.6c-2.9,1.8-6.4,0.2-8.6-1.9
+                <path class="comon st26" id="31" @click="reply_click(31,$event)" @contextmenu.prevent="right_click(31, $event)"
+                  :class="[tooth_num.includes(31) ?  'activeClass comon st3' : 'comon st3']" d="M240.2,105c8.6-2.5,18-2.1,26.5,0.6c0,3.5,0,6.9,0,10.4c-2,7-5.6,14.3-12.4,17.6c-2.9,1.8-6.4,0.2-8.6-1.9
         c-2.6-2.7-4.8-6-5.5-9.7C240.1,116.3,240.3,110.7,240.2,105z" />
               </g>
             </a>
@@ -304,8 +304,8 @@
           </a>
           <a href="#">
             <g>
-              <path class="comon st31" @click="reply_click(17, $event)" @contextmenu.prevent="right_click(17, $event)"
-                :class="[tooth_num.includes(17) ?  'activeClass comon st3' : 'comon st3']" id="32"
+              <path class="comon st31" @click="reply_click(32,$event)" @contextmenu.prevent="right_click(32, $event)"
+                :class="[tooth_num.includes(32) ?  'activeClass comon st3' : 'comon st3']" id="32"
                 d="M269.2,105.7c6.3-1.6,12.9-1.5,19.3-1c2.7,0.2,5.2,1.4,7.4,2.8c-0.1,3.8,0,7.7-0.1,11.5
         c-0.2,5.4-3.3,10.5-8.1,13.1c-5,3.1-12.8,1.8-15.8-3.5C268.9,121.4,269.2,113.3,269.2,105.7z" />
             </g>
@@ -398,32 +398,32 @@
           <text transform="matrix(1 0 0 1 22.3 73.9892)" :class="['st39', 'st40', textClass]">18</text>
           <text transform="matrix(1 0 0 1 55.4868 73.9892)" :class="['st39', 'st40', textClass]">17</text>
           <text transform="matrix(1 0 0 1 84.0802 73.9892)" :class="['st39', 'st40', textClass]">16</text>
-          <text transform="matrix(1 0 0 1 114.6549 75)" :class="['st39', 'st40', textClass]">1</text>
-          <text transform="matrix(1 0 0 1 144.7977 75)" :class="['st39', 'st40', textClass]">2</text>
-          <text transform="matrix(1 0 0 1 169.5968 74.9999)" :class="['st39', 'st40', textClass]">3</text>
-          <text transform="matrix(1 0 0 1 198.8225 74.9999)" :class="['st39', 'st40', textClass]">4</text>
-          <text transform="matrix(1 0 0 1 229.3609 74.9999)" :class="['st39', 'st40', textClass]">5</text>
-          <text transform="matrix(1 0 0 1 256.9392 75)" :class="['st39', 'st40', textClass]">6</text>
-          <text transform="matrix(1 0 0 1 286.082 75)" :class="['st39', 'st40', textClass]">7</text>
-          <text transform="matrix(1 0 0 1 316.4399 73.0106)" :class="['st39', 'st40', textClass]">8</text>
-          <text transform="matrix(1 0 0 1 343.2068 73.0106)" :class="['st39', 'st40', textClass]">9</text>
-          <text transform="matrix(1 0 0 1 373.6457 73.0106)" :class="['st39', 'st40', textClass]">10</text>
-          <text transform="matrix(1 0 0 1 403.5746 73.0106)" :class="['st39', 'st40', textClass]">26</text>
-          <text transform="matrix(1 0 0 1 433.4513 73.0106)" :class="['st39', 'st40', textClass]">27</text>
-          <text transform="matrix(1 0 0 1 464.0921 73.0106)" :class="['st39', 'st40', textClass]">28</text>
-          <text transform="matrix(1 0 0 1 22.3 93.4785)" :class="['st39', 'st40', textClass]">48</text>
-          <text transform="matrix(1 0 0 1 55.4868 93.4785)" :class="['st39', 'st40', textClass]">47</text>
-          <text transform="matrix(1 0 0 1 84.0802 93.8741)" :class="['st39', 'st40', textClass]">46</text>
-          <text transform="matrix(1 0 0 1 114.6549 94.4892)" :class="['st39', 'st40', textClass]">11</text>
-          <text transform="matrix(1 0 0 1 144.7977 95.0126)" :class="['st39', 'st40', textClass]">12</text>
-          <text transform="matrix(1 0 0 1 169.5968 94.4892)" :class="['st39', 'st40', textClass]">13</text>
-          <text transform="matrix(1 0 0 1 198.8225 94.4891)" :class="['st39', 'st40', textClass]">14</text>
-          <text transform="matrix(1 0 0 1 229.3609 94.489)" :class="['st39', 'st40', textClass]">15</text>
-          <text transform="matrix(1 0 0 1 256.9392 94.4892)" :class="['st39', 'st40', textClass]">16</text>
-          <text transform="matrix(1 0 0 1 316.4399 94.4892)" :class="['st39', 'st40', textClass]">17</text>
-          <text transform="matrix(1 0 0 1 286.082 95.0127)" :class="['st39', 'st40', textClass]">18</text>
-          <text transform="matrix(1 0 0 1 343.2068 95.0127)"   :class="['st39', 'st40', textClass]">19</text>
-          <text transform="matrix(1 0 0 1 373.6457 95.5)"  :class="['st39', 'st40', textClass]" >20</text>
+          <text transform="matrix(1 0 0 1 114.6549 75)" :class="['st39', 'st40', textClass]">A</text>
+          <text transform="matrix(1 0 0 1 144.7977 75)" :class="['st39', 'st40', textClass]">B</text>
+          <text transform="matrix(1 0 0 1 169.5968 74.9999)" :class="['st39', 'st40', textClass]">C</text>
+          <text transform="matrix(1 0 0 1 198.8225 74.9999)" :class="['st39', 'st40', textClass]">D</text>
+          <text transform="matrix(1 0 0 1 229.3609 74.9999)" :class="['st39', 'st40', textClass]">E</text>
+          <text transform="matrix(1 0 0 1 256.9392 75)" :class="['st39', 'st40', textClass]">F</text>
+          <text transform="matrix(1 0 0 1 286.082 75)" :class="['st39', 'st40', textClass]">G</text>
+          <text transform="matrix(1 0 0 1 316.4399 73.0106)" :class="['st39', 'st40', textClass]">H</text>
+          <text transform="matrix(1 0 0 1 343.2068 73.0106)" :class="['st39', 'st40', textClass]">I</text>
+          <text transform="matrix(1 0 0 1 373.6457 73.0106)" :class="['st39', 'st40', textClass]">J</text>
+          <text transform="matrix(1 0 0 1 403.5746 73.0106)" :class="['st39', 'st40', textClass]">K</text>
+          <text transform="matrix(1 0 0 1 433.4513 73.0106)" :class="['st39', 'st40', textClass]">L</text>
+          <text transform="matrix(1 0 0 1 464.0921 73.0106)" :class="['st39', 'st40', textClass]">M</text>
+          <text transform="matrix(1 0 0 1 22.3 93.4785)" :class="['st39', 'st40', textClass]">N</text>
+          <text transform="matrix(1 0 0 1 55.4868 93.4785)" :class="['st39', 'st40', textClass]">O</text>
+          <text transform="matrix(1 0 0 1 84.0802 93.8741)" :class="['st39', 'st40', textClass]">P</text>
+          <text transform="matrix(1 0 0 1 114.6549 94.4892)" :class="['st39', 'st40', textClass]">Q</text>
+          <text transform="matrix(1 0 0 1 144.7977 95.0126)" :class="['st39', 'st40', textClass]">R</text>
+          <text transform="matrix(1 0 0 1 169.5968 94.4892)" :class="['st39', 'st40', textClass]">S</text>
+          <text transform="matrix(1 0 0 1 198.8225 94.4891)" :class="['st39', 'st40', textClass]">T</text>
+          <text transform="matrix(1 0 0 1 229.3609 94.489)" :class="['st39', 'st40', textClass]">U</text>
+          <text transform="matrix(1 0 0 1 256.9392 94.4892)" :class="['st39', 'st40', textClass]">V</text>
+          <text transform="matrix(1 0 0 1 316.4399 94.4892)" :class="['st39', 'st40', textClass]">W</text>
+          <text transform="matrix(1 0 0 1 286.082 95.0127)" :class="['st39', 'st40', textClass]">X</text>
+          <text transform="matrix(1 0 0 1 343.2068 95.0127)"   :class="['st39', 'st40', textClass]">Y</text>
+          <text transform="matrix(1 0 0 1 373.6457 95.5)"  :class="['st39', 'st40', textClass]" >Z</text>
           <text transform="matrix(1 0 0 1 403.5746 95.4998)" :class="['st39', 'st40', textClass]">36</text>
           <text transform="matrix(1 0 0 1 433.4513 95.4999)" :class="['st39', 'st40', textClass]">37</text>
           <text transform="matrix(1 0 0 1 464.0921 95.4999)" :class="['st39', 'st40', textClass]">38</text>
