@@ -178,19 +178,69 @@
                     </v-toolbar>
 
 
-                    <v-layout row wrap>
-                        <v-flex xs8 md3 sm3 pr-1 style="padding-right: 22px !important;">
+                    <v-layout row wrap class="filters-row">
+
+                        <v-flex xs12 sm6 md2 pr-1>
                             <v-text-field ref="name" v-model="search" @keyup.enter="seachs"
                                 :placeholder="$t('patients.Referencesnameorphonenumber')" required>
                             </v-text-field>
                         </v-flex>
 
+                        <v-flex xs12 sm6 md2 style="max-width: 200px;">
+                            <v-menu
+                                ref="fromMenu"
+                                v-model="fromMenu"
+                                :close-on-content-click="false"
+                                transition="scale-transition"
+                                offset-y
+                                min-width="auto"
+                            >
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-text-field
+                                        v-model="from"
+                                        label="من تاريخ"
+                                        prepend-icon="mdi-calendar"
+                                        readonly
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        dense
+                                        outlined
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="from" @input="fromMenu = false"></v-date-picker>
+                            </v-menu>
+                        </v-flex>
+                        <v-flex xs12 sm6 md2 style="max-width: 200px;">
+                            <v-menu
+                                ref="toMenu"
+                                v-model="toMenu"
+                                :close-on-content-click="false"
+                                transition="scale-transition"
+                                offset-y
+                                min-width="auto"
+                            >
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-text-field
+                                        v-model="to"
+                                        label="إلى تاريخ"
+                                        prepend-icon="mdi-calendar"
+                                        readonly
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        dense
+                                        outlined
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="to" @input="toMenu = false"></v-date-picker>
+                            </v-menu>
+                        </v-flex>
 
-                        <v-flex xs1 pa-5>
+
+                        <v-flex xs6 sm3 md1 d-flex align-center justify-center>
                             <v-btn color="green" style="color:#fff" @click="seachs()"> {{ $t("search") }}</v-btn>
                         </v-flex>
 
-                        <v-flex xs1 pt-5 pb-5 pr-2 class="allsee">
+                        <v-flex xs6 sm3 md1 d-flex align-center justify-center class="allsee">
                             <v-btn color="blue" v-if="allItem" style="color:#fff"
                                 @click="initialize();allItem=false;isSearching=false">
                                 {{ $t("all") }}
@@ -209,7 +259,7 @@
                             </v-select>
                         </v-flex> -->
 
-                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="payment-filter">
+                        <v-flex xs12 sm6 md2 class="payment-filter">
                             <v-select
                                 v-model="billingStatusFilter"
                                 :items="[
@@ -229,7 +279,7 @@
                             ></v-select>
                         </v-flex>
 
-                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="credit-filter" v-if="$store.getters.useCreditSystem">
+                        <v-flex xs12 sm6 md2 class="credit-filter" v-if="$store.getters.useCreditSystem">
                             <v-select
                                 v-model="creditStatusFilter"
                                 :items="[
@@ -479,6 +529,12 @@
                     phone: ''
                 },
                 sendingMessage: false,
+
+                // Date filter for cases
+                from: '',
+                to: '',
+                fromMenu: false,
+                toMenu: false,
 
                 // Server-side pagination - initialize with default values
                 tableOptions: {
@@ -1335,12 +1391,27 @@
 
             },
             seachs() {
+                
                 // Clear all search-related cache before performing new search
                 this.clearSearchCache();
-                
-                this.isSearching = true;
                 this.loadingData = true;
-                
+
+                // Always trim search and set to empty if only whitespace
+                if (typeof this.search === 'string') {
+                    this.search = this.search.trim();
+                }
+
+                // If search is empty, use getByUserIdv3 (initialize) with date filter
+                if (!this.search) {
+                    this.isSearching = false;
+                    // Clear patient cache so initialize() always calls API
+                    this.clearPatientCache();
+                    this.initialize();
+                    return;
+                }
+
+                // Otherwise, use searchv2
+                this.isSearching = true;
                 // Reset pagination for new search
                 if (this.tableOptions.page === 1) {
                     // If we're already on page 1, proceed with search
@@ -1373,6 +1444,9 @@
                 }
                 if (this.creditStatusFilter) {
                     searchUrl += `&credit_status=${this.creditStatusFilter}`;
+                }
+                if (this.from && this.to) {
+                    searchUrl += `&from=${this.from}&to=${this.to}`;
                 }
                 
                 // Don't use cache for search - always fetch fresh data
@@ -1487,13 +1561,16 @@
                     return;
                 }
                 
-                // Build API URL with billing status parameter
+                // Build API URL with billing status parameter and from/to date filter
                 let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
                 if (this.creditStatusFilter) {
                     apiUrl += `&credit_status=${this.creditStatusFilter}`;
+                }
+                if (this.from && this.to) {
+                    apiUrl += `&from=${this.from}&to=${this.to}`;
                 }
                 
                 this.apiRequest(apiUrl)
@@ -2013,4 +2090,19 @@
             margin-right: 5px;
         }
     }
+/* Make filter controls appear in a single row on desktop */
+.filters-row > .v-flex {
+    margin-bottom: 8px;
+}
+@media (min-width: 960px) {
+    .filters-row {
+        flex-wrap: nowrap !important;
+        align-items: flex-end;
+    }
+    .filters-row > .v-flex {
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+}
 </style>

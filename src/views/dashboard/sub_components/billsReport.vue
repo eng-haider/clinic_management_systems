@@ -1083,155 +1083,7 @@
 
             // Get mobile-specific print styles to ensure table displays properly
             getMobilePrintStyles() {
-                return `
-                    @media print {
-                        .screen-only {
-                            display: none !important;
-                        }
-                        
-                        button {
-                            display: none !important;
-                        }
-                        
-                        @page {
-                            size: A4;
-                            margin: 15mm;
-                        }
-                        
-                        @supports not (size: A4) {
-                            @page {
-                                margin: 15mm;
-                            }
-                            
-                            body {
-                                transform: scale(1.0);
-                                transform-origin: top center;
-                                width: 210mm;
-                                max-width: 210mm;
-                            }
-                        }
-                        
-                        @media print and (max-width: 480px) {
-                            body {
-                                font-size: 8px !important;
-                                padding: 5mm !important;
-                            }
-                            
-                            .bill-card {
-                                padding: 3mm !important;
-                                max-width: 140mm !important;
-                            }
-                        }
-                        
-                        body {
-                            font-family: 'Cairo', sans-serif !important;
-                            direction: rtl !important;
-                            font-size: 14px !important;
-                            line-height: 1.4 !important;
-                            margin: 0 !important;
-                            padding: 0 !important;
-                            max-width: 210mm !important;
-                            max-height: 297mm !important;
-                        }
-                        
-                        .bill-card {
-                            margin: 0 !important;
-                            padding: 20px !important;
-                            font-size: 14px !important;
-                        }
-                        
-                        .patient-header {
-                            margin-bottom: 15px !important;
-                            font-size: 14px !important;
-                        }
-                        
-                        .patient-info {
-                            margin-bottom: 6px !important;
-                            font-size: 14px !important;
-                        }
-                        
-                        .clinic-logo-image {
-                            width: 100px !important;
-                            height: 100px !important;
-                        }
-                        
-                        .clinic-name {
-                            font-size: 14px !important;
-                        }
-                        
-                        .v-data-table,
-                        .bill-table {
-                            width: 100% !important;
-                            border-collapse: collapse !important;
-                            margin: 10px 0 !important;
-                        }
-                        
-                        .v-data-table__wrapper {
-                            overflow: visible !important;
-                        }
-                        
-                        .v-data-table table {
-                            width: 100% !important;
-                            border-collapse: collapse !important;
-                            font-size: 14px !important;
-                        }
-                        
-                        .v-data-table th,
-                        .v-data-table td {
-                            border: 1px solid #333 !important;
-                            padding: 12px 16px !important;
-                            font-size: 14px !important;
-                            text-align: right !important;
-                            white-space: nowrap !important;
-                            line-height: 1.2 !important;
-                        }
-                        
-                        .v-data-table thead th {
-                            background-color: #f5f5f5 !important;
-                            font-weight: bold !important;
-                            font-size: 14px !important;
-                        }
-                        
-                        .bill-summary {
-                            margin: 15px 0 !important;
-                            padding: 20px !important;
-                            font-size: 16px !important;
-                        }
-                        
-                        .summary-row {
-                            margin-bottom: 10px !important;
-                            font-size: 16px !important;
-                        }
-                        
-                        .summary-row.remaining {
-                            font-size: 18px !important;
-                        }
-                        
-                        .signature-section {
-                            margin-top: 40px !important;
-                            padding-top: 20px !important;
-                        }
-                        
-                        .signature-label {
-                            font-size: 14px !important;
-                            margin-bottom: 30px !important;
-                        }
-                        
-                        .signature-line {
-                            height: 50px !important;
-                        }
-                        
-                        .v-divider {
-                            display: none !important;
-                        }
-                    }
-                    
-                    @media screen {
-                        .screen-only {
-                            display: block !important;
-                        }
-                    }
-                `;
+                return '';
             },
 
             // Show print instructions if all methods fail
@@ -1436,8 +1288,8 @@
                     
                     @media print {
                         @page {
-                            size: A4;
-                            margin: 10mm 12mm;
+                            size: A5 portrait;
+                            margin: 10mm 8mm;
                         }
                         
                         @supports not (size: A4) {
@@ -1725,93 +1577,89 @@
     button {
         display: none !important;
     }
-    
-    /* A4 page setup */
+    /* A5 page setup */
     @page {
-        size: A4;
-        margin: 15mm;
+        size: A5 portrait;
+        margin: 10mm 8mm;
     }
-    
     body {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: 'Cairo', sans-serif !important;
+        direction: rtl !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        max-width: 148mm !important;
+        max-height: 210mm !important;
+        width: 148mm !important;
+        height: 210mm !important;
+        box-sizing: border-box !important;
+        background: white !important;
     }
-    
     .bill-card {
         box-shadow: none !important;
         border: none !important;
-        padding: 20px !important;
+        padding: 10px 8px !important;
+        font-size: 13px !important;
+        width: 100% !important;
+        max-width: 132mm !important;
+        box-sizing: border-box !important;
     }
-    
-    /* Keep same patient header styling */
     .patient-header {
         border-bottom: 2px solid #333;
-        padding-bottom: 15px;
-        margin-bottom: 20px;
+        padding-bottom: 10px !important;
+        margin-bottom: 10px !important;
+        font-size: 13px !important;
     }
-    
     .patient-info {
-        font-size: 14px !important;
-        margin-bottom: 8px !important;
+        font-size: 13px !important;
+        margin-bottom: 5px !important;
     }
-    
     .clinic-logo-image {
-        width: 100px !important;
-        height: 100px !important;
+        width: 60px !important;
+        height: 60px !important;
     }
-    
     .clinic-name {
-        font-size: 14px !important;
+        font-size: 13px !important;
     }
-    
-    /* Keep same table styling */
     .bill-table >>> th,
     .bill-table >>> td {
-        padding: 12px 16px !important;
-        font-size: 14px !important;
+        padding: 8px 10px !important;
+        font-size: 13px !important;
         border: 1px solid #e0e0e0 !important;
+        box-sizing: border-box !important;
     }
-    
     .bill-table >>> th {
         background-color: #f5f5f5 !important;
     }
-    
-    /* Keep same summary styling */
     .bill-summary {
-        margin: 20px 0 !important;
-        padding: 20px !important;
+        margin: 10px 0 !important;
+        padding: 10px !important;
         background-color: #f9f9f9 !important;
         border-radius: 8px !important;
-    }
-    
-    .summary-row {
-        font-size: 16px !important;
-        margin-bottom: 10px !important;
-        padding: 8px 0 !important;
-    }
-    
-    .summary-row.remaining {
-        font-size: 18px !important;
-        margin-top: 15px !important;
-        padding-top: 15px !important;
-    }
-    
-    /* Keep same signature styling */
-    .signature-section {
-        margin-top: 40px !important;
-        padding-top: 20px !important;
-    }
-    
-    .signature-label {
         font-size: 14px !important;
-        margin-bottom: 30px !important;
     }
-    
+    .summary-row {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+        padding: 6px 0 !important;
+    }
+    .summary-row.remaining {
+        font-size: 15px !important;
+        margin-top: 10px !important;
+        padding-top: 10px !important;
+    }
+    .signature-section {
+        margin-top: 20px !important;
+        padding-top: 10px !important;
+    }
+    .signature-label {
+        font-size: 13px !important;
+        margin-bottom: 20px !important;
+    }
     .signature-line {
-        height: 50px !important;
+        height: 30px !important;
     }
-    
-    /* Hide dividers */
     .v-divider {
         display: none !important;
     }
