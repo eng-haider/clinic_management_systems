@@ -283,9 +283,9 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-11-01", // Focus on October by default
-        startDate: "2025-11-01", // Start of October
-        endDate: "2025-12-30", // End of November
+        focus: "2025-12-01", // Focus on October by default
+        startDate: "2025-12-01", // Start of October
+        endDate: "2026-01-01", // End of November
 
         valid: true,
 
