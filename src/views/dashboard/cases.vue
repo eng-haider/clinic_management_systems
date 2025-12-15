@@ -583,7 +583,7 @@
                     {
                         text: this.$t('datatable.doctor'),
                         align: "start",
-                        value: "doctor"
+                        value: "doctors.name"
                     },
 
 

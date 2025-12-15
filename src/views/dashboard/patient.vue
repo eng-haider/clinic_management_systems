@@ -260,8 +260,11 @@
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip small color="primary" text-color="white">
+                            <v-chip v-if="item.tooth_number" small color="primary" text-color="white">
                               {{ item.tooth_number }}
+                            </v-chip>
+                            <v-chip v-else small color="grey" text-color="white">
+                              -
                             </v-chip>
                           </div>
                         </template>
@@ -275,7 +278,21 @@
 
                         <!-- Date Column -->
                         <template v-slot:item.date="{ item }">
-                          <span>{{ item.date }}</span>
+                        <span>{{ item.date }}</span>
+                        </template>
+
+                        <!-- Doctor Name Column -->
+                        <template v-slot:item.doctors.name="{ item }">
+                          <v-chip 
+                            v-if="item.doctors.name" 
+                            small 
+                            color="blue-grey lighten-4" 
+                            text-color="blue-grey darken-2"
+                          >
+                            <v-icon left size="14">mdi-doctor</v-icon>
+                            {{ item.doctors.name }}
+                          </v-chip>
+                          <span v-else class="grey--text text--lighten-1">-</span>
                         </template>
 
                         <!-- Price Column -->
@@ -1091,7 +1108,10 @@ export default {
   computed: {
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      return this.patientCases.map(case_item => case_item.tooth_number);
+      // Filter out null tooth numbers (like teeth cleaning cases)
+      return this.patientCases
+        .map(case_item => case_item.tooth_number)
+        .filter(tooth_number => tooth_number !== null && tooth_number !== undefined);
     },
     
     totalAmount() {
@@ -1304,10 +1324,11 @@ export default {
       return [
         { text: this.$t('patients.tooth'), value: 'tooth_number', align: 'center', width: '2%' },
         { text: this.$t('datatable.type'), value: 'case_type', align: 'start', width: '5%' },
-        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
-        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
-        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
-        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
+        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '8%' },
+        { text: this.$t('datatable.doctor'), value: 'doctor_name', align: 'center', width: '8%' },
+        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '10%' },
+        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '10%' },
+        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '13%' },
         { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '36%' },
         { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '8%' }
       ];
@@ -1540,11 +1561,27 @@ export default {
       // Get operation name
       const operationName = caseData.operation.name || caseData.operation.name_ar;
       
+      // Check if this is the teeth cleaning category (id: 7)
+      // For teeth cleaning, don't associate with a specific tooth
+      const isTeethCleaning = caseData.operation.id === 7;
+      
+      // Get current user's doctor ID if they are a doctor
+      const currentUserId = this.$store.state.AdminInfo?.user_id;
+      const currentUserRole = this.$store.state.role;
+      let doctorId = null;
+      let doctorName = '';
+      
+      // If current user is a doctor, use their ID
+      if (currentUserRole === 'doctor' || currentUserRole === 'adminDoctor') {
+        doctorId = currentUserId;
+        doctorName = this.$store.state.AdminInfo?.name || '';
+      }
+      
       // Create new case object (allowing multiple categories for same tooth)
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
         server_id: null, // Will be set after saving to server
-        tooth_number: caseData.toothNumber,
+        tooth_number: isTeethCleaning ? null : caseData.toothNumber, // Set to null for teeth cleaning
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
@@ -1555,6 +1592,8 @@ export default {
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
+        doctor_id: doctorId,
+        doctor_name: doctorName,
         modified: true // Mark as new/modified for save
       };
       
@@ -1784,6 +1823,8 @@ export default {
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,
+            doctor: caseItem.doctors || caseItem.doctor || null,
+            doctor_name: caseItem.doctors ? caseItem.doctors.name : (caseItem.doctor ? caseItem.doctor.name : ''),
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -2225,10 +2266,27 @@ export default {
         }
         // Always add a new object (force new reference)
         const operationName = operation.name || operation.name_ar;
+        
+        // Check if this is the teeth cleaning category (id: 7)
+        // For teeth cleaning, don't associate with a specific tooth
+        const isTeethCleaning = operation.id === 7;
+        
+        // Get current user's doctor ID if they are a doctor
+        const currentUserId = this.$store.state.AdminInfo?.user_id;
+        const currentUserRole = this.$store.state.role;
+        let doctorId = null;
+        let doctorName = '';
+        
+        // If current user is a doctor, use their ID
+        if (currentUserRole === 'doctor' || currentUserRole === 'adminDoctor') {
+          doctorId = currentUserId;
+          doctorName = this.$store.state.AdminInfo?.name || '';
+        }
+        
         const newCase = {
           id: Date.now() + Math.floor(Math.random() * 10000), // Unique id
           server_id: null,
-          tooth_number: this.selectedTooth,
+          tooth_number: isTeethCleaning ? null : this.selectedTooth, // Set to null for teeth cleaning
           case_type: operationName,
           date: new Date().toISOString().substr(0, 10),
           price: null,
@@ -2238,6 +2296,8 @@ export default {
           status_id: 42,
           sessions: [],
           additionalSessions: [],
+          doctor_id: doctorId,
+          doctor_name: doctorName,
           modified: true
         };
         this.patientCases.unshift(newCase);
@@ -2252,18 +2312,37 @@ export default {
    addCase(toothNumber, operation) {
       // Check if case already exists for this tooth and operation
       const operationName = operation.name || operation.name_ar;
-      const existingCase = this.patientCases.find(
-        case_item => case_item.tooth_number == toothNumber && case_item.case_type === operationName
-      );
       
-      if (existingCase) {
-        return;
+      // Check if this is the teeth cleaning category (id: 7)
+      const isTeethCleaning = operation.id === 7;
+      
+      // For teeth cleaning, don't check for existing case by tooth number
+      if (!isTeethCleaning) {
+        const existingCase = this.patientCases.find(
+          case_item => case_item.tooth_number == toothNumber && case_item.case_type === operationName
+        );
+        
+        if (existingCase) {
+          return;
+        }
+      }
+
+      // Get current user's doctor ID if they are a doctor
+      const currentUserId = this.$store.state.AdminInfo?.user_id;
+      const currentUserRole = this.$store.state.role;
+      let doctorId = null;
+      let doctorName = '';
+      
+      // If current user is a doctor, use their ID
+      if (currentUserRole === 'doctor' || currentUserRole === 'adminDoctor') {
+        doctorId = currentUserId;
+        doctorName = this.$store.state.AdminInfo?.name || '';
       }
 
       const newCase = {
         id: Date.now(), // Temporary client-side ID
         server_id: null, // Will be set after saving to server
-        tooth_number: toothNumber,
+        tooth_number: isTeethCleaning ? null : toothNumber, // Set to null for teeth cleaning
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
@@ -2274,6 +2353,8 @@ export default {
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
+        doctor_id: doctorId,
+        doctor_name: doctorName,
         modified: true // Mark as new/modified for save
       };
       
@@ -2715,9 +2796,14 @@ export default {
     // Save new case
     async saveNewCase(caseItem) {
       try {
+        // Handle tooth_number - use empty array if null (for general cases like teeth cleaning)
+        const toothNumbers = caseItem.tooth_number !== null && caseItem.tooth_number !== undefined 
+          ? [parseInt(caseItem.tooth_number)] 
+          : [];
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
-          tooth_num: [parseInt(caseItem.tooth_number)],
+          tooth_num: toothNumbers,
           status_id: caseItem.completed ? 43 : 42,
           sessions: [{
             note: caseItem.notes || "",
@@ -2755,11 +2841,16 @@ export default {
     // Update existing case
     async updateExistingCase(caseItem) {
       try {
+        // Handle tooth_number - use empty array string if null (for general cases like teeth cleaning)
+        const toothNumString = caseItem.tooth_number !== null && caseItem.tooth_number !== undefined 
+          ? `[${caseItem.tooth_number}]` 
+          : '[]';
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
           images: [],
-          tooth_num: `[${caseItem.tooth_number}]`,
+          tooth_num: toothNumString,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
           sessions: caseItem.sessions || []
