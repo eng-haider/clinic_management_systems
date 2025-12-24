@@ -53,6 +53,8 @@
           v-for="part in tooth.parts" 
           :key="`${tooth.id}-part-${part.id}`"
           @click.stop="handleToothPartClick(tooth, part, $event)"
+          @touchstart.stop="handleToothPartTouchStart(tooth, part, $event)"
+          @touchend.stop="handleToothPartTouchEnd(tooth, $event)"
           @contextmenu.stop.prevent="handleToothPartContextMenu(tooth, $event)"
           class="tooth-part-group"
         >
@@ -67,6 +69,13 @@
         </g>
       </g>
     </svg>
+
+    <!-- Backdrop overlay for mobile -->
+    <div 
+      v-if="contextMenu.visible"
+      class="menu-backdrop"
+      @click="hideContextMenu"
+    ></div>
 
     <!-- Context Menu - Outside SVG for better z-index control -->
     <div 
@@ -385,6 +394,10 @@ export default {
       coloredParts: [], // Array of { toothId, toothNum, partId, color }
       showColorPicker: true,
       savingColors: false,
+      // Touch event tracking for double-tap detection
+      lastTouchTime: 0,
+      lastTouchedTooth: null,
+      touchTimeout: null,
      teeth: [
         { id: "tooth-1",  parts: [ { id: 1, svg: `<path d="M 494.5,-0.5 C 495.167,-0.5 495.833,-0.5 496.5,-0.5C 481.665,52.1739 474.331,105.841 474.5,160.5C 493.86,149.524 512.86,150.191 531.5,162.5C 531.83,134.296 529.33,106.296 524,78.5C 516.722,51.8366 508.556,25.5033 499.5,-0.5C 500.167,-0.5 500.833,-0.5 501.5,-0.5C 501.628,1.08979 502.295,2.42312 503.5,3.5C 504.874,2.2887 506.374,1.2887 508,0.5C 508.772,0.644803 509.439,0.978136 510,1.5C 512.742,6.51257 514.742,11.8459 516,17.5C 520.342,45.3073 525.008,72.974 530,100.5C 532.509,122.456 534.509,144.456 536,166.5C 541.166,171.335 545.166,177.001 548,183.5C 555.249,206.339 550.083,225.839 532.5,242C 506.611,258.451 483.111,255.617 462,233.5C 445.417,207.299 448.417,183.632 471,162.5C 471.897,107.124 479.73,52.7906 494.5,-0.5 Z" fill="#1e1e1e" style="opacity:1"/>` } ] },
         { id: "tooth-2", tooth_num: 14, parts: [ { id: 1, svg: `<path class="" d="M 496.5,-0.5 C 497.5,-0.5 498.5,-0.5 499.5,-0.5C 508.556,25.5033 516.722,51.8366 524,78.5C 529.33,106.296 531.83,134.296 531.5,162.5C 512.86,150.191 493.86,149.524 474.5,160.5C 474.331,105.841 481.665,52.1739 496.5,-0.5 Z" fill="#fcfcfc" style="opacity: 1;"/>` } ] },
@@ -1024,6 +1037,63 @@ export default {
         toothNum: toothNum,
         toothId: tooth.id
       };
+    },
+
+    /**
+     * Handle touch start on a tooth part (for double-tap detection on mobile)
+     */
+    handleToothPartTouchStart(tooth, part, event) {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - this.lastTouchTime;
+      const toothNum = tooth.tooth_num;
+      
+      console.log('Touch start on tooth:', toothNum, 'tapLength:', tapLength);
+      
+      // Double-tap detected (taps within 500ms)
+      if (tapLength < 500 && tapLength > 0 && this.lastTouchedTooth === toothNum) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        console.log('Double-tap detected on tooth:', toothNum);
+        
+        // Clear the timeout for single tap
+        if (this.touchTimeout) {
+          clearTimeout(this.touchTimeout);
+          this.touchTimeout = null;
+        }
+        
+        // Show context menu at touch position
+        const touch = event.touches[0] || event.changedTouches[0];
+        this.contextMenu = {
+          visible: true,
+          x: touch.clientX,
+          y: touch.clientY,
+          toothNum: toothNum,
+          toothId: tooth.id
+        };
+        
+        // Reset for next double-tap
+        this.lastTouchTime = 0;
+        this.lastTouchedTooth = null;
+      } else {
+        // Single tap - schedule coloring action (will be cancelled if double-tap occurs)
+        this.lastTouchTime = currentTime;
+        this.lastTouchedTooth = toothNum;
+        
+        // Don't color immediately, wait to see if it's a double-tap
+        this.touchTimeout = setTimeout(() => {
+          // This is a single tap, do nothing (click event will handle coloring)
+          console.log('Single tap on tooth:', toothNum);
+        }, 500);
+      }
+    },
+
+    /**
+     * Handle touch end on a tooth part
+     */
+    handleToothPartTouchEnd(tooth, event) {
+      // Just prevent default to avoid triggering click events on mobile
+      event.stopPropagation();
     },
 
     /**
@@ -1740,6 +1810,24 @@ export default {
 <style scoped>
 /* ...existing styles... */
 
+/* Backdrop overlay for mobile */
+.menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .menu-backdrop {
+    display: block;
+  }
+}
+
 /* Tooth Context Menu - Modern Design */
 .tooth-context-menu {
   position: fixed;
@@ -1749,10 +1837,88 @@ export default {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   width: 320px;
+  max-width: calc(100vw - 32px); /* Responsive width on mobile */
   max-height: 500px;
   overflow-y: auto;
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Mobile optimizations */
+@media (max-width: 600px) {
+  .tooth-context-menu {
+    width: calc(100vw - 32px);
+    max-height: 70vh;
+    left: 16px !important;
+    right: 16px;
+    top: auto !important;
+    bottom: 16px;
+    border-radius: 16px;
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .menu-header {
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  }
+  
+  .tooth-info {
+    font-size: 16px;
+  }
+  
+  .search-section {
+    padding: 16px;
+  }
+  
+  .quick-categories {
+    padding: 16px;
+    max-height: none; /* Allow full scroll on mobile */
+  }
+  
+  .categories-grid {
+    gap: 10px;
+  }
+  
+  .category-chip {
+    font-size: 14px !important;
+    height: 36px !important;
+  }
+  
+  .action-buttons {
+    padding: 16px;
+  }
+  
+  .action-buttons .v-btn {
+    height: 44px !important; /* Larger tap targets */
+    font-size: 14px !important;
+  }
+  
+  .current-selection {
+    padding: 16px;
+  }
+  
+  .add-category-section {
+    padding: 16px;
+  }
+  
+  .remove-section {
+    padding: 16px;
+  }
 }
 
 /* Menu Header */
