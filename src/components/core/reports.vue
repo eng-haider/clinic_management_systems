@@ -276,7 +276,7 @@
                   this.search.doctors=[this.search.doctors];
                 }
 
-          const response = await this.axios.https://smartclinicv5.tctate.comcases/export-cases', {
+          const response = await this.axios.https://mina-api.tctate.comcases/export-cases', {
             params: this.search, // Send search filters as query params
             headers: {
               "Content-Type": "application/json",
@@ -354,7 +354,7 @@
             });
         } else {
 
-          this.axios.get('https://smartclinicv5.tctate.com/api/patientsAccounsts?page=' + this.current_page, {
+          this.axios.get('https://mina-api.tctate.com/api/patientsAccounsts?page=' + this.current_page, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",

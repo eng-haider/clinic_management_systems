@@ -314,6 +314,16 @@
                           />
                         </template>
 
+                        <!-- Doctor Column -->
+                        <template v-slot:item.doctor_name="{ item }">
+                          <div class="doctor-cell text-center">
+                            <v-chip small color="blue-grey" text-color="white">
+                              <v-icon left small>mdi-account</v-icon>
+                              {{ item.doctor_name || $t('patients.not_specified') }}
+                            </v-chip>
+                          </div>
+                        </template>
+
                         <!-- Bills Column -->
                         <template v-slot:item.bills="{ item }">
                           <div class="bills-for-case">
@@ -789,10 +799,12 @@
           <!-- Add Payment Button - Only for Accountants -->
           <v-card-actions class="justify-center" v-if="canEditBills">
             <v-btn
-              color="primary"
-              @click="addPayment"
-              class="add-payment-btn mr-3"
-            >
+                color="primary"
+                :loading="addBillLoading"
+                :disabled="addBillLoading"
+                @click="addPayment"
+                class="add-payment-btn mr-3"
+              >
               <v-icon left>mdi-plus</v-icon>
               {{ $t('patients.add_new_payment') }}
             </v-btn>
@@ -1059,6 +1071,8 @@ export default {
       appointmentDialog: false,
       billDialog: false,
       addCreditDialog: false,
+  // UI: loading state for Add Payment button
+  addBillLoading: false,
       
       // Credit System
       creditAmount: '',
@@ -1342,9 +1356,10 @@ export default {
         { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
         { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
         { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
+        { text: this.$t('datatable.doctor'), value: 'doctor_name', align: 'center', width: '12%' },
         { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
-        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '36%' },
-        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '8%' }
+        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '28%' },
+        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '6%' }
       ];
     },
     
@@ -1363,7 +1378,7 @@ export default {
 
     dropzoneOptions() {
       return {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        url: "https://mina-api.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -1769,6 +1784,27 @@ export default {
             toothNumber = caseItem.tooth_num;
           }
 
+          // determine doctor name for the case (support multiple API shapes)
+          let doctorName = '';
+          // Preferred: caseItem.doctor (singular) returned by API in examples
+          if (caseItem.doctor && typeof caseItem.doctor === 'object') {
+            doctorName = caseItem.doctor.name || caseItem.doctor.name_ar || '';
+          } else if (caseItem.doctors) {
+            // caseItem.doctors may be an array or an object
+            if (Array.isArray(caseItem.doctors)) {
+              doctorName = caseItem.doctors.length && (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) ? (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) : '';
+            } else if (typeof caseItem.doctors === 'object') {
+              doctorName = caseItem.doctors.name || caseItem.doctors.name_ar || '';
+            }
+          } else if (caseItem.doctor_name) {
+            // fallback field sometimes provided by API
+            doctorName = caseItem.doctor_name;
+          } else if (caseItem.doctor_id && this.doctors) {
+            // try to resolve from local doctors list if available
+            const d = (this.doctors || []).find(x => x.id === caseItem.doctor_id);
+            doctorName = d ? (d.name || d.name_ar || '') : '';
+          }
+
           return {
             id: caseItem.id,
             server_id: caseItem.id,
@@ -1784,6 +1820,7 @@ export default {
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,
+            doctor_name: doctorName,
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -2434,7 +2471,7 @@ export default {
     },
     
     // Add a new payment
-    addPayment() {
+    async addPayment() {
       // Check if user has permission to create bills
       if (!this.canAddBills) {
         this.$swal.fire({
@@ -2445,7 +2482,40 @@ export default {
         });
         return;
       }
-      
+      // Show loading on Add Payment button while we prepare cases
+      this.addBillLoading = true;
+      try {
+        // If there are unsaved cases, persist them first so they appear in the case menu
+        const unsavedCases = this.patientCases.filter(c => !c.server_id);
+        if (unsavedCases.length > 0) {
+          // Save each new case sequentially to ensure server IDs are available
+          for (const nc of unsavedCases) {
+            try {
+              await this.saveNewCase(nc);
+            } catch (err) {
+              console.error('Failed to save a new case before adding bill:', err);
+              // Continue saving others but notify user
+              if (this.$toast && typeof this.$toast.error === 'function') {
+                this.$toast.error(this.$t('patients.error_saving_case_before_bill') || 'Failed to save case');
+              }
+            }
+          }
+
+          // Reload patient data so the availableCases and case menu include newly saved cases
+          try {
+            await this.loadPatientData();
+          } catch (err) {
+            console.error('Failed to reload patient data after saving cases:', err);
+          }
+        }
+
+      } catch (err) {
+        console.error('Unexpected error while preparing to add payment:', err);
+      } finally {
+        // Ensure loading flag is cleared after preparation
+        this.addBillLoading = false;
+      }
+
       // Create a new bill object with case selection
       const newBill = {
         id: Date.now(), // Temporary ID
@@ -2465,7 +2535,7 @@ export default {
       
       // Add the new bill to the patientBills array
       this.patientBills.push(newBill);
-      
+
       // Optimistically update the UI
       this.$forceUpdate();
     },
@@ -2557,7 +2627,7 @@ export default {
               } else {
                 // If it's an existing bill, call the DELETE API
                 const billId = bill.server_id || bill.id;
-                await this.$http.delete(`https://smartclinicv5.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
+                await this.$http.delete(`https://mina-api.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -2693,7 +2763,7 @@ export default {
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://mina-api.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2734,7 +2804,7 @@ export default {
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://mina-api.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2765,7 +2835,7 @@ export default {
           sessions: caseItem.sessions || []
         };
         
-        const response = await this.$http.patch(`https://smartclinicv5.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://mina-api.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2809,7 +2879,7 @@ export default {
             use_credit: anyBillUsesCredit
           };
           
-          const response = await this.$http.post(`https://smartclinicv5.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://mina-api.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2857,7 +2927,7 @@ export default {
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://smartclinicv5.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://mina-api.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -3019,7 +3089,7 @@ export default {
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://smartclinicv5.tctate.com/case_photo/${imageName}`;
+      return `https://mina-api.tctate.com/case_photo/${imageName}`;
     },
 
     // Refresh available cases to update disabled state

@@ -68,6 +68,7 @@
   "sure_process": "Are you sure about the process?",
   "yes": "yes",
   "no": "no",
+  "examination":"Examination",
   "Sending": "Sending ",
   "en": "english",
   "loc_address":"Karbala - Hawally Al-Najaf Street in front of Pillar 1333",
@@ -171,7 +172,8 @@
   "waiting_status": "Waiting",
   "waiting_status_title": "Waiting Status",
   "status_updated_success": "Waiting status updated successfully",
-  "status_update_failed": "Failed to update waiting status"
+  "status_update_failed": "Failed to update waiting status",
+  "no_examination": "No Examination"
 },
 
  "store":{

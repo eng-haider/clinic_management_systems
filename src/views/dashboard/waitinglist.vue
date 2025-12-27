@@ -5,7 +5,7 @@
 
 
         <div>
-            <OwnerBooking :patientFound="patientFound=true" :patientInfo="patientInfo" v-if="booking" />
+            <OwnerBooking :patientFound="patientFound=true" :patientInfo="patientInfo" :doctors="doctors" :patients="items" v-if="booking" />
         </div>
 
 
@@ -19,7 +19,7 @@
 
             <v-data-table :headers="headers" :loading="loadingData" disable-pagination :page.sync="page"
                 @page-count="pageCount = $event" hide-default-footer :items="desserts" class="elevation-1 request_table"
-                items-per-page="15">
+                items-per-page="15" @click:row="rowClicked">
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.waitinglist") }}
@@ -96,6 +96,17 @@
                         color="green"
                         inset
                     ></v-switch>
+                </template>
+
+                <template v-slot:[`item.is_examine`]="{ item }">
+                    <v-chip 
+                        v-if="item.is_examine == 1"
+                        color="primary" 
+                        small 
+                        text-color="white">
+                        <v-icon small left>mdi-stethoscope</v-icon>
+                        {{ $t('examination') }}
+                    </v-chip>
                 </template>
 
                 <!-- Custom Actions Column Slot -->
@@ -277,6 +288,12 @@
                         align: "start",
                         value: "waiting_status",
                         sortable: false
+                    },
+                    {
+                        text: this.$t('examination'),
+                        align: "center",
+                        value: "is_examine",
+                        sortable: false
                     }
                 ],
                 right: null
@@ -323,7 +340,7 @@
                 // Toggle the waiting status
                 const newStatus = !item.is_waiting;
                 
-                this.axios.post(`https://smartclinicv5.tctate.com/api/reservations/${item.id}/toggle-waiting`, {}, {
+                this.axios.post(`https://mina-api.tctate.com/api/reservations/${item.id}/toggle-waiting`, {}, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
@@ -345,6 +362,28 @@
                         text: this.$t('waitingList.status_update_failed')
                     });
                 });
+            },
+            // Navigate to patient page when a table row is clicked.
+            // We ignore clicks on interactive elements (buttons, inputs, icons, chips, switches, links)
+            // so that controls inside a row still work as expected.
+            rowClicked(item, event) {
+                try {
+                    // Use patient_id (from API) or user_id as fallback
+                    const patientId = item.patient_id || (item.user && item.user.id) || item.id;
+                    if (!patientId) return;
+                    
+                    // If the click originated from an interactive control, don't navigate
+                    const ignoredSelector = 'button, a, input, textarea, select, .v-icon, .v-chip, .v-switch, .v-btn, .v-input';
+                    if (event && event.target && event.target.closest && event.target.closest(ignoredSelector)) {
+                        return; // let the control handle the event
+                    }
+
+                    // Navigate to patient page using patient_id
+                    this.$router.push(`/patient/${patientId}`);
+                } catch (e) {
+                    // swallow errors to avoid breaking the table
+                    console.error('rowClicked navigation error', e);
+                }
             },
             formatDate(date) {
     if (!date) return "—"; // Return a dash if no date is provided
@@ -478,7 +517,7 @@ formatReservationTime(time) {
                 this.loadingData = true;
 
                 // Fetch data from the new API endpoint
-                this.axios.get(`https://smartclinicv5.tctate.com/api/reservations/today`, {
+                this.axios.get(`https://mina-api.tctate.com/api/reservations/today`, {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
@@ -493,14 +532,21 @@ formatReservationTime(time) {
                     // Map the response data to the expected format
                     this.desserts = response.data.data.map((item) => ({
                         id: item.id,
+                        patient_id: item.patient_id, // Preserve patient_id for navigation
+                        user: item.user, // Preserve user object
                         names: item.user ? item.user.full_name : "Unknown",
                         phones: item.user ? item.user.user_phone : "Unknown",
-                        owner_names: item.owner_name ? item.owner_name : "Unknown",
+                        // Prefer owner_name, then doctor_name, then fallback to user info
+                        owner_names: item.owner_name || item.doctor_name || (item.user ? item.user.full_name : "Unknown"),
+                        // Keep raw doctor info if present for slots that render multiple doctors
+                        doctors: item.doctors || [],
+                        doctors_count: (item.doctors && item.doctors.length) || item.doctors_count || 0,
                         date: item.reservation_start_date,
                         reservation_time: item.reservation_from_time,
                         reservation_from_time: item.reservation_from_time,
                         status: item.status || 'waiting',
                         is_waiting: item.is_waiting || false,
+                        is_examine: item.is_examine || 0,
                         created_at: new Date(`${item.reservation_start_date}T${item.reservation_from_time}.000Z`).toISOString(),
                     }));
 

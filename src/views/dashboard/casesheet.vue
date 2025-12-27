@@ -167,6 +167,7 @@
                         </v-btn> -->
 
                         <!-- Patient Edit Dialog -->
+                      
                         <PatientEditDialog
                             v-model="dialog"
                             :patient="editedIndex > -1 ? editedItem : null"
@@ -186,7 +187,7 @@
                             </v-text-field>
                         </v-flex>
 
-                        <v-flex xs12 sm6 md2 style="max-width: 200px;">
+                        <!-- <v-flex xs12 sm6 md2 style="max-width: 200px;">
                             <v-menu
                                 ref="fromMenu"
                                 v-model="fromMenu"
@@ -233,7 +234,7 @@
                                 </template>
                                 <v-date-picker v-model="to" @input="toMenu = false"></v-date-picker>
                             </v-menu>
-                        </v-flex>
+                        </v-flex> -->
 
 
                         <v-flex xs6 sm3 md1 d-flex align-center justify-center>
@@ -1061,7 +1062,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build API URL with billing status parameter for doctor search
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://mina-api.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -1237,7 +1238,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("https://smartclinicv5.tctate.com/api/patients/" + item.id, {
+                        Axios.delete("https://mina-api.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1438,7 +1439,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build search API URL with filters
-                let searchUrl = `https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let searchUrl = `https://mina-api.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     searchUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -1504,7 +1505,7 @@
                     return;
                 }
 
-                const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
+                const endpoint = 'https://mina-api.tctate.com/api/doctors/secretary';
                 this.apiRequest(endpoint)
                     .then(res => {
                         this.loadingData = false;
@@ -1562,7 +1563,7 @@
                 }
                 
                 // Build API URL with billing status parameter and from/to date filter
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://mina-api.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }

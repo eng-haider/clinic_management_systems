@@ -69,6 +69,7 @@
   "about":"من نحن",
   "add_pic":"اضافه الصور المرفقة",
   "message":"الرسالة",
+  "examination":"فحص",
   "yes":"نعم",
   "home":"الاحصائيات",
   "close": "إغلاق",
@@ -187,7 +188,8 @@
   "waiting_status": "منتظر",
   "waiting_status_title": "حالة الانتظار",
   "status_updated_success": "تم تحديث حالة الانتظار بنجاح",
-  "status_update_failed": "فشل في تحديث حالة الانتظار"
+  "status_update_failed": "فشل في تحديث حالة الانتظار",
+  "no_examination": "بدون فحص"
 },
 "patients":{
 "addnewpatients":"اضافه مراجع جديد",

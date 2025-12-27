@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="800px">
+  <v-dialog v-model="dialog" max-width="800px" persistent>
     <template v-slot:activator="{ on, attrs }" v-if="!hideActivator">
       <v-btn 
         color="primary" 
@@ -83,10 +83,13 @@
               <!-- Birth Date Field -->
               <v-col class="py-0" cols="12" sm="6" md="6">
                 <v-text-field 
-                  v-model="editedItem.birth_date" 
-                  type="date"
+                  v-model="birthDateDisplay" 
                   :label="$t('datatable.birth_date')" 
+                  placeholder="YYYY or YYYY-MM-DD"
                   outlined
+                  @input="handleBirthDateInput"
+                  hint="يمكنك كتابة السنة فقط (مثال: 2000) أو التاريخ الكامل"
+                  persistent-hint
                 />
               </v-col>
 
@@ -129,13 +132,13 @@
                 />
               </v-col>
 
-              <!-- Doctor Selection (only for secretaries with multiple doctors) -->
-              <v-col 
+             
+              <!-- <v-col 
                 class="py-0" 
                 cols="12" 
                 sm="6" 
                 md="6"
-                v-if="($store.state.role=='secretary' || $store.state.role=='accounter') && doctors.length > 1
+                v-if="($store.state.role=='secretary' || $store.state.role=='accounter') && availableDoctors.length > 1
                 && this.$store.state.AdminInfo.clinics_info.doctor_show_all_patient ==0
                 "
               >
@@ -143,16 +146,16 @@
                   :rules="[rules.required]" 
                   v-model="editedItem.doctors"
                   :label="$t('doctor')" 
-                  :items="doctors" 
+                  :items="availableDoctors" 
                   outlined 
                   item-text="name"
                   item-value="id"
                 />
-              </v-col>
+              </v-col> -->
             </v-row>
 
             <!-- Systemic Conditions -->
-            <v-row>
+            <!-- <v-row>
               <v-col class="py-0" cols="12" sm="12" md="12">
                 <v-textarea 
                   dense 
@@ -161,10 +164,10 @@
                   outlined
                 />
               </v-col>
-            </v-row>
+            </v-row> -->
 
             <!-- Image Upload Section -->
-            <v-row style="height: auto;">
+            <!-- <v-row style="height: auto;">
               <v-col cols="12" md="12">
                 <vue2-dropzone 
                   ref="myVueDropzone" 
@@ -175,9 +178,103 @@
                   @vdropzone-removed-file="handleImageRemoved"
                 />
               </v-col>
-            </v-row>
+            </v-row> -->
 
             <!-- Schedule Today Option -->
+            <v-row>
+              <v-col cols="12">
+                <v-card outlined :color="editedItem.is_scheduled_today ? 'blue lighten-5' : ''">
+                  <v-card-text class="py-2">
+                    <v-checkbox
+                      v-model="editedItem.is_scheduled_today"
+                      color="primary"
+                      class="mt-0"
+                      hide-details
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon color="primary" left>mdi-calendar-clock</v-icon>
+                          <span style="font-family: 'Cairo', sans-serif; font-weight: 500;">
+                            حجز موعد اليوم
+                          </span>
+                        </div>
+                      </template>
+                    </v-checkbox>
+
+                    <!-- Booking Details Section (shown when checkbox is checked) -->
+                    <v-expand-transition>
+                      <div v-if="editedItem.is_scheduled_today" class="mt-4">
+                        <v-row>
+                          <!-- Doctor Selection -->
+                          <v-col cols="12" sm="6">
+                            <v-select
+                              v-model="bookingDetails.doctor_id"
+                              :items="availableDoctors"
+                              :rules="[rules.required]"
+                              item-text="name"
+                              item-value="id"
+                              label="اختر الطبيب"
+                              outlined
+                              dense
+                              prepend-inner-icon="mdi-doctor"
+                              style="font-family: 'Cairo', sans-serif;"
+                            >
+                              <template v-slot:selection="{ item }">
+                                <v-chip small color="primary" text-color="white">
+                                  <v-icon small left>mdi-doctor</v-icon>
+                                  {{ item.name }}
+                                </v-chip>
+                              </template>
+                              <template v-slot:item="{ item }">
+                                <v-list-item-avatar>
+                                  <v-icon color="primary">mdi-account-circle</v-icon>
+                                </v-list-item-avatar>
+                                <v-list-item-content>
+                                  <v-list-item-title>{{ item.name }}</v-list-item-title>
+                                </v-list-item-content>
+                              </template>
+                            </v-select>
+                          </v-col>
+
+                          <!-- Time Selection -->
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              v-model="bookingDetails.reservation_time"
+                              :rules="[rules.required]"
+                              type="time"
+                              label="وقت الموعد"
+                              outlined
+                              dense
+                              prepend-inner-icon="mdi-clock-outline"
+                              style="font-family: 'Cairo', sans-serif;"
+                            ></v-text-field>
+                          </v-col>
+
+                          <!-- Examination Checkbox -->
+                          <v-col cols="12">
+                            <v-checkbox
+                              v-model="bookingDetails.is_examine"
+                              color="primary"
+                              class="mt-0"
+                              hide-details
+                            >
+                              <template v-slot:label>
+                                <div class="d-flex align-center">
+                                  <v-icon color="primary" left small>mdi-stethoscope</v-icon>
+                                  <span style="font-family: 'Cairo', sans-serif;">
+                                    {{ $t('examination') }}
+                                  </span>
+                                </div>
+                              </template>
+                            </v-checkbox>
+                          </v-col>
+                        </v-row>
+                      </div>
+                    </v-expand-transition>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
           
           </v-container>
         </v-card-text>
@@ -203,15 +300,15 @@
 
 <script>
 import { mask } from "vue-the-mask";
-import vue2Dropzone from "vue2-dropzone";
-import "vue2-dropzone/dist/vue2Dropzone.min.css";
+// import vue2Dropzone from "vue2-dropzone";
+// import "vue2-dropzone/dist/vue2Dropzone.min.css";
 
 export default {
   name: 'PatientEditDialog',
   
-  components: {
-    vue2Dropzone
-  },
+  // components: {
+  //   vue2Dropzone
+  // },
   
   directives: {
     mask,
@@ -253,7 +350,11 @@ export default {
     return {
       valid: false,
       loadSave: false,
-      mask: "07XX XXX XXXXX",
+      mask: "07XX XXX XXXX",
+      
+      // Internal doctors list (used if not provided via props)
+      internalDoctors: [],
+      loadingDoctors: false,
       
       // Patient combobox properties
       patientsList: [],
@@ -261,11 +362,21 @@ export default {
       patientSearch: '',
       patientSearchTimeout: null,
       
+      // Birth date display value
+      birthDateDisplay: '',
+      
+      // Booking details for scheduling today
+      bookingDetails: {
+        doctor_id: null,
+        reservation_time: null,
+        is_examine: false
+      },
+      
       // Default patient structure
       defaultPatient: {
         name: "",
         age: "",
-        birth_date: "",
+        birth_date: null,
         sex: "",
         address: "",
         phone: "",
@@ -304,7 +415,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        url: "https://mina-api.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -348,6 +459,11 @@ export default {
 
     formTitle() {
       return this.isEditing ? this.$t('update') : this.$t('patients.addnewpatients');
+    },
+
+    // Use internal doctors if prop is empty
+    availableDoctors() {
+      return this.doctors && this.doctors.length > 0 ? this.doctors : this.internalDoctors;
     }
   },
 
@@ -373,6 +489,16 @@ export default {
     // Pass loading state to internal loadSave
     loading(newVal) {
       this.loadSave = newVal;
+    },
+
+    // Watch editedItem.birth_date to update display
+    'editedItem.birth_date': {
+      handler(newVal) {
+        if (newVal && newVal !== this.birthDateDisplay) {
+          this.birthDateDisplay = newVal;
+        }
+      },
+      immediate: true
     }
 
     // Removed the auto-fill watcher for editedItem.name to prevent 
@@ -389,9 +515,49 @@ export default {
     
     // Initialize patients list for combobox
     this.fetchPatientsForCombobox();
+    
+    // Fetch doctors list if not provided via props
+    if (!this.doctors || this.doctors.length === 0) {
+      this.fetchDoctors();
+    }
   },
 
   methods: {
+
+    // Fetch Doctors List
+    /**
+     * Fetches doctors list from API
+     */
+    async fetchDoctors() {
+      try {
+        this.loadingDoctors = true;
+        const response = await fetch(
+          'https://mina-api.tctate.com/api/clinic-doctors',
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+            }
+          }
+        );
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data) {
+            this.internalDoctors = result.data;
+            console.log('✅ Doctors loaded:', this.internalDoctors.length);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error fetching doctors:', error);
+        this.internalDoctors = [];
+      } finally {
+        this.loadingDoctors = false;
+      }
+    },
+
     // Patient Combobox Methods
     /**
      * Fetches patients list for combobox
@@ -400,7 +566,7 @@ export default {
       try {
         this.loadingPatients = true;
         const response = await fetch(
-          `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
+          `https://mina-api.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
           {
             method: 'GET',
             headers: {
@@ -510,22 +676,58 @@ export default {
       if (patient && patient.id) {
         // Editing existing patient
         this.editedItem = { ...this.defaultPatient, ...patient };
+        this.birthDateDisplay = patient.birth_date || '';
       } else {
-        // Creating new patient
-        this.editedItem = { ...this.defaultPatient };
+        // Creating new patient - ensure birth_date is cleared
+        this.editedItem = { ...this.defaultPatient, birth_date: null };
+        this.birthDateDisplay = '';
         this.uploadedImages = [];
       }
     },
 
     resetForm() {
-      this.editedItem = { ...this.defaultPatient };
+      this.editedItem = { ...this.defaultPatient, birth_date: null };
+      this.birthDateDisplay = '';
       this.uploadedImages = [];
       this.patientSearch = '';
+      this.bookingDetails = {
+        doctor_id: null,
+        reservation_time: null,
+        is_examine: false
+      };
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
       }
       if (this.$refs.myVueDropzone) {
         this.$refs.myVueDropzone.removeAllFiles();
+      }
+    },
+
+    // Handle birth date input - automatically convert year-only to full date
+    handleBirthDateInput(value) {
+      if (!value) {
+        this.editedItem.birth_date = null;
+        return;
+      }
+
+      const trimmedValue = value.trim();
+      
+      // If user enters exactly 4 digits (year only)
+      if (/^\d{4}$/.test(trimmedValue)) {
+        const formattedDate = `${trimmedValue}-01-01`;
+        this.editedItem.birth_date = formattedDate;
+        console.log('✅ Year converted to:', formattedDate);
+      }
+      // If user enters year-month (YYYY-MM)
+      else if (/^\d{4}-\d{1,2}$/.test(trimmedValue)) {
+        const [year, month] = trimmedValue.split('-');
+        const formattedDate = `${year}-${month.padStart(2, '0')}-01`;
+        this.editedItem.birth_date = formattedDate;
+        console.log('✅ Year-Month converted to:', formattedDate);
+      }
+      // If user enters full date or any other format
+      else {
+        this.editedItem.birth_date = trimmedValue;
       }
     },
 
@@ -568,8 +770,24 @@ export default {
 
     save() {
       if (this.$refs.form.validate()) {
+        // Validate booking details if scheduling today is enabled
+        if (this.editedItem.is_scheduled_today) {
+          if (!this.bookingDetails.doctor_id || !this.bookingDetails.reservation_time) {
+            this.$swal.fire({
+              title: "خطأ",
+              text: "يرجى اختيار الطبيب ووقت الموعد",
+              icon: "error",
+              confirmButtonText: "موافق",
+            });
+            return;
+          }
+        }
+
         // Prepare data for saving
         const patientData = { ...this.editedItem };
+        
+        console.log('💾 Saving patient data:', patientData);
+        console.log('📅 Birth date being sent:', patientData.birth_date);
         
         // Handle doctor assignment - send as doctor_id
         if (patientData.doctors) {
@@ -590,7 +808,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://smartclinicv5.tctate.com/api/patients";
+        const apiUrl = "https://mina-api.tctate.com/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
@@ -615,6 +833,11 @@ export default {
         
           // Upload images if any were uploaded
          await this.uploadPatientImages(patientId);
+
+          // Create booking if scheduling today is enabled
+          if (this.editedItem.is_scheduled_today) {
+            await this.createTodayBooking(patientId);
+          }
           
           this.$swal.fire({
             position: "top-end",
@@ -663,7 +886,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://smartclinicv5.tctate.com/api/cases/uploude_images', {
+        const response = await fetch('https://mina-api.tctate.com/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -685,6 +908,58 @@ export default {
         this.$swal.fire({
           title: "تحذير",
           text: "تم حفظ بيانات المريض ولكن فشل في رفع الصور",
+          icon: "warning",
+          confirmButtonText: "موافق",
+        });
+      }
+    },
+
+    // Create a booking for today
+    async createTodayBooking(patientId) {
+      try {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Prepare booking data
+        const bookingData = {
+          patient_id: patientId,
+          doctor_id: this.bookingDetails.doctor_id,
+          reservation_start_date: today,
+          reservation_from_time: this.bookingDetails.reservation_time,
+          is_examine: this.bookingDetails.is_examine ? 1 : 0,
+          status: 'waiting'
+        };
+
+        console.log('📅 Creating today booking:', bookingData);
+
+        const response = await fetch('https://mina-api.tctate.com/api/reservations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
+          },
+          body: JSON.stringify(bookingData)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Booking created successfully:', result);
+          
+          // Show success notification
+          this.$notify({
+            type: "success",
+            text: "تم حجز الموعد بنجاح"
+          });
+        } else {
+          throw new Error('فشل في حجز الموعد');
+        }
+      } catch (error) {
+        console.error('❌ Error creating booking:', error);
+        // Show warning but don't fail the entire operation
+        this.$swal.fire({
+          title: "تحذير",
+          text: "تم حفظ بيانات المريض ولكن فشل في حجز الموعد",
           icon: "warning",
           confirmButtonText: "موافق",
         });

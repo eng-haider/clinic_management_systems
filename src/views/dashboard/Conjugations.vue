@@ -420,7 +420,7 @@
 
             getConjugationsCategories() {
                 this.loading = true;
-                Axios.get("https://smartclinicv5.tctate.com/api/Conjugations/ConjugationsCategories", {
+                Axios.get("https://mina-api.tctate.com/api/Conjugations/ConjugationsCategories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-dialog v-model="BookingDetails" width="700" height="700" persistent>
+    <v-dialog v-model="BookingDetails" width="700" max-width="95vw" persistent>
       <v-form ref="form" v-model="valid">
         <v-card>
           <v-toolbar dark color="primary lighten-1" class="mb-5">
@@ -25,19 +25,65 @@
                 />
               </v-col>
             </v-row>
+            
+            <!-- Doctor selector for secretary/accounter - Better UI -->
+            <v-row justify="center" v-if="($store.state.role=='secretary'|| $store.state.role=='accounter') && doctors && doctors.length>0">
+              <v-col cols="12">
+                <v-select 
+                  v-model="editedItem.doctors" 
+                  :items="doctors" 
+                  :label="$t('doctor') || 'الطبيب'"
+                  :rules="[rules.required]"
+                  item-text="name" 
+                  item-value="id"
+                  return-object
+                  outlined
+                  dense
+                  prepend-inner-icon="mdi-doctor"
+                  clearable
+                  hint="اختر الطبيب للموعد"
+                  persistent-hint
+                  class="mb-2"
+                >
+                  <template v-slot:selection="{ item }">
+                    <v-chip small color="primary" text-color="white">
+                      <v-icon small left>mdi-doctor</v-icon>
+                      {{ item.name }}
+                    </v-chip>
+                  </template>
+                  <template v-slot:item="{ item }">
+                    <v-list-item-avatar color="primary" size="32">
+                      <v-icon dark small>mdi-doctor</v-icon>
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ item.name }}</v-list-item-title>
+                    </v-list-item-content>
+                  </template>
+                </v-select>
+              </v-col>
+            </v-row>
+
             <v-row justify="center">
               <v-col cols="12" sm="6">
                 <v-date-picker 
                   v-model="editedItem.reservation_start_date" 
                   locale="ar-iq"
+                  full-width
+                  color="primary"
                 />
               </v-col>
 
 
              
 
+
               <v-col cols="12" sm="6" xs="12"   v-if="owner_item.possib_reserving_period !==null">
-              <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
+                <v-time-picker 
+                  v-model="editedItem.reservation_from_time" 
+                  full-width 
+                  format="ampm"
+                  color="primary"
+                ></v-time-picker>
 
               </v-col>
 
@@ -115,6 +161,26 @@
         
             </v-row>
 
+            <!-- is_examine checkbox with better UI - visible for all cases -->
+            <v-row justify="center">
+              <v-col cols="12">
+                <v-card outlined class="mt-3 pa-2" color="blue lighten-5">
+                  <v-checkbox 
+                    v-model="editedItem.is_examine" 
+                    color="primary"
+                    class="mt-0"
+                  >
+                    <template v-slot:label>
+                      <div class="d-flex align-center">
+                        <v-icon color="primary" class="ml-2">mdi-stethoscope</v-icon>
+                        <span style="font-weight: 500; color: #1976d2;">{{ $t('examination') || 'فحص' }}</span>
+                      </div>
+                    </template>
+                  </v-checkbox>
+                </v-card>
+              </v-col>
+            </v-row>
+
             <br>
             <br>
             <v-card-actions>
@@ -166,6 +232,8 @@ export default {
         reservation_from_time: "",
         reservation_to_time: "",
         appointmentMessage: "",
+        doctors: null,
+        is_examine: false,
       },
       patient: {},
       loadSave: false,
@@ -277,7 +345,9 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
           phone: "",
           withoutBills: 0,
           deliverable: false,
-          doctor_id: this.patientInfo && this.patientInfo.doctors ? this.patientInfo.doctors.id : null,
+          is_examine: this.editedItem.is_examine ? 1 : 0,
+          // doctor_id: prefer selected doctor in dialog (editedItem.doctors), otherwise fall back to patientInfo
+          doctor_id: this.editedItem && this.editedItem.doctors ? (this.editedItem.doctors.id || this.editedItem.doctors) : (this.patientInfo && this.patientInfo.doctors ? this.patientInfo.doctors.id : null),
           user: {
             phone: `964${this.patientFound && this.patientInfo.phone ? this.patientInfo.phone.replace(/ /g, "") : (this.patient.phone ? this.patient.phone.replace(/ /g, "") : "")}`,
             name: this.patientFound && this.patientInfo ? this.patientInfo.name : (this.patient ? this.patient.name : ""),
@@ -285,7 +355,7 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
         };
 
         // Use axios instead of this.$http to match requestBooking_test.vue
-        axios.post("https://smartclinicv5.tctate.com/api/reservations", reservationData, {
+        axios.post("https://mina-api.tctate.com/api/reservations", reservationData, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -313,7 +383,7 @@ return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
                 date: `${reservationData.reservation_start_date} ${reservationData.reservation_from_time}`
               };
 
-              axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
+              axios.post('https://mina-api.tctate.com/api/whatsapp', whatsappData, {
                 headers: {
                   "Content-Type": "application/json",
                   Accept: "application/json",

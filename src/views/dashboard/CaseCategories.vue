@@ -278,7 +278,7 @@ export default {
         console.log('🔍 Loading categories from API...')
         console.log('Token:', this.$store.state.AdminInfo.token ? 'Present' : 'Missing')
         
-        const response = await axios.get('https://smartclinicv5.tctate.com/api/case-categories', {
+        const response = await axios.get('https://mina-api.tctate.com/api/case-categories', {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -338,7 +338,7 @@ export default {
     async deleteItemConfirm() {
       this.deleteLoading = true
       try {
-        await axios.delete(`https://smartclinicv5.tctate.com/api/case-categories/${this.editedItem.id}`, {
+        await axios.delete(`https://mina-api.tctate.com/api/case-categories/${this.editedItem.id}`, {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -402,7 +402,7 @@ export default {
         let response
         if (this.editedIndex > -1) {
           // Update existing category
-          response = await axios.put(`https://smartclinicv5.tctate.com/api/case-categories/${this.editedItem.id}`, categoryData, {
+          response = await axios.put(`https://mina-api.tctate.com/api/case-categories/${this.editedItem.id}`, categoryData, {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -413,7 +413,7 @@ export default {
           Object.assign(this.categories[this.editedIndex], response.data.data)
         } else {
           // Create new category
-          response = await axios.post('https://smartclinicv5.tctate.com/api/case-categories', categoryData, {
+          response = await axios.post('https://mina-api.tctate.com/api/case-categories', categoryData, {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
