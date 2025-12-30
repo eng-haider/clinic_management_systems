@@ -85,6 +85,19 @@
               {{ $t('patients.bill') }}
             </v-btn>
             
+            <!-- RX Folder Button (Only shown when rx_id is set) -->
+            <v-btn 
+              v-if="patient.rx_id"
+              small
+              class="mb-1" 
+              color="blue-grey" 
+              rounded
+              @click="openRxFolder"
+            >
+              <v-icon left small>mdi-folder-open</v-icon>
+              مجلد RX
+            </v-btn>
+            
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
             <v-btn 
               v-if="useCreditSystem"
@@ -128,6 +141,18 @@
             >
               <v-icon left>mdi-file-document-outline</v-icon>
               {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- RX Folder Button (Only shown when rx_id is set) -->
+            <v-btn 
+              v-if="patient.rx_id"
+              class="mr-2" 
+              color="blue-grey" 
+              rounded
+              @click="openRxFolder"
+            >
+              <v-icon left>mdi-folder-open</v-icon>
+              مجلد RX
             </v-btn>
             
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
@@ -2180,6 +2205,54 @@ export default {
       }
       
       return `https://wa.me/${fullPhone}`;
+    },
+    
+    // Open RX folder in file explorer
+    openRxFolder() {
+      if (!this.patient.rx_id) {
+        this.$swal.fire({
+          title: "تنبيه",
+          text: "لم يتم تحديد مسار مجلد الوصفات الطبية لهذا المريض",
+          icon: "info",
+          confirmButtonText: "موافق",
+        });
+        return;
+      }
+
+      // Since we're in a web app, we can't directly open folders on the user's system
+      // We'll copy the path to clipboard and show instructions
+      const folderPath = this.patient.rx_id;
+      
+      // Try to copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(folderPath).then(() => {
+          this.$swal.fire({
+            title: "تم النسخ",
+            html: `تم نسخ مسار المجلد إلى الحافظة:<br><br><code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; text-align: left; direction: ltr;">${folderPath}</code><br>افتح مستكشف الملفات والصق المسار في شريط العنوان`,
+            icon: "success",
+            confirmButtonText: "موافق",
+          });
+        }).catch(() => {
+          // Fallback if clipboard API fails
+          this.showFolderPathDialog(folderPath);
+        });
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        this.showFolderPathDialog(folderPath);
+      }
+    },
+    
+    // Show folder path in a dialog
+    showFolderPathDialog(folderPath) {
+      this.$swal.fire({
+        title: "مسار مجلد الوصفات الطبية",
+        html: `<div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin: 10px 0;">
+                <code style="display: block; text-align: left; direction: ltr; word-break: break-all;">${folderPath}</code>
+              </div>
+              <p style="margin-top: 10px;">انسخ هذا المسار وافتح مستكشف الملفات والصقه في شريط العنوان</p>`,
+        icon: "info",
+        confirmButtonText: "موافق",
+      });
     },
     
     hideContextMenu(event) {

@@ -59,6 +59,7 @@
   "status": "دۆخ",
   "payment_status": "دۆخی پارەدان",
   "doctor": "پزیشک",
+  "last_reservation_doctor": "دوایین پزیشکی حجز",
   "search": "گەڕان",
   "cancel_search": "هەڵوەشاندنەوەی گەڕان",
   "male": "نێر",
@@ -71,6 +72,9 @@
   "delete": "سڕینەوە",
   "Reloading": "نوێکردنەوە",
   "waitingList": {
-    "no_examination": "بەبێ پشکنین"
+    "no_examination": "بەبێ پشکنین",
+    "visit_status": "دۆخی سەردان",
+    "visited": "سەردانی کرد",
+    "pending": "هێشتا نەچووەتە ژوورەوە"
   }
 }

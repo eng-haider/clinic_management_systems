@@ -61,9 +61,9 @@
                 </template>
 
 
-                <template v-slot:[`item.phone`]="{ item }">
-                    {{ item.phones }}
-
+                <template v-slot:[`item.phones`]="{ item }">
+                    
+<span  style="direction: ltr; text-align: end;    float: inline-start;">{{ item.phones }}</span>
                 </template>
 
 
@@ -77,6 +77,17 @@
 
                 <template v-slot:[`item.reservation_time`]="{ item }">
                     {{ formatReservationTime(item.reservation_from_time) }}
+                </template>
+
+                <template v-slot:[`item.patient_birth_year`]="{ item }">
+                    <v-chip 
+                        v-if="item.patient_birth_year"
+                        color="blue-grey lighten-4" 
+                        small>
+                        <v-icon small left>mdi-calendar</v-icon>
+                        {{ item.patient_birth_year }}
+                    </v-chip>
+                    <span v-else>—</span>
                 </template>
 
                 <template v-slot:[`item.status`]="{ item }">
@@ -106,6 +117,24 @@
                         text-color="white">
                         <v-icon small left>mdi-stethoscope</v-icon>
                         {{ $t('examination') }}
+                    </v-chip>
+                    <v-chip 
+                        v-else-if="item.is_examine == 0 && item.notes"
+                        color="orange" 
+                        small 
+                        text-color="white">
+                        <v-icon small left>mdi-text-box</v-icon>
+                        {{ item.notes }}
+                    </v-chip>
+                </template>
+
+                <template v-slot:[`item.visit_status`]="{ item }">
+                    <v-chip 
+                        :color="item.has_visited ? 'success' : 'warning'" 
+                        small 
+                        dark>
+                        <v-icon small left>{{ item.has_visited ? 'mdi-check-circle' : 'mdi-clock-alert' }}</v-icon>
+                        {{ item.has_visited ? $t('waitingList.visited') : $t('waitingList.pending') }}
                     </v-chip>
                 </template>
 
@@ -278,9 +307,10 @@
                     },
 
                     {
-                        text: this.$t('datatable.status'),
-                        align: "start",
-                        value: "status"
+                        text: 'سنة الميلاد',
+                        align: "center",
+                        value: "patient_birth_year",
+                        sortable: false
                     },
 
                     {
@@ -293,6 +323,12 @@
                         text: this.$t('examination'),
                         align: "center",
                         value: "is_examine",
+                        sortable: false
+                    },
+                    {
+                        text: this.$t('waitingList.visit_status'),
+                        align: "center",
+                        value: "visit_status",
                         sortable: false
                     }
                 ],
@@ -529,26 +565,43 @@ formatReservationTime(time) {
                     this.loadingData = false;
                     this.search = null;
 
+                    // Get today's date in YYYY-MM-DD format
+                    const today = new Date().toISOString().split('T')[0];
+
                     // Map the response data to the expected format
-                    this.desserts = response.data.data.map((item) => ({
-                        id: item.id,
-                        patient_id: item.patient_id, // Preserve patient_id for navigation
-                        user: item.user, // Preserve user object
-                        names: item.user ? item.user.full_name : "Unknown",
-                        phones: item.user ? item.user.user_phone : "Unknown",
-                        // Prefer owner_name, then doctor_name, then fallback to user info
-                        owner_names: item.owner_name || item.doctor_name || (item.user ? item.user.full_name : "Unknown"),
-                        // Keep raw doctor info if present for slots that render multiple doctors
-                        doctors: item.doctors || [],
-                        doctors_count: (item.doctors && item.doctors.length) || item.doctors_count || 0,
-                        date: item.reservation_start_date,
-                        reservation_time: item.reservation_from_time,
-                        reservation_from_time: item.reservation_from_time,
-                        status: item.status || 'waiting',
-                        is_waiting: item.is_waiting || false,
-                        is_examine: item.is_examine || 0,
-                        created_at: new Date(`${item.reservation_start_date}T${item.reservation_from_time}.000Z`).toISOString(),
-                    }));
+                    this.desserts = response.data.data.map((item) => {
+                        // Check if patient has visited (bill or case updated today or after)
+                        const lastBillDate = item.last_bill_updated_at ? item.last_bill_updated_at.split('T')[0] : null;
+                        const lastCaseDate = item.last_case_updated_at ? item.last_case_updated_at.split('T')[0] : null;
+                        
+                        // Patient has visited if either bill or case was updated on or after today
+                        const hasVisited = (lastBillDate && lastBillDate >= today) || (lastCaseDate && lastCaseDate >= today);
+
+                        return {
+                            id: item.id,
+                            patient_id: item.patient_id, // Preserve patient_id for navigation
+                            user: item.user, // Preserve user object
+                            names: item.user ? item.user.full_name : "Unknown",
+                            phones: item.user ? item.user.user_phone : "Unknown",
+                            patient_birth_year: item.patient_birth_year || null,
+                            // Prefer owner_name, then doctor_name, then fallback to user info
+                            owner_names: item.owner_name || item.doctor_name || (item.user ? item.user.full_name : "Unknown"),
+                            // Keep raw doctor info if present for slots that render multiple doctors
+                            doctors: item.doctors || [],
+                            doctors_count: (item.doctors && item.doctors.length) || item.doctors_count || 0,
+                            date: item.reservation_start_date,
+                            reservation_time: item.reservation_from_time,
+                            reservation_from_time: item.reservation_from_time,
+                            status: item.status || 'waiting',
+                            is_waiting: item.is_waiting || false,
+                            is_examine: item.is_examine || 0,
+                            notes: item.notes || null,
+                            has_visited: hasVisited,
+                            last_bill_updated_at: item.last_bill_updated_at,
+                            last_case_updated_at: item.last_case_updated_at,
+                            created_at: new Date(`${item.reservation_start_date}T${item.reservation_from_time}.000Z`).toISOString(),
+                        };
+                    });
 
                     // Update pagination if available in response
                     if (response.data.meta) {

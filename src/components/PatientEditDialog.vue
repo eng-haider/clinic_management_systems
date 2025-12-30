@@ -122,13 +122,17 @@
                 />
               </v-col>
 
-              <!-- RX_ID Field -->
+              <!-- RX Folder Path Field -->
               <v-col class="py-0" cols="12" sm="6" md="6">
                 <v-text-field 
                   v-model="editedItem.rx_id"
-                  style="direction: rtl;text-align: right;"
-                  label="RX_ID" 
+                  style="direction: ltr;text-align: left;"
+                  label="RX Folder Path" 
+                  placeholder="C:\Users\Doctor\Documents\RX\PatientName"
                   outlined
+                  prepend-inner-icon="mdi-folder-outline"
+                  hint="مسار مجلد الوصفات الطبية للمريض"
+                  persistent-hint
                 />
               </v-col>
 
@@ -250,23 +254,61 @@
                             ></v-text-field>
                           </v-col>
 
-                          <!-- Examination Checkbox -->
+                          <!-- Appointment Type Selection -->
                           <v-col cols="12">
-                            <v-checkbox
-                              v-model="bookingDetails.is_examine"
-                              color="primary"
-                              class="mt-0"
-                              hide-details
-                            >
-                              <template v-slot:label>
-                                <div class="d-flex align-center">
-                                  <v-icon color="primary" left small>mdi-stethoscope</v-icon>
-                                  <span style="font-family: 'Cairo', sans-serif;">
-                                    {{ $t('examination') }}
-                                  </span>
-                                </div>
-                              </template>
-                            </v-checkbox>
+                            <v-card outlined class="pa-3" color="blue lighten-5">
+                              <v-radio-group 
+                                v-model="bookingDetails.appointment_type" 
+                                row
+                                class="mt-0"
+                              >
+                                <template v-slot:label>
+                                  <div class="d-flex align-center mb-2">
+                                    <v-icon color="primary" class="ml-2">mdi-clipboard-text</v-icon>
+                                    <span style="font-weight: 500; color: #1976d2;">نوع الموعد</span>
+                                  </div>
+                                </template>
+                                <v-radio 
+                                  label="فحص" 
+                                  value="examination"
+                                  color="primary"
+                                >
+                                  <template v-slot:label>
+                                    <div class="d-flex align-center">
+                                      <v-icon color="primary" small class="ml-1">mdi-stethoscope</v-icon>
+                                      <span>فحص</span>
+                                    </div>
+                                  </template>
+                                </v-radio>
+                                <v-radio 
+                                  label="أخرى" 
+                                  value="other"
+                                  color="primary"
+                                >
+                                  <template v-slot:label>
+                                    <div class="d-flex align-center">
+                                      <v-icon color="primary" small class="ml-1">mdi-text-box</v-icon>
+                                      <span>أخرى</span>
+                                    </div>
+                                  </template>
+                                </v-radio>
+                              </v-radio-group>
+
+                              <!-- Show textarea when "Other" is selected -->
+                              <v-expand-transition>
+                                <v-textarea
+                                  v-if="bookingDetails.appointment_type === 'other'"
+                                  v-model="bookingDetails.appointment_notes"
+                                  label="الملاحظات"
+                                  placeholder="اكتب سبب الموعد أو ملاحظات إضافية..."
+                                  outlined
+                                  dense
+                                  rows="3"
+                                  counter
+                                  class="mt-2"
+                                ></v-textarea>
+                              </v-expand-transition>
+                            </v-card>
                           </v-col>
                         </v-row>
                       </div>
@@ -369,7 +411,8 @@ export default {
       bookingDetails: {
         doctor_id: null,
         reservation_time: null,
-        is_examine: false
+        appointment_type: "examination",
+        appointment_notes: ""
       },
       
       // Default patient structure
@@ -693,7 +736,8 @@ export default {
       this.bookingDetails = {
         doctor_id: null,
         reservation_time: null,
-        is_examine: false
+        appointment_type: "examination",
+        appointment_notes: ""
       };
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
@@ -926,7 +970,8 @@ export default {
           doctor_id: this.bookingDetails.doctor_id,
           reservation_start_date: today,
           reservation_from_time: this.bookingDetails.reservation_time,
-          is_examine: this.bookingDetails.is_examine ? 1 : 0,
+          is_examine: this.bookingDetails.appointment_type === 'examination' ? 1 : 0,
+          notes: this.bookingDetails.appointment_type === 'other' ? this.bookingDetails.appointment_notes : null,
           status: 'waiting'
         };
 

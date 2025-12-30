@@ -110,6 +110,7 @@
     "birth_date":"Birth Date",
     "sex":"sex",
     "doctor":"Doctor",
+    "last_reservation_doctor":"Last Reservation Doctor",
     "status_Description ":"status Description ",
     
     "name":"name",
@@ -173,7 +174,10 @@
   "waiting_status_title": "Waiting Status",
   "status_updated_success": "Waiting status updated successfully",
   "status_update_failed": "Failed to update waiting status",
-  "no_examination": "No Examination"
+  "no_examination": "No Examination",
+  "visit_status": "Visit Status",
+  "visited": "Visited",
+  "pending": "Pending"
 },
 
  "store":{

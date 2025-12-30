@@ -663,7 +663,7 @@
                     } : '',
 
                     this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' || this.$store.getters.userRole == 'accounter' ? {
-                        text: this.$t('datatable.doctor'),
+                        text: this.$t('datatable.last_reservation_doctor'),
                         align: "start",
                         value: "doctor"
                     } : '',
@@ -940,6 +940,16 @@
 
             // Helper method to safely get doctor name
             getDoctorName(item) {
+                // For secretaries and accounters, prioritize last reservation's doctor
+                const userRole = this.$store.getters.userRole;
+                if ((userRole === 'secretary' || userRole === 'accounter') && item.reservation && Array.isArray(item.reservation) && item.reservation.length > 0) {
+                    // Get the last reservation (most recent)
+                    const lastReservation = item.reservation[item.reservation.length - 1];
+                    if (lastReservation.doctor && lastReservation.doctor.name) {
+                        return lastReservation.doctor.name;
+                    }
+                }
+                
                 // Check if doctors is an object (single doctor assigned)
                 if (item.doctors && typeof item.doctors === 'object' && item.doctors.name) {
                     return item.doctors.name;

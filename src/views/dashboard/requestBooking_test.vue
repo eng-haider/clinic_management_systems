@@ -233,20 +233,59 @@
                   />
                 </div>
 
-                <!-- is_examine checkbox with better UI -->
-                <v-card outlined class="mt-3 pa-2" color="blue lighten-5">
-                  <v-checkbox 
-                    v-model="editedItem.is_examine" 
-                    color="primary"
+                <!-- Appointment Type Selection: Examination or Other -->
+                <v-card outlined class="mt-3 pa-3" color="blue lighten-5">
+                  <v-radio-group 
+                    v-model="editedItem.appointment_type" 
+                    row
                     class="mt-0"
                   >
                     <template v-slot:label>
-                      <div class="d-flex align-center">
-                        <v-icon color="primary" class="ml-2">mdi-stethoscope</v-icon>
-                        <span style="font-weight: 500; color: #1976d2;">{{ $t('examination') || 'فحص' }}</span>
+                      <div class="d-flex align-center mb-2">
+                        <v-icon color="primary" class="ml-2">mdi-clipboard-text</v-icon>
+                        <span style="font-weight: 500; color: #1976d2;">نوع الموعد</span>
                       </div>
                     </template>
-                  </v-checkbox>
+                    <v-radio 
+                      label="فحص" 
+                      value="examination"
+                      color="primary"
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon color="primary" small class="ml-1">mdi-stethoscope</v-icon>
+                          <span>فحص</span>
+                        </div>
+                      </template>
+                    </v-radio>
+                    <v-radio 
+                      label="أخرى" 
+                      value="other"
+                      color="primary"
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon color="primary" small class="ml-1">mdi-text-box</v-icon>
+                          <span>أخرى</span>
+                        </div>
+                      </template>
+                    </v-radio>
+                  </v-radio-group>
+
+                  <!-- Show textarea when "Other" is selected -->
+                  <v-expand-transition>
+                    <v-textarea
+                      v-if="editedItem.appointment_type === 'other'"
+                      v-model="editedItem.appointment_notes"
+                      label="الملاحظات"
+                      placeholder="اكتب سبب الموعد أو ملاحظات إضافية..."
+                      outlined
+                      dense
+                      rows="3"
+                      counter
+                      class="mt-2"
+                    ></v-textarea>
+                  </v-expand-transition>
                 </v-card>
 
               </v-col>
@@ -325,7 +364,8 @@
           reservation_from_time: null,
           reservation_to_time: null,
           appointmentMessage: "",
-          is_examine: false,
+          appointment_type: "examination",
+          appointment_notes: "",
         },
         menu2: false,
         menu3: false,
@@ -855,7 +895,8 @@
               phone: "",
               withoutBills: 0,
               deliverable: false,
-              is_examine: this.editedItem.is_examine ? 1 : 0,
+              is_examine: this.editedItem.appointment_type === 'examination' ? 1 : 0,
+              notes: this.editedItem.appointment_type === 'other' ? this.editedItem.appointment_notes : null,
               doctor_id: this.editedItem.doctors ? this.editedItem.doctors.id : null, // Include doctor ID when selected
               user: {
                 phone: this.patient && this.patient.phone ? 
@@ -1098,7 +1139,8 @@
           reservation_from_time: null,
           reservation_to_time: null,
           appointmentMessage: "",
-          is_examine: false,
+          appointment_type: "examination",
+          appointment_notes: "",
         };
       },
       // Get event color based on status_id and date/time
