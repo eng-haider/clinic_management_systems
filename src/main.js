@@ -8,8 +8,18 @@ import store from './store'
 // Fix for chunk loading errors - override webpack's public path at runtime
 /* eslint-disable */
 if (typeof __webpack_public_path__ !== 'undefined') {
-  // Set public path to current origin to fix chunk loading from wrong domain
-  __webpack_public_path__ = window.location.origin + '/';
+  // Check if running in Electron
+  const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+  
+  if (isElectron) {
+    // In Electron, use relative path
+    __webpack_public_path__ = './';
+    console.log('🖥️ Running in Electron - using relative paths');
+  } else {
+    // In browser, use origin
+    __webpack_public_path__ = window.location.origin + '/';
+    console.log('🌐 Running in browser - using origin:', window.location.origin);
+  }
 }
 
 // Also handle dynamic imports that might fail
@@ -18,10 +28,10 @@ if (originalImport) {
   window.__webpack_require__.e = function(chunkId) {
     return originalImport.call(this, chunkId).catch(error => {
       // If chunk loading fails, try loading from current origin
-      console.warn('Chunk loading failed, retrying from current origin:', error);
+      console.warn('Chunk loading failed, retrying:', error);
       
-      // Update public path and retry
-      __webpack_public_path__ = window.location.origin + '/';
+      const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+      __webpack_public_path__ = isElectron ? './' : window.location.origin + '/';
       return originalImport.call(this, chunkId);
     });
   };
@@ -112,27 +122,38 @@ const initializeStore = () => {
 
 // Initialize app with async store
 async function initializeApp() {
+  console.log('🚀 Starting app initialization...')
   try {
+    console.log('📦 Initializing store...')
     await initializeStore()
+    console.log('✅ Store initialized')
     
     // Set initial language and direction
     const currentLang = localStorage.getItem("lang") || 'ar';
+    console.log('🌐 Setting language:', currentLang)
     document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = currentLang;
     document.body.classList.toggle('rtl', currentLang === "ar");
     document.body.classList.toggle('ltr', currentLang === "en");
     
-    new Vue({
+    console.log('🎨 Creating Vue instance...')
+    const app = new Vue({
       router,
       store,
       i18n,
       vuetify,
       render: h => h(App)
-    }).$mount('#app')
+    })
+    
+    console.log('🔌 Mounting app to #app...')
+    app.$mount('#app')
+    console.log('✅ App mounted successfully!')
     
   } catch (error) {
-    console.error('Failed to initialize app:', error)
+    console.error('❌ Failed to initialize app:', error)
+    console.error('Error stack:', error.stack)
   }
 }
 
+console.log('📄 main.js loaded, calling initializeApp()')
 initializeApp()

@@ -30,22 +30,39 @@ export default {
     }
   },
   async created() {
+    console.log('🎯 App.vue created - setting up router guard')
+    
     // Simple version check without loading states
     this.$router.beforeEach(async (to, from, next) => {
-      try {
-        const apiUrl = this.Url + '/api/version'
-        const localVersion = localStorage.getItem('apiVersion')
-        const response = await fetch(apiUrl)
-        const data = await response.json()
-        const apiVersion = data.web
+      console.log('🔀 Router navigation:', from.path, '→', to.path)
+      
+      // Skip version check in Electron to avoid delays
+      const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+      
+      if (!isElectron) {
+        try {
+          const apiUrl = this.Url + '/api/version'
+          console.log('📡 Checking API version:', apiUrl)
+          const localVersion = localStorage.getItem('apiVersion')
+          const response = await fetch(apiUrl, { timeout: 3000 })
+          const data = await response.json()
+          const apiVersion = data.web
+          console.log('✅ API version:', apiVersion, '| Local:', localVersion)
 
-        if (!localVersion || localVersion !== apiVersion) {
-          localStorage.setItem('apiVersion', apiVersion)
-          location.reload()
+          if (!localVersion || localVersion !== apiVersion) {
+            console.log('🔄 Version mismatch, reloading...')
+            localStorage.setItem('apiVersion', apiVersion)
+            location.reload()
+            return
+          }
+        } catch (error) {
+          console.error('❌ Error fetching API version:', error)
         }
-      } catch (error) {
-        console.error('Error fetching API version:', error)
+      } else {
+        console.log('⚡ Skipping version check in Electron')
       }
+      
+      console.log('➡️ Navigating to:', to.path)
       next()
     })
   },

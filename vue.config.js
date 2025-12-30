@@ -4,6 +4,8 @@ const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
 const timestamp = Date.now()
 
 module.exports = {
+  // Use relative paths for Electron
+  publicPath: process.env.IS_ELECTRON ? './' : '/',
   // Disable source maps in production
   productionSourceMap: false,
   parallel: false, // Disable parallel processing

@@ -92,7 +92,7 @@
               class="mb-1" 
               color="blue-grey" 
               rounded
-              @click="openRxFolder"
+              @click.stop="openRxFolder"
             >
               <v-icon left small>mdi-folder-open</v-icon>
               مجلد RX
@@ -149,7 +149,7 @@
               class="mr-2" 
               color="blue-grey" 
               rounded
-              @click="openRxFolder"
+              @click.stop="openRxFolder"
             >
               <v-icon left>mdi-folder-open</v-icon>
               مجلد RX
@@ -2209,7 +2209,10 @@ export default {
     
     // Open RX folder in file explorer
     openRxFolder() {
+      console.log('🗂️ openRxFolder called');
+      
       if (!this.patient.rx_id) {
+        console.log('⚠️ No rx_id found');
         this.$swal.fire({
           title: "تنبيه",
           text: "لم يتم تحديد مسار مجلد الوصفات الطبية لهذا المريض",
@@ -2219,18 +2222,100 @@ export default {
         return;
       }
 
-      // Since we're in a web app, we can't directly open folders on the user's system
-      // We'll copy the path to clipboard and show instructions
-      const folderPath = this.patient.rx_id;
+      const folderPath = this.patient.rx_id.trim();
+      console.log('📁 Folder path:', folderPath);
       
-      // Try to copy to clipboard
+      // Check if running in Electron environment
+      if (window.require) {
+        console.log('⚡ Running in Electron');
+        try {
+          const { shell } = window.require('electron');
+          
+          // Use Electron's shell.openPath to open folder
+          shell.openPath(folderPath).then((error) => {
+            if (error) {
+              console.error('❌ Error opening folder:', error);
+              this.$swal.fire({
+                title: "خطأ",
+                text: "تعذر فتح المجلد. تأكد من صحة المسار.",
+                icon: "error",
+                confirmButtonText: "موافق",
+              });
+            } else {
+              console.log('✅ Folder opened successfully');
+              this.$swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "تم فتح المجلد",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            }
+          });
+        } catch (error) {
+          console.error('❌ Electron error:', error);
+          this.$swal.fire({
+            title: "خطأ",
+            text: "حدث خطأ أثناء محاولة فتح المجلد",
+            icon: "error",
+            confirmButtonText: "موافق",
+          });
+        }
+      } else {
+        console.log('🌐 Running in browser/PWA - Cannot open local folders due to security restrictions');
+        
+        // Browser cannot open local folders for security reasons
+        // Show the path and instructions instead
+        this.$swal.fire({
+          title: "مسار مجلد الوصفات",
+          html: `
+            <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #2196F3;">
+              <code style="display: block; text-align: left; direction: ltr; word-break: break-all; font-size: 14px; color: #1976D2;">${folderPath}</code>
+            </div>
+            <div style="text-align: right; line-height: 2; color: #555;">
+              <p style="margin: 15px 0; font-weight: bold; color: #333;">📂 لفتح المجلد:</p>
+              <p style="margin: 8px 0;">🍎 <strong>Mac:</strong> اضغط <kbd style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; border: 1px solid #90caf9;">Cmd + Shift + G</kbd> في Finder</p>
+              <p style="margin: 8px 0;">🪟 <strong>Windows:</strong> اضغط <kbd style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; border: 1px solid #90caf9;">Ctrl + L</kbd> في File Explorer</p>
+              <p style="margin: 15px 0 8px 0; color: #666;">ثم الصق المسار المنسوخ</p>
+            </div>
+          `,
+          icon: "info",
+          confirmButtonText: "نسخ المسار",
+          showCancelButton: true,
+          cancelButtonText: "إغلاق",
+          width: '600px'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Copy to clipboard when user clicks "Copy Path"
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(folderPath).then(() => {
+                this.$swal.fire({
+                  position: "top-end",
+                  icon: "success",
+                  title: "✅ تم نسخ المسار",
+                  showConfirmButton: false,
+                  timer: 2000,
+                  toast: true
+                });
+              });
+            }
+          }
+        });
+      }
+    },
+    
+    // Copy RX path to clipboard as fallback
+    copyRxPathToClipboard(folderPath) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(folderPath).then(() => {
+          // Show small toast notification only
           this.$swal.fire({
-            title: "تم النسخ",
-            html: `تم نسخ مسار المجلد إلى الحافظة:<br><br><code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; text-align: left; direction: ltr;">${folderPath}</code><br>افتح مستكشف الملفات والصق المسار في شريط العنوان`,
+            position: "top-end",
             icon: "success",
-            confirmButtonText: "موافق",
+            title: "تم نسخ مسار المجلد",
+            showConfirmButton: false,
+            timer: 2000,
+            toast: true
           });
         }).catch(() => {
           // Fallback if clipboard API fails

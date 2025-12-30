@@ -35,41 +35,58 @@
 	<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap" rel="stylesheet">
 
 
-	<!-- Fancybox -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-	<!-- Initialize Fancybox defaults -->
+	<!-- Fancybox - Only load in browser, not in Electron -->
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			if (typeof $.fancybox !== 'undefined') {
-				// Configure global Fancybox defaults
-				$.fancybox.defaults.buttons = ['zoom', 'share', 'slideShow', 'fullScreen', 'download', 'thumbs', 'close'];
-				$.fancybox.defaults.animationEffect = 'zoom-in-out';
-				$.fancybox.defaults.transitionEffect = 'fade';
-				$.fancybox.defaults.clickContent = 'zoom';
-				$.fancybox.defaults.dblclickContent = 'zoom';
-				$.fancybox.defaults.dblclickSlide = 'zoom';
-				$.fancybox.defaults.zoom = {
-					enabled: true,
-					duration: 300,
-					easing: 'ease-in-out'
+		// Check if running in Electron
+		const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+		
+		if (!isElectron) {
+			// Load Fancybox CSS
+			const fancyboxCSS = document.createElement('link');
+			fancyboxCSS.rel = 'stylesheet';
+			fancyboxCSS.href = 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css';
+			document.head.appendChild(fancyboxCSS);
+			
+			// Load jQuery
+			const jqueryScript = document.createElement('script');
+			jqueryScript.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+			jqueryScript.onload = function() {
+				// Load Fancybox after jQuery
+				const fancyboxScript = document.createElement('script');
+				fancyboxScript.src = 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js';
+				fancyboxScript.onload = function() {
+					// Initialize Fancybox defaults
+					if (typeof window.$ !== 'undefined' && typeof window.$.fancybox !== 'undefined') {
+						window.$.fancybox.defaults.buttons = ['zoom', 'share', 'slideShow', 'fullScreen', 'download', 'thumbs', 'close'];
+						window.$.fancybox.defaults.animationEffect = 'zoom-in-out';
+						window.$.fancybox.defaults.transitionEffect = 'fade';
+						window.$.fancybox.defaults.clickContent = 'zoom';
+						window.$.fancybox.defaults.dblclickContent = 'zoom';
+						window.$.fancybox.defaults.dblclickSlide = 'zoom';
+						window.$.fancybox.defaults.zoom = {
+							enabled: true,
+							duration: 300,
+							easing: 'ease-in-out'
+						};
+						
+						// Enable zoom button
+						window.$(document).on('afterShow.fb', function() {
+							window.$('.fancybox-button--zoom').removeClass('fancybox-button--disabled');
+							window.$('.fancybox-button--zoom').attr('disabled', false);
+							window.$('.fancybox-button--zoom').css({
+								'opacity': '1',
+								'pointer-events': 'auto',
+								'display': 'inline-block',
+								'visibility': 'visible',
+								'background-color': 'rgba(30, 30, 30, 0.6)'
+							});
+						});
+					}
 				};
-				
-				// Enable zoom button
-				$(document).on('afterShow.fb', function() {
-					$('.fancybox-button--zoom').removeClass('fancybox-button--disabled');
-					$('.fancybox-button--zoom').attr('disabled', false);
-					$('.fancybox-button--zoom').css({
-						'opacity': '1',
-						'pointer-events': 'auto',
-						'display': 'inline-block',
-						'visibility': 'visible',
-						'background-color': 'rgba(30, 30, 30, 0.6)'
-					});
-				});
-			}
-		});
+				document.head.appendChild(fancyboxScript);
+			};
+			document.head.appendChild(jqueryScript);
+		}
 	</script>
 	
 	<!-- Custom CSS -->

@@ -8,8 +8,13 @@
     "build:clean": "rm -rf dist && rm -rf node_modules/.cache && vue-cli-service build",
     "build:fresh": "rm -rf dist && rm -rf node_modules/.cache && rm -rf ~/.cache/vue-cli-service && npm cache clean --force && vue-cli-service build",
     "build:nuclear": "./build.sh",
-    "lint": "vue-cli-service lint"
+    "build:electron": "cross-env IS_ELECTRON=true vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "electron": "electron .",
+    "electron:build": "npm run build:electron && electron-builder",
+    "electron:dev": "npm run build:electron && electron ."
   },
+  "main": "background.js",
   "dependencies": {
     "@fancyapps/fancybox": "^3.5.7",
     "@fancyapps/ui": "^6.0.13",
@@ -40,6 +45,9 @@
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
     "cache-loader": "^4.1.0",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "sass": "^1.86.3",
