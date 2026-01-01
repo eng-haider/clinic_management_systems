@@ -249,9 +249,10 @@
 
             },
 
+
             initialize() {
                 this.loading = true;
-                Axios.get("getrecipes", {
+                Axios.get("https://mina-api.tctate.com/api/getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -354,7 +355,7 @@
             getCaseCategories() {
 
 
-                Axios.get("case-categories", {
+                Axios.get("https://mina-api.tctate.com/apicase-categories", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -417,7 +418,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("recipes-items/" + item.id, {
+                        Axios.delete("https://mina-api.tctate.com/api/recipes-items/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -437,7 +438,7 @@
 
             initializeRecipeItems() {
                 this.loading = true;
-                Axios.get("recipes-items/getByDoctorId", {
+                Axios.get("https://mina-api.tctate.com/api/recipes-items/getByDoctorId", {
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",

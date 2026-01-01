@@ -1751,11 +1751,22 @@
                     const patientData = eventData.patient;
                     const isEditing = eventData.isEditing;
                     
+                    // If editing, update the item in datatable immediately
+                    if (isEditing && patientData.id) {
+                        const index = this.desserts.findIndex(p => p.id === patientData.id);
+                        if (index !== -1) {
+                            // Use Vue.set to ensure reactivity
+                            this.$set(this.desserts, index, patientData);
+                        }
+                    }
+                    
                     // Clear patient cache immediately when a patient is edited or created
                     this.clearPatientCache();
                     
-                    // Clear all cache and refresh data
-                    this.refreshAllData();
+                    // Refresh all data in background
+                    this.$nextTick(() => {
+                        this.refreshAllData();
+                    });
                     
                     // Handle redirection based on user role
                     const userRole = this.$store.getters.userRole;
@@ -1796,11 +1807,27 @@
                                     Authorization: "Bearer " + this.$store.state.AdminInfo.token,
                                 },
                             })
-                            .then(() => {
+                            .then((response) => {
                                 this.loadSave = false;
+                                
+                                // Update the item in the datatable immediately with fresh data from server
+                                if (response.data && response.data.data) {
+                                    const updatedPatient = response.data.data;
+                                    const index = this.desserts.findIndex(p => p.id === updatedPatient.id);
+                                    if (index !== -1) {
+                                        // Use Vue.set to ensure reactivity
+                                        this.$set(this.desserts, index, updatedPatient);
+                                    }
+                                }
+                                
                                 // Clear patient cache immediately when a patient is edited
                                 this.clearPatientCache();
-                                this.refreshAllData();
+                                
+                                // Refresh all data in background
+                                this.$nextTick(() => {
+                                    this.refreshAllData();
+                                });
+                                
                                 this.close();
 
                                 this.$swal.fire({
@@ -1969,8 +1996,11 @@
                 this.tableOptions.page = 1;
                 this.page = 1;
                 
-                // Reload data
-                this.initialize();
+                // Force fresh data load by waiting a tick for cache clear to complete
+                this.$nextTick(() => {
+                    this.loadingData = true;
+                    this.initialize();
+                });
             },
 
         },

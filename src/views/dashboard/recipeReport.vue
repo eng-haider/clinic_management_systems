@@ -8,7 +8,7 @@
     <!-- Clinic Info -->
     <v-container>
       <v-layout row wrap class="patient-details">
-        <v-flex xs3 pr-3>
+        <v-flex xs6 pr-3>
           
           <strong>الاسم:</strong> {{ RecipeInfo.name }}
         </v-flex>
@@ -19,9 +19,7 @@
           <strong>الجنس:</strong>
           <span>{{ RecipeInfo.sex === 1 ? 'ذكر' : 'انثى' }}</span>
         </v-flex>
-        <v-flex xs3>
-          <!-- <strong>الحالة:</strong> {{ RecipeInfo.case.case_categories.name_ar }} -->
-        </v-flex>
+        
         <v-flex xs12 class="notes-section" pt-4>
           {{ RecipeInfo.notes }}
         </v-flex>

@@ -235,6 +235,25 @@
                   </v-tab-item>
                 </v-tabs-items>
               </v-card-text>
+              
+              <!-- Examination Category Button (ID: 25) -->
+              <v-card-text class="pt-0 pb-4">
+                <v-divider class="mb-3"></v-divider>
+                <div class="text-center">
+                  <v-btn
+                    color="primary"
+                    @click="addExaminationCase"
+                    class="examination-btn"
+                    elevation="2"
+                  >
+                    <v-icon left>mdi-stethoscope</v-icon>
+                    فحص
+                  </v-btn>
+                  <div class="caption mt-2 grey--text">
+                    إضافة حالة فحص بدون تحديد سن
+                  </div>
+                </div>
+              </v-card-text>
 
 
                 <!-- Notes Section -->
@@ -294,8 +313,12 @@
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip small color="primary" text-color="white">
-                              {{ item.tooth_number }}
+                            <v-chip 
+                              small 
+                              :color="item.tooth_number ? 'primary' : 'grey lighten-1'" 
+                              text-color="white"
+                            >
+                              {{ item.tooth_number || 'عام' }}
                             </v-chip>
                           </div>
                         </template>
@@ -1151,7 +1174,10 @@ export default {
 
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      return this.patientCases.map(case_item => case_item.tooth_number);
+      // Filter out null/undefined tooth numbers (e.g., examination cases)
+      return this.patientCases
+        .map(case_item => case_item.tooth_number)
+        .filter(toothNum => toothNum !== null && toothNum !== undefined && toothNum !== '');
     },
     
     totalAmount() {
@@ -1561,6 +1587,30 @@ export default {
       // Mark bill as modified
       bill.modified = true;
     },
+    
+    // Clear patients list cache (used by casesheet page)
+    clearPatientsListCache() {
+      // Clear all patient-related cache keys from localStorage
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.includes('patients_cache') || 
+          key.includes('all_patients') || 
+          key.includes('search_patients') || 
+          key.includes('doctor_patients')
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('🗑️ Cleared cache:', key);
+      });
+      
+      console.log(`🗑️ Cleared ${keysToRemove.length} patient cache entries`);
+    },
 
     // Clear cache and reload data
     async clearCacheAndReload() {
@@ -1577,6 +1627,9 @@ export default {
         // Clear localStorage cache if any
         localStorage.removeItem('dental_operations_cache');
         localStorage.removeItem('case_categories_cache');
+        
+        // Clear patients list cache (for casesheet page)
+        this.clearPatientsListCache();
 
         // Force reload dental operations
         this.dentalOperations = [];
@@ -2389,6 +2442,68 @@ export default {
       this.selectedTooth = null;
     },
     
+    // Add examination case without tooth selection (ID: 25)
+    addExaminationCase() {
+      const examinationCategory = this.dentalOperations.find(cat => cat.id === 25);
+      
+      if (!examinationCategory) {
+        this.$swal.fire({
+          title: "خطأ",
+          text: "لم يتم العثور على فئة الفحص",
+          icon: "error",
+          confirmButtonText: "اغلاق"
+        });
+        return;
+      }
+      
+      const operationName = examinationCategory.name || examinationCategory.name_ar;
+      
+      // Check if examination case already exists (without tooth number)
+      const existingExaminationCase = this.patientCases.find(
+        case_item => (case_item.tooth_number === null || case_item.tooth_number === 0 || case_item.tooth_number === '') 
+                     && case_item.case_type === operationName
+      );
+      
+      if (existingExaminationCase) {
+        this.$swal.fire({
+          title: "تنبيه",
+          text: "حالة الفحص موجودة بالفعل",
+          icon: "warning",
+          confirmButtonText: "اغلاق"
+        });
+        return;
+      }
+
+      const newCase = {
+        id: Date.now(), // Temporary client-side ID
+        server_id: null, // Will be set after saving to server
+        tooth_number: null, // No tooth number for examination
+        case_type: operationName,
+        date: new Date().toISOString().substr(0, 10),
+        price: null,
+        displayPrice: '',
+        completed: false,
+        notes: '',
+        operation_id: examinationCategory.id,
+        status_id: 42, // Default status
+        sessions: [],
+        additionalSessions: [],
+        modified: true // Mark as new/modified for save
+      };
+      
+      // Add to local array
+      this.patientCases.unshift(newCase);
+      
+      // Show success message
+      this.$swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "تمت إضافة حالة الفحص",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    },
+    
     // Format number with commas (e.g., 20000 -> 20,000)
     formatNumberWithCommas(value) {
       if (!value || value === '' || value === null || value === undefined) {
@@ -2782,6 +2897,9 @@ export default {
         // Save tooth colors from teeth_v2 component
         await this.saveToothColors();
         
+        // Clear patients list cache so casesheet page shows updated data
+        this.clearPatientsListCache();
+        
         // Show success message
         this.$swal.fire({
           title: "نجاح",
@@ -3040,6 +3158,17 @@ export default {
     // Save patient edit
     savePatientEdit(data) {
       console.log('Saving patient edit:', data);
+      
+      // Clear patients list cache so casesheet page shows updated data
+      this.clearPatientsListCache();
+      
+      // Reload current patient data to reflect changes
+      if (data && data.patient && data.patient.id === this.patient.id) {
+        this.$nextTick(() => {
+          this.loadPatientData();
+        });
+      }
+      
       this.editDialog = false;
     },
     
@@ -3481,6 +3610,22 @@ async mounted() {
 .no-horizontal-scroll * {
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* Examination button styles */
+.examination-btn {
+  min-width: 200px;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px 24px !important;
+  border-radius: 8px;
+  text-transform: none;
+}
+
+.examination-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
 /* Styles for the patient detail page */

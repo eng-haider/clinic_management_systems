@@ -353,12 +353,12 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2025-12-01", // Focus on October by default
-        startDate: "2025-12-01", // Start of October
+        focus: "2026-01-01", // Focus on October by default
+        startDate: "2025-01-01", // Start of October
         endDate: "2026-01-01", // End of November
 
         valid: true,
-
+        
         patient: null,
         editedItem: {
           reservation_from_time: null,
