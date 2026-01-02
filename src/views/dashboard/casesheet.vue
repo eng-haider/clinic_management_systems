@@ -85,9 +85,15 @@
                                                     </v-text-field>
                                                 </v-col>
 
+                                                <v-col class="py-0" cols="12" sm="6" md="6">
+                                                    <v-text-field v-model="editedItem.phone1" v-mask="mask"
+                                                        placeholder="07XX XXX XXXX" style="direction:ltr"
+                                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                                                        :label="$t('datatable.phone') + ' 2'" outlined>
+                                                    </v-text-field>
+                                                </v-col>
 
-
-
+                                             
 
                                                 <v-col class="py-0" cols="12" sm="6" md="6">
                                                     <v-text-field v-model="editedItem.birth_date" type="date"
@@ -232,8 +238,12 @@
                 </template>
 
 
-                <template v-slot:[`item.phones`]="{ item }">
+                <template v-slot:[`item.phone`]="{ item }">
                     <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone}}</p>
+                </template>
+
+                <template v-slot:[`item.phone1`]="{ item }">
+                    <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone1}}</p>
                 </template>
 
                 <template v-slot:[`item.age`]="{ item }">
@@ -489,9 +499,12 @@
                     name: "",
                     age: "",
                     birth_date: "",
+                   
+                
                     sex: "",
                     address: "",
                     phone: "",
+                    phone1: "",
                     is_scheduled_today: false, // Default to "No"
                     doctors: "",
                     systemic_conditions: "",
@@ -530,7 +543,11 @@
                     }, {
                         text: this.$t('datatable.phone'),
                         align: "start",
-                        value: "phones"
+                        value: "phone"
+                    }, {
+                        text: this.$t('datatable.phone') + ' 2',
+                        align: "start",
+                        value: "phone1"
                     },
 
                     {
@@ -550,6 +567,7 @@
                         align: "start",
                         value: "doctor"
                     } : '',
+
 
 
 
