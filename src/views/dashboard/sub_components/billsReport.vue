@@ -84,6 +84,33 @@
                     <div class="signature-line"></div>
                 </div>
             </div>
+
+            <!-- QR Code Section -->
+            <v-divider class="my-3"></v-divider>
+            <div class="qr-code-section text-center" style="background: #f5f5f5; padding: 15px; margin-top: 15px;">
+                <div class="qr-code-label mb-2" style="font-size: 14px; font-weight: bold; color: #333;">رمز الاستجابة السريع (QR Code)</div>
+                <div v-if="patient && (patient.qr_code || patient.id)" style="padding: 10px;">
+                    <div class="qr-code-display" style="display: inline-block; background: white; padding: 8px; border: 2px solid #2196F3; border-radius: 6px;">
+                        <qrcode-vue 
+                            :value="getQRCodeUrl()" 
+                            :size="100" 
+                            level="M"
+                            render-as="svg"
+                        />
+                    </div>
+                    <div class="qr-code-hint mt-1" style="font-size: 11px; color: #666;">امسح الرمز للوصول إلى سجل حالاتك</div>
+                    <div v-if="!patient.qr_code" class="text-caption text--secondary mt-1" style="font-size: 10px; color: #999;">
+                        (استخدام معرف المريض: {{ patient.id }})
+                    </div>
+                </div>
+                <div v-else class="text-center pa-3">
+                    <v-alert type="info" dense outlined>
+                        رمز QR غير متوفر لهذا المريض
+                        <br>
+                        <small>Patient data: {{ patient ? 'Available' : 'Not available' }}</small>
+                    </v-alert>
+                </div>
+            </div>
         </v-card>
     </div>
 </template>
@@ -92,9 +119,14 @@
     import {
         EventBus
     } from "../event-bus.js";
+    import QrcodeVue from 'qrcode.vue';
     
     export default {
         inheritAttrs: false,
+
+        components: {
+            QrcodeVue
+        },
 
         props: {
             patient: Object
@@ -213,6 +245,13 @@
 
         mounted() {
             // Component mounted - ready to display bill report
+            console.log('📄 Bill Report mounted - Patient data:', this.patient);
+            console.log('🔲 QR Code value:', this.patient ? this.patient.qr_code : 'No patient');
+            if (this.patient && this.patient.qr_code) {
+                console.log('✅ QR Code URL:', this.getQRCodeUrl());
+            } else {
+                console.warn('⚠️ No QR code found for patient');
+            }
         },
 
         methods: {
@@ -416,6 +455,92 @@
                 return this.patient.phone || '-';
             },
 
+            getQRCodeUrl() {
+                if (!this.patient) {
+                    return '';
+                }
+                
+                // Get QR code from patient data or use patient ID as fallback
+                const qrCode = this.patient.qr_code || this.patient.id || 'unknown';
+                
+                console.log('🔲 Generating QR URL with code:', qrCode);
+                
+                // Get patient phone number (clean it)
+                let phone = '';
+                if (this.patient.phone) {
+                    phone = this.patient.phone.replace(/[\s-+()]/g, '');
+                } else if (this.patient.billable && this.patient.billable.phone) {
+                    phone = this.patient.billable.phone.replace(/[\s-+()]/g, '');
+                }
+                
+                // Generate QR code URL that redirects to patient lookup page with phone parameter
+                let url = `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${qrCode}`;
+                if (phone) {
+                    url += `&phone=${phone}`;
+                }
+                
+                return url;
+            },
+
+            // Convert QR code canvas to image for better printing
+            async convertQRCodeToImage() {
+                try {
+                    console.log('🔄 Preparing QR code for printing...');
+                    
+                    // Find the QR code element (canvas or svg)
+                    const qrDisplay = document.querySelector('.qr-code-display');
+                    const canvas = qrDisplay?.querySelector('canvas');
+                    const svg = qrDisplay?.querySelector('svg');
+                    
+                    if (!qrDisplay) {
+                        console.warn('⚠️ No QR code display found');
+                        return;
+                    }
+                    
+                    if (svg) {
+                        console.log('✅ SVG QR code found - ready for printing');
+                        // SVG prints well, just ensure it's visible
+                        svg.style.display = 'block';
+                        svg.style.width = '100px';
+                        svg.style.height = '100px';
+                        return;
+                    }
+                    
+                    if (canvas) {
+                        console.log('✅ Canvas found, converting to image...');
+                        
+                        // Convert canvas to data URL
+                        const dataUrl = canvas.toDataURL('image/png');
+                        
+                        // Create an img element
+                        const img = document.createElement('img');
+                        img.src = dataUrl;
+                        img.style.width = '100px';
+                        img.style.height = '100px';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
+                        img.className = 'qr-code-image-print';
+                        
+                        // Replace canvas with image
+                        canvas.style.display = 'none';
+                        qrDisplay.appendChild(img);
+                        
+                        console.log('✅ QR code converted to image for printing');
+                        
+                        // Restore canvas after printing
+                        setTimeout(() => {
+                            if (img && img.parentNode) {
+                                img.parentNode.removeChild(img);
+                            }
+                            canvas.style.display = 'block';
+                        }, 2000);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error preparing QR code for printing:', error);
+                }
+            },
+
             getClinicName() {
                 try {
                     return this.$store.state.AdminInfo?.clinics_info?.name || 'العيادة';
@@ -434,6 +559,9 @@
                 console.log('Print report clicked - Mobile detection:', this.isMobileDevice());
                 
                 try {
+                    // Convert QR code canvas to image before printing
+                    await this.convertQRCodeToImage();
+                    
                     // Get the bill card element
                     const billElement = document.querySelector('.bill-card');
                     if (!billElement) {
@@ -909,6 +1037,41 @@
                                 display: none;
                             }
                             
+                            /* QR Code Section Styles */
+                            .qr-code-section {
+                                margin-top: 20px;
+                                padding: 15px;
+                                text-align: center;
+                                border: 1px solid #e0e0e0;
+                                border-radius: 8px;
+                                background: #fafafa;
+                            }
+                            
+                            .qr-code-label {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                color: #333;
+                            }
+                            
+                            .qr-code-display {
+                                display: inline-block;
+                                padding: 10px;
+                                background: white;
+                                border: 2px solid #e0e0e0;
+                                border-radius: 8px;
+                            }
+                            
+                            .qr-code-hint {
+                                font-size: 13px;
+                                color: #666;
+                                margin-top: 8px;
+                            }
+                            
+                            .v-alert {
+                                margin: 10px 0;
+                            }
+                            
                             @media print {
                                 .print-controls {
                                     display: none !important;
@@ -979,6 +1142,57 @@
                                 
                                 .signature-line {
                                     height: 50px;
+                                }
+                                
+                                /* QR Code print styles */
+                                .qr-code-section {
+                                    display: block !important;
+                                    visibility: visible !important;
+                                    margin-top: 20px !important;
+                                    padding: 15px !important;
+                                    page-break-inside: avoid !important;
+                                    border: 1px solid #333 !important;
+                                    background: white !important;
+                                    text-align: center !important;
+                                }
+                                
+                                .qr-code-label {
+                                    font-size: 14px !important;
+                                    font-weight: bold !important;
+                                    margin-bottom: 10px !important;
+                                    display: block !important;
+                                }
+                                
+                                .qr-code-display {
+                                    display: inline-block !important;
+                                    margin: 10px auto !important;
+                                    visibility: visible !important;
+                                    background: white !important;
+                                    padding: 10px !important;
+                                }
+                                
+                                .qr-code-display canvas,
+                                .qr-code-display svg,
+                                .qr-code-image-print {
+                                    display: block !important;
+                                    margin: 0 auto !important;
+                                    visibility: visible !important;
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                    color-adjust: exact !important;
+                                    width: 100px !important;
+                                    height: 100px !important;
+                                }
+                                
+                                .qr-code-hint {
+                                    font-size: 12px !important;
+                                    color: #666 !important;
+                                    margin-top: 8px !important;
+                                    display: block !important;
+                                }
+                                
+                                .v-alert {
+                                    display: none !important;
                                 }
                             }
                             
@@ -1403,6 +1617,57 @@
                         .signature-line {
                             height: 50px !important;
                         }
+                        
+                        /* QR Code print styles */
+                        .qr-code-section {
+                            display: block !important;
+                            visibility: visible !important;
+                            margin-top: 20px !important;
+                            padding: 15px !important;
+                            page-break-inside: avoid !important;
+                            border: 1px solid #333 !important;
+                            background: white !important;
+                            text-align: center !important;
+                        }
+                        
+                        .qr-code-label {
+                            font-size: 14px !important;
+                            font-weight: bold !important;
+                            margin-bottom: 10px !important;
+                            display: block !important;
+                        }
+                        
+                        .qr-code-display {
+                            display: inline-block !important;
+                            margin: 10px auto !important;
+                            visibility: visible !important;
+                            background: white !important;
+                            padding: 10px !important;
+                        }
+                        
+                        .qr-code-display canvas,
+                        .qr-code-display svg,
+                        .qr-code-image-print {
+                            display: block !important;
+                            margin: 0 auto !important;
+                            visibility: visible !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                            width: 100px !important;
+                            height: 100px !important;
+                        }
+                        
+                        .qr-code-hint {
+                            font-size: 12px !important;
+                            color: #333 !important;
+                            margin-top: 8px !important;
+                            display: block !important;
+                        }
+                        
+                        .v-alert {
+                            display: none !important;
+                        }
                     }
                 `;
             },
@@ -1569,6 +1834,35 @@
     margin-top: 10px;
 }
 
+/* QR Code Section Styles */
+.qr-code-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.qr-code-label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    font-family: 'Cairo', sans-serif;
+}
+
+.qr-code-display {
+    display: inline-block;
+    padding: 10px;
+    background-color: white;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
+.qr-code-hint {
+    font-size: 13px;
+    color: #666;
+    font-family: 'Cairo', sans-serif;
+}
+
 /* Print styles - maintain same appearance as on screen */
 @media print {
     /* Hide toolbar and buttons */
@@ -1663,6 +1957,77 @@
     .v-divider {
         display: none !important;
     }
+    
+    /* QR Code print styles */
+    .qr-code-section {
+        display: block !important;
+        visibility: visible !important;
+        margin-top: 15px !important;
+        padding: 10px !important;
+        page-break-inside: avoid !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
+    }
+    
+    .qr-code-label {
+        font-size: 13px !important;
+        font-weight: bold !important;
+        margin-bottom: 8px !important;
+        display: block !important;
+    }
+    
+    .qr-code-display {
+        display: block !important;
+        margin: 0 auto !important;
+        visibility: visible !important;
+    }
+    
+    .qr-code-display canvas {
+        display: block !important;
+        margin: 0 auto !important;
+        visibility: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .qr-code-hint {
+        font-size: 11px !important;
+        color: #666 !important;
+        margin-top: 5px !important;
+        display: block !important;
+    }
+    
+    /* Hide alert messages in print */
+    .v-alert {
+        display: none !important;
+    }
+}
+
+/* QR Code Section Styles */
+.qr-code-section {
+    padding: 20px;
+    text-align: center;
+}
+
+.qr-code-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    font-family: 'Cairo', sans-serif;
+}
+
+.qr-code-display {
+    display: inline-block;
+    padding: 10px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.qr-code-hint {
+    font-size: 13px;
+    color: #666;
+    font-family: 'Cairo', sans-serif;
 }
 
 /* Mobile responsive */

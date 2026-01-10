@@ -82,8 +82,32 @@
                             >
                                 متابعة الحالة
                             </v-chip>
+                            <v-chip 
+                                @click="addPatientLookupUrl"
+                                color="blue" 
+                                text-color="white"
+                                clickable
+                            >
+                                <v-icon left small>mdi-qrcode</v-icon>
+                                إضافة رابط بيانات المريض
+                            </v-chip>
                         </v-chip-group>
                     </div>
+                    
+                    <v-alert
+                        v-if="selectedPatient && (selectedPatient.qr_code || selectedPatient.id)"
+                        type="info"
+                        dense
+                        text
+                        class="mt-2"
+                    >
+                        <div class="d-flex align-center">
+                            <v-icon small class="ml-2">mdi-information</v-icon>
+                            <span style="font-size: 12px;">
+                                يمكنك إضافة رابط صفحة بيانات المريض للرسالة
+                            </span>
+                        </div>
+                    </v-alert>
                 </v-card-text>
                 
                 <v-card-actions>
@@ -768,7 +792,8 @@
                 this.selectedPatient = {
                     id: item.id,
                     name: item.name || '',
-                    phone: item.phone || ''
+                    phone: item.phone || '',
+                    qr_code: item.qr_code || null
                 };
                 this.whatsappMessage = {
                     message: ''
@@ -797,6 +822,58 @@
                     'متابعة الحالة': `مرحباً ${patientName}،\n\nنود الاطمئنان على حالتكم الصحية.\n\nكيف تشعرون بعد العلاج؟\n\nشكراً لكم`
                 };
                 this.whatsappMessage.message = messages[messageType] || '';
+            },
+
+            /**
+             * Adds patient lookup URL to WhatsApp message
+             * Uses qr_code if available, otherwise uses patient ID
+             */
+            addPatientLookupUrl() {
+                if (!this.selectedPatient) {
+                    return;
+                }
+
+                // Get QR code or use patient ID as fallback
+                const code = this.selectedPatient.qr_code || this.selectedPatient.id;
+                const phone = this.selectedPatient.phone || '';
+                
+                if (!code) {
+                    this.$swal.fire({
+                        title: "خطأ",
+                        text: "لا يمكن إنشاء رابط للمريض",
+                        icon: "error",
+                        confirmButtonText: "اغلاق",
+                    });
+                    return;
+                }
+
+                // Generate patient lookup URL with phone parameter
+                let patientUrl = `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${code}`;
+                if (phone) {
+                    // Clean phone number (remove spaces, dashes, etc.)
+                    const cleanPhone = phone.replace(/[\s-+()]/g, '');
+                    patientUrl += `&phone=${cleanPhone}`;
+                }
+                
+                // Add URL to message with a nice format
+                const urlText = `\n\nيمكنك الاطلاع على بياناتك الطبية من خلال الرابط التالي:\n${patientUrl}`;
+                
+                // Append or set message
+                if (this.whatsappMessage.message.trim()) {
+                    this.whatsappMessage.message += urlText;
+                } else {
+                    const patientName = this.selectedPatient.name || 'المريض';
+                    this.whatsappMessage.message = `مرحباً ${patientName}،${urlText}`;
+                }
+
+                // Show success toast
+                this.$swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "تمت إضافة الرابط إلى الرسالة",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
             },
 
             /**

@@ -97,6 +97,21 @@
               <v-icon left small>mdi-wallet-plus</v-icon>
               {{ $t('patients.add_credit') }}
             </v-btn>
+            
+            <!-- Send Patient Data URL via WhatsApp -->
+            <v-btn 
+              v-if="patient.phone && (patient.qr_code || patient.id)"
+              small
+              class="mb-1" 
+              color="green" 
+              dark
+              rounded
+              :href="getWhatsAppLink(patient.phone, true)"
+              target="_blank"
+            >
+              <v-icon left small>mdi-whatsapp</v-icon>
+              إرسال رابط البيانات
+            </v-btn>
           </div>
 
           <!-- Desktop: Show buttons horizontally -->
@@ -140,6 +155,20 @@
             >
               <v-icon left>mdi-wallet-plus</v-icon>
               {{ $t('patients.add_credit') }}
+            </v-btn>
+            
+            <!-- Send Patient Data URL via WhatsApp -->
+            <v-btn 
+              v-if="patient.phone && (patient.qr_code || patient.id)"
+              class="mr-2" 
+              color="green" 
+              dark
+              rounded
+              :href="getWhatsAppLink(patient.phone, true)"
+              target="_blank"
+            >
+              <v-icon left>mdi-whatsapp</v-icon>
+              إرسال رابط البيانات
             </v-btn>
           </div>
         </v-col>
@@ -210,35 +239,6 @@
                   </v-tab-item>
                 </v-tabs-items>
               </v-card-text>
-
-
-                <!-- Notes Section -->
-        <v-card class="notes-section mt-4">
-          <v-card-title class="pb-2">
-            <v-icon left>mdi-note-text</v-icon>
-            {{ $t('patients.notes') }}
-          </v-card-title>
-          <v-card-text>
-            <v-textarea
-              v-model="patient.notes"
-              :label="$t('patients.add_notes')"
-              :placeholder="$t('patients.notes_placeholder')"
-              outlined
-              rows="4"
-              counter
-              maxlength="1000"
-              style="direction: rtl; text-align: right;"
-            ></v-textarea>
-          </v-card-text>
-        </v-card>
-
-
-
-
-
-
-
-
 
               
               <!-- Selected Cases Table -->
@@ -439,6 +439,26 @@
                     </v-card-text>
                   </v-card>
                 </div>
+              </v-card-text>
+            </v-card>
+
+            <!-- Notes Section -->
+            <v-card class="notes-section mt-4 mb-4" outlined v-if="!secretaryBillsOnlyMode">
+              <v-card-title class="pb-2">
+                <v-icon left>mdi-note-text</v-icon>
+                {{ $t('patients.notes') }}
+              </v-card-title>
+              <v-card-text>
+                <v-textarea
+                  v-model="patient.notes"
+                  :label="$t('patients.add_notes')"
+                  :placeholder="$t('patients.notes_placeholder')"
+                  outlined
+                  rows="4"
+                  counter
+                  maxlength="1000"
+                  style="direction: rtl; text-align: right;"
+                ></v-textarea>
               </v-card-text>
             </v-card>
 
@@ -1750,10 +1770,12 @@ export default {
           notes: data.notes,
           rx_id: data.rx_id,
           credit_balance: data.credit_balance || 0,
-          tooth_parts: data.tooth_parts  // Add tooth_parts data
+          tooth_parts: data.tooth_parts,  // Add tooth_parts data
+          qr_code: data.qr_code  // Add qr_code from API
         };
         console.log('👤 Patient basic info set:', this.patient.name);
         console.log('🦷 Patient tooth_parts:', this.patient.tooth_parts);
+        console.log('🔲 Patient qr_code:', this.patient.qr_code);
 
         // Process cases data
         console.log('📋 Processing cases data...');
@@ -1768,6 +1790,8 @@ export default {
           } catch (e) {
             toothNumber = caseItem.tooth_num;
           }
+
+          console.log(`📋 Case ${caseItem.id}: notes="${caseItem.notes || ''}", sessions count=${caseItem.sessions?.length || 0}`);
 
           return {
             id: caseItem.id,
@@ -2129,7 +2153,7 @@ export default {
     },
     
     // Generate WhatsApp link
-    getWhatsAppLink(phone) {
+    getWhatsAppLink(phone, includePatientUrl = false) {
       if (!phone) return '#';
       // Remove any non-digit characters
       const cleanPhone = phone.replace(/\D/g, '');
@@ -2142,7 +2166,20 @@ export default {
         fullPhone = `964${nationalNumber}`;
       }
       
-      return `https://wa.me/${fullPhone}`;
+      // Build base URL
+      let whatsappUrl = `https://wa.me/${fullPhone}`;
+      
+      // Add patient lookup URL if requested
+      if (includePatientUrl && this.patient) {
+        const code = this.patient.qr_code || this.patient.id;
+        if (code) {
+          const patientUrl = `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${code}&phone=${cleanPhone}`;
+          const message = encodeURIComponent(`مرحباً،\n\nيمكنك الاطلاع على بياناتك الطبية من خلال الرابط التالي:\n${patientUrl}`);
+          whatsappUrl += `?text=${message}`;
+        }
+      }
+      
+      return whatsappUrl;
     },
     
     hideContextMenu(event) {
@@ -2715,14 +2752,26 @@ export default {
     // Save new case
     async saveNewCase(caseItem) {
       try {
+        // Prepare sessions array - only include additional sessions, not the main notes
+        const sessionsToSave = [];
+        
+        // Add any additional sessions that were explicitly created
+        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
+          caseItem.additionalSessions.forEach(session => {
+            if (session.note && session.note.trim() !== '') {
+              sessionsToSave.push({
+                note: session.note,
+                date: session.date || new Date().toISOString().substr(0, 10)
+              });
+            }
+          });
+        }
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           tooth_num: [parseInt(caseItem.tooth_number)],
           status_id: caseItem.completed ? 43 : 42,
-          sessions: [{
-            note: caseItem.notes || "",
-            date: caseItem.date
-          }],
+          sessions: sessionsToSave, // Only save additional sessions, not main notes
           bills: [{
             price: caseItem.price ? caseItem.price.toString() : "0",
             PaymentDate: caseItem.date,
@@ -2755,6 +2804,21 @@ export default {
     // Update existing case
     async updateExistingCase(caseItem) {
       try {
+        // Merge existing sessions with additional sessions
+        const allSessions = [...(caseItem.sessions || [])];
+        
+        // Add any new additional sessions
+        if (caseItem.additionalSessions && caseItem.additionalSessions.length > 0) {
+          caseItem.additionalSessions.forEach(session => {
+            if (session.note && session.note.trim() !== '') {
+              allSessions.push({
+                note: session.note,
+                date: session.date || new Date().toISOString().substr(0, 10)
+              });
+            }
+          });
+        }
+        
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           status_id: caseItem.completed ? 43 : 42,
@@ -2762,7 +2826,7 @@ export default {
           tooth_num: `[${caseItem.tooth_number}]`,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
-          sessions: caseItem.sessions || []
+          sessions: allSessions
         };
         
         const response = await this.$http.patch(`https://smartclinicv5.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
@@ -3101,27 +3165,44 @@ export default {
         });
 
         if (result.isConfirmed) {
-          // Remove from local array immediately for better UX
+          console.log('🗑️ Deleting image:', image.id);
+          
+          // Call API to delete from server
+          await this.$http.delete(`cases/delete_image/${image.id}`, {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token
+            }
+          });
+          
+          console.log('✅ Image deleted from server');
+          
+          // Remove from local array after successful API call
           const index = this.patientImages.findIndex(img => img.id === image.id);
           if (index !== -1) {
             this.patientImages.splice(index, 1);
           }
-
-          // Call API to delete from server (if needed)
-          // Note: You may need to implement a delete image API endpoint
           
           this.$swal.fire({
             title: "تم الحذف",
             text: "تم حذف الصورة بنجاح",
             icon: "success",
-            confirmButtonText: "موافق"
+            timer: 1500,
+            showConfirmButton: false
           });
         }
       } catch (error) {
-        console.error('Error deleting image:', error);
+        console.error('❌ Error deleting image:', error);
+        
+        let errorMessage = "تعذر حذف الصورة";
+        if (error.response && error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+        
         this.$swal.fire({
           title: "خطأ",
-          text: "تعذر حذف الصورة",
+          text: errorMessage,
           icon: "error",
           confirmButtonText: "موافق"
         });

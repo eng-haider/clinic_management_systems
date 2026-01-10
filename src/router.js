@@ -39,7 +39,10 @@ const routeComponents = {
   
   // Error pages
   Error: () => import(/* webpackChunkName: "error" */ '@/views/pages/Error'),
-  CaseCategories: () => import(/* webpackChunkName: "case-categories" */ '@/views/dashboard/CaseCategories')
+  CaseCategories: () => import(/* webpackChunkName: "case-categories" */ '@/views/dashboard/CaseCategories'),
+  
+  // Public pages
+  PublicTeeth: () => import(/* webpackChunkName: "public" */ '@/views/pages/PublicTeeth')
 }
 
 const router = new Router({
@@ -54,6 +57,15 @@ const router = new Router({
     }
   },
   routes: [
+    {
+      path: '/public/teeth/:code',
+      name: 'PublicTeeth',
+      component: routeComponents.PublicTeeth,
+      meta: { 
+        public: true,
+        title: 'Patient Teeth Information'
+      }
+    },
     {
       path: '/login',
       component: routeComponents.PagesLayout,
@@ -218,6 +230,12 @@ router.beforeEach(async (to, from, next) => {
   // Show global loading for all routes
   if (window.globalLoading) {
     window.globalLoading.show();
+  }
+  
+  // Allow public routes without authentication
+  if (to.meta?.public) {
+    next();
+    return;
   }
   
   // Check permissions if route requires them
