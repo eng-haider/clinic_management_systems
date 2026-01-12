@@ -561,7 +561,7 @@ export default {
     // Calendar data fetching
     async fetchReservations() {
       try {
-        const endDateISO = "2025-12-29";
+        const endDateISO = "2027-12-29";
         let allReservations = [];
 
         if (this.doctors.length > 1 && this.$store.state.role == 'secretary') {
@@ -583,7 +583,7 @@ export default {
     
     async fetchDoctorReservations(token, endDateISO) {
       return axios.get(
-        `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=2024-29-12_${endDateISO}&filter[status_id]=%20&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
+        `https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=2025-29-12_${endDateISO}&filter[status_id]=%20&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`,
         {
           headers: {
             "Content-Type": "application/json",
