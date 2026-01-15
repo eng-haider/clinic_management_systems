@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div ref="printSection" class="print-section" style="display: none;">
+    <div id="printSection" ref="printSection" class="print-section" style="display: none;">
       <recipeReport :RecipeInfo="RecipeInfo" :rx_img="rx_img" />
     </div>
 
@@ -232,7 +232,7 @@
       },
       async fetchNoteSuggestions() {
         try {
-          const response = await this.axios.get('https://smartclinicv5.tctate.com/api/getrecipesItem', {
+          const response = await this.axios.get('https://mina-api.tctate.com/api/getrecipesItem', {
               headers: {
                 "Content-Type": "multipart/form-data",
                 Accept: "application/json",
@@ -245,12 +245,56 @@
         }
       },
       printContent() {
-        const printContent = this.$refs.printSection;
-        const originalContent = document.body.innerHTML;
-        document.body.innerHTML = printContent.innerHTML;
-        window.print();
-        document.body.innerHTML = originalContent;
-        window.location.reload();
+        // Ensure rx_img is set
+        if (!this.rx_img) {
+          this.rx_img = this.defaultImageBase64;
+        }
+
+        // Wait DOM update then try to print using plugin or fallback
+        this.$nextTick(() => {
+          // Preferred: Vue plugin (if installed)
+          if (typeof this.$htmlToPaper === 'function') {
+            try {
+              this.$htmlToPaper('printSection');
+              return;
+            } catch (e) {
+              console.warn('htmlToPaper failed, falling back to manual print', e);
+            }
+          }
+
+          // Fallback: open a new window with the print section's HTML and styles
+          const printEl = this.$refs.printSection;
+          if (!printEl) {
+            console.error('printSection ref not found');
+            return;
+          }
+
+          const printHtml = printEl.innerHTML;
+
+          // Collect existing stylesheets and inline styles to preserve appearance
+          const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+            .map(node => node.outerHTML)
+            .join('\n');
+
+          const newWin = window.open('', '_blank', 'width=800,height=600');
+          if (!newWin) {
+            // Popup blocked — as last resort call window.print()
+            console.warn('Popup blocked, calling window.print()');
+            window.print();
+            return;
+          }
+
+          newWin.document.open();
+          newWin.document.write(`<!doctype html><html><head><meta charset="utf-8">${styles}</head><body>${printHtml}</body></html>`);
+          newWin.document.close();
+          newWin.focus();
+          // Delay a bit so assets/styles can apply
+          setTimeout(() => {
+            newWin.print();
+            // Close the window shortly after printing
+            setTimeout(() => newWin.close(), 200);
+          }, 300);
+        });
       },
       async exportAsImage() {
         const printSection = this.$refs.printSection;
@@ -271,7 +315,12 @@
         }
 
         const formData = new FormData();
-          formData.append('case_categores_id', this.RecipeInfo.case.case_categories.id);
+          
+          // Only add case_categores_id if it exists
+          if (this.RecipeInfo.case && this.RecipeInfo.case.case_categories && this.RecipeInfo.case.case_categories.id) {
+            formData.append('case_categores_id', this.RecipeInfo.case.case_categories.id);
+          }
+          
           formData.append('notes', this.RecipeInfo.notes);
           formData.append('patient_id', this.RecipeInfo.name);
           if (this.imageFile) {
@@ -279,7 +328,7 @@
           }
 
 
-        const response = await this.axios.post("recipes", formData, {
+        const response = await this.axios.post("https://mina-api.tctate.com/recipes", formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
                 Accept: "application/json",
@@ -340,7 +389,7 @@
           formData.append('image', imageData);
 
           try {
-            const response = await this.axios.post('/upload', formData, {
+            const response = await this.axios.post('https://mina-api.tctate.com/upload', formData, {
               headers: {
                 'Content-Type': 'multipart/form-data',
               },
@@ -385,14 +434,7 @@
       async print() {
        
         if (this.$refs.form.validate()) {
-          const formData = new FormData();
-          formData.append('case_categores_id', this.RecipeInfo.case.case_categories.id);
-          formData.append('notes', this.RecipeInfo.notes);
-          formData.append('patient_id', this.RecipeInfo.name);
-          if (this.imageFile) {
-            formData.append('rx_img', this.imageFile);
-          }
-
+          // Set the rx_img before printing
           if (this.base64Image) {
             this.rx_img = this.base64Image;
           }
@@ -403,8 +445,21 @@
             this.rx_img = this.defaultImageBase64;
           }
 
+          const formData = new FormData();
+          
+          // Only add case_categores_id if it exists
+          if (this.RecipeInfo.case && this.RecipeInfo.case.case_categories && this.RecipeInfo.case.case_categories.id) {
+            formData.append('case_categores_id', this.RecipeInfo.case.case_categories.id);
+          }
+          
+          formData.append('notes', this.RecipeInfo.notes);
+          formData.append('patient_id', this.RecipeInfo.name);
+          if (this.imageFile) {
+            formData.append('rx_img', this.imageFile);
+          }
+
           try {
-            const response = await this.axios.post("recipes", formData, {
+            const response = await this.axios.post("https://mina-api.tctate.com/api/recipes", formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
                 Accept: "application/json",
@@ -420,8 +475,15 @@
               timer: 1500
             });
 
-            this.printContent();
-            this.close();
+            // Wait a bit then print
+            setTimeout(() => {
+              this.printContent();
+            }, 1600);
+            
+            // Close after print
+            setTimeout(() => {
+              this.close();
+            }, 2500);
           } catch (error) {
             console.error('Error uploading image:', error);
           }
@@ -430,14 +492,19 @@
     },
     async created() {
       this.fetchNoteSuggestions();
-      // Convert default image URL to base64
-      const response = await fetch('https://smartclinic.tctate.com/rx_header.jpeg');
-      const blob = await response.blob();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        this.defaultImageBase64 = reader.result;
-      };
-      reader.readAsDataURL(blob);
+      // Convert default image URL to base64 - using local mina-rx.jpg
+      try {
+        const response = await fetch('/mina-rx.jpg');
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          this.defaultImageBase64 = reader.result;
+          this.rx_img = reader.result; // Initialize rx_img with default
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        console.error('Error loading default RX header:', error);
+      }
     },
   };
 </script>

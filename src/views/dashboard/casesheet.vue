@@ -207,6 +207,7 @@
                         </v-btn> -->
 
                         <!-- Patient Edit Dialog -->
+                      
                         <PatientEditDialog
                             v-model="dialog"
                             :patient="editedIndex > -1 ? editedItem : null"
@@ -232,7 +233,7 @@
                             </v-text-field>
                         </v-flex>
 
-                        <v-flex xs12 sm6 md2 style="max-width: 200px;">
+                        <!-- <v-flex xs12 sm6 md2 style="max-width: 200px;">
                             <v-menu
                                 ref="fromMenu"
                                 v-model="fromMenu"
@@ -279,7 +280,7 @@
                                 </template>
                                 <v-date-picker v-model="to" @input="toMenu = false"></v-date-picker>
                             </v-menu>
-                        </v-flex>
+                        </v-flex> -->
 
 
                         <v-flex xs6 sm3 md1 d-flex align-center justify-center>
@@ -738,7 +739,7 @@
                     } : '',
 
                     this.$store.getters.isSecretary || this.$store.getters.userRole == 'adminDoctor' || this.$store.getters.userRole == 'accounter' ? {
-                        text: this.$t('datatable.doctor'),
+                        text: this.$t('datatable.last_reservation_doctor'),
                         align: "start",
                         value: "doctor"
                     } : '',
@@ -1220,6 +1221,16 @@
 
             // Helper method to safely get doctor name
             getDoctorName(item) {
+                // For secretaries and accounters, prioritize last reservation's doctor
+                const userRole = this.$store.getters.userRole;
+                if ((userRole === 'secretary' || userRole === 'accounter') && item.reservation && Array.isArray(item.reservation) && item.reservation.length > 0) {
+                    // Get the last reservation (most recent)
+                    const lastReservation = item.reservation[item.reservation.length - 1];
+                    if (lastReservation.doctor && lastReservation.doctor.name) {
+                        return lastReservation.doctor.name;
+                    }
+                }
+                
                 // Check if doctors is an object (single doctor assigned)
                 if (item.doctors && typeof item.doctors === 'object' && item.doctors.name) {
                     return item.doctors.name;
@@ -1342,7 +1353,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build API URL with billing status parameter for doctor search
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://mina-api.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -1518,7 +1529,7 @@
                     cancelButtonText: this.$t('no'),
                 }).then(result => {
                     if (result.value) {
-                        Axios.delete("https://smartclinicv5.tctate.com/api/patients/" + item.id, {
+                        Axios.delete("https://mina-api.tctate.com/api/patients/" + item.id, {
                                 headers: {
                                     "Content-Type": "application/json",
                                     Accept: "application/json",
@@ -1719,7 +1730,7 @@
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
                 // Build search API URL with filters
-                let searchUrl = `https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
+                let searchUrl = `https://mina-api.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     searchUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -1785,7 +1796,7 @@
                     return;
                 }
 
-                const endpoint = this.$store.getters.isSecretary ? 'doctors/secretary' : 'doctors/clinic';
+                const endpoint = 'https://mina-api.tctate.com/api/doctors/secretary';
                 this.apiRequest(endpoint)
                     .then(res => {
                         this.loadingData = false;
@@ -1843,7 +1854,7 @@
                 }
                 
                 // Build API URL with billing status parameter and from/to date filter
-                let apiUrl = `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
+                let apiUrl = `https://mina-api.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
                     apiUrl += `&billing_status=${this.billingStatusFilter}`;
                 }
@@ -2021,11 +2032,22 @@
                     const patientData = eventData.patient;
                     const isEditing = eventData.isEditing;
                     
+                    // If editing, update the item in datatable immediately
+                    if (isEditing && patientData.id) {
+                        const index = this.desserts.findIndex(p => p.id === patientData.id);
+                        if (index !== -1) {
+                            // Use Vue.set to ensure reactivity
+                            this.$set(this.desserts, index, patientData);
+                        }
+                    }
+                    
                     // Clear patient cache immediately when a patient is edited or created
                     this.clearPatientCache();
                     
-                    // Clear all cache and refresh data
-                    this.refreshAllData();
+                    // Refresh all data in background
+                    this.$nextTick(() => {
+                        this.refreshAllData();
+                    });
                     
                     // Handle redirection based on user role
                     const userRole = this.$store.getters.userRole;
@@ -2066,11 +2088,27 @@
                                     Authorization: "Bearer " + this.$store.state.AdminInfo.token,
                                 },
                             })
-                            .then(() => {
+                            .then((response) => {
                                 this.loadSave = false;
+                                
+                                // Update the item in the datatable immediately with fresh data from server
+                                if (response.data && response.data.data) {
+                                    const updatedPatient = response.data.data;
+                                    const index = this.desserts.findIndex(p => p.id === updatedPatient.id);
+                                    if (index !== -1) {
+                                        // Use Vue.set to ensure reactivity
+                                        this.$set(this.desserts, index, updatedPatient);
+                                    }
+                                }
+                                
                                 // Clear patient cache immediately when a patient is edited
                                 this.clearPatientCache();
-                                this.refreshAllData();
+                                
+                                // Refresh all data in background
+                                this.$nextTick(() => {
+                                    this.refreshAllData();
+                                });
+                                
                                 this.close();
 
                                 this.$swal.fire({
@@ -2239,8 +2277,11 @@
                 this.tableOptions.page = 1;
                 this.page = 1;
                 
-                // Reload data
-                this.initialize();
+                // Force fresh data load by waiting a tick for cache clear to complete
+                this.$nextTick(() => {
+                    this.loadingData = true;
+                    this.initialize();
+                });
             },
 
         },

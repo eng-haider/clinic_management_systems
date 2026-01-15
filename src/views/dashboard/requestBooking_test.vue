@@ -2,7 +2,7 @@
   <v-container fluid>
     <!-- App Bar with Doctor Filter for Secretary -->
    
-    <v-app-bar v-if="($store.state.role === 'secretary' || $store.state.role === 'adminDoctor') && doctors && doctors.length > 1" 
+    <v-app-bar v-if="($store.state.role === 'secretary' || $store.state.role === 'adminDoctor' || $store.state.role === 'accounter') && doctors && doctors.length > 1" 
                color="primary" 
                dark 
                dense 
@@ -131,6 +131,21 @@
                   </v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
+
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <v-chip
+                      :color="book_details.is_examine == 1 ? 'primary' : 'grey'"
+                      small
+                      text-color="white"
+                    >
+                      <v-icon small left>mdi-stethoscope</v-icon>
+                      {{ $t("examination") }}
+                    </v-chip>
+                  </v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
             </v-list>
           </v-col>
         </v-row>
@@ -218,6 +233,61 @@
                   />
                 </div>
 
+                <!-- Appointment Type Selection: Examination or Other -->
+                <v-card outlined class="mt-3 pa-3" color="blue lighten-5">
+                  <v-radio-group 
+                    v-model="editedItem.appointment_type" 
+                    row
+                    class="mt-0"
+                  >
+                    <template v-slot:label>
+                      <div class="d-flex align-center mb-2">
+                        <v-icon color="primary" class="ml-2">mdi-clipboard-text</v-icon>
+                        <span style="font-weight: 500; color: #1976d2;">نوع الموعد</span>
+                      </div>
+                    </template>
+                    <v-radio 
+                      label="فحص" 
+                      value="examination"
+                      color="primary"
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon color="primary" small class="ml-1">mdi-stethoscope</v-icon>
+                          <span>فحص</span>
+                        </div>
+                      </template>
+                    </v-radio>
+                    <v-radio 
+                      label="أخرى" 
+                      value="other"
+                      color="primary"
+                    >
+                      <template v-slot:label>
+                        <div class="d-flex align-center">
+                          <v-icon color="primary" small class="ml-1">mdi-text-box</v-icon>
+                          <span>أخرى</span>
+                        </div>
+                      </template>
+                    </v-radio>
+                  </v-radio-group>
+
+                  <!-- Show textarea when "Other" is selected -->
+                  <v-expand-transition>
+                    <v-textarea
+                      v-if="editedItem.appointment_type === 'other'"
+                      v-model="editedItem.appointment_notes"
+                      label="الملاحظات"
+                      placeholder="اكتب سبب الموعد أو ملاحظات إضافية..."
+                      outlined
+                      dense
+                      rows="3"
+                      counter
+                      class="mt-2"
+                    ></v-textarea>
+                  </v-expand-transition>
+                </v-card>
+
               </v-col>
 
             </v-row>
@@ -284,16 +354,18 @@
         book_details: {},
         send_msg: false,
         focus: "2026-01-01", // Focus on October by default
-        startDate: "2026-01-01", // Start of October
-        endDate: "2027-01-01", // End of November
+        startDate: "2025-01-01", // Start of October
+        endDate: "2026-01-01", // End of November
 
         valid: true,
-
+        
         patient: null,
         editedItem: {
           reservation_from_time: null,
           reservation_to_time: null,
           appointmentMessage: "",
+          appointment_type: "examination",
+          appointment_notes: "",
         },
         menu2: false,
         menu3: false,
@@ -466,7 +538,7 @@
           }
           */
 
-          axios.get("https://smartclinicv5.tctate.com/api/patients/searchv2/" + query, {
+          axios.get("https://mina-api.tctate.com/api/patients/searchv2/" + query, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -519,7 +591,7 @@
           this.loading = true;
 
           
-          await axios.get("https://smartclinicv5.tctate.com/api/doctors/secretary", {
+          await axios.get("https://mina-api.tctate.com/api/doctors/secretary", {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -598,7 +670,7 @@
 
         try {
           // Update to use the new API endpoint for deletion
-          await axios.delete(`https://smartclinicv5.tctate.com/api/reservations/${this.book_details.id}`, {
+          await axios.delete(`https://mina-api.tctate.com/api/reservations/${this.book_details.id}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -666,6 +738,7 @@
         this.book_details.patient_id = event.event.patient_id; // Add patient_id
         this.book_details.owner_name = event.event.owner_name || event.event.doctor_name || 'غير محدد'; // Use doctor_name as fallback
         this.book_details.doctor_name = event.event.doctor_name || event.event.owner_name || 'غير محدد'; // Add doctor_name field
+        this.book_details.is_examine = event.event.is_examine || 0; // Add is_examine field
 
         this.selectedEvent = event; // Set the selected reservation
         this.dialog = true;
@@ -751,7 +824,7 @@
         */
         
         this.loadingData = true; // Show loading indicator
-        axios.get("https://smartclinicv5.tctate.com/api/patients/getByUserIdv3", {
+        axios.get("https://mina-api.tctate.com/api/patients/getByUserIdv3", {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -822,6 +895,8 @@
               phone: "",
               withoutBills: 0,
               deliverable: false,
+              is_examine: this.editedItem.appointment_type === 'examination' ? 1 : 0,
+              notes: this.editedItem.appointment_type === 'other' ? this.editedItem.appointment_notes : null,
               doctor_id: this.editedItem.doctors ? this.editedItem.doctors.id : null, // Include doctor ID when selected
               user: {
                 phone: this.patient && this.patient.phone ? 
@@ -833,7 +908,7 @@
             console.log('Booking data:', reservationData);
 
             // Make the API call to create reservation
-            const response = await axios.post('https://smartclinicv5.tctate.com/api/reservations', reservationData, {
+            const response = await axios.post('https://mina-api.tctate.com/api/reservations', reservationData, {
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -852,7 +927,7 @@
                   date: `${reservationStartDate} ${fromTime}`
                 };
 
-                const whatsappResponse = await axios.post('https://smartclinicv5.tctate.com/api/whatsapp', whatsappData, {
+                const whatsappResponse = await axios.post('https://mina-api.tctate.com/api/whatsapp', whatsappData, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -938,9 +1013,9 @@
           */
           
           // Determine API endpoint based on doctor filter
-          let apiEndpoint = 'https://smartclinicv5.tctate.com/api/reservations/formatted';
-          if (this.selectedDoctorFilter && (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor')) {
-            apiEndpoint =`https://smartclinicv5.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
+          let apiEndpoint = 'https://mina-api.tctate.com/api/reservations/formatted';
+          if (this.selectedDoctorFilter && (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor' || this.$store.state.role === 'accounter')) {
+            apiEndpoint =`https://mina-api.tctate.com/api/reservations/formatted/doctor/${this.selectedDoctorFilter}`;
           }
           
           console.log('API Endpoint:', apiEndpoint);
@@ -993,6 +1068,7 @@
                 doctor_name: doctorName, // Add doctor_name field
                 id: reservation.id,
                 status_id: reservation.status_id, // Add status_id to event data
+                is_examine: reservation.is_examine || 0, // Add is_examine field
                 start: `${reservation.reservation_start_date} ${reservation.reservation_from_time}`,
                 startTime: reservation.reservation_from_time
               };
@@ -1062,6 +1138,9 @@
         this.editedItem = {
           reservation_from_time: null,
           reservation_to_time: null,
+          appointmentMessage: "",
+          appointment_type: "examination",
+          appointment_notes: "",
         };
       },
       // Get event color based on status_id and date/time
@@ -1099,7 +1178,7 @@
           return;
         }
         this.loadingData = true;
-        axios.get(`https://smartclinicv5.tctate.com/api/patients/search?query=${query}`, {
+        axios.get(`https://mina-api.tctate.com/api/patients/search?query=${query}`, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",

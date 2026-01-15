@@ -1084,13 +1084,13 @@ export default {
 
         console.log('Saving to API:', {
           patientId: patientId,
-          url: `https://smartclinicv5.tctate.com/api/patients/${patientId}/notes`,
+          url: `https://mina-api.tctate.com/api/patients/${patientId}/notes`,
           requestData: requestData,
           toothPartsArray: toothPartsData
         });
 
         const response = await apiRequest.patch(
-          `https://smartclinicv5.tctate.com/api/patients/${patientId}/notes`,
+          `https://mina-api.tctate.com/api/patients/${patientId}/notes`,
           requestData,
           {
             headers: {

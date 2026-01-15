@@ -69,6 +69,7 @@
   "about":"من نحن",
   "add_pic":"اضافه الصور المرفقة",
   "message":"الرسالة",
+  "examination":"فحص",
   "yes":"نعم",
   "home":"الاحصائيات",
   "close": "إغلاق",
@@ -95,6 +96,7 @@
     "phone":"الهاتف",
     "sex":"الجنس",
     "doctor":"الدكتور",
+    "last_reservation_doctor":"آخر طبيب حجز",
     "price":"السعر",
     "status_Description":"وصف الحالة",
     "age":"العمر",
@@ -187,7 +189,11 @@
   "waiting_status": "منتظر",
   "waiting_status_title": "حالة الانتظار",
   "status_updated_success": "تم تحديث حالة الانتظار بنجاح",
-  "status_update_failed": "فشل في تحديث حالة الانتظار"
+  "status_update_failed": "فشل في تحديث حالة الانتظار",
+  "no_examination": "بدون فحص",
+  "visit_status": "حالة الزيارة",
+  "visited": "تمت الزيارة",
+  "pending": "لم يدخل بعد"
 },
 "patients":{
 "addnewpatients":"اضافه مراجع جديد",

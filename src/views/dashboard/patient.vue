@@ -85,6 +85,19 @@
               {{ $t('patients.bill') }}
             </v-btn>
             
+            <!-- RX Folder Button (Only shown when rx_id is set) -->
+            <v-btn 
+              v-if="patient.rx_id"
+              small
+              class="mb-1" 
+              color="blue-grey" 
+              rounded
+              @click="openRxFolder"
+            >
+              <v-icon left small>mdi-folder-open</v-icon>
+              مجلد RX
+            </v-btn>
+            
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
             <v-btn 
               v-if="useCreditSystem"
@@ -143,6 +156,18 @@
             >
               <v-icon left>mdi-file-document-outline</v-icon>
               {{ $t('patients.bill') }}
+            </v-btn>
+            
+            <!-- RX Folder Button (Only shown when rx_id is set) -->
+            <v-btn 
+              v-if="patient.rx_id"
+              class="mr-2" 
+              color="blue-grey" 
+              rounded
+              @click="openRxFolder"
+            >
+              <v-icon left>mdi-folder-open</v-icon>
+              مجلد RX
             </v-btn>
             
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
@@ -239,6 +264,25 @@
                   </v-tab-item>
                 </v-tabs-items>
               </v-card-text>
+              
+              <!-- Examination Category Button (ID: 25) -->
+              <v-card-text class="pt-0 pb-4">
+                <v-divider class="mb-3"></v-divider>
+                <div class="text-center">
+                  <v-btn
+                    color="primary"
+                    @click="addExaminationCase"
+                    class="examination-btn"
+                    elevation="2"
+                  >
+                    <v-icon left>mdi-stethoscope</v-icon>
+                    فحص
+                  </v-btn>
+                  <div class="caption mt-2 grey--text">
+                    إضافة حالة فحص بدون تحديد سن
+                  </div>
+                </div>
+              </v-card-text>
 
               
               <!-- Selected Cases Table -->
@@ -269,8 +313,12 @@
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip small color="primary" text-color="white">
-                              {{ item.tooth_number }}
+                            <v-chip 
+                              small 
+                              :color="item.tooth_number ? 'primary' : 'grey lighten-1'" 
+                              text-color="white"
+                            >
+                              {{ item.tooth_number || 'عام' }}
                             </v-chip>
                           </div>
                         </template>
@@ -312,6 +360,16 @@
                             inset
                             @change="updateCaseStatus(item)"
                           />
+                        </template>
+
+                        <!-- Doctor Column -->
+                        <template v-slot:item.doctor_name="{ item }">
+                          <div class="doctor-cell text-center">
+                            <v-chip small color="blue-grey" text-color="white">
+                              <v-icon left small>mdi-account</v-icon>
+                              {{ item.doctor_name || $t('patients.not_specified') }}
+                            </v-chip>
+                          </div>
                         </template>
 
                         <!-- Bills Column -->
@@ -809,10 +867,12 @@
           <!-- Add Payment Button - Only for Accountants -->
           <v-card-actions class="justify-center" v-if="canEditBills">
             <v-btn
-              color="primary"
-              @click="addPayment"
-              class="add-payment-btn mr-3"
-            >
+                color="primary"
+                :loading="addBillLoading"
+                :disabled="addBillLoading"
+                @click="addPayment"
+                class="add-payment-btn mr-3"
+              >
               <v-icon left>mdi-plus</v-icon>
               {{ $t('patients.add_new_payment') }}
             </v-btn>
@@ -1079,6 +1139,8 @@ export default {
       appointmentDialog: false,
       billDialog: false,
       addCreditDialog: false,
+  // UI: loading state for Add Payment button
+  addBillLoading: false,
       
       // Credit System
       creditAmount: '',
@@ -1132,7 +1194,10 @@ export default {
 
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      return this.patientCases.map(case_item => case_item.tooth_number);
+      // Filter out null/undefined tooth numbers (e.g., examination cases)
+      return this.patientCases
+        .map(case_item => case_item.tooth_number)
+        .filter(toothNum => toothNum !== null && toothNum !== undefined && toothNum !== '');
     },
     
     totalAmount() {
@@ -1362,9 +1427,10 @@ export default {
         { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
         { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
         { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
+        { text: this.$t('datatable.doctor'), value: 'doctor_name', align: 'center', width: '12%' },
         { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
-        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '36%' },
-        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '8%' }
+        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '28%' },
+        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '6%' }
       ];
     },
     
@@ -1383,7 +1449,7 @@ export default {
 
     dropzoneOptions() {
       return {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        url: "https://mina-api.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -1541,6 +1607,30 @@ export default {
       // Mark bill as modified
       bill.modified = true;
     },
+    
+    // Clear patients list cache (used by casesheet page)
+    clearPatientsListCache() {
+      // Clear all patient-related cache keys from localStorage
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.includes('patients_cache') || 
+          key.includes('all_patients') || 
+          key.includes('search_patients') || 
+          key.includes('doctor_patients')
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('🗑️ Cleared cache:', key);
+      });
+      
+      console.log(`🗑️ Cleared ${keysToRemove.length} patient cache entries`);
+    },
 
     // Clear cache and reload data
     async clearCacheAndReload() {
@@ -1557,6 +1647,9 @@ export default {
         // Clear localStorage cache if any
         localStorage.removeItem('dental_operations_cache');
         localStorage.removeItem('case_categories_cache');
+        
+        // Clear patients list cache (for casesheet page)
+        this.clearPatientsListCache();
 
         // Force reload dental operations
         this.dentalOperations = [];
@@ -1791,7 +1884,26 @@ export default {
             toothNumber = caseItem.tooth_num;
           }
 
-          console.log(`📋 Case ${caseItem.id}: notes="${caseItem.notes || ''}", sessions count=${caseItem.sessions?.length || 0}`);
+          // determine doctor name for the case (support multiple API shapes)
+          let doctorName = '';
+          // Preferred: caseItem.doctor (singular) returned by API in examples
+          if (caseItem.doctor && typeof caseItem.doctor === 'object') {
+            doctorName = caseItem.doctor.name || caseItem.doctor.name_ar || '';
+          } else if (caseItem.doctors) {
+            // caseItem.doctors may be an array or an object
+            if (Array.isArray(caseItem.doctors)) {
+              doctorName = caseItem.doctors.length && (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) ? (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) : '';
+            } else if (typeof caseItem.doctors === 'object') {
+              doctorName = caseItem.doctors.name || caseItem.doctors.name_ar || '';
+            }
+          } else if (caseItem.doctor_name) {
+            // fallback field sometimes provided by API
+            doctorName = caseItem.doctor_name;
+          } else if (caseItem.doctor_id && this.doctors) {
+            // try to resolve from local doctors list if available
+            const d = (this.doctors || []).find(x => x.id === caseItem.doctor_id);
+            doctorName = d ? (d.name || d.name_ar || '') : '';
+          }
 
           return {
             id: caseItem.id,
@@ -1808,6 +1920,7 @@ export default {
             sessions: caseItem.sessions || [],
             additionalSessions: [],
             doctor_id: caseItem.doctor_id,
+            doctor_name: doctorName,
             user_id: caseItem.user_id,
             is_paid: caseItem.is_paid,
             case_categories: caseItem.case_categories
@@ -2182,6 +2295,54 @@ export default {
       return whatsappUrl;
     },
     
+    // Open RX folder in file explorer
+    openRxFolder() {
+      if (!this.patient.rx_id) {
+        this.$swal.fire({
+          title: "تنبيه",
+          text: "لم يتم تحديد مسار مجلد الوصفات الطبية لهذا المريض",
+          icon: "info",
+          confirmButtonText: "موافق",
+        });
+        return;
+      }
+
+      // Since we're in a web app, we can't directly open folders on the user's system
+      // We'll copy the path to clipboard and show instructions
+      const folderPath = this.patient.rx_id;
+      
+      // Try to copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(folderPath).then(() => {
+          this.$swal.fire({
+            title: "تم النسخ",
+            html: `تم نسخ مسار المجلد إلى الحافظة:<br><br><code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; text-align: left; direction: ltr;">${folderPath}</code><br>افتح مستكشف الملفات والصق المسار في شريط العنوان`,
+            icon: "success",
+            confirmButtonText: "موافق",
+          });
+        }).catch(() => {
+          // Fallback if clipboard API fails
+          this.showFolderPathDialog(folderPath);
+        });
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        this.showFolderPathDialog(folderPath);
+      }
+    },
+    
+    // Show folder path in a dialog
+    showFolderPathDialog(folderPath) {
+      this.$swal.fire({
+        title: "مسار مجلد الوصفات الطبية",
+        html: `<div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin: 10px 0;">
+                <code style="display: block; text-align: left; direction: ltr; word-break: break-all;">${folderPath}</code>
+              </div>
+              <p style="margin-top: 10px;">انسخ هذا المسار وافتح مستكشف الملفات والصقه في شريط العنوان</p>`,
+        icon: "info",
+        confirmButtonText: "موافق",
+      });
+    },
+    
     hideContextMenu(event) {
       // If no event is passed, force hide the menu (called programmatically)
       if (!event) {
@@ -2314,6 +2475,68 @@ export default {
       // Only add to local array - no API call
       this.patientCases.unshift(newCase);
       this.selectedTooth = null;
+    },
+    
+    // Add examination case without tooth selection (ID: 25)
+    addExaminationCase() {
+      const examinationCategory = this.dentalOperations.find(cat => cat.id === 25);
+      
+      if (!examinationCategory) {
+        this.$swal.fire({
+          title: "خطأ",
+          text: "لم يتم العثور على فئة الفحص",
+          icon: "error",
+          confirmButtonText: "اغلاق"
+        });
+        return;
+      }
+      
+      const operationName = examinationCategory.name || examinationCategory.name_ar;
+      
+      // Check if examination case already exists (without tooth number)
+      const existingExaminationCase = this.patientCases.find(
+        case_item => (case_item.tooth_number === null || case_item.tooth_number === 0 || case_item.tooth_number === '') 
+                     && case_item.case_type === operationName
+      );
+      
+      if (existingExaminationCase) {
+        this.$swal.fire({
+          title: "تنبيه",
+          text: "حالة الفحص موجودة بالفعل",
+          icon: "warning",
+          confirmButtonText: "اغلاق"
+        });
+        return;
+      }
+
+      const newCase = {
+        id: Date.now(), // Temporary client-side ID
+        server_id: null, // Will be set after saving to server
+        tooth_number: null, // No tooth number for examination
+        case_type: operationName,
+        date: new Date().toISOString().substr(0, 10),
+        price: null,
+        displayPrice: '',
+        completed: false,
+        notes: '',
+        operation_id: examinationCategory.id,
+        status_id: 42, // Default status
+        sessions: [],
+        additionalSessions: [],
+        modified: true // Mark as new/modified for save
+      };
+      
+      // Add to local array
+      this.patientCases.unshift(newCase);
+      
+      // Show success message
+      this.$swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "تمت إضافة حالة الفحص",
+        showConfirmButton: false,
+        timer: 1500
+      });
     },
     
     // Format number with commas (e.g., 20000 -> 20,000)
@@ -2471,7 +2694,7 @@ export default {
     },
     
     // Add a new payment
-    addPayment() {
+    async addPayment() {
       // Check if user has permission to create bills
       if (!this.canAddBills) {
         this.$swal.fire({
@@ -2482,7 +2705,40 @@ export default {
         });
         return;
       }
-      
+      // Show loading on Add Payment button while we prepare cases
+      this.addBillLoading = true;
+      try {
+        // If there are unsaved cases, persist them first so they appear in the case menu
+        const unsavedCases = this.patientCases.filter(c => !c.server_id);
+        if (unsavedCases.length > 0) {
+          // Save each new case sequentially to ensure server IDs are available
+          for (const nc of unsavedCases) {
+            try {
+              await this.saveNewCase(nc);
+            } catch (err) {
+              console.error('Failed to save a new case before adding bill:', err);
+              // Continue saving others but notify user
+              if (this.$toast && typeof this.$toast.error === 'function') {
+                this.$toast.error(this.$t('patients.error_saving_case_before_bill') || 'Failed to save case');
+              }
+            }
+          }
+
+          // Reload patient data so the availableCases and case menu include newly saved cases
+          try {
+            await this.loadPatientData();
+          } catch (err) {
+            console.error('Failed to reload patient data after saving cases:', err);
+          }
+        }
+
+      } catch (err) {
+        console.error('Unexpected error while preparing to add payment:', err);
+      } finally {
+        // Ensure loading flag is cleared after preparation
+        this.addBillLoading = false;
+      }
+
       // Create a new bill object with case selection
       const newBill = {
         id: Date.now(), // Temporary ID
@@ -2502,7 +2758,7 @@ export default {
       
       // Add the new bill to the patientBills array
       this.patientBills.push(newBill);
-      
+
       // Optimistically update the UI
       this.$forceUpdate();
     },
@@ -2594,7 +2850,7 @@ export default {
               } else {
                 // If it's an existing bill, call the DELETE API
                 const billId = bill.server_id || bill.id;
-                await this.$http.delete(`https://smartclinicv5.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
+                await this.$http.delete(`https://mina-api.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
                   headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -2676,6 +2932,9 @@ export default {
         // Save tooth colors from teeth_v2 component
         await this.saveToothColors();
         
+        // Clear patients list cache so casesheet page shows updated data
+        this.clearPatientsListCache();
+        
         // Show success message
         this.$swal.fire({
           title: "نجاح",
@@ -2730,7 +2989,7 @@ export default {
         
         console.log('📸 Saving uploaded images:', requestBody);
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases/uploude_images', requestBody, {
+        const response = await this.$http.post('https://mina-api.tctate.com/api/cases/uploude_images', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2783,7 +3042,7 @@ export default {
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
         
-        const response = await this.$http.post('https://smartclinicv5.tctate.com/api/cases', requestBody, {
+        const response = await this.$http.post('https://mina-api.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2829,7 +3088,7 @@ export default {
           sessions: allSessions
         };
         
-        const response = await this.$http.patch(`https://smartclinicv5.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
+        const response = await this.$http.patch(`https://mina-api.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -2873,7 +3132,7 @@ export default {
             use_credit: anyBillUsesCredit
           };
           
-          const response = await this.$http.post(`https://smartclinicv5.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
+          const response = await this.$http.post(`https://mina-api.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2921,7 +3180,7 @@ export default {
             is_paid: bill.is_paid || 0
           };
           
-          await this.$http.put(`https://smartclinicv5.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
+          await this.$http.put(`https://mina-api.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -2961,6 +3220,17 @@ export default {
     // Save patient edit
     savePatientEdit(data) {
       console.log('Saving patient edit:', data);
+      
+      // Clear patients list cache so casesheet page shows updated data
+      this.clearPatientsListCache();
+      
+      // Reload current patient data to reflect changes
+      if (data && data.patient && data.patient.id === this.patient.id) {
+        this.$nextTick(() => {
+          this.loadPatientData();
+        });
+      }
+      
       this.editDialog = false;
     },
     
@@ -3083,7 +3353,7 @@ export default {
     getImageUrl(imageName) {
       if (!imageName) return '';
       // Use the base URL from the example API response
-      return `https://smartclinicv5.tctate.com/case_photo/${imageName}`;
+      return `https://mina-api.tctate.com/case_photo/${imageName}`;
     },
 
     // Refresh available cases to update disabled state
@@ -3419,6 +3689,22 @@ async mounted() {
 .no-horizontal-scroll * {
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* Examination button styles */
+.examination-btn {
+  min-width: 200px;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px 24px !important;
+  border-radius: 8px;
+  text-transform: none;
+}
+
+.examination-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
 /* Styles for the patient detail page */
