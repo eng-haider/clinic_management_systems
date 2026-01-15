@@ -107,7 +107,7 @@
                
                 style="text-align: center; color: #000; font-size: 20px; font-weight: bold; padding-top: 10px;"
               >
-                سجل ونظم جميع بيانات المريض في منصة رقمية واحدة آمنة دون عناء
+                سجل ونظم جميع بيانات المراجع في منصة رقمية واحدة آمنة دون عناء
               </div>
             </v-row>
             <br />

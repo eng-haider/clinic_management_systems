@@ -2,12 +2,11 @@
     <div>
         <div>
             <br>
-            <v-toolbar flat>
+            <!-- Title Bar -->
+            <v-toolbar flat class="mb-2">
                 <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> 
                   {{ $t('conjugationsCategories.title') }}
                 </v-toolbar-title>
-
-                <v-divider class="mx-4" inset vertical></v-divider>
                 <v-spacer></v-spacer>
                 <v-dialog v-model="categoryDialog" max-width="800px">
                     <template v-slot:activator="{ on, attrs }">
@@ -63,6 +62,96 @@
 
                 </v-dialog>
             </v-toolbar>
+
+            <!-- Responsive Date Filters Section -->
+            <v-card flat class="pa-3 mb-3 date-filters-card">
+                <v-row align="center">
+                    <v-col cols="12" sm="6" md="3">
+                        <v-menu
+                            v-model="fromDateMenu"
+                            :close-on-content-click="false"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="auto"
+                        >
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                    v-model="fromDate"
+                                    label="من تاريخ"
+                                    prepend-icon="mdi-calendar"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    dense
+                                    outlined
+                                    hide-details
+                                ></v-text-field>
+                            </template>
+                            <v-date-picker
+                                v-model="fromDate"
+                                @input="fromDateMenu = false"
+                                no-title
+                                scrollable
+                            ></v-date-picker>
+                        </v-menu>
+                    </v-col>
+
+                    <v-col cols="12" sm="6" md="3">
+                        <v-menu
+                            v-model="toDateMenu"
+                            :close-on-content-click="false"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="auto"
+                        >
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                    v-model="toDate"
+                                    label="إلى تاريخ"
+                                    prepend-icon="mdi-calendar"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    dense
+                                    outlined
+                                    hide-details
+                                ></v-text-field>
+                            </template>
+                            <v-date-picker
+                                v-model="toDate"
+                                @input="toDateMenu = false"
+                                no-title
+                                scrollable
+                            ></v-date-picker>
+                        </v-menu>
+                    </v-col>
+
+                    <v-col cols="6" sm="6" md="3">
+                        <v-btn
+                            color="primary"
+                            @click="applyDateFilter"
+                            block
+                            small
+                        >
+                            <v-icon left small>mdi-filter</v-icon>
+                            تصفية
+                        </v-btn>
+                    </v-col>
+
+                    <v-col cols="6" sm="6" md="3">
+                        <v-btn
+                            color="grey"
+                            @click="resetDateFilter"
+                            block
+                            small
+                            outlined
+                        >
+                            <v-icon left small>mdi-refresh</v-icon>
+                            إعادة تعيين
+                        </v-btn>
+                    </v-col>
+                </v-row>
+            </v-card>
 
 
         </div>
@@ -257,6 +346,10 @@
         data() {
             return {
                 loading: false,
+                fromDate: null,
+                toDate: null,
+                fromDateMenu: false,
+                toDateMenu: false,
                 editedItemCategories: {
                     id: '',
                     name: "",
@@ -654,7 +747,18 @@
 
             initialize() {
                 this.loading = true;
+                
+                // Build query parameters
+                let params = {};
+                if (this.fromDate) {
+                    params.from_date = this.fromDate;
+                }
+                if (this.toDate) {
+                    params.to_date = this.toDate;
+                }
+                
                 Axios.get("https://smartclinicv5.tctate.com/api/ConjugationsCategories", {
+                        params: params,
                         headers: {
                             "Content-Type": "application/json",
                             Accept: "application/json",
@@ -676,6 +780,20 @@
               
                 this.clearForm();
 
+            },
+            
+            applyDateFilter() {
+                this.initialize();
+            },
+            
+            resetDateFilter() {
+                // Set to January 1st of current year by default
+                const currentYear = new Date();
+                currentYear.setMonth(0); // January
+                currentYear.setDate(1); // 1st day
+                this.fromDate = currentYear.toISOString().substr(0, 10);
+                this.toDate = new Date().toISOString().substr(0, 10);
+                this.initialize();
             },
             setDefaultDate() {
                 if (!this.editedItem.date) {
@@ -735,6 +853,13 @@
 
         },
         created() {
+            // Initialize dates to January 1st of current year by default
+            const currentYear = new Date();
+            currentYear.setMonth(0); // January
+            currentYear.setDate(1); // 1st day
+            this.fromDate = currentYear.toISOString().substr(0, 10);
+            this.toDate = new Date().toISOString().substr(0, 10);
+            
             this.getConjugationsCategories()
             this.initialize();
 
@@ -811,7 +936,7 @@
 
     h1,
     h2 {
-        font-weight: normal.
+        font-weight: normal;
     }
 
     ul {
@@ -836,6 +961,22 @@
         font-size: 27px;
         position: relative;
         bottom: 10px;
+    }
+
+    /* Responsive Date Filters Styling */
+    .date-filters-card {
+        background-color: #f5f5f5;
+        border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+        .date-filters-card {
+            padding: 12px !important;
+        }
+        
+        .date-filters-card .v-btn {
+            font-size: 12px;
+        }
     }
 
 

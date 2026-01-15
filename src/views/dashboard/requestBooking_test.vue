@@ -139,7 +139,7 @@
 
     <v-card-actions>
       <v-btn color="info" dark @click="viewPatientDetails">
-        <v-icon left>mdi-account-details</v-icon>{{ $t("view_patient_details") || "عرض تفاصيل المريض" }}
+        <v-icon left>mdi-account-details</v-icon>{{ $t("view_patient_details") || "عرض تفاصيل المراجع" }}
       </v-btn>
       <v-btn color="success" dark @click="chatWithPatient">
         <v-icon left>mdi-whatsapp</v-icon>{{ $t("whatsapp_chat") }}
@@ -649,7 +649,7 @@
           this.$swal.fire({
             icon: 'warning',
             title: 'تحذير',
-            text: 'معرف المريض غير متوفر',
+            text: 'معرف المراجع غير متوفر',
             confirmButtonText: 'موافق'
           });
         }

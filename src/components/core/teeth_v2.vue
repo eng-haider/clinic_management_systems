@@ -1157,7 +1157,7 @@ export default {
         
         if (!patientId) {
           console.error('Patient ID not found in route, parent, or store');
-          this.$toast?.error('معرف المريض غير موجود');
+          this.$toast?.error('معرف المراجع غير موجود');
           this.savingColors = false;
           return;
         }
@@ -1808,7 +1808,89 @@ export default {
 
 </script>
 <style scoped>
-/* ...existing styles... */
+/* Teeth Component Container */
+.teeth-component {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* SVG Responsive Styling */
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  background: white;
+  box-sizing: border-box;
+}
+
+/* Ensure SVG doesn't overflow on mobile */
+@media (max-width: 768px) {
+  .teeth-component {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  svg {
+    min-width: 100%;
+    height: auto;
+    max-width: none;
+  }
+}
+
+/* Tooth Number Grid Responsive */
+.teeth-numbers-grid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 0 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tooth Number Item */
+.tooth-number-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tooth-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+  cursor: help;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 50%;
+}
+
+/* Mobile responsive tooth numbers */
+@media (max-width: 480px) {
+  .teeth-numbers-grid {
+    gap: 12px;
+    padding: 0 8px;
+  }
+
+  .tooth-number {
+    min-width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+}
 
 /* Backdrop overlay for mobile */
 .menu-backdrop {
@@ -2454,10 +2536,6 @@ export default {
   gap: 50px; /* Reduced from 59.675px for better spacing */
   padding: 0 45px; /* Slightly reduced padding */
   position: relative;
-}
-
-.teeth-numbers-grid.top-teeth {
-  
 }
 
 .teeth-numbers-grid.bottom-teeth {

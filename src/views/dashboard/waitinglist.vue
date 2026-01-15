@@ -19,7 +19,7 @@
 
             <v-data-table :headers="headers" :loading="loadingData" disable-pagination :page.sync="page"
                 @page-count="pageCount = $event" hide-default-footer :items="desserts" class="elevation-1 request_table"
-                items-per-page="15">
+                items-per-page="15" @click:row="goToPatientPage" style="cursor: pointer;">
                 <template v-slot:top>
                     <v-toolbar flat>
                         <v-toolbar-title style="font-family: 'Cairo', sans-serif;"> {{ $t("header.waitinglist") }}
@@ -81,10 +81,10 @@
 
                 <template v-slot:[`item.status`]="{ item }">
                     <v-chip 
-                        :color="item.status === 'waiting' ? 'green' : 'orange'" 
+                        :color="getStatusColor(item)" 
                         dark 
                         small>
-                        {{ item.status === 'waiting' ? $t('waitingList.waiting') : $t('waitingList.finished') }}
+                        {{ getStatusText(item) }}
                     </v-chip>
                 </template>
 
@@ -285,6 +285,39 @@
 
 
         methods: {
+            getStatusColor(item) {
+                // Check if last_case_updated_at or last_bill_updated_at is more recent than today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const lastCaseUpdate = item.last_case_updated_at ? new Date(item.last_case_updated_at) : null;
+                const lastBillUpdate = item.last_bill_updated_at ? new Date(item.last_bill_updated_at) : null;
+                
+                const hasRecentUpdate = (lastCaseUpdate && lastCaseUpdate >= today) || 
+                                       (lastBillUpdate && lastBillUpdate >= today);
+                
+                if (hasRecentUpdate || item.status === 'finished') {
+                    return 'orange';
+                }
+                return 'green';
+            },
+            
+            getStatusText(item) {
+                // Check if last_case_updated_at or last_bill_updated_at is more recent than today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const lastCaseUpdate = item.last_case_updated_at ? new Date(item.last_case_updated_at) : null;
+                const lastBillUpdate = item.last_bill_updated_at ? new Date(item.last_bill_updated_at) : null;
+                
+                const hasRecentUpdate = (lastCaseUpdate && lastCaseUpdate >= today) || 
+                                       (lastBillUpdate && lastBillUpdate >= today);
+                
+                if (hasRecentUpdate || item.status === 'finished') {
+                    return this.$t('waitingList.finished');
+                }
+                return this.$t('waitingList.waiting');
+            },
 
             toggleStatus(item) {
 
@@ -319,6 +352,33 @@
                         });
                     });
             },
+            
+            goToPatientPage(item) {
+                // Mark as finished when clicking on patient row
+                if (item.status !== 'finished') {
+                    this.axios.post(`https://smartclinicv5.tctate.com/api/reservations/${item.id}/mark-finished`, {}, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(() => {
+                        item.status = 'finished';
+                        // Navigate to patient page
+                        this.$router.push(`/patient/${item.user_id || item.id}`);
+                    })
+                    .catch((error) => {
+                        console.error('Error marking as finished:', error);
+                        // Still navigate even if marking failed
+                        this.$router.push(`/patient/${item.user_id || item.id}`);
+                    });
+                } else {
+                    // Already finished, just navigate
+                    this.$router.push(`/patient/${item.user_id || item.id}`);
+                }
+            },
+            
             toggleWaitingStatus(item) {
                 // Toggle the waiting status
                 const newStatus = !item.is_waiting;
@@ -330,7 +390,7 @@
                         Authorization: "Bearer " + this.$store.state.AdminInfo.token
                     }
                 })
-                .then((response) => {
+                .then(() => {
                     // Update the item status locally
                     item.is_waiting = newStatus;
                     this.$notify({
@@ -395,7 +455,22 @@ formatReservationTime(time) {
 
 
             editItem(item) {
-
+                // Mark as finished when opening patient page
+                if (item.status !== 'finished') {
+                    this.axios.post(`https://smartclinicv5.tctate.com/api/reservations/${item.id}/mark-finished`, {}, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    })
+                    .then(() => {
+                        item.status = 'finished';
+                    })
+                    .catch((error) => {
+                        console.error('Error marking as finished:', error);
+                    });
+                }
 
                 this.editedIndex = this.desserts.indexOf(item);
                 console.log(item.doctors)
@@ -493,6 +568,7 @@ formatReservationTime(time) {
                     // Map the response data to the expected format
                     this.desserts = response.data.data.map((item) => ({
                         id: item.id,
+                        user_id: item.user ? item.user.id : null,
                         names: item.user ? item.user.full_name : "Unknown",
                         phones: item.user ? item.user.user_phone : "Unknown",
                         owner_names: item.owner_name ? item.owner_name : "Unknown",
@@ -502,6 +578,9 @@ formatReservationTime(time) {
                         status: item.status || 'waiting',
                         is_waiting: item.is_waiting || false,
                         created_at: new Date(`${item.reservation_start_date}T${item.reservation_from_time}.000Z`).toISOString(),
+                        last_case_updated_at: item.last_case_updated_at || null,
+                        last_bill_updated_at: item.last_bill_updated_at || null,
+                        patient_updated_at: item.patient_updated_at || null,
                     }));
 
                     // Update pagination if available in response
@@ -663,6 +742,16 @@ formatReservationTime(time) {
         font-size: 27px;
         position: relative;
         bottom: 10px;
+    }
+
+    /* Clickable table rows */
+    .request_table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    
+    .request_table tbody tr:hover {
+        background-color: #f5f5f5 !important;
     }
 
 

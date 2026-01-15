@@ -40,7 +40,7 @@
                 <v-card-text class="pt-4">
                     <div class="patient-info mb-3">
                         <p class="subtitle-1 mb-1">
-                            <strong>المريض:</strong> {{ selectedPatient ? selectedPatient.name : '' }}
+                            <strong>المراجع:</strong> {{ selectedPatient ? selectedPatient.name : '' }}
                         </p>
                         <p class="subtitle-2 mb-1">
                             <strong>الهاتف:</strong> {{ selectedPatient ? selectedPatient.phone : '' }}
@@ -89,7 +89,7 @@
                                 clickable
                             >
                                 <v-icon left small>mdi-qrcode</v-icon>
-                                إضافة رابط بيانات المريض
+                                إضافة رابط بيانات المراجع
                             </v-chip>
                         </v-chip-group>
                     </div>
@@ -104,7 +104,7 @@
                         <div class="d-flex align-center">
                             <v-icon small class="ml-2">mdi-information</v-icon>
                             <span style="font-size: 12px;">
-                                يمكنك إضافة رابط صفحة بيانات المريض للرسالة
+                                يمكنك إضافة رابط صفحة بيانات المراجع للرسالة
                             </span>
                         </div>
                     </v-alert>
@@ -133,6 +133,9 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Patient Card Component -->
+        <PatientCard :value="showPatientCard" :patient="selectedPatientForCard" @input="showPatientCard = $event" />
 
         <v-container id="dashboard" fluid tag="section">
 
@@ -178,6 +181,19 @@
 
                         <v-divider class="mx-4" inset vertical></v-divider>
                         <v-spacer></v-spacer>
+                        
+                        <!-- QR Scanner Button -->
+                        <v-btn 
+                            color="primary" 
+                            @click="openQRScanner" 
+                            dark 
+                            class="mb-2 ml-2" 
+                            style="color:#fff;font-family: 'Cairo'"
+                        >
+                            <v-icon left>mdi-qrcode-scan</v-icon>
+                            مسح QR
+                        </v-btn>
+                        
                         <!-- Add Patient Button -->
                         <!-- <v-btn 
                             color="primary" 
@@ -198,6 +214,12 @@
                             :loading="loadSave"
                             @save="save"
                             @close="close"
+                        />
+                        
+                        <!-- QR Scanner Component -->
+                        <QRScanner 
+                            v-model="qrScannerDialog" 
+                            @scanned="handleQRScanned"
                         />
                     </v-toolbar>
 
@@ -430,6 +452,21 @@
                         <template v-slot:activator="{ on, attrs }">
                             <v-icon 
                                 class="ml-2" 
+                                @click.stop="openPatientCard(item)" 
+                                v-bind="attrs" 
+                                v-on="on"
+                                color="primary"
+                            >
+                                mdi-card
+                            </v-icon>
+                        </template>
+                        <span>{{ $t('patients.patient_card') || 'بطاقة المراجع' }}</span>
+                    </v-tooltip>
+
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-icon 
+                                class="ml-2" 
                                 @click.stop="openWhatsappDialog(item)" 
                                 v-bind="attrs" 
                                 v-on="on"
@@ -503,7 +540,9 @@
             cases: () => import("./case.vue"),
             Recipe: () => import("./Recipe.vue"),
             Bill: () => import("./sub_components/billsReport.vue"),
-            PatientEditDialog: () => import("@/components/PatientEditDialog.vue")
+            PatientEditDialog: () => import("@/components/PatientEditDialog.vue"),
+            PatientCard: () => import("@/components/PatientCard.vue"),
+            QRScanner: () => import("@/components/QRScanner.vue")
         },
 
         data() {
@@ -544,6 +583,19 @@
 
                 // WhatsApp Dialog - properly initialize
                 whatsappDialog: false,
+                
+                // QR Scanner Dialog
+                qrScannerDialog: false,
+                
+                // Patient Card Dialog - properly initialize
+                showPatientCard: false,
+                selectedPatientForCard: {
+                    id: null,
+                    name: '',
+                    sex: '',
+                    qr_code: '',
+                    phone: ''
+                },
                 whatsappMessage: {
                     message: ''
                 },
@@ -783,6 +835,143 @@
                 return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_bs${billingStatus}_cs${creditStatus}`;
             },
 
+            // QR Scanner Methods
+            /**
+             * Opens the QR scanner dialog
+             */
+            openQRScanner() {
+                this.qrScannerDialog = true;
+            },
+
+            /**
+             * Handles the scanned QR code
+             * @param {String} result - The scanned QR code data
+             */
+            handleQRScanned(result) {
+                console.log('QR Scanned:', result);
+                
+                // Extract QR code from result
+                // The QR code URL format: https://...com/patient-lookup?code=425152&phone=07717259088
+                let qrCode = null;
+                
+                try {
+                    // Try to parse as URL first
+                    if (result.includes('http') || result.includes('patient-lookup')) {
+                        const url = new URL(result);
+                        const urlParams = new URLSearchParams(url.search);
+                        // Extract the 'code' parameter from URL
+                        qrCode = urlParams.get('code');
+                    } else {
+                        // Assume it's just the QR code value
+                        qrCode = result;
+                    }
+                } catch (e) {
+                    // If URL parsing fails, treat the whole result as QR code
+                    qrCode = result;
+                }
+                
+                console.log('Extracted QR Code:', qrCode);
+                
+                // Find patient by QR code
+                this.findAndRedirectToPatient(qrCode);
+            },
+
+            /**
+             * Finds patient by QR code and redirects to patient page
+             * @param {String} qrCode - Patient QR code
+             */
+            findAndRedirectToPatient(qrCode) {
+                this.loadingData = true;
+                
+                // Get authentication token
+                const token = this.$store.state.AdminInfo?.token;
+                if (!token) {
+                    this.loadingData = false;
+                    this.$swal({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: 'يرجى تسجيل الدخول أولاً',
+                        confirmButtonText: 'حسناً'
+                    });
+                    return;
+                }
+                
+                // Validate QR code
+                if (!qrCode || qrCode === 'undefined' || qrCode === 'null') {
+                    this.loadingData = false;
+                    this.showPatientNotFoundError();
+                    return;
+                }
+                
+                // Get patient data using getPatientByQrCode API endpoint
+                this.$http.get(`https://smartclinicv5.tctate.com/api/getPatientByQrCode/${qrCode}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(res => {
+                        this.loadingData = false;
+                        
+                        console.log('✅ API Response received:', res.data);
+                        
+                        // The API may return data directly or nested in 'data' property
+                        let patient = null;
+                        
+                        // Check if data is directly in res.data
+                        if (res.data && res.data.id) {
+                            patient = res.data;
+                        } 
+                        // Check if data is nested in res.data.data
+                        else if (res.data && res.data.data && res.data.data.id) {
+                            patient = res.data.data;
+                        }
+                        // Check if success flag exists with data
+                        else if (res.data && res.data.success && res.data.patient) {
+                            patient = res.data.patient;
+                        }
+                        
+                        if (patient && patient.id) {
+                            console.log('✅ Patient found:', patient.name, 'ID:', patient.id);
+                            
+                            // Show success message
+                            this.$swal({
+                                icon: 'success',
+                                title: 'تم العثور على المراجع',
+                                text: `${patient.name}`,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            
+                            // Redirect to patient page with the patient ID
+                            setTimeout(() => {
+                                this.$router.push(`/patient/${patient.id}`);
+                            }, 1500);
+                        } else {
+                            console.error('❌ Patient data not found in response:', res.data);
+                            this.showPatientNotFoundError();
+                        }
+                    })
+                    .catch((error) => {
+                        this.loadingData = false;
+                        console.error('❌ Error finding patient by QR code:', error);
+                        console.error('Error response:', error.response?.data);
+                        this.showPatientNotFoundError();
+                    });
+            },
+
+            /**
+             * Shows error message when patient is not found
+             */
+            showPatientNotFoundError() {
+                this.$swal({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'لم يتم العثور على المراجع. يرجى التحقق من رمز QR والمحاولة مرة أخرى.',
+                    confirmButtonText: 'حسناً'
+                });
+            },
+
             // WhatsApp Methods
             /**
              * Opens WhatsApp dialog for sending messages to patients
@@ -814,8 +1003,23 @@
                 this.sendingMessage = false;
             },
 
+            /**
+             * Opens patient card dialog for displaying and printing patient card
+             * @param {Object} item - Patient data object
+             */
+            openPatientCard(item) {
+                this.selectedPatientForCard = {
+                    id: item.id || null,
+                    name: item.name || '',
+                    sex: item.sex || '',
+                    qr_code: item.qr_code || '',
+                    phone: item.phone || ''
+                };
+                this.showPatientCard = true;
+            },
+
             setQuickMessage(messageType) {
-                const patientName = this.selectedPatient ? this.selectedPatient.name : 'المريض';
+                const patientName = this.selectedPatient ? this.selectedPatient.name : 'المراجع';
                 const messages = {
                     'تذكير بالموعد': `مرحباً ${patientName}،\n\nنذكركم بموعدكم القادم في العيادة.\n\nشكراً لكم`,
                     'تذكير بالدفع': `مرحباً ${patientName}،\n\nنذكركم بوجود مستحقات مالية متبقية.\n\nيرجى التواصل معنا لتسوية الحساب.\n\nشكراً لكم`,
@@ -862,7 +1066,7 @@
                 if (this.whatsappMessage.message.trim()) {
                     this.whatsappMessage.message += urlText;
                 } else {
-                    const patientName = this.selectedPatient.name || 'المريض';
+                    const patientName = this.selectedPatient.name || 'المراجع';
                     this.whatsappMessage.message = `مرحباً ${patientName}،${urlText}`;
                 }
 
@@ -896,7 +1100,7 @@
                 if (!this.selectedPatient.id) {
                     this.$swal.fire({
                         title: "خطأ",
-                        text: "معرف المريض غير موجود",
+                        text: "معرف المراجع غير موجود",
                         icon: "error",
                         confirmButtonText: "اغلاق",
                     });
@@ -1971,10 +2175,10 @@
                                     // Show specific message for phone duplication
                                     this.$swal.fire({
                                         title: "رقم الهاتف موجود مسبقاً",
-                                        text: "يوجد مريض بنفس رقم الهاتف. يرجى استخدام رقم هاتف مختلف أو البحث عن المريض الموجود.",
+                                        text: "يوجد مريض بنفس رقم الهاتف. يرجى استخدام رقم هاتف مختلف أو البحث عن المراجع الموجود.",
                                         icon: "warning",
                                         showCancelButton: true,
-                                        confirmButtonText: "البحث عن المريض",
+                                        confirmButtonText: "البحث عن المراجع",
                                         cancelButtonText: "إغلاق",
                                         confirmButtonColor: "#3085d6",
                                         cancelButtonColor: "#d33",

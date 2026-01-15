@@ -1,5 +1,26 @@
 <template>
   <div class="simple-teeth-display">
+    <!-- Color Legend -->
+    <div class="color-legend">
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: red;"></span>
+        <span class="legend-text">Past Action</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: blue;"></span>
+        <span class="legend-text">Completed Action</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: green;"></span>
+        <span class="legend-text">Current Action</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color legend-striped" style="background-color: yellow;"></span>
+        <span class="legend-text">Striped Action</span>
+      </div>
+    </div>
+    
+    <!-- Teeth Chart SVG -->
     <svg viewBox="0 0 1792 539">
       <g
         v-for="tooth in teeth"
@@ -333,6 +354,49 @@ export default {
   margin: 0 auto;
 }
 
+/* Color Legend Styles */
+.color-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 30px;
+  height: 20px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.legend-striped {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.2) 4px,
+    rgba(0, 0, 0, 0.2) 8px
+  );
+}
+
+.legend-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
 svg {
   width: 100%;
   height: auto;
@@ -346,6 +410,20 @@ svg {
 @media (max-width: 768px) {
   .simple-teeth-display {
     padding: 10px;
+  }
+  
+  .color-legend {
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .legend-text {
+    font-size: 12px;
+  }
+  
+  .legend-color {
+    width: 24px;
+    height: 16px;
   }
 }
 </style>

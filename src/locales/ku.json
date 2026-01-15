@@ -68,5 +68,19 @@
   "book_appointment": "حجز موعد",
   "edit": "دەستکاری",
   "delete": "سڕینەوە",
-  "Reloading": "نوێکردنەوە"
+  "Reloading": "نوێکردنەوە",
+  "patients": {
+    "patient_card": "کارتی نەخۆش",
+    "sex": "ڕەگەز",
+    "qr_number": "ژمارەی QR",
+    "print": "چاپکردن",
+    "save_as_image": "پاشەکەوتکردن وەک وێنە",
+    "close": "داخستن",
+    "generating_image": "دروستکردنی وێنە",
+    "please_wait": "تکایە چاوەڕێبە...",
+    "image_saved_successfully": "وێنەکە بە سەرکەوتوویی پاشەکەوت کرا",
+    "error_saving_image": "هەڵەیەک ڕوویدا لە کاتی پاشەکەوتکردنی وێنە",
+    "please_install_html2canvas": "تکایە کتێبخانەی html2canvas دابمەزرێنە",
+    "not_specified": "دیاری نەکراوە"
+  }
 }

@@ -1059,7 +1059,7 @@ export default {
         
         if (!patientId) {
           console.error('Patient ID not found in route, parent, or store');
-          this.$toast?.error('معرف المريض غير موجود');
+          this.$toast?.error('معرف المراجع غير موجود');
           this.savingColors = false;
           return;
         }

@@ -619,7 +619,7 @@ export default {
           this.$swal.fire({
             position: "top-end",
             icon: "success",
-            title: this.isEditing ? "تم تعديل المريض بنجاح" : "تم إضافة المريض بنجاح",
+            title: this.isEditing ? "تم تعديل المراجع بنجاح" : "تم إضافة المراجع بنجاح",
             showConfirmButton: false,
             timer: 1500
           });
@@ -632,13 +632,13 @@ export default {
 
           this.closeDialog();
         } else {
-          throw new Error('فشل في حفظ بيانات المريض');
+          throw new Error('فشل في حفظ بيانات المراجع');
         }
       } catch (error) {
         console.error('Save patient error:', error);
         this.$swal.fire({
           title: "خطأ في الحفظ",
-          text: "حدث خطأ أثناء حفظ بيانات المريض",
+          text: "حدث خطأ أثناء حفظ بيانات المراجع",
           icon: "error",
           confirmButtonText: "اغلاق",
         });
@@ -684,7 +684,7 @@ export default {
         // Show warning but don't fail the entire operation
         this.$swal.fire({
           title: "تحذير",
-          text: "تم حفظ بيانات المريض ولكن فشل في رفع الصور",
+          text: "تم حفظ بيانات المراجع ولكن فشل في رفع الصور",
           icon: "warning",
           confirmButtonText: "موافق",
         });

@@ -53,7 +53,7 @@
                 dense
                 outlined
                 v-model="search.patientName"
-                :label="$t('patient_name') || 'اسم المريض'"
+                :label="$t('patient_name') || 'اسم المراجع'"
                 clearable
                 @input="applyFilters"
               ></v-text-field>
@@ -182,7 +182,7 @@
                   <strong>رقم الحالة:</strong> {{ editingCase.case_id }}
                 </div>
                 <div class="mb-4" v-if="editingCase.Patient">
-                  <strong>المريض:</strong> {{ editingCase.Patient.name }}
+                  <strong>المراجع:</strong> {{ editingCase.Patient.name }}
                 </div>
               </v-col>
 
@@ -258,7 +258,7 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-card outlined>
-                <v-card-title class="text-h6">معلومات المريض</v-card-title>
+                <v-card-title class="text-h6">معلومات المراجع</v-card-title>
                 <v-card-text v-if="selectedCase.Patient">
                   <div><strong>الاسم:</strong> {{ selectedCase.Patient.name }}</div>
                   <div><strong>الهاتف:</strong> {{ selectedCase.Patient.phone }}</div>
@@ -385,7 +385,7 @@ export default {
           width: '120px'
         },
         {
-          text: 'المريض',
+          text: 'المراجع',
           align: 'start',
           sortable: false,
           value: 'patient_name',

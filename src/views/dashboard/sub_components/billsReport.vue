@@ -80,7 +80,7 @@
                     <div class="signature-line"></div>
                 </div>
                 <div class="signature-box">
-                    <div class="signature-label">توقيع المريض</div>
+                    <div class="signature-label">توقيع المراجع</div>
                     <div class="signature-line"></div>
                 </div>
             </div>
@@ -100,12 +100,12 @@
                     </div>
                     <div class="qr-code-hint mt-1" style="font-size: 11px; color: #666;">امسح الرمز للوصول إلى سجل حالاتك</div>
                     <div v-if="!patient.qr_code" class="text-caption text--secondary mt-1" style="font-size: 10px; color: #999;">
-                        (استخدام معرف المريض: {{ patient.id }})
+                        (استخدام معرف المراجع: {{ patient.id }})
                     </div>
                 </div>
                 <div v-else class="text-center pa-3">
                     <v-alert type="info" dense outlined>
-                        رمز QR غير متوفر لهذا المريض
+                        رمز QR غير متوفر لهذا المراجع
                         <br>
                         <small>Patient data: {{ patient ? 'Available' : 'Not available' }}</small>
                     </v-alert>

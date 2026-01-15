@@ -252,7 +252,18 @@
 "credit_used":"Credit Used",
 "remaining_credit":"Remaining Credit",
 "use_credit_for_this_bill":"Use Credit for This Bill",
-"use_credit":"Use Credit"
+"use_credit":"Use Credit",
+"patient_card":"Patient Card",
+"sex":"Gender",
+"qr_number":"QR Number",
+"print":"Print",
+"save_as_image":"Save as Image",
+"close":"Close",
+"generating_image":"Generating Image",
+"please_wait":"Please wait...",
+"image_saved_successfully":"Image saved successfully",
+"error_saving_image":"Error occurred while saving image",
+"please_install_html2canvas":"Please install html2canvas library"
     },
 "doctors": {
   "title": "Clinic Doctors",

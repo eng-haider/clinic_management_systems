@@ -25,6 +25,7 @@
     "vue-i18n": "^8.26.5",
     "vue-multiselect": "^2.1.9",
     "vue-number-animation": "^1.1.2",
+    "vue-qrcode-reader": "^2.3.17",
     "vue-router": "^3.5.2",
     "vue-router-user-roles": "^0.1.92",
     "vue-sweetalert2": "^5.0.2",

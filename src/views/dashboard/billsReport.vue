@@ -87,7 +87,7 @@
                     <div class="signature-line"></div>
                 </div>
                 <div class="signature-box">
-                    <div class="signature-label">توقيع المريض</div>
+                    <div class="signature-label">توقيع المراجع</div>
                     <div class="signature-line"></div>
                 </div>
             </div>
