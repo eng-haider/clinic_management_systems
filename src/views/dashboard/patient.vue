@@ -2173,7 +2173,7 @@ export default {
       if (includePatientUrl && this.patient) {
         const code = this.patient.qr_code || this.patient.id;
         if (code) {
-          const patientUrl = `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${code}&phone=${cleanPhone}`;
+          const patientUrl = `https://isdentalcenter.com/patient-lookup?code=${code}&phone=${cleanPhone}`;
           const message = encodeURIComponent(`مرحباً،\n\nيمكنك الاطلاع على بياناتك الطبية من خلال الرابط التالي:\n${patientUrl}`);
           whatsappUrl += `?text=${message}`;
         }

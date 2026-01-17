@@ -126,7 +126,7 @@ export default {
     getPatientLookupUrl() {
       const qrCode = this.patient.qr_code;
       const phone = this.patient.phone ? this.patient.phone.replace(/\D/g, '') : '';
-      return `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${qrCode}&phone=${phone}`;
+      return `https://isdentalcenter.com/patient-lookup?code=${qrCode}&phone=${phone}`;
     },
 
     /**

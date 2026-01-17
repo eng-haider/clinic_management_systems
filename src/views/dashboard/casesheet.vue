@@ -1052,7 +1052,7 @@
                 }
 
                 // Generate patient lookup URL with phone parameter
-                let patientUrl = `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=${code}`;
+                let patientUrl = `https://isdentalcenter.com/patient-lookup?code=${code}`;
                 if (phone) {
                     // Clean phone number (remove spaces, dashes, etc.)
                     const cleanPhone = phone.replace(/[\s-+()]/g, '');

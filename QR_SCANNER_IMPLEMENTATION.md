@@ -122,12 +122,12 @@ Accept: application/json
 
 The QR code should be a URL in this format:
 
-**Format:** `https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code={QR_CODE}&phone={PHONE}`
+**Format:** `https://isdentalcenter.com/patient-lookup?code={QR_CODE}&phone={PHONE}`
 
 **Example:**
 
 ```
-https://mediumturquoise-ram-158778.hostingersite.com/patient-lookup?code=425152&phone=07717259088
+https://isdentalcenter.com/patient-lookup?code=425152&phone=07717259088
 ```
 
 The frontend automatically:
