@@ -19,7 +19,7 @@ const routeComponents = {
   PagesLayout: () => import(/* webpackChunkName: "layout" */ '@/views/pages/Index'),
   
   // Core dashboard views - Use unique chunk names
-  Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard'),
+  Dashboard: () => import(/* webpackChunkName: "dashboard" */ '@/views/dashboard/Dashboard_vue3'),
   CaseSheet: CaseSheet, // Direct import instead of dynamic import
   Cases: () => import(/* webpackChunkName: "cases" */ '@/views/dashboard/cases'),
   Patient: () => import(/* webpackChunkName: "patient" */ '@/views/dashboard/patient'),
