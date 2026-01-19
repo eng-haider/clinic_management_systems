@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="800px">
+ <v-dialog v-model="dialog" max-width="800px" persistent>
     <template v-slot:activator="{ on, attrs }" v-if="!hideActivator">
       <v-btn 
         color="primary" 
