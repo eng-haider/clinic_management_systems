@@ -25,9 +25,17 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import { createI18n } from 'vue-i18n'
 import ar from './locales/ar.json'
 import en from './locales/en.json'
+import ku from './locales/ku.json'
 
 // Styles
 import './styles/main.css'
+
+// Custom Directives
+import permissionDirective from './directives/permission'
+import roleDirective from './directives/role'
+
+// Auth Store
+import { useAuthStore } from './stores/authNew'
 
 // ==================== Vuetify Setup ====================
 const vuetify = createVuetify({
@@ -65,18 +73,29 @@ const vuetify = createVuetify({
       }
     }
   },
+  defaults: {
+    VDialog: {
+      scrollStrategy: 'reposition'
+    },
+    VMenu: {
+      scrollStrategy: 'reposition'
+    },
+    VOverlay: {
+      scrollStrategy: 'reposition'
+    }
+  },
   locale: {
-    locale: localStorage.getItem('lang') || 'ar',
-    rtl: { ar: true, en: false }
+    locale: localStorage.getItem('locale') || 'ar',
+    rtl: { ar: true, en: false, ku: true }
   }
 })
 
 // ==================== i18n Setup ====================
 const i18n = createI18n({
   legacy: false,
-  locale: localStorage.getItem('lang') || 'ar',
+  locale: localStorage.getItem('locale') || 'ar',
   fallbackLocale: 'en',
-  messages: { ar, en }
+  messages: { ar, en, ku }
 })
 
 // ==================== Pinia Setup ====================
@@ -96,9 +115,18 @@ app.use(router)
 app.use(vuetify)
 app.use(i18n)
 
+// Register Custom Directives
+app.directive('permission', permissionDirective)
+app.directive('role', roleDirective)
+
+// Initialize Auth Store
+const authStore = useAuthStore()
+authStore.initializeAuth()
+
 // Set RTL Direction
-const currentLang = localStorage.getItem('lang') || 'ar'
-document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr'
+const currentLang = localStorage.getItem('locale') || 'ar'
+const rtlLangs = ['ar', 'ku']
+document.documentElement.dir = rtlLangs.includes(currentLang) ? 'rtl' : 'ltr'
 document.documentElement.lang = currentLang
 
 // Mount App

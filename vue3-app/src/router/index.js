@@ -7,7 +7,7 @@
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/authNew'
 
 // ==================== Route Components ====================
 const routes = [
@@ -42,6 +42,18 @@ const routes = [
         path: 'dashboard',
         name: 'DashboardAlt',
         component: () => import('@/views/dashboard/Dashboard.vue')
+      },
+      {
+        path: 'patients',
+        name: 'Patients',
+        component: () => import('@/views/pages/Patients.vue'),
+        meta: { title: 'Patients Management' }
+      },
+      {
+        path: 'patients/:id',
+        name: 'PatientDetail',
+        component: () => import('@/views/patients/PatientDetail.vue'),
+        meta: { title: 'Patient Details' }
       }
     ]
   },
@@ -70,21 +82,32 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
   
+  console.log('🚦 Router Guard:', {
+    to: to.name,
+    from: from.name,
+    isAuthenticated,
+    requiresAuth: to.meta?.requiresAuth,
+    isGuest: to.meta?.guest
+  })
+  
   // Update document title
   document.title = to.meta?.title || to.name || 'Clinic Management'
   
   // Check if route requires authentication
   if (to.meta?.requiresAuth && !isAuthenticated) {
+    console.log('❌ Not authenticated, redirecting to Login')
     next({ name: 'Login' })
     return
   }
   
   // Redirect authenticated users away from guest pages
   if (to.meta?.guest && isAuthenticated) {
+    console.log('✅ Already authenticated, redirecting to Dashboard')
     next({ name: 'Dashboard' })
     return
   }
   
+  console.log('✅ Navigation allowed')
   next()
 })
 

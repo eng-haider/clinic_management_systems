@@ -7,6 +7,10 @@
       <div class="circle c4"></div>
     </div>
     
+    <div class="language-selector">
+      <LanguageSwitcher />
+    </div>
+    
     <v-container fluid class="fill-height">
       <v-row class="fill-height" align="center" justify="center">
         <v-col cols="12" sm="10" md="8" lg="5">
@@ -15,51 +19,105 @@
               <v-avatar size="80" color="success" class="mb-4">
                 <v-icon size="50" color="white">mdi-account-plus</v-icon>
               </v-avatar>
-              <h1 class="text-h5 font-weight-bold">إنشاء حساب جديد</h1>
-              <p class="text-grey">انضم إلى منصة العيادة الذكية</p>
+              <h1 class="text-h5 font-weight-bold">{{ $t('register.title') }}</h1>
+              <p class="text-grey">{{ $t('register.subtitle') }}</p>
             </div>
             
             <v-alert v-if="errors.length" type="error" variant="tonal" class="mb-4">
               <div v-for="(e, i) in errors" :key="i">{{ e }}</div>
             </v-alert>
             
-            <v-form ref="form" @submit.prevent="register">
+            <v-form @submit.prevent="register">
               <v-row>
+                <!-- Doctor Name -->
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="name"
-                    label="اسم الدكتور"
+                    :label="$t('register.doctor_name')"
                     prepend-inner-icon="mdi-doctor"
                     variant="outlined"
-                    :rules="[v => !!v || 'مطلوب']"
+                    :rules="[v => !!v || $t('validation.required')]"
                   ></v-text-field>
                 </v-col>
                 
+                <!-- Doctor Phone -->
                 <v-col cols="12" md="6">
                   <v-text-field
-                    v-model="clinic"
-                    label="اسم العيادة"
-                    prepend-inner-icon="mdi-hospital-building"
-                    variant="outlined"
-                    :rules="[v => !!v || 'مطلوب']"
-                  ></v-text-field>
-                </v-col>
-                
-                <v-col cols="12">
-                  <v-text-field
                     v-model="phone"
-                    label="رقم الهاتف"
+                    :label="$t('register.phone')"
                     prepend-inner-icon="mdi-phone"
                     variant="outlined"
                     type="tel"
                     :rules="phoneRules"
+                    placeholder="201001234567"
                   ></v-text-field>
                 </v-col>
                 
+                <!-- Doctor Email (Optional) -->
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="email"
+                    :label="$t('register.email')"
+                    prepend-inner-icon="mdi-email"
+                    variant="outlined"
+                    type="email"
+                    :rules="emailRules"
+                    placeholder="doctor@example.com"
+                  ></v-text-field>
+                </v-col>
+                
+                <!-- Clinic Name -->
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="clinic"
+                    :label="$t('register.clinic_name')"
+                    prepend-inner-icon="mdi-hospital-building"
+                    variant="outlined"
+                    :rules="[v => !!v || $t('validation.required')]"
+                  ></v-text-field>
+                </v-col>
+                
+                <!-- Clinic Address -->
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="clinicAddress"
+                    :label="$t('register.clinic_address')"
+                    prepend-inner-icon="mdi-map-marker"
+                    variant="outlined"
+                    rows="2"
+                    :rules="[v => !!v || $t('validation.required')]"
+                  ></v-textarea>
+                </v-col>
+                
+                <!-- Clinic Phone (Optional) -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="clinicPhone"
+                    :label="$t('register.clinic_phone')"
+                    prepend-inner-icon="mdi-phone-classic"
+                    variant="outlined"
+                    type="tel"
+                    hint="Optional - will use your phone if empty"
+                  ></v-text-field>
+                </v-col>
+                
+                <!-- Clinic Email (Optional) -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="clinicEmail"
+                    :label="$t('register.clinic_email')"
+                    prepend-inner-icon="mdi-email-outline"
+                    variant="outlined"
+                    type="email"
+                    hint="Optional - will use your email if empty"
+                  ></v-text-field>
+                </v-col>
+                
+                <!-- Password -->
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="password"
-                    label="كلمة المرور"
+                    :label="$t('register.password')"
                     prepend-inner-icon="mdi-lock"
                     :append-inner-icon="show1 ? 'mdi-eye-off' : 'mdi-eye'"
                     :type="show1 ? 'text' : 'password'"
@@ -69,10 +127,11 @@
                   ></v-text-field>
                 </v-col>
                 
+                <!-- Confirm Password -->
                 <v-col cols="12" md="6">
                   <v-text-field
                     v-model="confirmPass"
-                    label="تأكيد كلمة المرور"
+                    :label="$t('register.confirm_password')"
                     prepend-inner-icon="mdi-lock-check"
                     :append-inner-icon="show2 ? 'mdi-eye-off' : 'mdi-eye'"
                     :type="show2 ? 'text' : 'password'"
@@ -92,14 +151,14 @@
                 class="mt-4"
               >
                 <v-icon start>mdi-account-check</v-icon>
-                تسجيل
+                {{ $t('register.submit') }}
               </v-btn>
             </v-form>
             
             <div class="text-center mt-6">
-              <span>لديك حساب؟</span>
+              <span>{{ $t('register.have_account') }}</span>
               <router-link to="/login" class="text-primary font-weight-bold ms-1">
-                سجل دخول
+                {{ $t('register.login_link') }}
               </router-link>
             </div>
           </v-card>
@@ -110,17 +169,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/services/api'
+import { useAuthStore } from '@/stores/authNew'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
-const form = ref(null)
 const name = ref('')
+const email = ref('')
 const clinic = ref('')
+const clinicAddress = ref('')
+const clinicPhone = ref('')
+const clinicEmail = ref('')
 const phone = ref('')
 const password = ref('')
 const confirmPass = ref('')
@@ -129,66 +193,129 @@ const show2 = ref(false)
 const loading = ref(false)
 const errors = ref([])
 
+// Validation Rules
 const phoneRules = [
-  v => !!v || 'مطلوب',
-  v => (v && v.length >= 10) || 'رقم غير صحيح'
+  v => !!v || t('validation.required'),
+  v => /^[0-9]{10,15}$/.test(v) || t('validation.phone_format')
+]
+
+const emailRules = [
+  v => !v || /.+@.+\..+/.test(v) || t('validation.email_format')
 ]
 
 const passRules = [
-  v => !!v || 'مطلوب',
-  v => (v && v.length >= 6) || 'على الأقل 6 أحرف'
+  v => !!v || t('validation.required'),
+  v => (v && v.length >= 8) || t('validation.password_min_8')
 ]
 
-const confirmRules = [
-  v => !!v || 'مطلوب',
-  v => v === password.value || 'غير متطابق'
-]
+const confirmRules = computed(() => [
+  v => !!v || t('validation.required'),
+  v => v === password.value || t('validation.password_mismatch')
+])
 
 async function register() {
-  const { valid } = await form.value.validate()
-  if (!valid) return
+  // Validate required fields
+  if (!name.value || !phone.value || !clinic.value || !clinicAddress.value || !password.value || !confirmPass.value) {
+    errors.value = [t('validation.required')]
+    return
+  }
+  
+  // Validate phone format
+  if (!/^[0-9]{10,15}$/.test(phone.value)) {
+    errors.value = [t('validation.phone_format')]
+    return
+  }
+  
+  // Validate email format if provided
+  if (email.value && !/.+@.+\..+/.test(email.value)) {
+    errors.value = [t('validation.email_format')]
+    return
+  }
+  
+  // Validate password length
+  if (password.value.length < 8) {
+    errors.value = [t('validation.password_min_8')]
+    return
+  }
+  
+  // Validate password confirmation
+  if (password.value !== confirmPass.value) {
+    errors.value = [t('validation.password_mismatch')]
+    return
+  }
   
   loading.value = true
   errors.value = []
   
   try {
-    const res = await api.post('/users', {
+    const userData = {
       name: name.value,
-      clinic_name: clinic.value,
-      phone: '964' + phone.value.replace(/^0+/, ''),
+      phone: phone.value,
+      email: email.value || undefined,
       password: password.value,
-      password_confirmation: confirmPass.value
-    })
+      passwordConfirmation: confirmPass.value,
+      clinicName: clinic.value,
+      clinicAddress: clinicAddress.value,
+      clinicPhone: clinicPhone.value || phone.value,
+      clinicEmail: clinicEmail.value || email.value
+    }
     
-    if (res.data?.token) {
-      localStorage.setItem('tokinn', res.data.token)
-      authStore.setToken(res.data.token)
-      authStore.setUser(res.data.result)
-      router.push('/')
+    const result = await authStore.register(userData)
+    
+    if (result.success) {
+      // Registration successful, redirect to dashboard
+      router.push('/dashboard')
+    } else {
+      // Show error messages
+      if (result.errors && typeof result.errors === 'object') {
+        // Format validation errors
+        Object.keys(result.errors).forEach(key => {
+          if (Array.isArray(result.errors[key])) {
+            errors.value.push(...result.errors[key])
+          } else {
+            errors.value.push(result.errors[key])
+          }
+        })
+      } else {
+        errors.value = [result.message || t('register.error')]
+      }
     }
   } catch (e) {
-    if (e.response?.data?.data?.user_phone) {
-      errors.value.push('رقم الهاتف مسجل مسبقاً')
-    } else {
-      errors.value.push('حدث خطأ، حاول مرة أخرى')
-    }
+    errors.value = [t('register.error')]
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  if (authStore.isAuthenticated) router.push('/')
+  // Initialize auth store
+  authStore.initializeAuth()
+  
+  // Redirect if already authenticated
+  if (authStore.isAuthenticated) {
+    router.push('/dashboard')
+  }
 })
 </script>
 
 <style scoped>
 .register-page {
   min-height: 100vh;
-  direction: rtl;
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.language-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+[dir="ltr"] .language-selector {
+  right: auto;
+  left: 20px;
 }
 
 .bg-animation {

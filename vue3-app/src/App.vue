@@ -11,18 +11,19 @@
  */
 
 import { onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/authNew'
 
 const authStore = useAuthStore()
 
 onMounted(() => {
-  // Initialize from localStorage
-  authStore.initFromStorage()
+  // Initialize auth from localStorage
+  authStore.initializeAuth()
   
   // Set language direction
-  const lang = localStorage.getItem('lang') || 'ar'
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
-  document.documentElement.lang = lang
+  const locale = localStorage.getItem('locale') || 'ar'
+  const rtlLangs = ['ar', 'ku']
+  document.documentElement.dir = rtlLangs.includes(locale) ? 'rtl' : 'ltr'
+  document.documentElement.lang = locale
 })
 </script>
 
@@ -32,7 +33,13 @@ onMounted(() => {
 }
 
 html {
-  overflow-y: auto;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+/* Fix for Vuetify scroll lock */
+html.overflow-y-hidden {
+  overflow-y: hidden !important;
 }
 
 /* Scrollbar Styles */

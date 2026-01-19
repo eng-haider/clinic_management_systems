@@ -10,6 +10,9 @@
       
       <v-spacer></v-spacer>
       
+      <!-- Language Switcher -->
+      <LanguageSwitcher class="me-2" />
+      
       <!-- User Menu -->
       <v-menu>
         <template v-slot:activator="{ props }">
@@ -97,6 +100,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

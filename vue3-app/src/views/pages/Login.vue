@@ -6,6 +6,10 @@
       <div class="circle c3"></div>
     </div>
     
+    <div class="language-selector">
+      <LanguageSwitcher />
+    </div>
+    
     <v-container fluid class="fill-height">
       <v-row class="fill-height" align="center" justify="center">
         <v-col cols="12" sm="8" md="6" lg="4">
@@ -14,32 +18,30 @@
               <v-avatar size="80" color="primary" class="mb-4">
                 <v-icon size="50" color="white">mdi-hospital-building</v-icon>
               </v-avatar>
-              <h1 class="text-h5 font-weight-bold">العيادة الذكية</h1>
-              <p class="text-grey">سجل دخولك للمتابعة</p>
+              <h1 class="text-h5 font-weight-bold">{{ $t('app_name') }}</h1>
+              <p class="text-grey">{{ $t('login.subtitle') }}</p>
             </div>
             
             <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>
               {{ error }}
             </v-alert>
             
-            <v-form ref="form" @submit.prevent="login">
+            <v-form @submit.prevent="login">
               <v-text-field
                 v-model="phone"
-                label="رقم الهاتف"
+                :label="$t('login.phone')"
                 prepend-inner-icon="mdi-phone"
                 variant="outlined"
-                :rules="[v => !!v || 'مطلوب']"
                 class="mb-3"
               ></v-text-field>
               
               <v-text-field
                 v-model="password"
-                label="كلمة المرور"
+                :label="$t('login.password')"
                 prepend-inner-icon="mdi-lock"
                 :append-inner-icon="show ? 'mdi-eye-off' : 'mdi-eye'"
                 :type="show ? 'text' : 'password'"
                 variant="outlined"
-                :rules="[v => !!v || 'مطلوب']"
                 @click:append-inner="show = !show"
                 class="mb-3"
               ></v-text-field>
@@ -52,14 +54,14 @@
                 :loading="loading"
                 class="mt-4"
               >
-                دخول
+                {{ $t('login.submit') }}
               </v-btn>
             </v-form>
             
             <div class="text-center mt-6">
-              <span>ليس لديك حساب؟</span>
+              <span>{{ $t('login.no_account') }}</span>
               <router-link to="/register" class="text-primary font-weight-bold ms-1">
-                سجل الآن
+                {{ $t('login.register_link') }}
               </router-link>
             </div>
           </v-card>
@@ -72,12 +74,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/services/api'
+import { useAuthStore } from '@/stores/authNew'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const form = ref(null)
+const { t } = useI18n()
+
 const phone = ref('')
 const password = ref('')
 const show = ref(false)
@@ -85,43 +89,74 @@ const loading = ref(false)
 const error = ref('')
 
 async function login() {
-  const { valid } = await form.value.validate()
-  if (!valid) return
+  console.log('Login function called')
+  console.log('Phone:', phone.value)
+  console.log('Password:', password.value ? '***' : 'empty')
+  
+  // Validate inputs
+  if (!phone.value || !password.value) {
+    error.value = t('validation.required')
+    console.log('Validation failed: missing phone or password')
+    return
+  }
   
   loading.value = true
   error.value = ''
   
   try {
-    const res = await api.post('/login', {
-      phone: '964' + phone.value.replace(/^0+/, ''),
-      password: password.value
-    })
+    console.log('Calling authStore.login...')
+    const result = await authStore.login(phone.value, password.value)
+    console.log('Login result:', result)
     
-    if (res.data?.token) {
-      localStorage.setItem('tokinn', res.data.token)
-      authStore.setToken(res.data.token)
-      authStore.setUser(res.data.result)
-      router.push('/')
+    if (result.success) {
+      console.log('Login successful, redirecting to dashboard')
+      console.log('isAuthenticated:', authStore.isAuthenticated)
+      console.log('Token in localStorage:', localStorage.getItem('auth_token'))
+      console.log('Token in store:', authStore.token)
+      
+      // Force reload to ensure auth state is fresh
+      window.location.href = '/dashboard'
+    } else {
+      console.log('Login failed:', result.message)
+      error.value = result.message || t('login.error')
     }
   } catch (e) {
-    error.value = 'بيانات الدخول غير صحيحة'
+    console.error('Login error:', e)
+    error.value = t('login.error')
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  if (authStore.isAuthenticated) router.push('/')
+  // Initialize auth store
+  authStore.initializeAuth()
+  
+  // Redirect if already authenticated
+  if (authStore.isAuthenticated) {
+    router.push('/dashboard')
+  }
 })
 </script>
 
 <style scoped>
 .login-page {
   min-height: 100vh;
-  direction: rtl;
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.language-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+[dir="ltr"] .language-selector {
+  right: auto;
+  left: 20px;
 }
 
 .bg-animation {
