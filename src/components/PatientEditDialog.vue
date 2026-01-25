@@ -1,5 +1,5 @@
 <template>
- <v-dialog v-model="dialog" max-width="800px" persistent :fullscreen="$vuetify.breakpoint.xsOnly" scrollable content-class="patient-edit-dialog-content">
+  <v-dialog v-model="dialog" max-width="800px">
     <template v-slot:activator="{ on, attrs }" v-if="!hideActivator">
       <v-btn 
         color="primary" 
@@ -619,7 +619,7 @@ export default {
           this.$swal.fire({
             position: "top-end",
             icon: "success",
-            title: this.isEditing ? "تم تعديل المريض بنجاح" : "تم إضافة المريض بنجاح",
+            title: this.isEditing ? "تم تعديل المراجع بنجاح" : "تم إضافة المراجع بنجاح",
             showConfirmButton: false,
             timer: 1500
           });
@@ -632,13 +632,13 @@ export default {
 
           this.closeDialog();
         } else {
-          throw new Error('فشل في حفظ بيانات المريض');
+          throw new Error('فشل في حفظ بيانات المراجع');
         }
       } catch (error) {
         console.error('Save patient error:', error);
         this.$swal.fire({
           title: "خطأ في الحفظ",
-          text: "حدث خطأ أثناء حفظ بيانات المريض",
+          text: "حدث خطأ أثناء حفظ بيانات المراجع",
           icon: "error",
           confirmButtonText: "اغلاق",
         });
@@ -684,7 +684,7 @@ export default {
         // Show warning but don't fail the entire operation
         this.$swal.fire({
           title: "تحذير",
-          text: "تم حفظ بيانات المريض ولكن فشل في رفع الصور",
+          text: "تم حفظ بيانات المراجع ولكن فشل في رفع الصور",
           icon: "warning",
           confirmButtonText: "موافق",
         });
@@ -700,71 +700,12 @@ export default {
   font-family: 'Cairo', sans-serif;
 }
 
-/* Mobile Dialog Fixes - Prevent horizontal scroll */
-@media (max-width: 599px) {
-  .v-dialog {
-    margin: 0 !important;
-    max-width: 100vw !important;
-    width: 100vw !important;
-    overflow-x: hidden !important;
-  }
-  
-  .v-dialog > .v-card {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    overflow-x: hidden !important;
-  }
-  
-  .v-dialog .v-card-text {
-    padding: 8px !important;
-    overflow-x: hidden !important;
-  }
-  
-  .v-dialog .v-container {
-    padding: 0 !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-  
-  .v-dialog .v-row {
-    margin: 0 !important;
-    max-width: 100% !important;
-  }
-  
-  .v-dialog .v-col {
-    padding: 4px 8px !important;
-    max-width: 100% !important;
-  }
-  
-  .v-dialog .v-text-field,
-  .v-dialog .v-select,
-  .v-dialog .v-combobox,
-  .v-dialog .v-textarea {
-    max-width: 100% !important;
-  }
-  
-  .v-dialog .v-toolbar {
-    max-width: 100% !important;
-  }
-  
-  .v-dialog .v-toolbar__title {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-}
-
 /* Dropzone Styles */
 .vue-dropzone {
   border: 2px dashed #007bff !important;
   border-radius: 5px !important;
   background: white !important;
   min-height: 150px !important;
-  max-width: 100% !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
 }
 
 .vue-dropzone .dz-message {
@@ -786,15 +727,10 @@ export default {
 
 .vue-dropzone .dz-preview {
   margin: 10px !important;
-  max-width: calc(50% - 20px) !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
 }
 
 .vue-dropzone .dz-preview .dz-image {
   border-radius: 5px !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
 }
 
 .vue-dropzone .dz-preview .dz-remove {
@@ -804,103 +740,5 @@ export default {
 
 .vue-dropzone .dz-preview .dz-remove:hover {
   text-decoration: underline !important;
-}
-
-.vue-dropzone .dz-preview .dz-filename {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  max-width: 100% !important;
-}
-
-/* Mobile Dropzone Fixes */
-@media (max-width: 599px) {
-  .vue-dropzone {
-    min-height: 100px !important;
-    padding: 10px !important;
-  }
-  
-  .vue-dropzone .dz-preview {
-    max-width: calc(100% - 20px) !important;
-    margin: 5px auto !important;
-  }
-  
-  .vue-dropzone .dz-message {
-    font-size: 14px !important;
-    padding: 10px !important;
-  }
-}
-</style>
-
-<!-- Global styles for dialog (not scoped because dialog renders in body) -->
-<style>
-/* Patient Edit Dialog - Mobile Fixes */
-@media (max-width: 599px) {
-  .v-dialog__content--active .patient-edit-dialog-content {
-    margin: 0 !important;
-    max-width: 100vw !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-  }
-  
-  .patient-edit-dialog-content > .v-card {
-    max-width: 100% !important;
-    width: 100% !important;
-    min-height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    overflow-x: hidden !important;
-  }
-  
-  .patient-edit-dialog-content .v-card-text {
-    padding: 8px !important;
-    overflow-x: hidden !important;
-  }
-  
-  .patient-edit-dialog-content .v-container {
-    padding: 0 !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-  
-  .patient-edit-dialog-content .v-row {
-    margin: 0 -4px !important;
-    max-width: 100% !important;
-  }
-  
-  .patient-edit-dialog-content .v-col {
-    padding: 4px 8px !important;
-    max-width: 100% !important;
-  }
-  
-  .patient-edit-dialog-content .v-text-field,
-  .patient-edit-dialog-content .v-select,
-  .patient-edit-dialog-content .v-combobox,
-  .patient-edit-dialog-content .v-textarea {
-    max-width: 100% !important;
-  }
-  
-  .patient-edit-dialog-content .v-toolbar {
-    max-width: 100% !important;
-  }
-  
-  .patient-edit-dialog-content .v-toolbar__title {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-  
-  /* Ensure dialog overlay covers everything */
-  .v-overlay--active.v-overlay--absolute {
-    position: fixed !important;
-    z-index: 200 !important;
-  }
 }
 </style>
