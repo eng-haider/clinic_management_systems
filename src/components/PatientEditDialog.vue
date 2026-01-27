@@ -41,8 +41,8 @@
                   item-value="value"
                   :rules="[rules.required]"
                   :label="$t('datatable.name')"
-                  placeholder="ابحث عن مريض أو أدخل اسم جديد"
-                  style="direction: rtl;text-align: right;"
+                  :placeholder="$t('patients.search_patient_placeholder')"
+                  :style="$i18n.locale === 'en' ? 'direction: ltr;text-align: left;' : 'direction: rtl;text-align: right;'"
                   outlined
                   clearable
                   @change="handlePatientNameSelect"
@@ -52,7 +52,7 @@
                     <v-list-item>
                       <v-list-item-content>
                         <v-list-item-title>
-                          لا توجد نتائج. سيتم إضافة "{{ patientSearch }}" كمريض جديد
+                          {{ $t('patients.no_results_will_add', { name: patientSearch }) }}
                         </v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
@@ -61,7 +61,7 @@
                   <template v-slot:item="{ item }">
                     <v-list-item-content>
                       <v-list-item-title>{{ item.text || item.name }}</v-list-item-title>
-                      <v-list-item-subtitle>{{ item.phone }} - العمر: {{ item.age }}</v-list-item-subtitle>
+                      <v-list-item-subtitle>{{ item.phone }} - {{ $t('patients.age_label') }}: {{ item.age }}</v-list-item-subtitle>
                     </v-list-item-content>
                   </template>
                 </v-combobox>
@@ -82,12 +82,33 @@
 
               <!-- Birth Date Field -->
               <v-col class="py-0" cols="12" sm="6" md="6">
-                <v-text-field 
-                  v-model="editedItem.birth_date" 
-                  type="date"
-                  :label="$t('datatable.birth_date')" 
-                  outlined
-                />
+                <v-menu
+                  ref="birthDateMenu"
+                  v-model="birthDateMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="auto"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="formattedBirthDate"
+                      :label="$t('datatable.birth_date')"
+                      readonly
+                      outlined
+                      v-bind="attrs"
+                      v-on="on"
+                      append-icon="mdi-calendar"
+                      style="direction: ltr; text-align: left;"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="editedItem.birth_date"
+                    no-title
+                    scrollable
+                    @input="birthDateMenu = false"
+                  ></v-date-picker>
+                </v-menu>
               </v-col>
 
               <!-- Age Field (only show when editing) -->
@@ -169,6 +190,7 @@
                 <vue2-dropzone 
                   ref="myVueDropzone" 
                   id="dropzone" 
+                  :key="dropzoneKey"
                   :options="dropzoneOptions"
                   @vdropzone-success="handleImageSuccess"
                   @vdropzone-error="handleImageError"
@@ -254,6 +276,8 @@ export default {
       valid: false,
       loadSave: false,
       mask: "07XX XXX XXXXX",
+      birthDateMenu: false,
+      dropzoneKey: 0, // Key to force dropzone re-render on language change
       
       // Patient combobox properties
       patientsList: [],
@@ -308,12 +332,12 @@ export default {
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
-        dictDefaultMessage: '<i class="fas fa-upload"></i> اضغط هنا لرفع صور الحاله',
+        dictDefaultMessage: '',
         paramName: "file",
         maxFiles: 10,
         addRemoveLinks: true,
-        dictRemoveFile: "حذف الصورة",
-        dictCancelUpload: "إلغاء الرفع"
+        dictRemoveFile: '',
+        dictCancelUpload: ''
       },
 
       // Validation rules
@@ -348,6 +372,17 @@ export default {
 
     formTitle() {
       return this.isEditing ? this.$t('update') : this.$t('patients.addnewpatients');
+    },
+
+    formattedBirthDate() {
+      if (!this.editedItem.birth_date) return '';
+      // Format: YYYY-MM-DD to a readable format
+      const date = new Date(this.editedItem.birth_date);
+      if (isNaN(date.getTime())) return this.editedItem.birth_date;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
   },
 
@@ -373,6 +408,20 @@ export default {
     // Pass loading state to internal loadSave
     loading(newVal) {
       this.loadSave = newVal;
+    },
+
+    // Watch for language changes to update dropzone translations
+    '$i18n.locale'() {
+      this.updateDropzoneTranslations();
+      // Force dropzone to re-render with new translations
+      this.dropzoneKey++;
+      
+      // Re-fetch patients list to update age labels
+      this.$nextTick(() => {
+        if (this.patientSearch) {
+          this.fetchPatientsForCombobox(this.patientSearch);
+        }
+      });
     }
 
     // Removed the auto-fill watcher for editedItem.name to prevent 
@@ -387,11 +436,21 @@ export default {
       };
     }
     
+    // Set dropzone translations
+    this.updateDropzoneTranslations();
+    
     // Initialize patients list for combobox
     this.fetchPatientsForCombobox();
   },
 
   methods: {
+    // Update dropzone translations based on current language
+    updateDropzoneTranslations() {
+      this.dropzoneOptions.dictDefaultMessage = `<i class="fas fa-upload"></i> ${this.$t('patients.upload_case_images')}`;
+      this.dropzoneOptions.dictRemoveFile = this.$t('patients.remove_image');
+      this.dropzoneOptions.dictCancelUpload = this.$t('patients.cancel_upload');
+    },
+
     // Patient Combobox Methods
     /**
      * Fetches patients list for combobox
@@ -419,7 +478,7 @@ export default {
               value: patient.name,
               name: patient.name,
               phone: patient.phone || '',
-              age: patient.age || 'غير محدد',
+              age: patient.age || this.$t('patients.not_specified'),
               id: patient.id,
               fullData: patient
             }));
@@ -548,10 +607,10 @@ export default {
     handleImageError(file, message) {
       console.error('Image upload error:', message);
       this.$swal.fire({
-        title: "خطأ في رفع الصورة",
+        title: this.$t('patients.image_upload_error'),
         text: message,
         icon: "error",
-        confirmButtonText: "اغلاق",
+        confirmButtonText: this.$t("close"),
       });
     },
 
@@ -619,7 +678,7 @@ export default {
           this.$swal.fire({
             position: "top-end",
             icon: "success",
-            title: this.isEditing ? "تم تعديل المراجع بنجاح" : "تم إضافة المراجع بنجاح",
+            title: this.isEditing ? this.$t("patients.patient_updated_successfully") : this.$t("patients.patient_added_successfully"),
             showConfirmButton: false,
             timer: 1500
           });
@@ -632,15 +691,15 @@ export default {
 
           this.closeDialog();
         } else {
-          throw new Error('فشل في حفظ بيانات المراجع');
+          throw new Error(this.$t('patients.error_saving_patient'));
         }
       } catch (error) {
         console.error('Save patient error:', error);
         this.$swal.fire({
-          title: "خطأ في الحفظ",
-          text: "حدث خطأ أثناء حفظ بيانات المراجع",
+          title: this.$t("patients.error_saving_title"),
+          text: this.$t("patients.error_saving_message"),
           icon: "error",
-          confirmButtonText: "اغلاق",
+          confirmButtonText: this.$t("close"),
         });
       } finally {
         this.loadSave = false;
@@ -677,16 +736,16 @@ export default {
           const result = await response.json();
           console.log('✅ Images uploaded successfully:', result);
         } else {
-          throw new Error('فشل في رفع الصور');
+          throw new Error(this.$t('patients.error_saving_patient'));
         }
       } catch (error) {
         console.error('❌ Error uploading images:', error);
         // Show warning but don't fail the entire operation
         this.$swal.fire({
-          title: "تحذير",
-          text: "تم حفظ بيانات المراجع ولكن فشل في رفع الصور",
+          title: this.$t("patients.warning"),
+          text: this.$t("patients.images_upload_warning"),
           icon: "warning",
-          confirmButtonText: "موافق",
+          confirmButtonText: this.$t("ok"),
         });
       }
     }
@@ -740,5 +799,57 @@ export default {
 
 .vue-dropzone .dz-preview .dz-remove:hover {
   text-decoration: underline !important;
+}
+</style>
+
+<style>
+/* RTL Dialog fixes - not scoped to apply to Vuetify dialog wrapper */
+/* Critical fix for Arabic language dialog positioning */
+html[dir="rtl"] .v-dialog__content,
+body.rtl .v-dialog__content,
+.v-dialog__content {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+}
+
+html[dir="rtl"] .v-dialog,
+body.rtl .v-dialog,
+.v-dialog {
+  margin: 24px auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  position: relative !important;
+  max-width: 800px !important;
+}
+
+/* Mobile RTL fixes */
+@media (max-width: 599px) {
+  html[dir="rtl"] .v-dialog,
+  body.rtl .v-dialog,
+  .v-dialog {
+    margin: 8px auto !important;
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+  }
+  
+  html[dir="rtl"] .v-dialog__content,
+  body.rtl .v-dialog__content,
+  .v-dialog__content {
+    padding: 8px !important;
+  }
+  
+  html[dir="rtl"] .v-dialog .v-card,
+  body.rtl .v-dialog .v-card,
+  .v-dialog .v-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }
 </style>
