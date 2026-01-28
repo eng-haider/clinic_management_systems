@@ -211,7 +211,9 @@
           
 
               <v-col cols="12" sm="6" xs="12" >
-                <v-time-picker v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
+                <v-time-picker 
+                  color="primary"
+                  ampm-in-title v-model="editedItem.reservation_from_time" full-width format="ampm"></v-time-picker>
 
 
                 <div v-if="$store.state.AdminInfo.send_msg ==1">
@@ -361,8 +363,8 @@
         
         patient: null,
         editedItem: {
-          reservation_from_time: null,
-          reservation_to_time: null,
+          reservation_from_time: "14:00", // Default to 2:00 PM
+          reservation_to_time: "15:00", // Default to 3:00 PM
           appointmentMessage: "",
           appointment_type: "examination",
           appointment_notes: "",
@@ -945,7 +947,7 @@
             // Add the new reservation to the local list
             const patientName = reservationData.user.name;
             const doctorName = this.editedItem.doctors ? this.editedItem.doctors.name : '';
-            const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor') && doctorName
+            const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor' || this.$store.state.role === 'accountant') && doctorName
               ? `${patientName} | ${this.getDoctorFirstName(doctorName)}`
               : patientName;
               
@@ -1055,7 +1057,7 @@
               
               // Format the display name with doctor info for secretary/admin roles
               const patientName = reservation.user?.full_name || reservation.user?.name || 'Unknown Patient';
-              const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor') && doctorName
+              const displayName = (this.$store.state.role === 'secretary' || this.$store.state.role === 'adminDoctor' || this.$store.state.role === 'accounter') && doctorName
                 ? `${patientName}| ${this.getDoctorFirstName(doctorName)}`
                 : patientName;
               

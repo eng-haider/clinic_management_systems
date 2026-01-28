@@ -1203,39 +1203,53 @@
                 this.loadingSearch = true;
                 this.loadingData = true;
 
-                if (this.search.case_categores_id !== null && this.search.case_categores_id == 0) {
+                console.log('Search initiated with:', this.search);
+
+                // Normalize search parameters - convert null/undefined to empty string
+                // But keep actual values (including 0 for "all")
+                if (this.search.case_categores_id == null || this.search.case_categores_id === undefined) {
+                    this.search.case_categores_id = '';
+                } else if (this.search.case_categores_id === 0) {
+                    // If "all" is selected, set to empty string to search all
                     this.search.case_categores_id = '';
                 }
 
-
-                if (this.search.case_categores_id == null) {
-                    this.search.case_categores_id = '';
-                }
-
-                if (this.search.status_id == null) {
+                if (this.search.status_id == null || this.search.status_id === undefined) {
                     this.search.status_id = '';
                 }
 
-
-                if (this.search.is_paid == null) {
+                if (this.search.is_paid == null || this.search.is_paid === undefined) {
                     this.search.is_paid = '';
                 }
 
-
-                if (this.search.doctors == null) {
+                if (this.search.doctors == null || this.search.doctors === undefined) {
                     this.search.doctors = '';
                 }
 
-
-
-                if (this.search.note == null) {
+                if (this.search.note == null || this.search.note === undefined) {
                     this.search.note = '';
                 }
 
-
-                if (this.search.doctors == 0) {
+                if (this.search.doctors == 0 || this.search.doctors === 0) {
                     this.search.doctors = this.doctorsIdsAll;
                 }
+
+                // Build URL with only valid parameters
+                let searchUrl = "cases/searchv3?filter[status_id]=" + this.search.status_id +
+                        "&filter[case_categores_id]=" + this.search.case_categores_id +
+                        "&filter[sessions.note]=" + this.search.note +
+                        '&filter[is_paid]=' + this.search.is_paid;
+                
+                // Only add doctors parameter if it has a valid value
+                if (this.search.doctors && this.search.doctors !== '' && this.search.doctors !== undefined) {
+                    searchUrl += '&doctors=' + this.search.doctors;
+                }
+                
+                searchUrl += "&from_date=" + this.search.from_date +
+                        "&to_date=" + this.search.to_date +
+                        '&page=' + this.current_page;
+
+                console.log('Search URL:', searchUrl);
 
                 // Generate cache key for search
                 const searchParams = {
@@ -1249,26 +1263,10 @@
                 };
                 const cacheKey = this.generateCacheKey(this.cacheConfig.search.key, this.current_page, searchParams);
                 
-                const cached = this.getCache(cacheKey);
-                if (cached) {
-                    this.loading = false;
-                    this.loadingSearch = false;
-                    this.loadingData = false;
-                    this.allItem = true;
-                    this.desserts = cached.data;
-                    this.last_page = cached.last_page;
-                    this.pageCount = cached.last_page;
-                    return;
-                }
+                // Skip cache check - always fetch fresh data
+                console.log('Sending API request...');
 
-                axios.get("cases/searchv3?filter[status_id]=" + this.search.status_id +
-                        "&filter[case_categores_id]=" + this.search.case_categores_id +
-                        "&filter[sessions.note]=" + this.search.note +
-                        '&filter[is_paid]=' + this.search.is_paid + 
-                        '&doctors=' + this.search.doctors +
-                        "&from_date=" + this.search.from_date +
-                        "&to_date=" + this.search.to_date +
-                        '&page=' + this.current_page, {
+                axios.get(searchUrl, {
                             headers: {
                                 "Content-Type": "application/json",
                                 Accept: "application/json",
@@ -1276,6 +1274,7 @@
                             }
                         })
                     .then(res => {
+                        console.log('Search API response:', res.data);
                         this.loading = false;
                         this.loadingSearch = false;
                         this.loadingData = false;
@@ -1284,13 +1283,16 @@
                         this.last_page = res.data.last_page;
                         this.pageCount = res.data.last_page;
 
+                        console.log('Cases loaded:', this.desserts.length, 'items');
+
                         // Cache the response
                         this.setCache(cacheKey, {
                             data: res.data.data,
                             last_page: res.data.last_page
                         }, this.cacheConfig.search.ttl);
                     })
-                    .catch(() => {
+                    .catch((error) => {
+                        console.error('Search API error:', error);
                         this.loading = false;
                         this.loadingSearch = false;
                         this.loadingData = false;
@@ -1311,16 +1313,10 @@
 
             getCaseCategories() {
                 this.loadingCategories = true;
+                console.log(' Loading Case Categories from API (cache disabled)...');
+                console.log(' API URL:', axios.defaults.baseURL + 'case-categories');
+                console.log('� Token:', this.$store.state.AdminInfo?.token ? 'Token exists' : 'No token');
                 
-                const cached = this.getCache(this.cacheConfig.caseCategories.key);
-                if (cached) {
-                    this.loading = false;
-                    this.loadingCategories = false;
-                    this.CaseCategoriess = cached.CaseCategoriess;
-                    this.CaseCategories = cached.CaseCategories;
-                    return;
-                }
-
                 axios.get("case-categories", {
                         headers: {
                             "Content-Type": "application/json",
@@ -1329,9 +1325,15 @@
                         }
                     })
                     .then(res => {
+                        console.log(' Case Categories API Response:', res.data);
                         this.loading = false;
                         this.loadingCategories = false;
-                        this.CaseCategoriess = res.data;
+                        
+                        // Handle different response structures
+                        const data = res.data.data || res.data;
+                        console.log(' Extracted data:', data);
+                        
+                        this.CaseCategoriess = Array.isArray(data) ? data : [];
                         this.CaseCategories = []; // Clear existing categories
 
                         this.CaseCategories.push({
@@ -1350,29 +1352,23 @@
                             });
                         }
 
-                        // Cache the response
-                        this.setCache(this.cacheConfig.caseCategories.key, {
-                            CaseCategoriess: this.CaseCategoriess,
-                            CaseCategories: this.CaseCategories
-                        }, this.cacheConfig.caseCategories.ttl);
-
-                        console.log('Case Categories loaded:', this.CaseCategories);
+                        console.log(' Case Categories loaded:', this.CaseCategories.length, 'items');
+                        console.log(' Categories:', this.CaseCategories);
                     })
                     .catch((error) => {
-                        console.error('Error loading case categories:', error);
+                        console.error(' Error loading case categories:', error);
+                        console.error('Error details:', {
+                            message: error.message,
+                            response: error.response,
+                            status: error.response?.status,
+                            data: error.response?.data,
+                            url: error.config?.url,
+                            fullUrl: error.config?.baseURL + error.config?.url
+                        });
                         this.loading = false;
                         this.loadingCategories = false;
-                        // Try to use expired cache as fallback
-                        const expiredCache = localStorage.getItem(this.cacheConfig.caseCategories.key);
-                        if (expiredCache) {
-                            try {
-                                const data = JSON.parse(expiredCache).data;
-                                this.CaseCategoriess = data.CaseCategoriess || [];
-                                this.CaseCategories = data.CaseCategories || [];
-                            } catch (e) {
-                                console.warn('Failed to parse expired cache');
-                            }
-                        }
+                        this.CaseCategoriess = [];
+                        this.CaseCategories = [];
                     });
             },
 
@@ -1661,6 +1657,13 @@
         },
 
         created() {
+            console.log('🚀 Cases component created');
+            console.log('Store state:', this.$store.state.AdminInfo?.token ? 'Token exists' : 'No token');
+            
+            // Clear old case categories cache on component creation
+            console.log('🗑️ Clearing old case categories cache...');
+            this.clearCache(this.cacheConfig.caseCategories.key);
+            
             // Initialize case categories first
             this.getCaseCategories();
             

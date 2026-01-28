@@ -313,12 +313,12 @@
                         sortable: false
                     },
 
-                    {
-                        text: this.$t('waitingList.waiting_status_title'),
-                        align: "start",
-                        value: "waiting_status",
-                        sortable: false
-                    },
+                    // {
+                    //     text: this.$t('waitingList.waiting_status_title'),
+                    //     align: "start",
+                    //     value: "waiting_status",
+                    //     sortable: false
+                    // },
                     {
                         text: this.$t('examination'),
                         align: "center",

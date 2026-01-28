@@ -83,6 +83,8 @@
                   full-width 
                   format="ampm"
                   color="primary"
+                  ampm-in-title
+                  :use-seconds="false"
                 ></v-time-picker>
 
               </v-col>
@@ -268,8 +270,8 @@ export default {
       send_msg: false,
       editedItem: {
         reservation_start_date: this.getCurrentDate(),
-        reservation_from_time: "",
-        reservation_to_time: "",
+        reservation_from_time: "14:00", // Default to 2:00 PM
+        reservation_to_time: "15:00", // Default to 3:00 PM
         appointmentMessage: "",
         doctors: null,
         appointment_type: "examination", // Default to examination

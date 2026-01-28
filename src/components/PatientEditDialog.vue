@@ -608,17 +608,21 @@ export default {
     async fetchPatientsForCombobox(searchTerm = '') {
       try {
         this.loadingPatients = true;
-        const response = await fetch(
-          `https://mina-api.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
-            }
+        
+        // Use the new searchv2 API endpoint with pagination
+        const timestamp = Date.now();
+        const apiUrl = searchTerm 
+          ? `https://mina-api.tctate.com/api/patients/searchv2/${encodeURIComponent(searchTerm)}?page=1&per_page=50&_t=${timestamp}`
+          : `https://mina-api.tctate.com/api/patients/getByUserIdv3?per_page=50&_t=${timestamp}`;
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
           }
-        );
+        });
         
         if (response.ok) {
           const result = await response.json();
