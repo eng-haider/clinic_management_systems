@@ -146,62 +146,7 @@
 			background-color: #ffffff;
 			z-index: 9999;
 		}
-		
-		/* RTL Dialog Fix - Prevents dialog from being cut off in Arabic - ENHANCED */
-		html[dir="rtl"] .v-dialog__content,
-		body.rtl .v-dialog__content,
-		[dir="rtl"] .v-dialog__content {
-			position: fixed !important;
-			left: 0 !important;
-			right: 0 !important;
-			top: 0 !important;
-			bottom: 0 !important;
-			width: 100vw !important;
-			height: 100vh !important;
-			display: flex !important;
-			justify-content: center !important;
-			align-items: center !important;
-			padding: 24px !important;
-			box-sizing: border-box !important;
-			margin: 0 !important;
-			transform: none !important;
-		}
-		
-		html[dir="rtl"] .v-dialog,
-		body.rtl .v-dialog,
-		[dir="rtl"] .v-dialog {
-			margin: 0 auto !important;
-			left: 50% !important;
-			right: auto !important;
-			
-			position: relative !important;
-			max-width: 800px !important;
-			width: 90% !important;
-		}
-		
-		html[dir="rtl"] .v-dialog .v-card,
-		body.rtl .v-dialog .v-card,
-		[dir="rtl"] .v-dialog .v-card {
-			width: 100% !important;
-			max-width: 100% !important;
-		}
-		
-		@media (max-width: 600px) {
-			html[dir="rtl"] .v-dialog__content,
-			body.rtl .v-dialog__content,
-			[dir="rtl"] .v-dialog__content {
-				padding: 8px !important;
-			}
-			
-			html[dir="rtl"] .v-dialog,
-			body.rtl .v-dialog,
-			[dir="rtl"] .v-dialog {
-				width: 95% !important;
-				max-width: 95% !important;
-				left: 50% !important;
-				transform: translateX(-50%) !important;
-			}
-		}
+
 	</style>
 
 </body>

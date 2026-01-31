@@ -71,6 +71,14 @@
   direction: rtl;
   font-family: "Cairo", sans-serif;
   background-color: #fff;
+  text-align: right;
+  unicode-bidi: bidi-override;
+}
+
+.rx-report * {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: embed;
 }
 
 .rx-header {
@@ -145,6 +153,13 @@
   margin-top: 20px;
   font-size: 18px;
   font-family: "GE_Dinar", sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.patient-details strong {
+  direction: rtl;
+  unicode-bidi: embed;
 }
 
 .notes-section {
@@ -159,6 +174,10 @@
   width: calc(100% - 2cm);
   box-sizing: border-box;
   white-space: pre-wrap;
+  direction: rtl;
+  text-align: right;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .footer {
@@ -170,6 +189,12 @@
   border-top: 1px solid #ddd;
   background: #f8f9fa;
   color: #666;
+  direction: rtl;
+}
+
+.footer p {
+  direction: rtl;
+  text-align: center;
 }
 
 @media print {

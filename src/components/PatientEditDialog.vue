@@ -163,19 +163,7 @@
               </v-col>
             </v-row>
 
-            <!-- Image Upload Section -->
-            <v-row style="height: auto;">
-              <v-col cols="12" md="12">
-                <vue2-dropzone 
-                  ref="myVueDropzone" 
-                  id="dropzone" 
-                  :options="dropzoneOptions"
-                  @vdropzone-success="handleImageSuccess"
-                  @vdropzone-error="handleImageError"
-                  @vdropzone-removed-file="handleImageRemoved"
-                />
-              </v-col>
-            </v-row>
+        
 
             <!-- Schedule Today Option -->
           
@@ -304,7 +292,7 @@ export default {
 
       // Dropzone configuration
       dropzoneOptions: {
-        url: "https://smartclinicv5.tctate.com/api/cases/uploude_image",
+        url: "https://titaniumapi.tctate.com/api/cases/uploude_image",
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
@@ -400,7 +388,7 @@ export default {
       try {
         this.loadingPatients = true;
         const response = await fetch(
-          `https://smartclinicv5.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
+          `https://titaniumapi.tctate.com/api/patients/getByUserIdv3?per_page=50${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}`,
           {
             method: 'GET',
             headers: {
@@ -590,7 +578,7 @@ export default {
       this.loadSave = true;
       
       try {
-        const apiUrl = "https://smartclinicv5.tctate.com/api/patients";
+        const apiUrl = "https://titaniumapi.tctate.com/api/patients";
         const method = this.isEditing ? 'PATCH' : 'POST';
         const url = this.isEditing ? `${apiUrl}/${patientData.id}` : apiUrl;
         
@@ -663,7 +651,7 @@ export default {
 
         console.log('📸 Uploading patient images:', requestBody);
 
-        const response = await fetch('https://smartclinicv5.tctate.com/api/cases/uploude_images', {
+        const response = await fetch('https://titaniumapi.tctate.com/api/cases/uploude_images', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

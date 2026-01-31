@@ -495,18 +495,39 @@
       },
       captureImage(printSection) {
         printSection.style.display = 'block';
-        this.$nextTick(() => {
+        printSection.style.position = 'absolute';
+        printSection.style.left = '-9999px';
+        printSection.style.top = '0';
+        
+        // Wait for DOM to fully render
+        setTimeout(() => {
           html2canvas(printSection, {
             useCORS: true,
-            proxy: 'https://thingproxy.freeboard.io/fetch/', // Different public proxy for testing
+            allowTaint: true,
+            logging: true,
+            scale: 2,
+            letterRendering: true,
+            width: printSection.scrollWidth,
+            height: printSection.scrollHeight,
+            windowWidth: printSection.scrollWidth,
+            windowHeight: printSection.scrollHeight,
           }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'prescription.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
             printSection.style.display = 'none';
+            printSection.style.position = '';
+            printSection.style.left = '';
+            printSection.style.top = '';
+          }).catch(error => {
+            console.error('Error capturing image:', error);
+            printSection.style.display = 'none';
+            printSection.style.position = '';
+            printSection.style.left = '';
+            printSection.style.top = '';
           });
-        });
+        }, 300);
       },
       async sendViaWhatsApp() {
         const printSection = this.$refs.printSection;
@@ -515,10 +536,24 @@
       },
       async uploadImageAndSendLink(printSection) {
         printSection.style.display = 'block';
-        this.$nextTick(async () => {
+        printSection.style.position = 'absolute';
+        printSection.style.left = '-9999px';
+        printSection.style.top = '0';
+        
+        // Wait for DOM to fully render
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        try {
           const canvas = await html2canvas(printSection, {
             useCORS: true,
-            proxy: 'https://thingproxy.freeboard.io/fetch/', // Different public proxy for testing
+            allowTaint: true,
+            logging: true,
+            scale: 2,
+            letterRendering: true,
+            width: printSection.scrollWidth,
+            height: printSection.scrollHeight,
+            windowWidth: printSection.scrollWidth,
+            windowHeight: printSection.scrollHeight,
           });
           const imageData = canvas.toDataURL('image/png');
           const formData = new FormData();
@@ -537,8 +572,17 @@
             console.error('Error uploading image:', error);
           } finally {
             printSection.style.display = 'none';
+            printSection.style.position = '';
+            printSection.style.left = '';
+            printSection.style.top = '';
           }
-        });
+        } catch (error) {
+          console.error('Error capturing canvas:', error);
+          printSection.style.display = 'none';
+          printSection.style.position = '';
+          printSection.style.left = '';
+          printSection.style.top = '';
+        }
       },
       getItem(id) {
         const patient = this.patients.find((p) => p.id === id);
