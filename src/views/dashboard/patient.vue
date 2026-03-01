@@ -6,28 +6,33 @@
         <!-- Patient Avatar -->
         <v-col cols="auto" class="pa-4">
           <v-avatar size="60" class="mr-3">
-            <v-icon  size="70" color="grey lighten-1">
+            <v-icon size="70" color="grey lighten-1">
               mdi-account-circle
             </v-icon>
-           
           </v-avatar>
         </v-col>
 
         <!-- Patient Info -->
         <v-col>
           <div class="d-flex flex-column patient-info-container">
-            <h2 class="text-h5 font-weight-medium mb-1" style="font-family: Cairo, sans-serif !important;">
-              {{ patient.name || $t('loading.loading') }}...
+            <h2
+              class="text-h5 font-weight-medium mb-1"
+              style="font-family: Cairo, sans-serif !important"
+            >
+              {{ patient.name || $t("loading.loading") }}...
             </h2>
             <div class="patient-sub-info" v-if="patient.phone">
-               <div class="patient-phone d-flex align-center">
+              <div class="patient-phone d-flex align-center">
                 <v-icon size="16" class="mr-1">mdi-whatsapp</v-icon>
-                <a 
-                  :href="getWhatsAppLink(patient.phone)" 
-                  target="_blank" 
+                <a
+                  :href="getWhatsAppLink(patient.phone)"
+                  target="_blank"
                   class="whatsapp-link text-decoration-none"
                 >
-                  <div class="case-title" style="direction: ltr; margin-right: 5px;">
+                  <div
+                    class="case-title"
+                    style="direction: ltr; margin-right: 5px"
+                  >
                     {{ formatPhone(patient.phone) }}
                   </div>
                 </a>
@@ -42,7 +47,8 @@
                 class="mr-2"
               >
                 <v-icon left size="16">mdi-wallet</v-icon>
-                {{ $t('patients.credit_balance') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+                {{ $t("patients.credit_balance") }}:
+                {{ formatCreditBalance(patient.credit_balance) }} IQ
               </v-chip>
             </div>
           </div>
@@ -52,119 +58,109 @@
         <v-col cols="auto" class="pa-2 pa-md-4">
           <!-- Mobile: Show buttons vertically in smaller size -->
           <div class="d-flex d-sm-none flex-column">
-            <v-btn 
+            <v-btn
               small
-              class="mb-1" 
-              color="primary" 
-              rounded 
+              class="mb-1"
+              color="primary"
+              rounded
               @click="editPatient"
             >
               <v-icon left small>mdi-pencil</v-icon>
-              {{ $t('edit') }}
+              {{ $t("edit") }}
             </v-btn>
-            
-            <v-btn 
+
+            <v-btn
               small
-              class="mb-1" 
+              class="mb-1"
               rounded
-              style="background-color: rgb(59, 106, 117); color: white;"
+              style="background-color: rgb(59, 106, 117); color: white"
               @click="bookAppointment()"
             >
               <v-icon left small>mdi-calendar-clock</v-icon>
-              {{ $t('book_appointment') }}
+              {{ $t("book_appointment") }}
             </v-btn>
-            
-            <v-btn 
+
+            <v-btn
               small
-              class="mb-1" 
-              color="success" 
+              class="mb-1"
+              color="success"
               rounded
               @click="generateBill"
             >
               <v-icon left small>mdi-file-document-outline</v-icon>
-              {{ $t('patients.bill') }}
+              {{ $t("patients.bill") }}
             </v-btn>
-            
+
             <!-- RX Folder Button (Only shown when rx_id is set) -->
-            <v-btn 
+            <v-btn
               v-if="patient.rx_id"
               small
-              class="mb-1" 
-              color="blue-grey" 
+              class="mb-1"
+              color="blue-grey"
               rounded
               @click="openRxFolder"
             >
               <v-icon left small>mdi-folder-open</v-icon>
               مجلد RX
             </v-btn>
-            
+
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
-            <v-btn 
+            <v-btn
               v-if="useCreditSystem"
               small
-              class="mb-1" 
-              color="orange" 
+              class="mb-1"
+              color="orange"
               rounded
               @click="openAddCreditDialog"
             >
               <v-icon left small>mdi-wallet-plus</v-icon>
-              {{ $t('patients.add_credit') }}
+              {{ $t("patients.add_credit") }}
             </v-btn>
           </div>
 
           <!-- Desktop: Show buttons horizontally -->
           <div class="d-none d-sm-flex">
-            <v-btn 
-              class="mr-2" 
-              color="primary" 
-              rounded 
-              @click="editPatient"
-            >
-              {{ $t('edit') }}
+            <v-btn class="mr-2" color="primary" rounded @click="editPatient">
+              {{ $t("edit") }}
             </v-btn>
-            
-            <v-btn 
-              class="mr-2" 
+
+            <v-btn
+              class="mr-2"
               rounded
-              style="background-color: rgb(59, 106, 117); color: white;"
+              style="background-color: rgb(59, 106, 117); color: white"
               @click="bookAppointment()"
             >
               <v-icon left>mdi-calendar-clock</v-icon>
-              {{ $t('book_appointment') }}
+              {{ $t("book_appointment") }}
             </v-btn>
-            
-            <v-btn 
-              class="mr-2" 
-              color="success" 
-              rounded
-              @click="generateBill"
-            >
+
+            <v-btn class="mr-2" color="success" rounded @click="generateBill">
               <v-icon left>mdi-file-document-outline</v-icon>
-              {{ $t('patients.bill') }}
+              {{ $t("patients.bill") }}
             </v-btn>
-            
+
             <!-- RX Folder Button (Only shown when rx_id is set) -->
-            <v-btn 
+            <v-btn
               v-if="patient.rx_id"
-              class="mr-2" 
-              color="blue-grey" 
+              class="mr-2"
+              color="blue-grey"
               rounded
               @click="openRxFolder"
             >
               <v-icon left>mdi-folder-open</v-icon>
               مجلد RX
             </v-btn>
-            
+
             <!-- Add Credit Button (Only shown when credit system is enabled) -->
-            <v-btn 
+            <v-btn
               v-if="useCreditSystem"
-              class="mr-2" 
-              color="orange" 
+              class="mr-2"
+              color="orange"
               rounded
               @click="openAddCreditDialog"
             >
               <v-icon left>mdi-wallet-plus</v-icon>
-              {{ $t('patients.add_credit') }}
+              {{ $t("patients.add_credit") }}
             </v-btn>
           </div>
         </v-col>
@@ -177,8 +173,6 @@
         <v-row>
           <v-col cols="12" md="12">
             <!-- Secretary Welcome Message (Only shown for secretaries) -->
-           
-
 
             <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode">
               <!-- Teeth Type Tabs -->
@@ -207,10 +201,10 @@
                   <!-- Permanent Teeth Tab -->
                   <v-tab-item>
                     <div class="teeth-container">
-                      <teeth_v2 
+                      <teeth_v2
                         ref="teethComponent"
                         :categories="dentalOperations"
-                        :tooth_num="selectedTeethNumbers" 
+                        :tooth_num="selectedTeethNumbers"
                         :id="1"
                         :patientCases="patientCases"
                         :patientData="patient"
@@ -222,10 +216,10 @@
                   <!-- Baby Teeth Tab -->
                   <v-tab-item>
                     <div class="teeth-container">
-                      <teeth_baby 
+                      <teeth_baby
                         ref="babyTeethComponent"
                         :categories="dentalOperations"
-                        :tooth_num="selectedTeethNumbers" 
+                        :tooth_num="selectedTeethNumbers"
                         :id="2"
                         :patientCases="patientCases"
                         :patientData="patient"
@@ -235,7 +229,7 @@
                   </v-tab-item>
                 </v-tabs-items>
               </v-card-text>
-              
+
               <!-- Examination Category Button (ID: 25) -->
               <v-card-text class="pt-0 pb-4">
                 <v-divider class="mb-3"></v-divider>
@@ -255,46 +249,36 @@
                 </div>
               </v-card-text>
 
+              <!-- Notes Section -->
+              <v-card class="notes-section mt-4">
+                <v-card-title class="pb-2">
+                  <v-icon left>mdi-note-text</v-icon>
+                  {{ $t("patients.notes") }}
+                </v-card-title>
+                <v-card-text>
+                  <v-textarea
+                    v-model="patient.notes"
+                    :label="$t('patients.add_notes')"
+                    :placeholder="$t('patients.notes_placeholder')"
+                    outlined
+                    rows="4"
+                    counter
+                    maxlength="1000"
+                    style="direction: rtl; text-align: right"
+                  ></v-textarea>
+                </v-card-text>
+              </v-card>
 
-                <!-- Notes Section -->
-        <v-card class="notes-section mt-4">
-          <v-card-title class="pb-2">
-            <v-icon left>mdi-note-text</v-icon>
-            {{ $t('patients.notes') }}
-          </v-card-title>
-          <v-card-text>
-            <v-textarea
-              v-model="patient.notes"
-              :label="$t('patients.add_notes')"
-              :placeholder="$t('patients.notes_placeholder')"
-              outlined
-              rows="4"
-              counter
-              maxlength="1000"
-              style="direction: rtl; text-align: right;"
-            ></v-textarea>
-          </v-card-text>
-        </v-card>
-
-
-
-
-
-
-
-
-
-              
               <!-- Selected Cases Table -->
               <v-card-text>
                 <div class="selected-teeth-table">
                   <v-card flat class="teeth-template-card">
                     <v-card-title class="teeth-template-title">
                       <v-icon left>mdi-tooth-outline</v-icon>
-                      <span class="case-title">{{ $t('patients.cases') }}</span>
+                      <span class="case-title">{{ $t("patients.cases") }}</span>
                     </v-card-title>
 
-                    <v-card-text style="padding-top: 20px;">
+                    <v-card-text style="padding-top: 20px">
                       <v-data-table
                         :headers="caseHeaders"
                         :items="patientCases"
@@ -307,18 +291,20 @@
                         :footer-props="{
                           'items-per-page-options': [-1, 10, 25, 50, 100],
                           'items-per-page-text': 'عدد العناصر في الصفحة:',
-                          'items-per-page-all-text': 'الكل'
+                          'items-per-page-all-text': 'الكل',
                         }"
                       >
                         <!-- Tooth Number Column -->
                         <template v-slot:item.tooth_number="{ item }">
                           <div class="tooth-number-cell">
-                            <v-chip 
-                              small 
-                              :color="item.tooth_number ? 'primary' : 'grey lighten-1'" 
+                            <v-chip
+                              small
+                              :color="
+                                item.tooth_number ? 'primary' : 'grey lighten-1'
+                              "
                               text-color="white"
                             >
-                              {{ item.tooth_number || 'عام' }}
+                              {{ item.tooth_number || "عام" }}
                             </v-chip>
                           </div>
                         </template>
@@ -355,7 +341,11 @@
                         <template v-slot:item.status="{ item }">
                           <v-switch
                             v-model="item.completed"
-                            :label="item.completed ? $t('completed') : $t('not_completed')"
+                            :label="
+                              item.completed
+                                ? $t('completed')
+                                : $t('not_completed')
+                            "
                             color="green"
                             inset
                             @change="updateCaseStatus(item)"
@@ -367,7 +357,9 @@
                           <div class="doctor-cell text-center">
                             <v-chip small color="blue-grey" text-color="white">
                               <v-icon left small>mdi-account</v-icon>
-                              {{ item.doctor_name || $t('patients.not_specified') }}
+                              {{
+                                item.doctor_name || $t("patients.not_specified")
+                              }}
                             </v-chip>
                           </div>
                         </template>
@@ -375,21 +367,35 @@
                         <!-- Bills Column -->
                         <template v-slot:item.bills="{ item }">
                           <div class="bills-for-case">
-                            <div v-if="getBillsForCase(item.id).length > 0" class="d-flex flex-wrap" style="font-size: 23px;">
+                            <div
+                              v-if="getBillsForCase(item.id).length > 0"
+                              class="d-flex flex-wrap"
+                              style="font-size: 23px"
+                            >
                               <v-chip
                                 v-for="bill in getBillsForCase(item.id)"
                                 :key="bill.id"
-                               
-                                :color="bill.is_paid == 1 ? 'success' : 'warning'"
+                                :color="
+                                  bill.is_paid == 1 ? 'success' : 'warning'
+                                "
                                 text-color="white"
                                 class="ma-1"
-                                :title="`${$t('patients.bill_number')} ${bill.id} - ${bill.is_paid == 1 ? $t('paid') : $t('not_paid')}`"
+                                :title="`${$t('patients.bill_number')} ${
+                                  bill.id
+                                } - ${
+                                  bill.is_paid == 1
+                                    ? $t('paid')
+                                    : $t('not_paid')
+                                }`"
                               >
                                 {{ bill.price }} IQ
                               </v-chip>
                             </div>
-                            <span v-else class="grey--text text--darken-1 caption">
-                              {{ $t('patients.no_bills') }}
+                            <span
+                              v-else
+                              class="grey--text text--darken-1 caption"
+                            >
+                              {{ $t("patients.no_bills") }}
                             </span>
                           </div>
                         </template>
@@ -412,17 +418,19 @@
                                 @input="updateCaseNotes(item)"
                               />
                             </div>
-                            
+
                             <!-- Existing sessions from server -->
-                            <div 
-                              v-for="(session, index) in item.sessions" 
+                            <div
+                              v-for="(session, index) in item.sessions"
                               :key="`server-session-${session.id || index}`"
                               class="mb-2"
                             >
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`${$t('patients.session_notes')} ${index + 1}...`"
+                                  :placeholder="`${$t(
+                                    'patients.session_notes',
+                                  )} ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -441,17 +449,21 @@
                                 </v-chip>
                               </div>
                             </div>
-                            
+
                             <!-- New additional session notes -->
-                            <div 
-                              v-for="(session, index) in item.additionalSessions" 
+                            <div
+                              v-for="(
+                                session, index
+                              ) in item.additionalSessions"
                               :key="`new-session-${index}`"
                               class="mb-2"
                             >
                               <div class="d-flex align-center">
                                 <v-textarea
                                   v-model="session.note"
-                                  :placeholder="`${$t('patients.new_session_notes')} ${index + 1}...`"
+                                  :placeholder="`${$t(
+                                    'patients.new_session_notes',
+                                  )} ${index + 1}...`"
                                   rows="1"
                                   auto-grow
                                   no-resize
@@ -466,12 +478,12 @@
                                   class="ml-2 session-date-chip"
                                   color="green lighten-3"
                                 >
-                                  {{ $t('patients.new') }}
+                                  {{ $t("patients.new") }}
                                 </v-chip>
                               </div>
                             </div>
                           </div>
-                          
+
                           <v-btn
                             text
                             small
@@ -480,16 +492,13 @@
                             @click="addNote(item)"
                           >
                             <v-icon left size="16">mdi-plus</v-icon>
-                            {{ $t('patients.add_session') }}
+                            {{ $t("patients.add_session") }}
                           </v-btn>
                         </template>
 
                         <!-- Actions Column -->
                         <template v-slot:item.actions="{ item }">
-                          <v-icon
-                            color="error"
-                            @click="deleteCase(item)"
-                          >
+                          <v-icon color="error" @click="deleteCase(item)">
                             mdi-delete
                           </v-icon>
                         </template>
@@ -501,10 +510,16 @@
             </v-card>
 
             <!-- Case Images Section (Hidden for secretaries) -->
-            <v-card class="mb-4" outlined v-if="!secretaryBillsOnlyMode && patientImages.length > 0">
+            <v-card
+              class="mb-4"
+              outlined
+              v-if="!secretaryBillsOnlyMode && patientImages.length > 0"
+            >
               <v-card-title class="subtitle-1">
                 <v-icon left class="primary--text">mdi-image-multiple</v-icon>
-                <span style="font-family: Cairo !important;">{{ $t('patients.case_images') }}</span>
+                <span style="font-family: Cairo !important">{{
+                  $t("patients.case_images")
+                }}</span>
               </v-card-title>
               <v-card-text>
                 <v-row>
@@ -520,7 +535,9 @@
                       <a
                         :href="getImageUrl(image.image_url)"
                         :data-fancybox="'patient-gallery'"
-                        :data-caption="`${$t('patients.patient_image')} ${index + 1}`"
+                        :data-caption="`${$t('patients.patient_image')} ${
+                          index + 1
+                        }`"
                         class="patient-image-link"
                       >
                         <v-img
@@ -529,7 +546,7 @@
                           aspect-ratio="1"
                           contain
                           class="patient-image"
-                          style="cursor: pointer; border-radius: 8px;"
+                          style="cursor: pointer; border-radius: 8px"
                         />
                       </a>
                       <v-btn
@@ -537,7 +554,7 @@
                         small
                         color="error"
                         class="delete-image-btn"
-                        style="position: absolute; top: 5px; right: 5px;"
+                        style="position: absolute; top: 5px; right: 5px"
                         @click="deleteImage(image)"
                       >
                         <v-icon size="16">mdi-delete</v-icon>
@@ -549,21 +566,15 @@
             </v-card>
 
             <!-- Bills History Card (Always shown) -->
-       
           </v-col>
         </v-row>
 
-
-
-
-
-        
         <!-- Image Upload Section (Hidden for secretaries) -->
-        <v-row style="height: auto;" v-if="!secretaryBillsOnlyMode">
+        <v-row style="height: auto" v-if="!secretaryBillsOnlyMode">
           <v-col cols="12" md="12">
-            <vue2-dropzone 
-              ref="patientDropzone" 
-              id="dropzone" 
+            <vue2-dropzone
+              ref="patientDropzone"
+              id="dropzone"
               :options="dropzoneOptions"
               @vdropzone-success="handleImageSuccess"
               @vdropzone-error="handleImageError"
@@ -581,7 +592,7 @@
               <hr />
             </v-flex>
             <v-flex md2>
-              <p class="se_tit_menu text-center">{{ $t('patients.bill') }}</p>
+              <p class="se_tit_menu text-center">{{ $t("patients.bill") }}</p>
             </v-flex>
             <v-flex md5>
               <hr />
@@ -589,14 +600,9 @@
           </v-layout>
 
           <!-- Role-based message for non-accountants -->
-          <v-alert
-            v-if="!canAddBills"
-            type="info"
-            outlined
-            class="mx-4 mt-2"
-          >
+          <v-alert v-if="!canAddBills" type="info" outlined class="mx-4 mt-2">
             <v-icon left>mdi-information</v-icon>
-            {{ $t('patients.bills_view_only_message') }}
+            {{ $t("patients.bills_view_only_message") }}
           </v-alert>
 
           <!-- Total Amount -->
@@ -618,18 +624,21 @@
           <!-- Payment Details - Loop through all bills -->
           <div class="bills-payment-loop">
             <!-- Debug: Show bills count -->
-            <div v-if="patientBills.length === 0" class="text-center pa-4 grey--text">
-              {{ $t('patients.no_bills_message') }}
+            <div
+              v-if="patientBills.length === 0"
+              class="text-center pa-4 grey--text"
+            >
+              {{ $t("patients.no_bills_message") }}
             </div>
-            
-            <div 
-              v-for="bill in patientBills" 
+
+            <div
+              v-for="bill in patientBills"
               :key="bill.id"
               class="bill-payment-item mb-3"
-              :class="{ 
-                'paid': bill.is_paid == 1, 
-                'unpaid': bill.is_paid == 0,
-                'new-bill-highlight': bill.isNew
+              :class="{
+                paid: bill.is_paid == 1,
+                unpaid: bill.is_paid == 0,
+                'new-bill-highlight': bill.isNew,
               }"
             >
               <!-- Mobile Layout -->
@@ -637,26 +646,28 @@
                 <!-- User Info at the top -->
                 <div class="mobile-user-info-header mb-3">
                   <v-icon size="14" class="mr-1">mdi-account</v-icon>
-                  <span class="grey--text text--darken-1 font-weight-medium">{{ bill.user ? bill.user.name : $t('patients.not_specified') }}</span>
+                  <span class="grey--text text--darken-1 font-weight-medium">{{
+                    bill.user ? bill.user.name : $t("patients.not_specified")
+                  }}</span>
                 </div>
 
                 <!-- Case Selection -->
-                            <div class="mobile-field-container mb-2">
-                              <v-select
-                                v-model="bill.case_id"
-                                :items="availableCases"
-                                item-text="case_display"
-                                item-value="id"
-                                item-disabled="disabled"
-                                dense
-                                outlined
-                                :placeholder="$t('patients.select_case')"
-                                :label="$t('patients.case')"
-                                class="mobile-responsive-select"
-                                :disabled="!canEditBills"
-                              >
-                              </v-select>
-                            </div>
+                <div class="mobile-field-container mb-2">
+                  <v-select
+                    v-model="bill.case_id"
+                    :items="availableCases"
+                    item-text="case_display"
+                    item-value="id"
+                    item-disabled="disabled"
+                    dense
+                    outlined
+                    :placeholder="$t('patients.select_case')"
+                    :label="$t('patients.case')"
+                    class="mobile-responsive-select"
+                    :disabled="!canEditBills"
+                  >
+                  </v-select>
+                </div>
 
                 <!-- Payment Amount -->
                 <div class="mobile-field-container mb-2">
@@ -689,7 +700,7 @@
                       </template>
                     </v-text-field>
                   </div>
-                  
+
                   <div class="mobile-status-container">
                     <v-switch
                       :input-value="bill.is_paid == 1"
@@ -699,7 +710,7 @@
                       @change="toggleBillPaymentStatus(bill)"
                     />
                     <div class="mobile-status-label">
-                      {{ bill.is_paid == 1 ? $t('paid') : $t('not_paid') }}
+                      {{ bill.is_paid == 1 ? $t("paid") : $t("not_paid") }}
                     </div>
                   </div>
                 </div>
@@ -715,22 +726,24 @@
                     :disabled="!canEditBills || patient.credit_balance <= 0"
                     @change="onBillCreditToggle(bill)"
                   />
-                  <div v-if="bill.use_credit && patient.credit_balance > 0" class="text-caption grey--text mt-1">
-                    {{ $t('patients.available_credit') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+                  <div
+                    v-if="bill.use_credit && patient.credit_balance > 0"
+                    class="text-caption grey--text mt-1"
+                  >
+                    {{ $t("patients.available_credit") }}:
+                    {{ formatCreditBalance(patient.credit_balance) }} IQ
                   </div>
-                  <div v-if="patient.credit_balance <= 0" class="text-caption red--text mt-1">
-                    {{ $t('patients.no_credit_available_message') }}
+                  <div
+                    v-if="patient.credit_balance <= 0"
+                    class="text-caption red--text mt-1"
+                  >
+                    {{ $t("patients.no_credit_available_message") }}
                   </div>
                 </div>
 
                 <!-- Delete Button -->
                 <div class="mobile-actions text-center" v-if="canDeleteBills">
-                  <v-btn
-                    icon
-                    small
-                    color="error"
-                    @click="deleteBill(bill)"
-                  >
+                  <v-btn icon small color="error" @click="deleteBill(bill)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </div>
@@ -739,7 +752,7 @@
               <!-- Desktop Layout -->
               <v-layout row wrap class="d-none d-sm-flex desktop-bill-layout">
                 <v-flex md1 class="d-none d-md-flex"></v-flex>
-                
+
                 <!-- Case Selection -->
                 <v-flex md3 sm4>
                   <v-select
@@ -771,7 +784,9 @@
                   />
                   <div class="desktop-user-info">
                     <v-icon size="12" class="mr-1">mdi-account</v-icon>
-                    <span class="grey--text text--darken-1">{{ bill.user ? bill.user.name : $t('patients.not_specified') }}</span>
+                    <span class="grey--text text--darken-1">{{
+                      bill.user ? bill.user.name : $t("patients.not_specified")
+                    }}</span>
                   </div>
                 </v-flex>
 
@@ -792,25 +807,33 @@
                   </v-text-field>
                 </v-flex>
 
-
-                     <!-- Use Credit Column -->
-                     <v-flex md1 sm1 class="mt-2 text-center credit-column" v-if="useCreditSystem" pr-2>
+                <!-- Use Credit Column -->
+                <v-flex
+                  md1
+                  sm1
+                  class="mt-2 text-center credit-column"
+                  v-if="useCreditSystem"
+                  pr-2
+                >
                   <v-switch
                     v-model="bill.use_credit"
                     :disabled="!canEditBills || patient.credit_balance <= 0"
                     color="orange"
                     inset
                     dense
-                    style="position: relative; bottom: 10px;"
+                    style="position: relative; bottom: 10px"
                     @change="onBillCreditToggle(bill)"
                   />
-                  <div class="caption text-center credit-label" :class="patient.credit_balance <= 0 ? 'red--text' : 'grey--text'">
-                    {{ $t('patients.use_credit') }}
+                  <div
+                    class="caption text-center credit-label"
+                    :class="
+                      patient.credit_balance <= 0 ? 'red--text' : 'grey--text'
+                    "
+                  >
+                    {{ $t("patients.use_credit") }}
                   </div>
                 </v-flex>
 
-
-                
                 <!-- Payment Status -->
                 <v-flex md1 sm2 class="mt-2 text-center payment-status-column">
                   <v-switch
@@ -818,15 +841,20 @@
                     :disabled="!canEditBills"
                     inset
                     dense
-                    style="position: relative; padding-right: 10px;"
+                    style="position: relative; padding-right: 10px"
                     @change="toggleBillPaymentStatus(bill)"
                   />
-                  <div class="caption text-center payment-status-label grey--text">
-                    {{ bill.is_paid == 1 ? $t('paid') : $t('patients.awaiting_payment') }}
+                  <div
+                    class="caption text-center payment-status-label grey--text"
+                  >
+                    {{
+                      bill.is_paid == 1
+                        ? $t("paid")
+                        : $t("patients.awaiting_payment")
+                    }}
                   </div>
                 </v-flex>
 
-           
                 <!-- Delete Button -->
                 <v-flex md1 sm1 class="text-center" v-if="canDeleteBills">
                   <v-btn
@@ -838,7 +866,7 @@
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </v-flex>
-                
+
                 <v-flex md1 class="d-none d-md-flex"></v-flex>
               </v-layout>
             </div>
@@ -847,31 +875,31 @@
           <!-- Add Payment Button - Only for Accountants -->
           <v-card-actions class="justify-center" v-if="canEditBills">
             <v-btn
-                color="primary"
-                :loading="addBillLoading"
-                :disabled="addBillLoading"
-                @click="addPayment"
-                class="add-payment-btn mr-3"
-              >
+              color="primary"
+              :loading="addBillLoading"
+              :disabled="addBillLoading"
+              @click="addPayment"
+              class="add-payment-btn mr-3"
+            >
               <v-icon left>mdi-plus</v-icon>
-              {{ $t('patients.add_new_payment') }}
+              {{ $t("patients.add_new_payment") }}
             </v-btn>
-            
-       
           </v-card-actions>
 
           <!-- Credit System Actions for non-bill editors -->
-          <v-card-actions class="justify-center" v-else-if="useCreditSystem && !canEditBills">
+          <v-card-actions
+            class="justify-center"
+            v-else-if="useCreditSystem && !canEditBills"
+          >
             <v-btn
               color="orange"
               @click="openAddCreditDialog"
               class="add-credit-btn"
             >
               <v-icon left>mdi-wallet-plus</v-icon>
-              {{ $t('patients.add_credit') }}
+              {{ $t("patients.add_credit") }}
             </v-btn>
           </v-card-actions>
-
 
           <!-- Message for non-accountants -->
           <v-alert
@@ -881,32 +909,24 @@
             class="mx-4 mt-2 mb-4"
           >
             <v-icon left>mdi-information</v-icon>
-            {{ $t('patients.bills_view_only_message') }}
+            {{ $t("patients.bills_view_only_message") }}
           </v-alert>
 
           <!-- Payment Summary -->
           <v-layout row wrap class="pt-5 mt-5">
             <v-flex md xs></v-flex>
             <v-flex md xs>
-              <div style="font-weight: bold;">
-                {{ $t('patients.amount_paid') }} :
-                <v-chip
-                  label
-                  outlined
-                  color="success"
-                  class="ma-2"
-                >
+              <div style="font-weight: bold">
+                {{ $t("patients.amount_paid") }} :
+                <v-chip label outlined color="success" class="ma-2">
                   {{ paidAmount }} IQ
                 </v-chip>
               </div>
-              <div style="font-weight: bold;">
-                <span style="padding-left: 34px;">{{ $t('patients.remaining') }} :</span>
-                <v-chip
-                  label
-                  outlined
-                  color="success"
-                  class="ma-2"
+              <div style="font-weight: bold">
+                <span style="padding-left: 34px"
+                  >{{ $t("patients.remaining") }} :</span
                 >
+                <v-chip label outlined color="success" class="ma-2">
                   {{ remainingAmount }} IQ
                 </v-chip>
               </div>
@@ -915,9 +935,8 @@
           </v-layout>
         </v-card>
 
-      
         <!-- Save Button (Hidden for secretaries when they can't create bills) -->
-        <v-card class="cre_bill mt-4" >
+        <v-card class="cre_bill mt-4">
           <v-card-actions class="justify-center">
             <v-btn
               large
@@ -925,12 +944,10 @@
               :loading="saving"
               @click="savePatientData"
             >
-              {{ $t('patients.save_information') }}
+              {{ $t("patients.save_information") }}
             </v-btn>
           </v-card-actions>
         </v-card>
-
-    
       </v-card-text>
     </v-card>
 
@@ -947,13 +964,12 @@
     />
 
     <!-- Appointment Booking Dialog -->
-    <OwnerBooking 
-  
-              :patientFound="true" 
-              :patientInfo="patientInfo" 
-              :doctors="doctors"
-              v-if="appointmentDialog"
-            />
+    <OwnerBooking
+      :patientFound="true"
+      :patientInfo="patientInfo"
+      :doctors="doctors"
+      v-if="appointmentDialog"
+    />
 
     <!-- Bill Report Dialog -->
     <v-dialog v-model="billDialog" max-width="900px" v-track-dialog>
@@ -967,9 +983,9 @@
       <v-card>
         <v-card-title class="headline">
           <v-icon left color="orange">mdi-wallet-plus</v-icon>
-          {{ $t('patients.add_credit_to_patient') }}
+          {{ $t("patients.add_credit_to_patient") }}
         </v-card-title>
-        
+
         <v-card-text>
           <v-container>
             <v-row>
@@ -977,11 +993,12 @@
                 <div class="text-center mb-4">
                   <h3>{{ patient.name }}</h3>
                   <v-chip small color="primary" class="mt-2">
-                    {{ $t('patients.current_balance') }}: {{ formatCreditBalance(patient.credit_balance) }} IQ
+                    {{ $t("patients.current_balance") }}:
+                    {{ formatCreditBalance(patient.credit_balance) }} IQ
                   </v-chip>
                 </div>
               </v-col>
-              
+
               <v-col cols="12">
                 <v-text-field
                   v-model="creditAmount"
@@ -997,25 +1014,32 @@
                   class="credit-amount-input"
                 />
               </v-col>
-              
-              <v-col cols="12" v-if="creditAmount && parseFloat(creditAmount) > 0">
+
+              <v-col
+                cols="12"
+                v-if="creditAmount && parseFloat(creditAmount) > 0"
+              >
                 <v-alert type="info" outlined class="mb-0">
-                  {{ $t('patients.new_balance_will_be') }}: 
-                  <strong>{{ formatCreditBalance((patient.credit_balance || 0) + parseFloat(creditAmount)) }} IQ</strong>
+                  {{ $t("patients.new_balance_will_be") }}:
+                  <strong
+                    >{{
+                      formatCreditBalance(
+                        (patient.credit_balance || 0) +
+                          parseFloat(creditAmount),
+                      )
+                    }}
+                    IQ</strong
+                  >
                 </v-alert>
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
-        
+
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            text
-            @click="closeAddCreditDialog"
-            :disabled="addingCredit"
-          >
-            {{ $t('cancel') }}
+          <v-btn text @click="closeAddCreditDialog" :disabled="addingCredit">
+            {{ $t("cancel") }}
           </v-btn>
           <v-btn
             color="orange"
@@ -1024,7 +1048,7 @@
             @click="addCreditToPatient"
           >
             <v-icon left>mdi-wallet-plus</v-icon>
-            {{ $t('patients.add_credit') }}
+            {{ $t("patients.add_credit") }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1035,21 +1059,21 @@
 </template>
 
 <script>
-import teeth from '@/components/core/teeth.vue';
-import teeth_v2 from '@/components/core/teeth_v2.vue';
-import teeth_baby from '@/components/core/teeth_baby.vue';
-import OwnerBooking from './sub_components/ownerBookinfDed.vue';
-import Bill from './sub_components/billsReport.vue';
-import PatientEditDialog from '@/components/PatientEditDialog.vue';
-import { EventBus } from './event-bus.js';
+import teeth from "@/components/core/teeth.vue";
+import teeth_v2 from "@/components/core/teeth_v2.vue";
+import teeth_baby from "@/components/core/teeth_baby.vue";
+import OwnerBooking from "./sub_components/ownerBookinfDed.vue";
+import Bill from "./sub_components/billsReport.vue";
+import PatientEditDialog from "@/components/PatientEditDialog.vue";
+import { EventBus } from "./event-bus.js";
 // Import the configured axios instance that includes authentication
-import '@/axios.js';
-import LazyLoadingMixin from '@/mixins/lazyLoadingMixin';
+import "@/axios.js";
+import LazyLoadingMixin from "@/mixins/lazyLoadingMixin";
 import vue2Dropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 
 export default {
-  name: 'PatientDetail',
+  name: "PatientDetail",
   mixins: [LazyLoadingMixin],
   components: {
     teeth,
@@ -1058,72 +1082,72 @@ export default {
     OwnerBooking,
     Bill,
     PatientEditDialog,
-    vue2Dropzone
+    vue2Dropzone,
   },
-  
+
   data() {
     return {
       saving: false,
       loadingDoctors: false,
       activeTeethTab: 0, // 0 for permanent teeth, 1 for baby teeth
-      
+
       // Patient Data (will be loaded from API)
       patient: {
         id: null,
-        name: '',
-        phone: '',
+        name: "",
+        phone: "",
         age: null,
-        address: '',
-        email: '',
-        sex: '',
-        systemic_conditions: '',
-        birth_date: '',
-        notes: '',
-        credit_balance: 0
+        address: "",
+        email: "",
+        sex: "",
+        systemic_conditions: "",
+        birth_date: "",
+        notes: "",
+        credit_balance: 0,
       },
-      
+
       // Dental Operations (will be loaded from API)
       dentalOperations: [],
-      
+
       // Context menu state is now managed in teeth component
       selectedTooth: null,
-      
+
       // Patient Cases (will be loaded from API)
       patientCases: [],
-      
+
       // Patient Images (will be loaded from API)
       patientImages: [],
-        
+
       // Patient Bills (will be loaded from API)
       patientBills: [],
-      
+
       // Billing Data
       currentPayment: {
         id: null,
-        amount: '', // Empty amount field for user input
+        amount: "", // Empty amount field for user input
         date: new Date().toISOString().substr(0, 10),
         paid: false,
-        user_name: ''
+        user_name: "",
       },
-      
+
       // Add cases for bill creation
       availableCases: [],
-      
-      currentUser: this.$store.state.user?.name || 'User',
-      
+
+      currentUser: this.$store.state.user?.name || "User",
+
       // Doctors list for appointment booking
       doctors: [],
-      
+
       // Dialogs
       editDialog: false,
       appointmentDialog: false,
       billDialog: false,
       addCreditDialog: false,
-  // UI: loading state for Add Payment button
-  addBillLoading: false,
-      
+      // UI: loading state for Add Payment button
+      addBillLoading: false,
+
       // Credit System
-      creditAmount: '',
+      creditAmount: "",
       addingCredit: false,
       creditAmountErrors: [],
       useCreditForBills: false,
@@ -1132,43 +1156,46 @@ export default {
       options: {
         page: 1,
         itemsPerPage: 5,
-        sortBy: 'date',
-        sortDesc: true
+        sortBy: "date",
+        sortDesc: true,
       },
       totalItems: 0,
       loadingData: false,
-      
+
       // API endpoint for patient data
-      apiEndpoint: '/api/patients',
-      
+      apiEndpoint: "/api/patients",
+
       // Search fields
       search: {
-        name: '',
-        phone: '',
-        case_type: '',
-        date_from: '',
-        date_to: ''
+        name: "",
+        phone: "",
+        case_type: "",
+        date_from: "",
+        date_to: "",
       },
 
       // Uploaded images tracking
       uploadedImages: [],
-      
+
       // Track new uploaded images that need to be saved
       newUploadedImages: [],
       // Fancybox is now handling image viewing
-    }
+    };
   },
-  
+
   computed: {
-     teethComponent() {
+    teethComponent() {
       try {
         const teethV2 = this.$store.state.AdminInfo?.clinics_info?.teeth_v2;
-        console.log('🦷 Teeth component version check:', { teethV2, clinicsInfo: this.$store.state.AdminInfo?.clinics_info });
-   return () => import('@/components/core/teeth_v2.vue');
+        console.log("🦷 Teeth component version check:", {
+          teethV2,
+          clinicsInfo: this.$store.state.AdminInfo?.clinics_info,
+        });
+        return () => import("@/components/core/teeth_v2.vue");
       } catch (error) {
-        console.error('❌ Error determining teeth component:', error);
+        console.error("❌ Error determining teeth component:", error);
         // Default to original teeth component
-        return () => import('@/components/core/teeth.vue');
+        return () => import("@/components/core/teeth.vue");
       }
     },
 
@@ -1176,92 +1203,113 @@ export default {
     selectedTeethNumbers() {
       // Filter out null/undefined tooth numbers (e.g., examination cases)
       return this.patientCases
-        .map(case_item => case_item.tooth_number)
-        .filter(toothNum => toothNum !== null && toothNum !== undefined && toothNum !== '');
+        .map((case_item) => case_item.tooth_number)
+        .filter(
+          (toothNum) =>
+            toothNum !== null && toothNum !== undefined && toothNum !== "",
+        );
     },
-    
+
     totalAmount() {
-      return this.patientCases.reduce((total, case_item) => {
-        const price = case_item.actualPrice || parseFloat(this.removeCommas(case_item.price)) || 0;
-        return total + price;
-      }, 0).toLocaleString();
+      return this.patientCases
+        .reduce((total, case_item) => {
+          const price =
+            case_item.actualPrice ||
+            parseFloat(this.removeCommas(case_item.price)) ||
+            0;
+          return total + price;
+        }, 0)
+        .toLocaleString();
     },
-    
+
     totalAmountNumber() {
       return this.patientCases.reduce((total, case_item) => {
-        const price = case_item.actualPrice || parseFloat(this.removeCommas(case_item.price)) || 0;
+        const price =
+          case_item.actualPrice ||
+          parseFloat(this.removeCommas(case_item.price)) ||
+          0;
         return total + price;
       }, 0);
     },
-    
+
     paidAmount() {
       // Calculate from bills where is_paid = 1
       const paid = this.patientBills
-        .filter(bill => bill.is_paid == 1)
+        .filter((bill) => bill.is_paid == 1)
         .reduce((total, bill) => {
           const price = parseFloat(this.removeCommas(bill.price)) || 0;
           return total + price;
         }, 0);
       return paid.toLocaleString();
     },
-    
+
     paidAmountNumber() {
       return this.patientBills
-        .filter(bill => bill.is_paid == 1)
+        .filter((bill) => bill.is_paid == 1)
         .reduce((total, bill) => {
           const price = parseFloat(this.removeCommas(bill.price)) || 0;
           return total + price;
         }, 0);
     },
-    
+
     totalBillsAmount() {
-      return this.patientBills
-        .reduce((total, bill) => {
-          const price = parseFloat(this.removeCommas(bill.price)) || 0;
-          return total + price;
-        }, 0);
+      return this.patientBills.reduce((total, bill) => {
+        const price = parseFloat(this.removeCommas(bill.price)) || 0;
+        return total + price;
+      }, 0);
     },
-    
+
     shouldShowSaveButton() {
       // Show save button only when total cases amount equals total bills amount
       return Math.abs(this.totalAmountNumber - this.totalBillsAmount) < 0.01;
     },
-    
+
     remainingAmount() {
       const total = this.totalAmountNumber;
       const paid = this.paidAmountNumber;
-      
+
       return (total - paid).toLocaleString();
     },
-    
+
     // Check if user can change payment status based on clinic settings and user role
     canChangePaymentStatus() {
       try {
         const role = this.$store.state.role;
-        const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
-        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
+        const paidAtSecretary =
+          this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
+        const doctorCanPay =
+          this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
 
         // If doctor_can_pay is enabled (1), allow doctors, adminDoctors, and accounters to change payment status
         if (doctorCanPay == 1 || doctorCanPay === true) {
           // Check paid_at_secretary setting for additional permissions
           if (paidAtSecretary == 1 || paidAtSecretary === true) {
-            return role === 'secretary' || role === 'accounter' || role === 'doctor' || role === 'adminDoctor';
+            return (
+              role === "secretary" ||
+              role === "accounter" ||
+              role === "doctor" ||
+              role === "adminDoctor"
+            );
           } else {
-            return role === 'accounter' || role === 'doctor' || role === 'adminDoctor';
+            return (
+              role === "accounter" ||
+              role === "doctor" ||
+              role === "adminDoctor"
+            );
           }
         }
-        
+
         // If doctor_can_pay is not enabled, use original logic
         // If paid_at_secretary is true (1), only secretary/accounter can change payment status
         if (paidAtSecretary == 1 || paidAtSecretary === true) {
-          return role === 'secretary' || role === 'accounter';
+          return role === "secretary" || role === "accounter";
         }
         // If paid_at_secretary is false (0), only secretary/accounter can change payment status
         else {
-          return role === 'secretary' || role === 'accounter';
+          return role === "secretary" || role === "accounter";
         }
       } catch (error) {
-        console.error('Error checking payment permission:', error);
+        console.error("Error checking payment permission:", error);
         return true; // Default to allowing if error occurs
       }
     },
@@ -1270,32 +1318,35 @@ export default {
     canAddBills() {
       try {
         const role = this.$store.state.role;
-        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
-        
+        const doctorCanPay =
+          this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
+
         // Always allow accounters to add bills
-        if (role === 'accounter') {
+        if (role === "accounter") {
           return true;
         }
-        
+
         // If doctor_can_pay is enabled (1), allow doctors and adminDoctors to add bills
         if (doctorCanPay == 1 || doctorCanPay === true) {
-          return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+          return (
+            role === "adminDoctor" || role === "doctor" || role === "accounter"
+          );
         }
-        
+
         // Otherwise, only accounters can add bills
-        return role === 'accounter';
+        return role === "accounter";
       } catch (error) {
-        console.error('Error checking add bills permission:', error);
+        console.error("Error checking add bills permission:", error);
         return false;
       }
     },
 
-
-
     // Patient info formatted for OwnerBooking component
     patientInfo() {
-
-      console.log('📋 Formatting patient info for booking component:', this.patient);
+      console.log(
+        "📋 Formatting patient info for booking component:",
+        this.patient,
+      );
       return {
         id: this.patient.id,
         name: this.patient.name,
@@ -1306,21 +1357,21 @@ export default {
         sex: this.patient.sex,
         birth_date: this.patient.birth_date,
         systemic_conditions: this.patient.systemic_conditions,
-        bills: this.patient.bills
+        bills: this.patient.bills,
       };
     },
 
     // Complete patient data for bill report
     completePatientData() {
-      console.log('📋 Preparing complete patient data for bill report');
-      console.log('Patient:', this.patient);
-      console.log('Cases:', this.patientCases);
-      console.log('Bills:', this.patientBills);
-      
+      console.log("📋 Preparing complete patient data for bill report");
+      console.log("Patient:", this.patient);
+      console.log("Cases:", this.patientCases);
+      console.log("Bills:", this.patientBills);
+
       return {
         ...this.patient,
         cases: this.patientCases,
-        bills: this.patientBills
+        bills: this.patientBills,
       };
     },
 
@@ -1328,25 +1379,28 @@ export default {
     secretaryBillsOnlyMode() {
       try {
         const role = this.$store.state.role;
-        
+
         // Block secretary completely (this shouldn't be reached due to route guard)
-        if (role === 'secretary') {
+        if (role === "secretary") {
           return true;
         }
-        
+
         // Accountant can only see bills section
-        if (role === 'accounter') {
+        if (role === "accounter") {
           return true;
         }
-        
-        const paidAtSecretary = this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
-        
+
+        const paidAtSecretary =
+          this.$store.state.AdminInfo?.clinics_info?.paid_at_secretary;
+
         // Original logic for other roles
-        const isSecretaryOnlyMode = (role === 'secretary' || role === 'accounter') && (paidAtSecretary == 1 || paidAtSecretary === true);
-        
+        const isSecretaryOnlyMode =
+          (role === "secretary" || role === "accounter") &&
+          (paidAtSecretary == 1 || paidAtSecretary === true);
+
         return isSecretaryOnlyMode;
       } catch (error) {
-        console.error('Error checking secretary mode:', error);
+        console.error("Error checking secretary mode:", error);
         return false;
       }
     },
@@ -1355,22 +1409,25 @@ export default {
     canEditBills() {
       try {
         const role = this.$store.state.role;
-        const doctorCanPay = this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
-        
+        const doctorCanPay =
+          this.$store.state.AdminInfo?.clinics_info?.doctor_can_pay;
+
         // Always allow accounters to edit bills
-        if (role === 'accounter') {
+        if (role === "accounter") {
           return true;
         }
-        
+
         // If doctor_can_pay is enabled (1), allow doctors and adminDoctors to edit bills
         if (doctorCanPay == 1 || doctorCanPay === true) {
-          return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+          return (
+            role === "adminDoctor" || role === "doctor" || role === "accounter"
+          );
         }
-        
+
         // Otherwise, only accounters can edit bills
-        return role === 'accounter';
+        return role === "accounter";
       } catch (error) {
-        console.error('Error checking edit bills permission:', error);
+        console.error("Error checking edit bills permission:", error);
         return false;
       }
     },
@@ -1380,9 +1437,11 @@ export default {
       try {
         const role = this.$store.state.role;
         // Only doctors, adminDoctors, and accounters can delete bills
-        return role === 'adminDoctor' || role === 'doctor' || role === 'accounter';
+        return (
+          role === "adminDoctor" || role === "doctor" || role === "accounter"
+        );
       } catch (error) {
-        console.error('Error checking delete bills permission:', error);
+        console.error("Error checking delete bills permission:", error);
         return false;
       }
     },
@@ -1392,9 +1451,9 @@ export default {
       try {
         const role = this.$store.state.role;
         // Only accountants can access the billing section
-        return role === 'accounter';
+        return role === "accounter";
       } catch (error) {
-        console.error('Error checking billing section access:', error);
+        console.error("Error checking billing section access:", error);
         return false;
       }
     },
@@ -1402,28 +1461,113 @@ export default {
     // Table Headers with translations
     caseHeaders() {
       return [
-        { text: this.$t('patients.tooth'), value: 'tooth_number', align: 'center', width: '2%' },
-        { text: this.$t('datatable.type'), value: 'case_type', align: 'start', width: '5%' },
-        { text: this.$t('datatable.date'), value: 'date', align: 'center', width: '10%' },
-        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '12%' },
-        { text: this.$t('datatable.status'), value: 'status', align: 'center', width: '12%' },
-        { text: this.$t('datatable.doctor'), value: 'doctor_name', align: 'center', width: '12%' },
-        { text: this.$t('datatable.paid_bills'), value: 'bills', align: 'center', width: '15%' },
-        { text: this.$t('datatable.notes'), value: 'notes', align: 'start', width: '28%' },
-        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '6%' }
+        {
+          text: this.$t("patients.tooth"),
+          value: "tooth_number",
+          align: "center",
+          width: "2%",
+        },
+        {
+          text: this.$t("datatable.type"),
+          value: "case_type",
+          align: "start",
+          width: "5%",
+        },
+        {
+          text: this.$t("datatable.date"),
+          value: "date",
+          align: "center",
+          width: "10%",
+        },
+        {
+          text: this.$t("datatable.price"),
+          value: "price",
+          align: "center",
+          width: "12%",
+        },
+        {
+          text: this.$t("datatable.status"),
+          value: "status",
+          align: "center",
+          width: "12%",
+        },
+        {
+          text: this.$t("datatable.doctor"),
+          value: "doctor_name",
+          align: "center",
+          width: "12%",
+        },
+        {
+          text: this.$t("datatable.paid_bills"),
+          value: "bills",
+          align: "center",
+          width: "15%",
+        },
+        {
+          text: this.$t("datatable.notes"),
+          value: "notes",
+          align: "start",
+          width: "28%",
+        },
+        {
+          text: this.$t("datatable.actions"),
+          value: "actions",
+          align: "center",
+          width: "6%",
+        },
       ];
     },
-    
+
     billHeaders() {
       return [
-        { text: this.$t('datatable.bill_number'), value: 'id', align: 'center', width: '10%' },
-        { text: this.$t('datatable.case'), value: 'case_id', align: 'center', width: '15%' },
-        { text: this.$t('datatable.price'), value: 'price', align: 'center', width: '15%' },
-        { text: this.$t('patients.payment_date'), value: 'PaymentDate', align: 'center', width: '15%' },
-        { text: this.$t('patients.payment_status'), value: 'is_paid', align: 'center', width: '15%' },
-        { text: this.$t('patients.created_by'), value: 'user_name', align: 'start', width: '15%' },
-        { text: this.$t('patients.created_at'), value: 'created_at', align: 'center', width: '10%' },
-        { text: this.$t('datatable.actions'), value: 'actions', align: 'center', width: '5%' }
+        {
+          text: this.$t("datatable.bill_number"),
+          value: "id",
+          align: "center",
+          width: "10%",
+        },
+        {
+          text: this.$t("datatable.case"),
+          value: "case_id",
+          align: "center",
+          width: "15%",
+        },
+        {
+          text: this.$t("datatable.price"),
+          value: "price",
+          align: "center",
+          width: "15%",
+        },
+        {
+          text: this.$t("patients.payment_date"),
+          value: "PaymentDate",
+          align: "center",
+          width: "15%",
+        },
+        {
+          text: this.$t("patients.payment_status"),
+          value: "is_paid",
+          align: "center",
+          width: "15%",
+        },
+        {
+          text: this.$t("patients.created_by"),
+          value: "user_name",
+          align: "start",
+          width: "15%",
+        },
+        {
+          text: this.$t("patients.created_at"),
+          value: "created_at",
+          align: "center",
+          width: "10%",
+        },
+        {
+          text: this.$t("datatable.actions"),
+          value: "actions",
+          align: "center",
+          width: "5%",
+        },
       ];
     },
 
@@ -1433,13 +1577,15 @@ export default {
         thumbnailWidth: 150,
         maxFilesize: 5,
         acceptedFiles: "image/*",
-        dictDefaultMessage: `<i class="fas fa-upload"></i> ${this.$t('patients.upload_case_images')}`,
+        dictDefaultMessage: `<i class="fas fa-upload"></i> ${this.$t(
+          "patients.upload_case_images",
+        )}`,
         paramName: "file",
         maxFiles: 10,
         addRemoveLinks: true,
-        dictRemoveFile: this.$t('patients.remove_image'),
-        dictCancelUpload: this.$t('patients.cancel_upload'),
-        autoProcessQueue: true
+        dictRemoveFile: this.$t("patients.remove_image"),
+        dictCancelUpload: this.$t("patients.cancel_upload"),
+        autoProcessQueue: true,
       };
     },
 
@@ -1450,28 +1596,29 @@ export default {
 
     creditAmountRules() {
       return [
-        v => !!v || this.$t('patients.credit_amount_required'),
-        v => (!isNaN(parseFloat(v)) && parseFloat(v) > 0) || this.$t('patients.credit_amount_must_be_positive')
+        (v) => !!v || this.$t("patients.credit_amount_required"),
+        (v) =>
+          (!isNaN(parseFloat(v)) && parseFloat(v) > 0) ||
+          this.$t("patients.credit_amount_must_be_positive"),
       ];
-    }
+    },
   },
-  
-  methods: {
 
-        generateBill() {
+  methods: {
+    generateBill() {
       this.billDialog = true;
     },
 
     // Credit System Methods
     openAddCreditDialog() {
       this.addCreditDialog = true;
-      this.creditAmount = '';
+      this.creditAmount = "";
       this.creditAmountErrors = [];
     },
 
     closeAddCreditDialog() {
       this.addCreditDialog = false;
-      this.creditAmount = '';
+      this.creditAmount = "";
       this.creditAmountErrors = [];
       this.addingCredit = false;
     },
@@ -1481,7 +1628,7 @@ export default {
     },
 
     formatCreditBalance(balance) {
-      if (!balance || isNaN(balance)) return '0';
+      if (!balance || isNaN(balance)) return "0";
       return parseFloat(balance).toLocaleString();
     },
 
@@ -1489,7 +1636,9 @@ export default {
       try {
         // Validate input
         if (!this.creditAmount || parseFloat(this.creditAmount) <= 0) {
-          this.creditAmountErrors = [this.$t('patients.credit_amount_must_be_positive')];
+          this.creditAmountErrors = [
+            this.$t("patients.credit_amount_must_be_positive"),
+          ];
           return;
         }
 
@@ -1498,50 +1647,55 @@ export default {
 
         const token = this.$store.state.AdminInfo?.token;
         if (!token) {
-          throw new Error('No authentication token found');
+          throw new Error("No authentication token found");
         }
 
-        console.log('🏦 Adding credit to patient:', {
+        console.log("🏦 Adding credit to patient:", {
           patientId: this.patient.id,
-          amount: this.creditAmount
+          amount: this.creditAmount,
         });
 
-        const response = await this.$http.post(`/patients/${this.patient.id}/add-credit`, {
-          amount: parseFloat(this.creditAmount)
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await this.$http.post(
+          `/patients/${this.patient.id}/add-credit`,
+          {
+            amount: parseFloat(this.creditAmount),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
-        console.log('🏦 Credit added successfully:', response.data);
+        console.log("🏦 Credit added successfully:", response.data);
 
         // Update patient credit balance
         this.patient.credit_balance = response.data.current_balance;
 
         // Show success message
         this.$swal.fire({
-          title: this.$t('success'),
-          text: this.$t('patients.credit_added_successfully'),
-          icon: 'success',
+          title: this.$t("success"),
+          text: this.$t("patients.credit_added_successfully"),
+          icon: "success",
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
 
         // Close dialog
         this.closeAddCreditDialog();
-
       } catch (error) {
-        console.error('❌ Error adding credit:', error);
-        
-        let errorMessage = this.$t('patients.error_adding_credit');
-        
+        console.error("❌ Error adding credit:", error);
+
+        let errorMessage = this.$t("patients.error_adding_credit");
+
         if (error.response) {
           if (error.response.status === 422 && error.response.data.errors) {
             // Validation errors
-            this.creditAmountErrors = Object.values(error.response.data.errors).flat();
+            this.creditAmountErrors = Object.values(
+              error.response.data.errors,
+            ).flat();
             return;
           } else if (error.response.data.message) {
             errorMessage = error.response.data.message;
@@ -1549,10 +1703,10 @@ export default {
         }
 
         this.$swal.fire({
-          title: this.$t('error'),
+          title: this.$t("error"),
           text: errorMessage,
-          icon: 'error',
-          confirmButtonText: this.$t('close')
+          icon: "error",
+          confirmButtonText: this.$t("close"),
         });
       } finally {
         this.addingCredit = false;
@@ -1560,55 +1714,61 @@ export default {
     },
 
     onUseCreditToggle() {
-      console.log('Use credit toggled:', this.useCreditForBills);
+      console.log("Use credit toggled:", this.useCreditForBills);
       if (this.useCreditForBills && this.patient.credit_balance <= 0) {
         this.useCreditForBills = false;
         this.$swal.fire({
-          title: this.$t('patients.no_credit_available_title'),
-          text: this.$t('patients.no_credit_available_message'),
-          icon: 'warning',
-          confirmButtonText: this.$t('close')
+          title: this.$t("patients.no_credit_available_title"),
+          text: this.$t("patients.no_credit_available_message"),
+          icon: "warning",
+          confirmButtonText: this.$t("close"),
         });
       }
     },
 
     onBillCreditToggle(bill) {
-      console.log('Bill credit toggled for bill:', bill.id, 'use_credit:', bill.use_credit);
+      console.log(
+        "Bill credit toggled for bill:",
+        bill.id,
+        "use_credit:",
+        bill.use_credit,
+      );
       if (bill.use_credit && this.patient.credit_balance <= 0) {
         bill.use_credit = false;
         this.$swal.fire({
-          title: this.$t('patients.no_credit_available_title'),
-          text: this.$t('patients.no_credit_available_message'),
-          icon: 'warning',
-          confirmButtonText: this.$t('close')
+          title: this.$t("patients.no_credit_available_title"),
+          text: this.$t("patients.no_credit_available_message"),
+          icon: "warning",
+          confirmButtonText: this.$t("close"),
         });
       }
-      
+
       // Mark bill as modified
       bill.modified = true;
     },
-    
+
     // Clear patients list cache (used by casesheet page)
     clearPatientsListCache() {
       // Clear all patient-related cache keys from localStorage
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (
-          key.includes('patients_cache') || 
-          key.includes('all_patients') || 
-          key.includes('search_patients') || 
-          key.includes('doctor_patients')
-        )) {
+        if (
+          key &&
+          (key.includes("patients_cache") ||
+            key.includes("all_patients") ||
+            key.includes("search_patients") ||
+            key.includes("doctor_patients"))
+        ) {
           keysToRemove.push(key);
         }
       }
-      
-      keysToRemove.forEach(key => {
+
+      keysToRemove.forEach((key) => {
         localStorage.removeItem(key);
-        console.log('🗑️ Cleared cache:', key);
+        console.log("🗑️ Cleared cache:", key);
       });
-      
+
       console.log(`🗑️ Cleared ${keysToRemove.length} patient cache entries`);
     },
 
@@ -1616,58 +1776,57 @@ export default {
     async clearCacheAndReload() {
       try {
         // Clear service worker cache
-        if ('caches' in window) {
+        if ("caches" in window) {
           const cacheNames = await caches.keys();
-          await Promise.all(
-            cacheNames.map(name => caches.delete(name))
-          );
-          console.log('🗑️ All caches cleared');
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+          console.log("🗑️ All caches cleared");
         }
 
         // Clear localStorage cache if any
-        localStorage.removeItem('dental_operations_cache');
-        localStorage.removeItem('case_categories_cache');
-        
+        localStorage.removeItem("dental_operations_cache");
+        localStorage.removeItem("case_categories_cache");
+
         // Clear patients list cache (for casesheet page)
         this.clearPatientsListCache();
 
         // Force reload dental operations
         this.dentalOperations = [];
         await this.fetchDentalOperations();
-        
+
         // Force reload patient data
         await this.loadPatientData();
-        
+
         this.$swal.fire({
           title: "تم التحديث",
           text: "تم تحديث البيانات بنجاح",
           icon: "success",
           timer: 1500,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
       } catch (error) {
-        console.error('❌ Error clearing cache:', error);
+        console.error("❌ Error clearing cache:", error);
         this.$swal.fire({
           title: "خطأ",
           text: "فشل في تحديث البيانات",
           icon: "error",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
       }
     },
 
     // Handle case added from teeth component
     handleCaseAdded(caseData) {
-      console.log('Case added from teeth component:', caseData);
-      
+      console.log("Case added from teeth component:", caseData);
+
       if (!caseData || !caseData.toothNumber || !caseData.operation) {
-        console.error('Invalid case data received:', caseData);
+        console.error("Invalid case data received:", caseData);
         return;
       }
-      
+
       // Get operation name
-      const operationName = caseData.operation.name || caseData.operation.name_ar;
-      
+      const operationName =
+        caseData.operation.name || caseData.operation.name_ar;
+
       // Create new case object (allowing multiple categories for same tooth)
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
@@ -1676,114 +1835,126 @@ export default {
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
-        displayPrice: '',
+        displayPrice: "",
         completed: false,
-        notes: '',
+        notes: "",
         operation_id: caseData.operation.id,
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
       };
-      
+
       // Add to the beginning of the cases array
       this.patientCases.unshift(newCase);
-      
+
       // Force UI update
       this.$nextTick(() => {
         this.$forceUpdate();
       });
-      
-      console.log('New case added:', newCase);
-      
-     
+
+      console.log("New case added:", newCase);
     },
 
     // Fetch dental operations from API
-  async fetchDentalOperations() {
-    try {
-      console.log('🦷 Fetching dental operations...');
-      
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Dental operations request timeout')), 10000); // 10 seconds timeout
-      });
+    async fetchDentalOperations() {
+      try {
+        console.log("🦷 Fetching dental operations...");
 
-      const response = await Promise.race([
-        this.$http.get('case-categories', {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache"
-          },
-          params: {
-            _t: Date.now() // Add timestamp to prevent caching
-          }
-        }),
-        timeoutPromise
-      ]);
-      
-      console.log('🦷 Raw API response:', response.data);
-      
-      this.dentalOperations = response.data.map(category => ({
-        id: category.id,
-        name: category.name_ar,
-        name_en: category.name_en,
-        order: category.order
-      }));
-      
-      console.log('🦷 Dental operations loaded:', this.dentalOperations.length, this.dentalOperations);
-      
-      // Force reactivity update
-      this.$forceUpdate();
-      
-    } catch (error) {
-      console.error('❌ Error fetching dental operations, using fallback:', error);
-      // Fallback to default operations if API fails
-      this.dentalOperations = [
-       
-      ];
-      console.log('🦷 Using fallback dental operations:', this.dentalOperations);
-      
-      // Force reactivity update
-      this.$forceUpdate();
-    }
-  },
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(
+            () => reject(new Error("Dental operations request timeout")),
+            10000,
+          ); // 10 seconds timeout
+        });
+
+        const response = await Promise.race([
+          this.$http.get("case-categories", {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+            },
+            params: {
+              _t: Date.now(), // Add timestamp to prevent caching
+            },
+          }),
+          timeoutPromise,
+        ]);
+
+        console.log("🦷 Raw API response:", response.data);
+
+        this.dentalOperations = response.data.map((category) => ({
+          id: category.id,
+          name: category.name_ar,
+          name_en: category.name_en,
+          order: category.order,
+        }));
+
+        console.log(
+          "🦷 Dental operations loaded:",
+          this.dentalOperations.length,
+          this.dentalOperations,
+        );
+
+        // Force reactivity update
+        this.$forceUpdate();
+      } catch (error) {
+        console.error(
+          "❌ Error fetching dental operations, using fallback:",
+          error,
+        );
+        // Fallback to default operations if API fails
+        this.dentalOperations = [];
+        console.log(
+          "🦷 Using fallback dental operations:",
+          this.dentalOperations,
+        );
+
+        // Force reactivity update
+        this.$forceUpdate();
+      }
+    },
 
     // Fetch doctors from API
     async fetchDoctors() {
       try {
         this.loadingDoctors = true;
-        console.log('👨‍⚕️ Fetching doctors...');
-        
-        const response = await this.$http.get('doctors/clinic', {
+        console.log("👨‍⚕️ Fetching doctors...");
+
+        const response = await this.$http.get("doctors/clinic", {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
+            Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+          },
         });
-        
-        this.doctors = response.data.data.map(doctor => ({
+
+        this.doctors = response.data.data.map((doctor) => ({
           id: doctor.id,
           name: doctor.name,
           name_ar: doctor.name_ar || doctor.name,
           specialty: doctor.specialty,
           phone: doctor.phone,
-          email: doctor.email
+          email: doctor.email,
         }));
-        
-        console.log('👨‍⚕️ Doctors loaded:', this.doctors.length);
+
+        console.log("👨‍⚕️ Doctors loaded:", this.doctors.length);
         this.loadingDoctors = false;
       } catch (error) {
-        console.error('❌ Error fetching doctors:', error);
+        console.error("❌ Error fetching doctors:", error);
         this.loadingDoctors = false;
-        
+
         // Fallback to default doctor if API fails
         this.doctors = [
-          { id: 1, name: this.$t('patients.default_doctor'), name_ar: this.$t('patients.default_doctor') }
+          {
+            id: 1,
+            name: this.$t("patients.default_doctor"),
+            name_ar: this.$t("patients.default_doctor"),
+          },
         ];
       }
     },
@@ -1796,40 +1967,40 @@ export default {
 
     async loadPatientData() {
       try {
-        console.log('🔄 Starting loadPatientData...');
+        console.log("🔄 Starting loadPatientData...");
 
         // Get patient ID from route
         const patientId = this.$route.params.id;
-        console.log('🆔 Patient ID from route:', patientId);
-        
+        console.log("🆔 Patient ID from route:", patientId);
+
         if (!patientId) {
-          throw new Error('Patient ID not found in route');
+          throw new Error("Patient ID not found in route");
         }
 
         // Check if we have token
         const token = this.$store.state.AdminInfo?.token;
-        console.log('🔑 Token available:', !!token);
-        
+        console.log("🔑 Token available:", !!token);
+
         if (!token) {
-          throw new Error('No authentication token found');
+          throw new Error("No authentication token found");
         }
 
         // Load patient data using the new API endpoint
-        console.log('📡 Making API request to get patient data...');
-        
+        console.log("📡 Making API request to get patient data...");
+
         const response = await this.$http.get(`/getPatientById/${patientId}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
         });
 
-        console.log('📡 API response received:', response.status);
+        console.log("📡 API response received:", response.status);
         const data = response.data;
-        console.log('📊 Patient data structure:', Object.keys(data));
-        
+        console.log("📊 Patient data structure:", Object.keys(data));
+
         // Set patient basic info
-        console.log('👤 Processing patient basic info...');
+        console.log("👤 Processing patient basic info...");
         this.patient = {
           id: data.id,
           name: data.name,
@@ -1843,68 +2014,82 @@ export default {
           notes: data.notes,
           rx_id: data.rx_id,
           credit_balance: data.credit_balance || 0,
-          tooth_parts: data.tooth_parts  // Add tooth_parts data
+          tooth_parts: data.tooth_parts, // Add tooth_parts data
         };
-        console.log('👤 Patient basic info set:', this.patient.name);
-        console.log('🦷 Patient tooth_parts:', this.patient.tooth_parts);
+        console.log("👤 Patient basic info set:", this.patient.name);
+        console.log("🦷 Patient tooth_parts:", this.patient.tooth_parts);
 
         // Process cases data
-        console.log('📋 Processing cases data...');
-        this.patientCases = data.cases ? data.cases.map(caseItem => {
-          // Parse tooth number from JSON array format
-          let toothNumber = null;
-          try {
-            if (caseItem.tooth_num) {
-              const parsed = JSON.parse(caseItem.tooth_num);
-              toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
-            }
-          } catch (e) {
-            toothNumber = caseItem.tooth_num;
-          }
+        console.log("📋 Processing cases data...");
+        this.patientCases = data.cases
+          ? data.cases.map((caseItem) => {
+              // Parse tooth number from JSON array format
+              let toothNumber = null;
+              try {
+                if (caseItem.tooth_num) {
+                  const parsed = JSON.parse(caseItem.tooth_num);
+                  toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
+                }
+              } catch (e) {
+                toothNumber = caseItem.tooth_num;
+              }
 
-          // determine doctor name for the case (support multiple API shapes)
-          let doctorName = '';
-          // Preferred: caseItem.doctor (singular) returned by API in examples
-          if (caseItem.doctor && typeof caseItem.doctor === 'object') {
-            doctorName = caseItem.doctor.name || caseItem.doctor.name_ar || '';
-          } else if (caseItem.doctors) {
-            // caseItem.doctors may be an array or an object
-            if (Array.isArray(caseItem.doctors)) {
-              doctorName = caseItem.doctors.length && (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) ? (caseItem.doctors[0].name || caseItem.doctors[0].name_ar) : '';
-            } else if (typeof caseItem.doctors === 'object') {
-              doctorName = caseItem.doctors.name || caseItem.doctors.name_ar || '';
-            }
-          } else if (caseItem.doctor_name) {
-            // fallback field sometimes provided by API
-            doctorName = caseItem.doctor_name;
-          } else if (caseItem.doctor_id && this.doctors) {
-            // try to resolve from local doctors list if available
-            const d = (this.doctors || []).find(x => x.id === caseItem.doctor_id);
-            doctorName = d ? (d.name || d.name_ar || '') : '';
-          }
+              // determine doctor name for the case (support multiple API shapes)
+              let doctorName = "";
+              // Preferred: caseItem.doctor (singular) returned by API in examples
+              if (caseItem.doctor && typeof caseItem.doctor === "object") {
+                doctorName =
+                  caseItem.doctor.name || caseItem.doctor.name_ar || "";
+              } else if (caseItem.doctors) {
+                // caseItem.doctors may be an array or an object
+                if (Array.isArray(caseItem.doctors)) {
+                  doctorName =
+                    caseItem.doctors.length &&
+                    (caseItem.doctors[0].name || caseItem.doctors[0].name_ar)
+                      ? caseItem.doctors[0].name || caseItem.doctors[0].name_ar
+                      : "";
+                } else if (typeof caseItem.doctors === "object") {
+                  doctorName =
+                    caseItem.doctors.name || caseItem.doctors.name_ar || "";
+                }
+              } else if (caseItem.doctor_name) {
+                // fallback field sometimes provided by API
+                doctorName = caseItem.doctor_name;
+              } else if (caseItem.doctor_id && this.doctors) {
+                // try to resolve from local doctors list if available
+                const d = (this.doctors || []).find(
+                  (x) => x.id === caseItem.doctor_id,
+                );
+                doctorName = d ? d.name || d.name_ar || "" : "";
+              }
 
-          return {
-            id: caseItem.id,
-            server_id: caseItem.id,
-            tooth_number: toothNumber,
-            case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
-            date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
-            price: caseItem.price,
-            displayPrice: this.formatNumberWithCommas(caseItem.price || ''),
-            completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
-            notes: caseItem.notes || '',
-            operation_id: caseItem.case_categores_id,
-            status_id: caseItem.status_id,
-            sessions: caseItem.sessions || [],
-            additionalSessions: [],
-            doctor_id: caseItem.doctor_id,
-            doctor_name: doctorName,
-            user_id: caseItem.user_id,
-            is_paid: caseItem.is_paid,
-            case_categories: caseItem.case_categories
-          };
-        }) : [];
-        console.log('📋 Cases processed:', this.patientCases.length);
+              return {
+                id: caseItem.id,
+                server_id: caseItem.id,
+                tooth_number: toothNumber,
+                case_type: caseItem.case_categories
+                  ? caseItem.case_categories.name_ar
+                  : "",
+                date: caseItem.created_at
+                  ? caseItem.created_at.split("T")[0]
+                  : "",
+                price: caseItem.price,
+                displayPrice: this.formatNumberWithCommas(caseItem.price || ""),
+                completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
+                notes: caseItem.notes || "",
+                operation_id: caseItem.case_categores_id,
+                status_id: caseItem.status_id,
+                sessions: caseItem.sessions || [],
+                additionalSessions: [],
+                doctor_id: caseItem.doctor_id,
+                doctor_name: doctorName,
+                user_id: caseItem.user_id,
+                is_paid: caseItem.is_paid,
+                case_categories: caseItem.case_categories,
+              };
+            })
+          : [];
+        console.log("📋 Cases processed:", this.patientCases.length);
 
         // Format cases for bill selection
         if (data.cases && Array.isArray(data.cases)) {
@@ -1912,86 +2097,103 @@ export default {
         }
 
         // Process images data
-        console.log('🖼️ Processing images data...');
-        this.patientImages = data.images ? data.images.map(image => ({
-          id: image.id,
-          image_url: image.image_url,
-          imageable_id: image.imageable_id,
-          imageable_type: image.imageable_type,
-          description: image.descrption,
-          created_at: image.created_at,
-          updated_at: image.updated_at
-        })) : [];
-        console.log('🖼️ Images processed:', this.patientImages.length);
+        console.log("🖼️ Processing images data...");
+        this.patientImages = data.images
+          ? data.images.map((image) => ({
+              id: image.id,
+              image_url: image.image_url,
+              imageable_id: image.imageable_id,
+              imageable_type: image.imageable_type,
+              description: image.descrption,
+              created_at: image.created_at,
+              updated_at: image.updated_at,
+            }))
+          : [];
+        console.log("🖼️ Images processed:", this.patientImages.length);
 
         // Process bills data
-        console.log('💰 Processing bills data...');
-        console.log('💰 Raw bills from API:', data.bills);
-        this.patientBills = data.bills ? data.bills.map(bill => {
-          console.log('💰 Processing bill:', bill.id, 'use_credit:', bill.use_credit);
-          return {
-            id: bill.id,
-            server_id: bill.id,
-            billable_id: bill.billable_id,
-            patient_id: bill.patient_id,
-            price: bill.price,
-            PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : '',
-            is_paid: bill.is_paid,
-            billable_type: bill.billable_type,
-            user_id: bill.user_id,
-            clinics_id: bill.clinics_id,
-            user: bill.user || {},
-            user_name: bill.user ? bill.user.name : '',
-            created_at: bill.created_at,
-            updated_at: bill.updated_at,
-            case_id: bill.billable_id, // Use billable_id as case_id
-            billable: bill.billable, // Store the complete billable object
-            isNew: false,
-            modified: false,
-            use_credit: bill.use_credit == 1 || bill.use_credit === true // Convert to boolean from API response
-          };
-        }) : [];
-        console.log('💰 Bills processed:', this.patientBills.length);
-        console.log('💰 Bills with credit usage:', this.patientBills.filter(bill => bill.use_credit).length);
+        console.log("💰 Processing bills data...");
+        console.log("💰 Raw bills from API:", data.bills);
+        this.patientBills = data.bills
+          ? data.bills.map((bill) => {
+              console.log(
+                "💰 Processing bill:",
+                bill.id,
+                "use_credit:",
+                bill.use_credit,
+              );
+              return {
+                id: bill.id,
+                server_id: bill.id,
+                billable_id: bill.billable_id,
+                patient_id: bill.patient_id,
+                price: bill.price,
+                PaymentDate: bill.PaymentDate
+                  ? bill.PaymentDate.split(" ")[0]
+                  : "",
+                is_paid: bill.is_paid,
+                billable_type: bill.billable_type,
+                user_id: bill.user_id,
+                clinics_id: bill.clinics_id,
+                user: bill.user || {},
+                user_name: bill.user ? bill.user.name : "",
+                created_at: bill.created_at,
+                updated_at: bill.updated_at,
+                case_id: bill.billable_id, // Use billable_id as case_id
+                billable: bill.billable, // Store the complete billable object
+                isNew: false,
+                modified: false,
+                use_credit: bill.use_credit == 1 || bill.use_credit === true, // Convert to boolean from API response
+              };
+            })
+          : [];
+        console.log("💰 Bills processed:", this.patientBills.length);
+        console.log(
+          "💰 Bills with credit usage:",
+          this.patientBills.filter((bill) => bill.use_credit).length,
+        );
 
         // Create available cases from bills' billable objects and existing cases
-        const casesFromBills = data.bills ? data.bills
-          .filter(bill => bill.billable) // Only bills with billable data
-          .map(bill => bill.billable) : [];
-        
+        const casesFromBills = data.bills
+          ? data.bills
+              .filter((bill) => bill.billable) // Only bills with billable data
+              .map((bill) => bill.billable)
+          : [];
+
         const allCases = [...(data.cases || []), ...casesFromBills];
-        
+
         // Remove duplicates based on case ID
-        const uniqueCases = allCases.filter((case_item, index, self) => 
-          index === self.findIndex(c => c.id === case_item.id)
+        const uniqueCases = allCases.filter(
+          (case_item, index, self) =>
+            index === self.findIndex((c) => c.id === case_item.id),
         );
-        
+
         this.availableCases = this.formatCasesForSelection(uniqueCases);
 
         // Load dental operations and doctors with individual error handling
         try {
           await this.fetchDentalOperations();
         } catch (error) {
-          console.error('❌ Failed to load dental operations:', error);
+          console.error("❌ Failed to load dental operations:", error);
         }
 
         // Load doctors for appointment booking
         try {
           await this.fetchDoctors();
         } catch (error) {
-          console.error('❌ Failed to load doctors:', error);
+          console.error("❌ Failed to load doctors:", error);
         }
 
-        console.log('✅ Patient data loaded successfully');
-        console.log('Patient:', this.patient);
-        console.log('Cases:', this.patientCases);
-        console.log('Images:', this.patientImages);
-        console.log('Bills:', this.patientBills);
-        
+        console.log("✅ Patient data loaded successfully");
+        console.log("Patient:", this.patient);
+        console.log("Cases:", this.patientCases);
+        console.log("Images:", this.patientImages);
+        console.log("Bills:", this.patientBills);
+
         // Initialize Fancybox after data is loaded
         this.$nextTick(() => {
           if (window.$ && window.$.fancybox) {
-            window.$('[data-fancybox]').fancybox({
+            window.$("[data-fancybox]").fancybox({
               buttons: [
                 "zoom",
                 "share",
@@ -1999,46 +2201,46 @@ export default {
                 "fullScreen",
                 "download",
                 "thumbs",
-                "close"
+                "close",
               ],
               animationEffect: "zoom",
               transitionEffect: "slide",
               loop: true,
               protect: true,
-              wheel: false
+              wheel: false,
             });
           }
         });
       } catch (error) {
-        console.error('❌ Error loading patient data:', error);
-        
+        console.error("❌ Error loading patient data:", error);
+
         // More detailed error handling
-        let errorMessage = this.$t('patients.error_loading_patient_data');
-        let errorTitle = this.$t('patients.error_loading_data_title');
-        
-        if (error.message === 'Request timeout') {
-          errorMessage = this.$t('patients.connection_timeout');
-          errorTitle = this.$t('patients.connection_timeout_title');
+        let errorMessage = this.$t("patients.error_loading_patient_data");
+        let errorTitle = this.$t("patients.error_loading_data_title");
+
+        if (error.message === "Request timeout") {
+          errorMessage = this.$t("patients.connection_timeout");
+          errorTitle = this.$t("patients.connection_timeout_title");
         } else if (error.response && error.response.status === 401) {
-          errorMessage = this.$t('patients.session_expired');
-          errorTitle = this.$t('patients.authentication_error_title');
+          errorMessage = this.$t("patients.session_expired");
+          errorTitle = this.$t("patients.authentication_error_title");
         } else if (error.response && error.response.status === 404) {
-          errorMessage = this.$t('patients.patient_not_found');
-          errorTitle = this.$t('patients.patient_not_found_title');
+          errorMessage = this.$t("patients.patient_not_found");
+          errorTitle = this.$t("patients.patient_not_found_title");
         }
-        
+
         this.$swal.fire({
           title: errorTitle,
           text: errorMessage,
           icon: "error",
-          confirmButtonText: this.$t('close')
+          confirmButtonText: this.$t("close"),
         });
       }
     },
 
     // Handle tooth selection from teeth component
     handleToothChange(selectedTeeth) {
-      console.log('Teeth changed:', selectedTeeth);
+      console.log("Teeth changed:", selectedTeeth);
       // The teeth component handles its own state, we just need to respond to changes
       // When a tooth is clicked, we can trigger the context menu
       if (selectedTeeth && selectedTeeth.length > 0) {
@@ -2048,24 +2250,24 @@ export default {
         this.showToothMenuAtPosition(lastSelectedTooth);
       }
     },
-    
+
     // Show tooth menu at a calculated position
     showToothMenuAtPosition(toothNumber) {
       this.selectedTooth = toothNumber;
-      
+
       // Calculate position based on tooth number and viewport size
       const toothNum = parseInt(toothNumber);
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      
+
       // Context menu approximate dimensions (based on actual CSS)
       const menuWidth = 180; // min-width: 150px + padding
       const menuHeight = 350; // max-height: 300px + header + padding
-      
+
       // Calculate base position (center of viewport as fallback)
       let baseX = viewportWidth / 2;
       let baseY = viewportHeight / 2;
-      
+
       // Adjust position based on tooth quadrant
       if (toothNum >= 11 && toothNum <= 18) {
         // Upper right quadrant
@@ -2084,58 +2286,67 @@ export default {
         baseX = viewportWidth * 0.75;
         baseY = viewportHeight * 0.7;
       }
-      
+
       // Ensure menu doesn't go off-screen
       baseX = Math.max(10, Math.min(baseX, viewportWidth - menuWidth - 10));
       baseY = Math.max(10, Math.min(baseY, viewportHeight - menuHeight - 10));
-      
+
       this.contextMenuStyle = {
-        position: 'fixed',
-        top: baseY + 'px',
-        left: baseX + 'px',
+        position: "fixed",
+        top: baseY + "px",
+        left: baseX + "px",
         zIndex: 1000,
-        display: 'block'
+        display: "block",
       };
       this.showContextMenu = true;
-      
+
       // Hide menu when clicking elsewhere
-      document.addEventListener('click', this.hideContextMenu);
+      document.addEventListener("click", this.hideContextMenu);
     },
-    
+
     // Handle right-click events from teeth component
     handleToothRightClick(data) {
-      console.log('Tooth right-clicked received in patient component:', data);
-      
+      console.log("Tooth right-clicked received in patient component:", data);
+
       // CRITICAL: Double-check that no form element is currently active
       const activeElement = document.activeElement;
       if (activeElement && this.isFormElement(activeElement)) {
-        console.log('Form element is active, blocking context menu in patient component');
+        console.log(
+          "Form element is active, blocking context menu in patient component",
+        );
         return;
       }
-      
+
       // CRITICAL: Check if the event originated from a form element
-      if (data && data.event && data.event.target && this.isFormElement(data.event.target)) {
-        console.log('Event originated from form element, blocking context menu');
+      if (
+        data &&
+        data.event &&
+        data.event.target &&
+        this.isFormElement(data.event.target)
+      ) {
+        console.log(
+          "Event originated from form element, blocking context menu",
+        );
         return;
       }
-      
+
       if (data && data.toothId && data.event) {
-        console.log('Processing right-click for tooth:', data.toothId);
+        console.log("Processing right-click for tooth:", data.toothId);
         this.selectedTooth = data.toothId;
-        
+
         // Get the viewport coordinates
         let x = data.event.clientX;
         let y = data.event.clientY;
-        
+
         // Calculate better positioning based on tooth number and viewport size
         const toothNum = parseInt(data.toothId);
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        
+
         // Context menu approximate dimensions (based on actual CSS)
         const menuWidth = 180; // min-width: 150px + padding
         const menuHeight = 350; // max-height: 300px + header + padding
-        
+
         // Adjust horizontal position based on tooth location
         if (toothNum >= 11 && toothNum <= 18) {
           // Upper right quadrant - position menu to the left of click
@@ -2155,52 +2366,52 @@ export default {
             x = viewportWidth - menuWidth - 10;
           }
         }
-        
+
         // Adjust vertical position to keep menu in viewport
         if (y + menuHeight > viewportHeight) {
           y = Math.max(10, y - menuHeight);
         }
-        
+
         // Ensure menu doesn't go off-screen
         x = Math.max(10, Math.min(x, viewportWidth - menuWidth - 10));
         y = Math.max(10, Math.min(y, viewportHeight - menuHeight - 10));
-        
-        console.log('Context menu position:', { x, y, toothNum });
-        
+
+        console.log("Context menu position:", { x, y, toothNum });
+
         // Position context menu at calculated location (fixed positioning relative to viewport)
         this.contextMenuStyle = {
-          position: 'fixed',
-          top: y + 'px',
-          left: x + 'px',
+          position: "fixed",
+          top: y + "px",
+          left: x + "px",
           zIndex: 1000,
-          display: 'block'
+          display: "block",
         };
-        
+
         this.showContextMenu = true;
-        
+
         // Prevent the event from bubbling to avoid immediate hiding
         data.event.stopPropagation();
         data.event.preventDefault();
-        
-        console.log('Context menu should be visible now');
-        
+
+        console.log("Context menu should be visible now");
+
         // Hide menu when clicking elsewhere (with a small delay to avoid immediate hiding)
         setTimeout(() => {
-          document.addEventListener('click', this.hideContextMenu);
+          document.addEventListener("click", this.hideContextMenu);
         }, 10);
       } else {
-        console.error('Invalid right-click data received:', data);
+        console.error("Invalid right-click data received:", data);
       }
     },
-    
+
     // Handle global right-click on teeth area as fallback
     handleGlobalRightClick(event) {
       // This method is disabled now - we only want to show menu on direct tooth right-click
-      console.log('Global right-click disabled');
+      console.log("Global right-click disabled");
       event.preventDefault();
       return;
     },
-    
+
     // Handle right-click events specifically from teeth component
     handleTeethContextMenu(event) {
       // This method is no longer used for general teeth container context menu
@@ -2208,58 +2419,60 @@ export default {
       event.preventDefault();
       return;
     },
-    
+
     // Show general context menu when no specific tooth is detected
     showGeneralContextMenu(event) {
       // Don't show general context menu, we only want to show menu when clicking on a specific tooth
-      console.log('Ignoring general right-click event');
+      console.log("Ignoring general right-click event");
       event.preventDefault();
       return;
     },
 
     // Phone formatting
     formatPhone(phone) {
-      if (!phone) return '';
+      if (!phone) return "";
       // Remove any non-digit characters
-      const cleanPhone = phone.replace(/\D/g, '');
-      
+      const cleanPhone = phone.replace(/\D/g, "");
+
       // Handle different phone number formats
-      if (cleanPhone.startsWith('964')) {
+      if (cleanPhone.startsWith("964")) {
         // Remove country code for display
         const nationalNumber = cleanPhone.substring(3);
         // Format as XXXX XXX XXXX
         if (nationalNumber.length === 10) {
-          return nationalNumber.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+          return nationalNumber.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
         }
         return nationalNumber;
       } else if (cleanPhone.length === 10) {
         // Format as XXXX XXX XXX
-        return cleanPhone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+        return cleanPhone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
       } else if (cleanPhone.length === 11) {
         // Format as XXXXX XXX XXX
-        return cleanPhone.replace(/(\d{5})(\d{3})(\d{3})/, '$1 $2 $3');
+        return cleanPhone.replace(/(\d{5})(\d{3})(\d{3})/, "$1 $2 $3");
       }
-      
+
       return cleanPhone;
     },
-    
+
     // Generate WhatsApp link
     getWhatsAppLink(phone) {
-      if (!phone) return '#';
+      if (!phone) return "#";
       // Remove any non-digit characters
-      const cleanPhone = phone.replace(/\D/g, '');
-      
+      const cleanPhone = phone.replace(/\D/g, "");
+
       // Add 964 prefix if not already present
       let fullPhone = cleanPhone;
-      if (!cleanPhone.startsWith('964')) {
+      if (!cleanPhone.startsWith("964")) {
         // Remove leading zero if present
-        const nationalNumber = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+        const nationalNumber = cleanPhone.startsWith("0")
+          ? cleanPhone.substring(1)
+          : cleanPhone;
         fullPhone = `964${nationalNumber}`;
       }
-      
+
       return `https://wa.me/${fullPhone}`;
     },
-    
+
     // Open RX folder in file explorer
     openRxFolder() {
       if (!this.patient.rx_id) {
@@ -2275,26 +2488,29 @@ export default {
       // Since we're in a web app, we can't directly open folders on the user's system
       // We'll copy the path to clipboard and show instructions
       const folderPath = this.patient.rx_id;
-      
+
       // Try to copy to clipboard
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(folderPath).then(() => {
-          this.$swal.fire({
-            title: "تم النسخ",
-            html: `تم نسخ مسار المجلد إلى الحافظة:<br><br><code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; text-align: left; direction: ltr;">${folderPath}</code><br>افتح مستكشف الملفات والصق المسار في شريط العنوان`,
-            icon: "success",
-            confirmButtonText: "موافق",
+        navigator.clipboard
+          .writeText(folderPath)
+          .then(() => {
+            this.$swal.fire({
+              title: "تم النسخ",
+              html: `تم نسخ مسار المجلد إلى الحافظة:<br><br><code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; text-align: left; direction: ltr;">${folderPath}</code><br>افتح مستكشف الملفات والصق المسار في شريط العنوان`,
+              icon: "success",
+              confirmButtonText: "موافق",
+            });
+          })
+          .catch(() => {
+            // Fallback if clipboard API fails
+            this.showFolderPathDialog(folderPath);
           });
-        }).catch(() => {
-          // Fallback if clipboard API fails
-          this.showFolderPathDialog(folderPath);
-        });
       } else {
         // Fallback for browsers that don't support clipboard API
         this.showFolderPathDialog(folderPath);
       }
     },
-    
+
     // Show folder path in a dialog
     showFolderPathDialog(folderPath) {
       this.$swal.fire({
@@ -2307,35 +2523,39 @@ export default {
         confirmButtonText: "موافق",
       });
     },
-    
+
     hideContextMenu(event) {
       // If no event is passed, force hide the menu (called programmatically)
       if (!event) {
         this.showContextMenu = false;
         this.selectedTooth = null;
-        document.removeEventListener('click', this.hideContextMenu);
+        document.removeEventListener("click", this.hideContextMenu);
         return;
       }
-      
+
       // Don't hide if clicking on the context menu itself
-      if (event && event.target && event.target.closest('.tooth-context-menu')) {
+      if (
+        event &&
+        event.target &&
+        event.target.closest(".tooth-context-menu")
+      ) {
         return;
       }
-      
+
       // ALWAYS hide the context menu when interacting with form elements
       if (event && event.target && this.isFormElement(event.target)) {
-        console.log('Hiding context menu due to form element interaction');
+        console.log("Hiding context menu due to form element interaction");
         this.showContextMenu = false;
         this.selectedTooth = null;
         event.stopPropagation();
-        document.removeEventListener('click', this.hideContextMenu);
+        document.removeEventListener("click", this.hideContextMenu);
         return;
       }
-      
+
       // Hide context menu for any other clicks
       this.showContextMenu = false;
       this.selectedTooth = null;
-      document.removeEventListener('click', this.hideContextMenu);
+      document.removeEventListener("click", this.hideContextMenu);
     },
 
     // Add this new method to handle clicks on the data table
@@ -2343,9 +2563,9 @@ export default {
       // When interacting with the data table, always hide the context menu
       this.showContextMenu = false;
       this.selectedTooth = null;
-      
+
       // Remove context menu event listener
-      document.removeEventListener('click', this.hideContextMenu);
+      document.removeEventListener("click", this.hideContextMenu);
     },
 
     // Toggle bill payment status
@@ -2356,16 +2576,17 @@ export default {
           title: "غير مسموح",
           text: "ليس لديك صلاحية لتغيير حالة الدفع",
           icon: "warning",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
         return;
       }
 
       // Find the bill in the array
-      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      const index = this.patientBills.findIndex((b) => b.id === bill.id);
       if (index !== -1) {
         // Toggle the payment status
-        this.patientBills[index].is_paid = this.patientBills[index].is_paid == 1 ? 0 : 1;
+        this.patientBills[index].is_paid =
+          this.patientBills[index].is_paid == 1 ? 0 : 1;
         // Mark as modified for saving (unless it's already marked as new)
         if (!this.patientBills[index].isNew) {
           this.patientBills[index].modified = true;
@@ -2375,13 +2596,11 @@ export default {
 
     // Select dental operation from context menu
     selectOperation(operation) {
-
-   
       // alert('تم اختيار العملية: ' + (operation.name || operation.name_ar));
       if (this.selectedTooth && operation) {
         // Defensive: ensure patientCases is always reactive and not null
         if (!Array.isArray(this.patientCases)) {
-          this.$set(this, 'patientCases', []);
+          this.$set(this, "patientCases", []);
         }
         // Always add a new object (force new reference)
         const operationName = operation.name || operation.name_ar;
@@ -2393,12 +2612,12 @@ export default {
           date: new Date().toISOString().substr(0, 10),
           price: null,
           completed: false,
-          notes: '',
+          notes: "",
           operation_id: operation.id,
           status_id: 42,
           sessions: [],
           additionalSessions: [],
-          modified: true
+          modified: true,
         };
         this.patientCases.unshift(newCase);
         // Force update after DOM update
@@ -2409,13 +2628,15 @@ export default {
     },
 
     // Add new case for the patient
-   addCase(toothNumber, operation) {
+    addCase(toothNumber, operation) {
       // Check if case already exists for this tooth and operation
       const operationName = operation.name || operation.name_ar;
       const existingCase = this.patientCases.find(
-        case_item => case_item.tooth_number == toothNumber && case_item.case_type === operationName
+        (case_item) =>
+          case_item.tooth_number == toothNumber &&
+          case_item.case_type === operationName,
       );
-      
+
       if (existingCase) {
         return;
       }
@@ -2427,49 +2648,55 @@ export default {
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
-        displayPrice: '',
+        displayPrice: "",
         completed: false,
-        notes: '',
+        notes: "",
         operation_id: operation.id,
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
       };
-      
+
       // Only add to local array - no API call
       this.patientCases.unshift(newCase);
       this.selectedTooth = null;
     },
-    
+
     // Add examination case without tooth selection (ID: 25)
     addExaminationCase() {
-      const examinationCategory = this.dentalOperations.find(cat => cat.id === 25);
-      
+      const examinationCategory = this.dentalOperations.find(
+        (cat) => cat.id === 25,
+      );
+
       if (!examinationCategory) {
         this.$swal.fire({
           title: "خطأ",
           text: "لم يتم العثور على فئة الفحص",
           icon: "error",
-          confirmButtonText: "اغلاق"
+          confirmButtonText: "اغلاق",
         });
         return;
       }
-      
-      const operationName = examinationCategory.name || examinationCategory.name_ar;
-      
+
+      const operationName =
+        examinationCategory.name || examinationCategory.name_ar;
+
       // Check if examination case already exists (without tooth number)
       const existingExaminationCase = this.patientCases.find(
-        case_item => (case_item.tooth_number === null || case_item.tooth_number === 0 || case_item.tooth_number === '') 
-                     && case_item.case_type === operationName
+        (case_item) =>
+          (case_item.tooth_number === null ||
+            case_item.tooth_number === 0 ||
+            case_item.tooth_number === "") &&
+          case_item.case_type === operationName,
       );
-      
+
       if (existingExaminationCase) {
         this.$swal.fire({
           title: "تنبيه",
           text: "حالة الفحص موجودة بالفعل",
           icon: "warning",
-          confirmButtonText: "اغلاق"
+          confirmButtonText: "اغلاق",
         });
         return;
       }
@@ -2481,47 +2708,47 @@ export default {
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
-        displayPrice: '',
+        displayPrice: "",
         completed: false,
-        notes: '',
+        notes: "",
         operation_id: examinationCategory.id,
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
       };
-      
+
       // Add to local array
       this.patientCases.unshift(newCase);
-      
+
       // Show success message
       this.$swal.fire({
         position: "top-end",
         icon: "success",
         title: "تمت إضافة حالة الفحص",
         showConfirmButton: false,
-        timer: 1500
+        timer: 1500,
       });
     },
-    
+
     // Format number with commas (e.g., 20000 -> 20,000)
     formatNumberWithCommas(value) {
-      if (!value || value === '' || value === null || value === undefined) {
-        return '';
+      if (!value || value === "" || value === null || value === undefined) {
+        return "";
       }
       // Remove any existing commas and non-numeric characters except decimal point
-      const numericValue = value.toString().replace(/[^\d.]/g, '');
-      if (numericValue === '') return '';
+      const numericValue = value.toString().replace(/[^\d.]/g, "");
+      if (numericValue === "") return "";
       // Add commas for thousands separator
-      return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
-    
+
     // Remove commas from formatted number for API calls
     removeCommas(value) {
-      if (!value) return '';
-      return value.toString().replace(/,/g, '');
+      if (!value) return "";
+      return value.toString().replace(/,/g, "");
     },
-    
+
     // Handle input formatting in real-time
     formatPriceInput(item, event) {
       // Get the raw value without commas
@@ -2535,129 +2762,135 @@ export default {
       // Update the case price in the array
       this.updateCasePrice(item);
     },
-    
+
     // Update case price
     updateCasePrice(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Update the price locally
         this.patientCases[index].price = caseItem.price;
         this.patientCases[index].modified = true; // Mark as modified for save
       }
     },
-    
+
     // Update case status
     updateCaseStatus(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Update the status locally
         this.patientCases[index].completed = caseItem.completed;
         this.patientCases[index].modified = true; // Mark as modified for save
       }
     },
-    
+
     // Update case notes
     updateCaseNotes(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Update the notes locally
         this.patientCases[index].notes = caseItem.notes;
         this.patientCases[index].modified = true; // Mark as modified for save
       }
     },
-    
+
     // Update existing session note
     updateExistingSessionNote(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Update the sessions array
         this.patientCases[index].sessions = caseItem.sessions;
       }
     },
-    
+
     // Update new session note
     updateSessionNote(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Update the additionalSessions array
-        this.patientCases[index].additionalSessions = caseItem.additionalSessions;
+        this.patientCases[index].additionalSessions =
+          caseItem.additionalSessions;
       }
     },
-    
+
     // Add a new note (session) to the case
     addNote(caseItem) {
       // Find the case in the array
-      const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+      const index = this.patientCases.findIndex((c) => c.id === caseItem.id);
       if (index !== -1) {
         // Create a new session object
         const newSession = {
           id: Date.now(), // Temporary ID
-          note: '',
-          date: new Date().toISOString().substr(0, 10)
+          note: "",
+          date: new Date().toISOString().substr(0, 10),
         };
-        
+
         // Add the new session to the case
         this.patientCases[index].additionalSessions.push(newSession);
-        
+
         // Optimistically update the UI
         this.$forceUpdate();
       }
     },
-    
+
     // Delete a case
     deleteCase(caseItem) {
       // Confirm deletion
-      this.$swal.fire({
-        title: "تأكيد الحذف",
-        text: "هل أنت متأكد أنك تريد حذف هذه الحالة؟",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "نعم، احذفها",
-        cancelButtonText: "لا، تراجع"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Make API call to delete case from server
-          this.$http.delete(`cases/${caseItem.id}`, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(() => {
-            // Find the case in the array and remove it after successful API call
-            const index = this.patientCases.findIndex(c => c.id === caseItem.id);
-            if (index !== -1) {
-              this.patientCases.splice(index, 1);
-            }
-            
-            // Show success message
-            this.$swal.fire({
-              title: "تم الحذف",
-              text: "تم حذف الحالة بنجاح",
-              icon: "success",
-              confirmButtonText: "موافق"
-            });
-          })
-          .catch((error) => {
-            console.error('Delete case error:', error);
-            // Show error message
-            this.$swal.fire({
-              title: "خطأ",
-              text: "حدث خطأ أثناء حذف الحالة",
-              icon: "error",
-              confirmButtonText: "موافق"
-            });
-          });
-        }
-      });
+      this.$swal
+        .fire({
+          title: "تأكيد الحذف",
+          text: "هل أنت متأكد أنك تريد حذف هذه الحالة؟",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذفها",
+          cancelButtonText: "لا، تراجع",
+        })
+        .then((result) => {
+          if (result.isConfirmed) {
+            // Make API call to delete case from server
+            this.$http
+              .delete(`cases/${caseItem.id}`, {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+                },
+              })
+              .then(() => {
+                // Find the case in the array and remove it after successful API call
+                const index = this.patientCases.findIndex(
+                  (c) => c.id === caseItem.id,
+                );
+                if (index !== -1) {
+                  this.patientCases.splice(index, 1);
+                }
+
+                // Show success message
+                this.$swal.fire({
+                  title: "تم الحذف",
+                  text: "تم حذف الحالة بنجاح",
+                  icon: "success",
+                  confirmButtonText: "موافق",
+                });
+              })
+              .catch((error) => {
+                console.error("Delete case error:", error);
+                // Show error message
+                this.$swal.fire({
+                  title: "خطأ",
+                  text: "حدث خطأ أثناء حذف الحالة",
+                  icon: "error",
+                  confirmButtonText: "موافق",
+                });
+              });
+          }
+        });
     },
-    
+
     // Add a new payment
     async addPayment() {
       // Check if user has permission to create bills
@@ -2666,7 +2899,7 @@ export default {
           title: "غير مسموح",
           text: "ليس لديك صلاحية لإنشاء فواتير جديدة",
           icon: "error",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
         return;
       }
@@ -2674,17 +2907,23 @@ export default {
       this.addBillLoading = true;
       try {
         // If there are unsaved cases, persist them first so they appear in the case menu
-        const unsavedCases = this.patientCases.filter(c => !c.server_id);
+        const unsavedCases = this.patientCases.filter((c) => !c.server_id);
         if (unsavedCases.length > 0) {
           // Save each new case sequentially to ensure server IDs are available
           for (const nc of unsavedCases) {
             try {
               await this.saveNewCase(nc);
             } catch (err) {
-              console.error('Failed to save a new case before adding bill:', err);
+              console.error(
+                "Failed to save a new case before adding bill:",
+                err,
+              );
               // Continue saving others but notify user
-              if (this.$toast && typeof this.$toast.error === 'function') {
-                this.$toast.error(this.$t('patients.error_saving_case_before_bill') || 'Failed to save case');
+              if (this.$toast && typeof this.$toast.error === "function") {
+                this.$toast.error(
+                  this.$t("patients.error_saving_case_before_bill") ||
+                    "Failed to save case",
+                );
               }
             }
           }
@@ -2693,12 +2932,14 @@ export default {
           try {
             await this.loadPatientData();
           } catch (err) {
-            console.error('Failed to reload patient data after saving cases:', err);
+            console.error(
+              "Failed to reload patient data after saving cases:",
+              err,
+            );
           }
         }
-
       } catch (err) {
-        console.error('Unexpected error while preparing to add payment:', err);
+        console.error("Unexpected error while preparing to add payment:", err);
       } finally {
         // Ensure loading flag is cleared after preparation
         this.addBillLoading = false;
@@ -2717,17 +2958,17 @@ export default {
         use_credit: false, // Default to not using credit
         user: {
           id: this.$store.state.AdminInfo.user_id,
-          name: this.$store.state.AdminInfo.name
-        }
+          name: this.$store.state.AdminInfo.name,
+        },
       };
-      
+
       // Add the new bill to the patientBills array
       this.patientBills.push(newBill);
 
       // Optimistically update the UI
       this.$forceUpdate();
     },
-    
+
     // Update bill price
     updateBillPrice(bill) {
       // Check if current user can edit bills
@@ -2736,13 +2977,13 @@ export default {
           title: "غير مسموح",
           text: "لا يمكن للسكرتارية تعديل مبلغ الفاتورة",
           icon: "warning",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
         return;
       }
 
       // Find the bill in the array
-      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      const index = this.patientBills.findIndex((b) => b.id === bill.id);
       if (index !== -1) {
         // Update the price locally
         this.patientBills[index].price = bill.price;
@@ -2750,12 +2991,12 @@ export default {
         if (!this.patientBills[index].isNew) {
           this.patientBills[index].modified = true;
         }
-        
+
         // Refresh available cases to update disabled state in real-time
         this.refreshAvailableCases();
       }
     },
-    
+
     // Update bill date
     updateBillDate(bill) {
       // Check if current user can edit bills
@@ -2764,13 +3005,13 @@ export default {
           title: "غير مسموح",
           text: "لا يمكن للسكرتارية تعديل تاريخ الفاتورة",
           icon: "warning",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
         return;
       }
 
       // Find the bill in the array
-      const index = this.patientBills.findIndex(b => b.id === bill.id);
+      const index = this.patientBills.findIndex((b) => b.id === bill.id);
       if (index !== -1) {
         // Update the date locally
         this.patientBills[index].PaymentDate = bill.PaymentDate;
@@ -2780,7 +3021,7 @@ export default {
         }
       }
     },
-    
+
     // Delete bill
     async deleteBill(bill) {
       // Check if current user can delete bills
@@ -2789,190 +3030,207 @@ export default {
           title: "غير مسموح",
           text: "لا يمكن للسكرتارية حذف الفاتورة",
           icon: "warning",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
         return;
       }
 
       // Show confirmation dialog
-      this.$swal.fire({
-        title: "تأكيد الحذف",
-        text: "هل أنت متأكد من حذف هذه الفاتورة؟",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "نعم، احذف",
-        cancelButtonText: "إلغاء",
-        confirmButtonColor: "#d33"
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            // Find the bill in the array
-            const index = this.patientBills.findIndex(b => b.id === bill.id);
-            if (index !== -1) {
-              // If it's a new bill (not saved to server yet), just remove it
-              if (bill.isNew) {
-                this.patientBills.splice(index, 1);
-              } else {
-                // If it's an existing bill, call the DELETE API
-                const billId = bill.server_id || bill.id;
-                await this.$http.delete(`https://mina-api.tctate.com/api/patientsAccounstsv2/bills/${billId}`, {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: "Bearer " + this.$store.state.AdminInfo.token
-                  }
+      this.$swal
+        .fire({
+          title: "تأكيد الحذف",
+          text: "هل أنت متأكد من حذف هذه الفاتورة؟",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذف",
+          cancelButtonText: "إلغاء",
+          confirmButtonColor: "#d33",
+        })
+        .then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              // Find the bill in the array
+              const index = this.patientBills.findIndex(
+                (b) => b.id === bill.id,
+              );
+              if (index !== -1) {
+                // If it's a new bill (not saved to server yet), just remove it
+                if (bill.isNew) {
+                  this.patientBills.splice(index, 1);
+                } else {
+                  // If it's an existing bill, call the DELETE API
+                  const billId = bill.server_id || bill.id;
+                  await this.$http.delete(
+                    `https://mina-api.tctate.com/api/patientsAccounstsv2/bills/${billId}`,
+                    {
+                      headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        Authorization:
+                          "Bearer " + this.$store.state.AdminInfo.token,
+                      },
+                    },
+                  );
+
+                  // Remove from UI after successful API call
+                  this.patientBills.splice(index, 1);
+                }
+
+                this.$swal.fire({
+                  title: "تم الحذف",
+                  text: "تم حذف الفاتورة بنجاح",
+                  icon: "success",
+                  confirmButtonText: "موافق",
                 });
-                
-                // Remove from UI after successful API call
-                this.patientBills.splice(index, 1);
+
+                // Refresh available cases to update disabled state
+                this.refreshAvailableCases();
               }
-              
+            } catch (error) {
+              console.error("Error deleting bill:", error);
               this.$swal.fire({
-                title: "تم الحذف",
-                text: "تم حذف الفاتورة بنجاح",
-                icon: "success",
-                confirmButtonText: "موافق"
+                title: "خطأ",
+                text: "حدث خطأ أثناء حذف الفاتورة",
+                icon: "error",
+                confirmButtonText: "موافق",
               });
-              
-              // Refresh available cases to update disabled state
-              this.refreshAvailableCases();
             }
-          } catch (error) {
-            console.error('Error deleting bill:', error);
-            this.$swal.fire({
-              title: "خطأ",
-              text: "حدث خطأ أثناء حذف الفاتورة",
-              icon: "error",
-              confirmButtonText: "موافق"
-            });
           }
-        }
-      });
+        });
     },
-    
+
     // Close bill report dialog
     closeBillDialog() {
       this.billDialog = false;
     },
-    
+
     // Save patient data
     async savePatientData() {
       if (this.saving) return; // Prevent multiple saves
-      
+
       this.saving = true;
-      
+
       try {
         // Process new cases (cases without server_id)
-        const newCases = this.patientCases.filter(caseItem => !caseItem.server_id);
-        
+        const newCases = this.patientCases.filter(
+          (caseItem) => !caseItem.server_id,
+        );
+
         // Process existing cases that need updates (have server_id and are modified)
-        const modifiedCases = this.patientCases.filter(caseItem => caseItem.server_id && caseItem.modified);
-        
+        const modifiedCases = this.patientCases.filter(
+          (caseItem) => caseItem.server_id && caseItem.modified,
+        );
+
         // Save new cases
         for (const newCase of newCases) {
           await this.saveNewCase(newCase);
         }
-        
+
         // Update modified cases
         for (const modifiedCase of modifiedCases) {
           await this.updateExistingCase(modifiedCase);
         }
-        
+
         // Save bills if any are new or modified
-        const modifiedBills = this.patientBills.filter(bill => bill.isNew || bill.modified);
+        const modifiedBills = this.patientBills.filter(
+          (bill) => bill.isNew || bill.modified,
+        );
         if (modifiedBills.length > 0) {
           await this.saveBills(modifiedBills);
         }
-      
+
         // Save uploaded images if any
         if (this.newUploadedImages.length > 0) {
           await this.saveUploadedImages();
         }
-        
+
         // Save patient notes
         if (this.patient.notes !== undefined && this.patient.notes !== null) {
           await this.savePatientNotes();
         }
-        
+
         // Save tooth colors from teeth_v2 component
         await this.saveToothColors();
-        
+
         // Clear patients list cache so casesheet page shows updated data
         this.clearPatientsListCache();
-        
+
         // Show success message
-        this.$swal.fire({
-          title: "نجاح",
-          text: "تم حفظ بيانات المراجع بنجاح",
-          icon: "success",
-          timer: 1500, // Auto close after 1.5 seconds
-          showConfirmButton: false // Hide the confirm button
-        }).then(async () => {
-          // Reload patient data after successful save
-          console.log('🔄 Reloading patient data after save...');
-          try {
-            await this.loadPatientData();
-            console.log('✅ Patient data reloaded successfully');
-          } catch (error) {
-            console.error('❌ Error reloading patient data:', error);
-            // Show a toast or small notification instead of another modal
-            this.$toast.error('تم حفظ البيانات ولكن فشل في إعادة تحميلها');
-          }
-        });
+        this.$swal
+          .fire({
+            title: "نجاح",
+            text: "تم حفظ بيانات المراجع بنجاح",
+            icon: "success",
+            timer: 1500, // Auto close after 1.5 seconds
+            showConfirmButton: false, // Hide the confirm button
+          })
+          .then(async () => {
+            // Reload patient data after successful save
+            console.log("🔄 Reloading patient data after save...");
+            try {
+              await this.loadPatientData();
+              console.log("✅ Patient data reloaded successfully");
+            } catch (error) {
+              console.error("❌ Error reloading patient data:", error);
+              // Show a toast or small notification instead of another modal
+              this.$toast.error("تم حفظ البيانات ولكن فشل في إعادة تحميلها");
+            }
+          });
       } catch (error) {
-        console.error('❌ Error saving patient data:', error);
-        
+        console.error("❌ Error saving patient data:", error);
+
         this.$swal.fire({
-          title: this.$t('patients.error_title'),
-          text: this.$t('patients.error_saving_patient'),
+          title: this.$t("patients.error_title"),
+          text: this.$t("patients.error_saving_patient"),
           icon: "error",
-          confirmButtonText: this.$t('close')
+          confirmButtonText: this.$t("close"),
         });
       } finally {
         this.saving = false;
       }
     },
-    
+
     // Save uploaded images to the API
     async saveUploadedImages() {
-
-      console.log(this.newUploadedImages)
+      console.log(this.newUploadedImages);
       try {
         if (this.newUploadedImages.length === 0) {
-
           return;
         }
-        
+
         const requestBody = {
-          images: this.newUploadedImages.map(image => ({
+          images: this.newUploadedImages.map((image) => ({
             img: image.fileName,
             descrption: image.originalName || image.fileName,
-            patient_id: this.patient.id.toString()
+            patient_id: this.patient.id.toString(),
           })),
-          patient_id: this.patient.id.toString()
+          patient_id: this.patient.id.toString(),
         };
-        
-        console.log('📸 Saving uploaded images:', requestBody);
-        
-        const response = await this.$http.post('https://mina-api.tctate.com/api/cases/uploude_images', requestBody, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
-        });
-        
-        console.log('📸 Images saved successfully:', response.data);
-        
+
+        console.log("📸 Saving uploaded images:", requestBody);
+
+        const response = await this.$http.post(
+          "https://mina-api.tctate.com/api/cases/uploude_images",
+          requestBody,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+            },
+          },
+        );
+
+        console.log("📸 Images saved successfully:", response.data);
+
         // Clear the uploaded images array after successful save
         this.newUploadedImages = [];
-        
       } catch (error) {
-        console.error('❌ Error saving uploaded images:', error);
+        console.error("❌ Error saving uploaded images:", error);
         throw error;
       }
     },
-    
+
     // Save new case
     async saveNewCase(caseItem) {
       try {
@@ -2980,39 +3238,46 @@ export default {
           case_categores_id: caseItem.operation_id,
           tooth_num: [parseInt(caseItem.tooth_number)],
           status_id: caseItem.completed ? 43 : 42,
-          sessions: [{
-            note: caseItem.notes || "",
-            date: caseItem.date
-          }],
-          bills: [{
-            price: caseItem.price ? caseItem.price.toString() : "0",
-            PaymentDate: caseItem.date,
-            patient_id: this.patient.id ? this.patient.id.toString() : ""
-          }],
+          sessions: [
+            {
+              note: caseItem.notes || "",
+              date: caseItem.date,
+            },
+          ],
+          bills: [
+            {
+              price: caseItem.price ? caseItem.price.toString() : "0",
+              PaymentDate: caseItem.date,
+              patient_id: this.patient.id ? this.patient.id.toString() : "",
+            },
+          ],
           images: [],
           notes: caseItem.notes || "",
           price: caseItem.price ? caseItem.price.toString() : "0",
-          patient_id: this.patient.id ? this.patient.id.toString() : ""
+          patient_id: this.patient.id ? this.patient.id.toString() : "",
         };
-        
-        const response = await this.$http.post('https://mina-api.tctate.com/api/cases', requestBody, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
-        });
-        
+
+        const response = await this.$http.post(
+          "https://mina-api.tctate.com/api/cases",
+          requestBody,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+            },
+          },
+        );
+
         // Update case with server ID
         caseItem.server_id = response.data.id;
         caseItem.modified = false;
-        
       } catch (error) {
-        console.error('Error saving new case:', error);
+        console.error("Error saving new case:", error);
         throw error;
       }
     },
-    
+
     // Update existing case
     async updateExistingCase(caseItem) {
       try {
@@ -3023,131 +3288,149 @@ export default {
           tooth_num: `[${caseItem.tooth_number}]`,
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
-          sessions: caseItem.sessions || []
+          sessions: caseItem.sessions || [],
         };
-        
-        const response = await this.$http.patch(`https://mina-api.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + this.$store.state.AdminInfo.token
-          }
-        });
-        
+
+        const response = await this.$http.patch(
+          `https://mina-api.tctate.com/api/cases_v2/${caseItem.server_id}`,
+          requestBody,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+            },
+          },
+        );
+
         // Clear modified flag
         caseItem.modified = false;
-        
       } catch (error) {
-        console.error('Error updating case:', error);
+        console.error("Error updating case:", error);
         throw error;
       }
     },
-    
+
     // Save bills
     async saveBills(bills) {
       try {
         // Separate new bills from existing bills
-        const newBills = bills.filter(bill => !bill.server_id);
-        const existingBills = bills.filter(bill => bill.server_id);
-        
+        const newBills = bills.filter((bill) => !bill.server_id);
+        const existingBills = bills.filter((bill) => bill.server_id);
+
         // Save new bills using POST to create them
         if (newBills.length > 0) {
-          const billsData = newBills.map(bill => ({
+          const billsData = newBills.map((bill) => ({
             price: parseFloat(bill.price) || 0,
             PaymentDate: bill.PaymentDate,
-            is_paid: bill.is_paid ? 1 :  0,
+            is_paid: bill.is_paid ? 1 : 0,
             billable_id: bill.case_id,
             user_id: bill.user_id,
-            use_credit: bill.use_credit || false
+            use_credit: bill.use_credit || false,
           }));
-          
+
           // Check if any bill wants to use credit
-          const anyBillUsesCredit = newBills.some(bill => bill.use_credit);
-          
+          const anyBillUsesCredit = newBills.some((bill) => bill.use_credit);
+
           const requestBody = {
             bills: billsData,
-            case_id: newBills[0]?.case_id?.toString() || this.patient.id.toString(), // Use selected case_id as patient_id
-            use_credit: anyBillUsesCredit
+            case_id:
+              newBills[0]?.case_id?.toString() || this.patient.id.toString(), // Use selected case_id as patient_id
+            use_credit: anyBillUsesCredit,
           };
-          
-          const response = await this.$http.post(`https://mina-api.tctate.com/api/patients/bills/${this.patient.id}`, requestBody, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          });
-          
+
+          const response = await this.$http.post(
+            `https://mina-api.tctate.com/api/patients/bills/${this.patient.id}`,
+            requestBody,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+              },
+            },
+          );
+
           // Handle credit usage response
           if (response.data && anyBillUsesCredit) {
             // Update patient credit balance if credit was used
             if (response.data.remaining_credit !== undefined) {
               this.patient.credit_balance = response.data.remaining_credit;
             }
-            
+
             // Show credit usage message
             if (response.data.credit_used > 0) {
               this.$swal.fire({
-                title: this.$t('success'),
+                title: this.$t("success"),
                 html: `
                   <div>
-                    <p>${this.$t('patients.bills_added_successfully')}</p>
-                    <p><strong>${this.$t('patients.credit_used')}: ${this.formatCreditBalance(response.data.credit_used)} IQ</strong></p>
-                    <p>${this.$t('patients.remaining_credit')}: ${this.formatCreditBalance(response.data.remaining_credit)} IQ</p>
+                    <p>${this.$t("patients.bills_added_successfully")}</p>
+                    <p><strong>${this.$t(
+                      "patients.credit_used",
+                    )}: ${this.formatCreditBalance(
+                  response.data.credit_used,
+                )} IQ</strong></p>
+                    <p>${this.$t(
+                      "patients.remaining_credit",
+                    )}: ${this.formatCreditBalance(
+                  response.data.remaining_credit,
+                )} IQ</p>
                   </div>
                 `,
-                icon: 'success',
+                icon: "success",
                 timer: 3000,
-                showConfirmButton: false
+                showConfirmButton: false,
               });
             }
           }
-          
+
           // Mark new bills as saved
-          newBills.forEach(bill => {
+          newBills.forEach((bill) => {
             bill.isNew = false;
             bill.modified = false;
           });
         }
-        
+
         // Update existing bills using PUT to update them individually
         for (const bill of existingBills) {
           const requestBody = {
             price: bill.price,
             PaymentDate: bill.PaymentDate,
-            is_paid: bill.is_paid || 0
+            is_paid: bill.is_paid || 0,
           };
-          
-          await this.$http.put(`https://mina-api.tctate.com/api/bills_v2/${bill.server_id}`, requestBody, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          });
-          
+
+          await this.$http.put(
+            `https://mina-api.tctate.com/api/bills_v2/${bill.server_id}`,
+            requestBody,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token,
+              },
+            },
+          );
+
           // Mark existing bill as saved
           bill.modified = false;
         }
-        
+
         // Refresh available cases to update disabled state
         this.refreshAvailableCases();
-        
       } catch (error) {
-        console.error('Error saving bills:', error);
+        console.error("Error saving bills:", error);
         throw error;
       }
     },
-    
+
     // Edit patient
     editPatient() {
       this.editDialog = true;
     },
-    
-    // Book appointment  
+
+    // Book appointment
     bookAppointment() {
-     
-        this.appointmentDialog = true;
+      this.appointmentDialog = true;
     },
 
     // Close appointment dialog
@@ -3157,139 +3440,143 @@ export default {
 
     // Save patient edit
     savePatientEdit(data) {
-      console.log('Saving patient edit:', data);
-      
+      console.log("Saving patient edit:", data);
+
       // Clear patients list cache so casesheet page shows updated data
       this.clearPatientsListCache();
-      
+
       // Reload current patient data to reflect changes
       if (data && data.patient && data.patient.id === this.patient.id) {
         this.$nextTick(() => {
           this.loadPatientData();
         });
       }
-      
+
       this.editDialog = false;
     },
-    
+
     // Close patient edit dialog
     closePatientEditDialog() {
       this.editDialog = false;
     },
-    
+
     // Handle image upload success
     handleImageSuccess(file, response) {
-      console.log('Image uploaded successfully:', response);
-     
+      console.log("Image uploaded successfully:", response);
+
       // Track the uploaded image for saving later
       if (response) {
         this.newUploadedImages.push({
           fileName: response.data,
           originalName: file.name,
-          file: file
+          file: file,
         });
-        console.log('📸 Added image to upload queue:', response.filename);
+        console.log("📸 Added image to upload queue:", response.filename);
       }
     },
-    
+
     // Handle image upload error
     handleImageError(file, message, xhr) {
-      console.error('Image upload error:', message);
+      console.error("Image upload error:", message);
     },
-    
+
     // Handle image removal
     handleImageRemoved(file, error, xhr) {
-      console.log('Image removed:', file);
+      console.log("Image removed:", file);
     },
-    
+
     // Save tooth colors from teeth component
     async saveToothColors() {
       try {
         // Use the ref to access the teeth component directly
         const teethComponent = this.$refs.teethComponent;
-        
+
         if (!teethComponent) {
-          console.log('Teeth component ref not found, skipping color save');
+          console.log("Teeth component ref not found, skipping color save");
           return;
         }
-        
-        console.log('Found teeth component:', teethComponent);
-        
+
+        console.log("Found teeth component:", teethComponent);
+
         // Check if the component has the saveColoredParts method
-        if (typeof teethComponent.saveColoredParts === 'function') {
-          console.log('Saving tooth colors from teeth component...');
+        if (typeof teethComponent.saveColoredParts === "function") {
+          console.log("Saving tooth colors from teeth component...");
           // Pass the patient notes to save both notes and tooth_parts together
           await teethComponent.saveColoredParts(this.patient.notes);
-          console.log('Tooth colors and notes saved successfully');
+          console.log("Tooth colors and notes saved successfully");
         } else {
-          console.log('saveColoredParts method not found in teeth component');
+          console.log("saveColoredParts method not found in teeth component");
         }
       } catch (error) {
-        console.error('Error saving tooth colors:', error);
+        console.error("Error saving tooth colors:", error);
         // Don't throw error to prevent blocking the main save process
       }
     },
-    
+
     // Format session date
     formatSessionDate(dateString) {
-      if (!dateString) return '';
+      if (!dateString) return "";
       try {
         const date = new Date(dateString);
-        return date.toLocaleDateString('ar-IQ', {
-          year: 'numeric',
-          month: '2-digit', 
-          day: '2-digit'
+        return date.toLocaleDateString("ar-IQ", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
         });
       } catch (error) {
-        return dateString.split(' ')[0] || '';
+        return dateString.split(" ")[0] || "";
       }
     },
 
     // Helper method to check if an element is a form element
     isFormElement(element) {
       if (!element) return false;
-      
+
       // Check the element itself
-      if (element.tagName === 'INPUT' || 
-          element.tagName === 'TEXTAREA' || 
-          element.tagName === 'SELECT' || 
-          element.tagName === 'BUTTON' ||
-          element.tagName === 'FORM') {
+      if (
+        element.tagName === "INPUT" ||
+        element.tagName === "TEXTAREA" ||
+        element.tagName === "SELECT" ||
+        element.tagName === "BUTTON" ||
+        element.tagName === "FORM"
+      ) {
         return true;
       }
-      
+
       // Check classes
-      if (element.classList && (
-          element.classList.contains('v-input') ||
-          element.classList.contains('v-text-field') ||
-          element.classList.contains('v-select') ||
-          element.classList.contains('v-data-table') ||
-          element.classList.contains('price-input') ||
-          element.classList.contains('v-btn') ||
-          element.classList.contains('v-form')
-      )) {
+      if (
+        element.classList &&
+        (element.classList.contains("v-input") ||
+          element.classList.contains("v-text-field") ||
+          element.classList.contains("v-select") ||
+          element.classList.contains("v-data-table") ||
+          element.classList.contains("price-input") ||
+          element.classList.contains("v-btn") ||
+          element.classList.contains("v-form"))
+      ) {
         return true;
       }
-      
+
       // Check if it's inside a form context
-      if (element.closest && (
-          element.closest('.v-input') ||
-          element.closest('.v-text-field') ||
-          element.closest('.v-select') ||
-          element.closest('.v-data-table') ||
-          element.closest('.price-input') ||
-          element.closest('.v-form') ||
-          element.closest('form')
-      )) {
+      if (
+        element.closest &&
+        (element.closest(".v-input") ||
+          element.closest(".v-text-field") ||
+          element.closest(".v-select") ||
+          element.closest(".v-data-table") ||
+          element.closest(".price-input") ||
+          element.closest(".v-form") ||
+          element.closest("form"))
+      ) {
         return true;
       }
-      
+
       return false;
     },
 
     // Get full image URL
     getImageUrl(imageName) {
-      if (!imageName) return '';
+      if (!imageName) return "";
       // Use the base URL from the example API response
       return `https://mina-api.tctate.com/case_photo/${imageName}`;
     },
@@ -3297,54 +3584,64 @@ export default {
     // Refresh available cases to update disabled state
     refreshAvailableCases() {
       // Get current cases from the existing availableCases and reformat them
-      const currentCases = this.availableCases.map(item => ({
+      const currentCases = this.availableCases.map((item) => ({
         id: item.id,
         case_categories: item.case_categories,
         tooth_num: item.tooth_num,
-        price: item.price
+        price: item.price,
       }));
-      
+
       // Reformat with updated disabled state
       this.availableCases = this.formatCasesForSelection(currentCases);
-    }
-,
+    },
     // Format cases for selection
     formatCasesForSelection(cases) {
-      return cases.map(case_item => {
+      return cases.map((case_item) => {
         // Parse tooth number from JSON array format
-        let toothNumber = this.$t('patients.not_specified');
+        let toothNumber = this.$t("patients.not_specified");
         try {
           if (case_item.tooth_num) {
             const parsed = JSON.parse(case_item.tooth_num);
-            toothNumber = Array.isArray(parsed) ? parsed.join(', ') : parsed;
+            toothNumber = Array.isArray(parsed) ? parsed.join(", ") : parsed;
           }
         } catch (e) {
-          toothNumber = case_item.tooth_num || this.$t('patients.not_specified');
+          toothNumber =
+            case_item.tooth_num || this.$t("patients.not_specified");
         }
 
         // Calculate sum of bills for this case
         const caseBills = this.getBillsForCase(case_item.id);
-        const billsSum = caseBills.reduce((sum, bill) => sum + (parseFloat(bill.price) || 0), 0);
+        const billsSum = caseBills.reduce(
+          (sum, bill) => sum + (parseFloat(bill.price) || 0),
+          0,
+        );
         const casePrice = parseFloat(case_item.price) || 0;
-        
+
         // Disable case if bills sum equals or exceeds case price
         const isDisabled = billsSum >= casePrice && casePrice > 0;
 
         return {
           id: case_item.id,
-          case_display: `${case_item.case_categories?.name_ar || this.$t('patients.not_specified')} - ${this.$t('patients.tooth')} ${toothNumber} - ${case_item.price} د.ع`,
+          case_display: `${
+            case_item.case_categories?.name_ar ||
+            this.$t("patients.not_specified")
+          } - ${this.$t("patients.tooth")} ${toothNumber} - ${
+            case_item.price
+          } د.ع`,
           case_categories: case_item.case_categories,
           tooth_num: toothNumber,
           price: case_item.price,
-          disabled: isDisabled
+          disabled: isDisabled,
         };
       });
     },
 
     // Get case display name for bills
     getCaseDisplayName(caseId) {
-      const case_item = this.availableCases.find(c => c.id === caseId);
-      return case_item ? case_item.case_display : this.$t('patients.not_specified');
+      const case_item = this.availableCases.find((c) => c.id === caseId);
+      return case_item
+        ? case_item.case_display
+        : this.$t("patients.not_specified");
     },
 
     // Get bills for a specific case
@@ -3352,7 +3649,7 @@ export default {
       if (!caseId || !this.patientBills) {
         return [];
       }
-      return this.patientBills.filter(bill => {
+      return this.patientBills.filter((bill) => {
         // Match both case_id and billable_id for compatibility
         return bill.case_id === caseId || bill.billable_id === caseId;
       });
@@ -3369,33 +3666,35 @@ export default {
           showCancelButton: true,
           confirmButtonText: "نعم، احذف",
           cancelButtonText: "إلغاء",
-          confirmButtonColor: "#d33"
+          confirmButtonColor: "#d33",
         });
 
         if (result.isConfirmed) {
           // Remove from local array immediately for better UX
-          const index = this.patientImages.findIndex(img => img.id === image.id);
+          const index = this.patientImages.findIndex(
+            (img) => img.id === image.id,
+          );
           if (index !== -1) {
             this.patientImages.splice(index, 1);
           }
 
           // Call API to delete from server (if needed)
           // Note: You may need to implement a delete image API endpoint
-          
+
           this.$swal.fire({
             title: "تم الحذف",
             text: "تم حذف الصورة بنجاح",
             icon: "success",
-            confirmButtonText: "موافق"
+            confirmButtonText: "موافق",
           });
         }
       } catch (error) {
-        console.error('Error deleting image:', error);
+        console.error("Error deleting image:", error);
         this.$swal.fire({
           title: "خطأ",
           text: "تعذر حذف الصورة",
           icon: "error",
-          confirmButtonText: "موافق"
+          confirmButtonText: "موافق",
         });
       }
     },
@@ -3403,201 +3702,210 @@ export default {
     // Save patient notes
     async savePatientNotes() {
       try {
-        const response = await this.axios.patch(`patients/${this.patient.id}/notes`, {
-          notes: this.patient.notes
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.$store.state.AdminInfo.token}`
-          }
-        });
-        
-        console.log('✅ Patient notes saved successfully');
+        const response = await this.axios.patch(
+          `patients/${this.patient.id}/notes`,
+          {
+            notes: this.patient.notes,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${this.$store.state.AdminInfo.token}`,
+            },
+          },
+        );
+
+        console.log("✅ Patient notes saved successfully");
         return response;
       } catch (error) {
-        console.error('❌ Error saving patient notes:', error);
+        console.error("❌ Error saving patient notes:", error);
         throw error;
       }
     },
-
   },
 
-async mounted() {
-  try {
-    // Set authorization header for dropzone
-    if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
-      this.dropzoneOptions.headers = {
-        "Authorization": `Bearer ${this.$store.state.AdminInfo.token}`
-      };
-      
-      // Add patient_id parameter to dropzone options
-      this.dropzoneOptions.params = {
-        patient_id: this.$route.params.id
-      };
-    }
-    
-    // Initialize Fancybox with custom options
-    if (window.$ && window.$.fancybox) {
-      window.$(document).ready(() => {
-        window.$('[data-fancybox]').fancybox({
-          buttons: [
-            "zoom",
-            "share",
-            "slideShow",
-            "fullScreen",
-            "download",
-            "thumbs",
-            "close"
-          ],
-          animationEffect: "zoom",
-          transitionEffect: "slide",
-          loop: true,
-          protect: true,
-          wheel: false
+  async mounted() {
+    try {
+      // Set authorization header for dropzone
+      if (this.$store.state.AdminInfo && this.$store.state.AdminInfo.token) {
+        this.dropzoneOptions.headers = {
+          Authorization: `Bearer ${this.$store.state.AdminInfo.token}`,
+        };
+
+        // Add patient_id parameter to dropzone options
+        this.dropzoneOptions.params = {
+          patient_id: this.$route.params.id,
+        };
+      }
+
+      // Initialize Fancybox with custom options
+      if (window.$ && window.$.fancybox) {
+        window.$(document).ready(() => {
+          window.$("[data-fancybox]").fancybox({
+            buttons: [
+              "zoom",
+              "share",
+              "slideShow",
+              "fullScreen",
+              "download",
+              "thumbs",
+              "close",
+            ],
+            animationEffect: "zoom",
+            transitionEffect: "slide",
+            loop: true,
+            protect: true,
+            wheel: false,
+          });
+        });
+      }
+
+      // Listen for tooth change events from the teeth component
+      EventBus.$on("changetooth", this.handleToothChange);
+
+      // Listen for tooth right-click events - try multiple event names
+      EventBus.$on("toothRightClick", this.handleToothRightClick);
+      EventBus.$on("tooth-right-click", this.handleToothRightClick);
+      EventBus.$on("tooth_right_click", this.handleToothRightClick);
+      EventBus.$on("rightClickTooth", this.handleToothRightClick);
+
+      // Listen for bill report close event
+      EventBus.$on("billsReportclose", () => {
+        this.billDialog = false;
+      });
+
+      // Listen for appointment booking events
+      EventBus.$on("appointmentBooked", () => {
+        this.appointmentDialog = false;
+        this.$swal.fire({
+          title: "نجاح",
+          text: "تم حجز الموعد بنجاح",
+          icon: "success",
+          confirmButtonText: "موافق",
         });
       });
-    }
-      
-    // Listen for tooth change events from the teeth component
-    EventBus.$on('changetooth', this.handleToothChange);
-    
-    // Listen for tooth right-click events - try multiple event names
-    EventBus.$on('toothRightClick', this.handleToothRightClick);
-    EventBus.$on('tooth-right-click', this.handleToothRightClick);
-    EventBus.$on('tooth_right_click', this.handleToothRightClick);
-    EventBus.$on('rightClickTooth', this.handleToothRightClick);
-    
-    // Listen for bill report close event
-    EventBus.$on('billsReportclose', () => {
-      this.billDialog = false;
-    });
-    
-    // Listen for appointment booking events
-    EventBus.$on('appointmentBooked', () => {
-      this.appointmentDialog = false;
-      this.$swal.fire({
-        title: "نجاح",
-        text: "تم حجز الموعد بنجاح",
-        icon: "success",
-        confirmButtonText: "موافق"
-      });
-    });
 
-    EventBus.$on('appointmentCancelled', () => {
-      this.appointmentDialog = false;
-    });
-    
-    // Load patient data and dental operations
-    await this.loadPatientData();
-    
-    // Add global handler for input fields to ensure context menu is hidden
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.price-input') || 
-          e.target.closest('.v-text-field__slot') || 
-          e.target.closest('.v-input') || 
-          e.target.tagName === 'INPUT' ||
-          e.target.tagName === 'TEXTAREA') {
-        this.showContextMenu = false;
-        this.selectedTooth = null;
-      }
-    });
-    
-    // Add global context menu prevention for form elements
-    document.addEventListener('contextmenu', (e) => {
-      // Always prevent context menu when interacting with form elements
-      if (this.isFormElement(e.target)) {
-        this.showContextMenu = false;
-        this.selectedTooth = null;
-        console.log('Prevented context menu on form element');
-        return; // Allow the default context menu for form elements
-      }
-      
-      // Only allow context menu on tooth elements
-      if (!e.target.classList.contains('comon')) {
-        this.showContextMenu = false;
-        this.selectedTooth = null;
-      }
-    });
-    
-    // Add focus event listener to hide context menu when focusing on form elements
-    document.addEventListener('focus', (e) => {
-      if (this.isFormElement(e.target)) {
-        this.showContextMenu = false;
-        this.selectedTooth = null;
-        console.log('Hiding context menu due to form element focus');
-      }
-    }, true); // Use capture phase to catch focus events early
-    
-    console.log('✅ Component mounted successfully');
-    
-  } catch (error) {
-    console.error('❌ Error during component mount:', error);
-  }
-},
-  
+      EventBus.$on("appointmentCancelled", () => {
+        this.appointmentDialog = false;
+      });
+
+      // Load patient data and dental operations
+      await this.loadPatientData();
+
+      // Add global handler for input fields to ensure context menu is hidden
+      document.addEventListener("click", (e) => {
+        if (
+          e.target.closest(".price-input") ||
+          e.target.closest(".v-text-field__slot") ||
+          e.target.closest(".v-input") ||
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA"
+        ) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      });
+
+      // Add global context menu prevention for form elements
+      document.addEventListener("contextmenu", (e) => {
+        // Always prevent context menu when interacting with form elements
+        if (this.isFormElement(e.target)) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+          console.log("Prevented context menu on form element");
+          return; // Allow the default context menu for form elements
+        }
+
+        // Only allow context menu on tooth elements
+        if (!e.target.classList.contains("comon")) {
+          this.showContextMenu = false;
+          this.selectedTooth = null;
+        }
+      });
+
+      // Add focus event listener to hide context menu when focusing on form elements
+      document.addEventListener(
+        "focus",
+        (e) => {
+          if (this.isFormElement(e.target)) {
+            this.showContextMenu = false;
+            this.selectedTooth = null;
+            console.log("Hiding context menu due to form element focus");
+          }
+        },
+        true,
+      ); // Use capture phase to catch focus events early
+
+      console.log("✅ Component mounted successfully");
+    } catch (error) {
+      console.error("❌ Error during component mount:", error);
+    }
+  },
+
   beforeDestroy() {
     try {
       // Remove Fancybox cleanup
-      
+
       // Clean up event listeners
-      EventBus.$off('changetooth', this.handleToothChange);
-      
+      EventBus.$off("changetooth", this.handleToothChange);
+
       // Listen for tooth right-click events - try multiple event names
-      EventBus.$off('toothRightClick', this.handleToothRightClick);
-      EventBus.$off('tooth-right-click', this.handleToothRightClick);
-      EventBus.$off('tooth_right_click', this.handleToothRightClick);
-      EventBus.$off('rightClickTooth', this.handleToothRightClick);
-      
+      EventBus.$off("toothRightClick", this.handleToothRightClick);
+      EventBus.$off("tooth-right-click", this.handleToothRightClick);
+      EventBus.$off("tooth_right_click", this.handleToothRightClick);
+      EventBus.$off("rightClickTooth", this.handleToothRightClick);
+
       // Clean up appointment booking event listeners
-      EventBus.$off('appointmentBooked');
-      EventBus.$off('appointmentCancelled');
+      EventBus.$off("appointmentBooked");
+      EventBus.$off("appointmentCancelled");
 
       // Remove global document event listeners
-      document.removeEventListener('click', this.hideContextMenu);
-      
+      document.removeEventListener("click", this.hideContextMenu);
+
       // Remove the additional event listeners we added
       const clickHandler = (e) => {
-        if (e.target.closest('.price-input') || 
-            e.target.closest('.v-text-field__slot') || 
-            e.target.closest('.v-input') || 
-            e.target.tagName === 'INPUT' ||
-            e.target.tagName === 'TEXTAREA') {
+        if (
+          e.target.closest(".price-input") ||
+          e.target.closest(".v-text-field__slot") ||
+          e.target.closest(".v-input") ||
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA"
+        ) {
           this.showContextMenu = false;
           this.selectedTooth = null;
         }
       };
-      
+
       const contextMenuHandler = (e) => {
         if (this.isFormElement(e.target)) {
           this.showContextMenu = false;
           this.selectedTooth = null;
           return;
         }
-        if (!e.target.classList.contains('comon')) {
+        if (!e.target.classList.contains("comon")) {
           this.showContextMenu = false;
           this.selectedTooth = null;
         }
       };
-      
+
       const focusHandler = (e) => {
         if (this.isFormElement(e.target)) {
           this.showContextMenu = false;
           this.selectedTooth = null;
         }
       };
-      
-      document.removeEventListener('click', clickHandler);
-      document.removeEventListener('contextmenu', contextMenuHandler);
-      document.removeEventListener('focus', focusHandler, true);
-      
-      console.log('✅ Component destroyed and cleaned up');
-      
+
+      document.removeEventListener("click", clickHandler);
+      document.removeEventListener("contextmenu", contextMenuHandler);
+      document.removeEventListener("focus", focusHandler, true);
+
+      console.log("✅ Component destroyed and cleaned up");
     } catch (error) {
-      console.error('❌ Error during component destroy:', error);
+      console.error("❌ Error during component destroy:", error);
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -3624,7 +3932,7 @@ async mounted() {
 
 .examination-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
@@ -3645,7 +3953,7 @@ async mounted() {
 /* Styles for patient info section */
 .patient-header-card {
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin: 0 4px 16px 4px;
 }
 
@@ -3663,7 +3971,7 @@ async mounted() {
 
 /* Styles for WhatsApp link */
 .whatsapp-link {
-  color: #25D366 !important;
+  color: #25d366 !important;
   text-decoration: none;
 }
 
@@ -3677,7 +3985,7 @@ async mounted() {
   background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   min-width: 150px;
   max-height: 300px;
@@ -3821,16 +4129,16 @@ async mounted() {
     padding: 0 8px !important;
     font-size: 0.8rem;
   }
-  
+
   .mobile-responsive-table .v-chip {
     font-size: 0.7rem;
     height: 20px;
   }
-  
+
   .mobile-responsive-table .v-text-field {
     font-size: 0.8rem;
   }
-  
+
   .mobile-responsive-table .v-textarea {
     font-size: 0.8rem;
   }
@@ -3906,7 +4214,7 @@ async mounted() {
     padding: 0 8px;
     min-width: auto;
   }
-  
+
   .patient-header-card .v-btn .v-icon {
     font-size: 16px;
   }
@@ -3932,7 +4240,7 @@ async mounted() {
     font-size: 0.7rem;
     height: 24px;
   }
-  
+
   .patient-credit-info .v-chip .v-icon {
     font-size: 14px;
   }
@@ -3955,12 +4263,12 @@ async mounted() {
     flex: 0 0 25%;
     max-width: 25%;
   }
-  
+
   .desktop-bill-layout .v-flex.md2 {
     flex: 0 0 20%;
     max-width: 20%;
   }
-  
+
   .desktop-bill-layout .v-flex.md1 {
     flex: 0 0 10%;
     max-width: 10%;
@@ -3973,17 +4281,17 @@ async mounted() {
     flex: 0 0 40%;
     max-width: 40%;
   }
-  
+
   .desktop-bill-layout .v-flex.sm3 {
     flex: 0 0 30%;
     max-width: 30%;
   }
-  
+
   .desktop-bill-layout .v-flex.sm2 {
     flex: 0 0 20%;
     max-width: 20%;
   }
-  
+
   .desktop-bill-layout .v-flex.sm1 {
     flex: 0 0 10%;
     max-width: 10%;
@@ -3996,7 +4304,7 @@ async mounted() {
     font-size: 1.1rem !important;
     line-height: 1.3 !important;
   }
-  
+
   .patient-phone .case-title {
     font-size: 0.9rem;
   }
@@ -4071,12 +4379,12 @@ async mounted() {
     left: 0;
     margin-top: 8px;
   }
-  
+
   .bill-payment-item .v-layout.row {
     align-items: flex-start;
     padding: 8px 0;
   }
-  
+
   .bill-payment-item .v-flex {
     padding: 0 12px;
   }
@@ -4101,7 +4409,7 @@ async mounted() {
 }
 
 .fancybox-caption {
-  font-family: 'Cairo', sans-serif;
+  font-family: "Cairo", sans-serif;
   font-size: 16px;
 }
 </style>
