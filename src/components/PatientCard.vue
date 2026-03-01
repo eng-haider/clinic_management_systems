@@ -1,38 +1,50 @@
 <template>
   <div>
     <!-- Patient Card Dialog -->
-    <v-dialog v-model="dialog" max-width="1200px" persistent>
+    <v-dialog v-model="dialog" max-width="1400px" persistent>
       <v-card>
         <v-card-title class="headline d-flex align-center">
-          <v-icon left>mdi-card</v-icon>
+          <v-icon left>mdi-card-account-details</v-icon>
           {{ $t('patients.patient_card') || 'بطاقة المراجع' }}
         </v-card-title>
         <v-divider></v-divider>
-        <v-card-text class="pa-6">
-          <!-- Card Preview -->
+        <v-card-text class="pa-6" style="overflow-x:auto;">
+          <!-- Card Preview using card.jpeg as background - exact image size: 1280×818 -->
           <div 
             ref="printCard" 
-            style="width:1011px; height:638px; box-sizing:border-box; padding:24px; background:#ffffff; margin:0 auto; border: 2px solid #e0e0e0; border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:space-between; direction:rtl; text-align:right; font-family: 'Cairo', 'Arial', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;" 
+            class="patient-card-preview"
+            :class="{ 'card-female': patient.sex != '1' && patient.sex != 1 }"
             dir="rtl"
           >
-            <div style="flex:1; padding:20px; direction:rtl; text-align:right;">
-              <h1 style="margin:0 0 16px 0; font-size:48px; font-weight:900; color:#1a1a1a; word-break:break-word; font-family: 'Cairo', 'Arial', sans-serif; direction:rtl; text-align:right; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; letter-spacing:0.5px;">
-                {{ patient.name }}
-              </h1>
-              
-              <div style="margin:16px 0; font-size:22px; color:#555; word-break:break-word; font-family: 'Cairo', 'Arial', sans-serif; line-height:1.8; direction:rtl; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
-                <span style="font-weight:700; color:#333;">{{ $t('patients.sex') }}:</span>
-                <span style="font-weight:500; color:#666; margin-right:8px;">{{ getFormattedSex() }}</span>
-              </div>
-              <div style="margin:16px 0; font-size:22px; color:#555; word-break:break-word; font-family: 'Cairo', 'Arial', sans-serif; line-height:1.8; direction:rtl; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
-                <span style="font-weight:700; color:#333;">{{ $t('patients.qr_number') }}:</span>
-                <span style="font-weight:600; color:#666; margin-right:8px; direction:ltr; display:inline-block; unicode-bidi:bidi-override; font-family:'Courier New', monospace; letter-spacing:2px;">
-                  {{ patient.qr_code }}
-                </span>
-              </div>
+        
+            <!-- Background image -->
+            <img 
+              v-if="patient.sex=='1'"
+              src="/card.jpeg" 
+              class="card-bg-image"
+              alt="card background"
+            />
+            <img
+              v-else
+              src="/card2.jpeg" 
+              class="card-bg-image"
+              alt="card background"
+            />
+           
+            <!-- Patient name overlay on السيد field -->
+            <div class="overlay-name">
+              {{ patient.name }}
             </div>
-            <div style="flex-shrink:0; padding:20px; text-align:center;">
-              <qrcode-vue :value="getPatientLookupUrl()" :size="300" level="H" />
+
+            <!-- QR number overlay on الرقم field -->
+            <div class="overlay-number">
+              {{ patient.qr_code }}
+            </div>
+
+            <!-- QR Code on the left side of card -->
+            <div class="overlay-qr">
+              <qrcode-vue :value="getPatientLookupUrl()" :size="220" level="H" />
+              <div class="overlay-qr-hint">امسح الـ QR لمشاهدة ملفك الطبي</div>
             </div>
           </div>
         </v-card-text>
@@ -45,7 +57,7 @@
             color="grey darken-1"
           >
             <v-icon left>mdi-close</v-icon>
-            {{ $t('patients.close') }}
+            {{ $t('patients.close') || 'إغلاق' }}
           </v-btn>
           <v-btn 
             color="success" 
@@ -53,14 +65,14 @@
             class="mr-2"
           >
             <v-icon left>mdi-image-plus</v-icon>
-            {{ $t('patients.save_as_image') }}
+            {{ $t('patients.save_as_image') || 'حفظ كصورة' }}
           </v-btn>
           <v-btn 
             color="primary" 
             @click="printPatientCard"
           >
             <v-icon left>mdi-printer</v-icon>
-            {{ $t('patients.print') }}
+            {{ $t('patients.print') || 'طباعة' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -91,6 +103,10 @@ export default {
         qr_code: '',
         phone: ''
       })
+    },
+    clinicName: {
+      type: String,
+      default: 'IS Dental Center'
     }
   },
   data() {
@@ -111,7 +127,6 @@ export default {
       this.dialog = false;
     },
 
-    // Get formatted sex label
     getFormattedSex() {
       if (this.patient.sex == 1 || this.patient.sex == '1') {
         return 'ذكر';
@@ -122,187 +137,120 @@ export default {
       }
     },
 
-    // Get patient lookup URL for QR code
     getPatientLookupUrl() {
       const qrCode = this.patient.qr_code;
       const phone = this.patient.phone ? this.patient.phone.replace(/\D/g, '') : '';
       return `https://isdentalcenter.com/patient-lookup?code=${qrCode}&phone=${phone}`;
     },
 
-    /**
-     * Generate QR Code as Data URL for printing
-     */
     generateQRCodeDataUrl(text) {
       try {
         const encodedText = encodeURIComponent(text);
-        return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedText}`;
+        return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodedText}`;
       } catch (error) {
         console.error('Error generating QR code:', error);
         return '';
       }
     },
 
-    // Print patient card by opening a print window with the card HTML
+    // Print patient card - use card.jpeg as background, overlay text + QR
     printPatientCard() {
       try {
-        const el = this.$refs.printCard;
-        if (!el) {
-          console.warn('Print card element not found');
-          return;
-        }
-
-        const patientName = this.patient.name || 'Patient';
-        const patientSex = this.getFormattedSex();
+        const patientName = this.patient.name || '';
         const patientQR = this.patient.qr_code || '';
         const qrUrl = this.getPatientLookupUrl();
-        
+        const baseUrl = window.location.origin;
+
+        // Choose background image and name position based on sex
+        const isMale = this.patient.sex == '1' || this.patient.sex == 1;
+        const bgFile = isMale ? 'card.jpeg' : 'card2.jpeg';
+        const nameRight = isMale ? 276 : 328;  // CSS: male=276px, female=328px
+
         const cardHtml = `
           <!DOCTYPE html>
           <html lang="ar" dir="rtl">
             <head>
               <meta charset="UTF-8" />
-              <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <meta http-equiv="Content-Language" content="ar" />
-              <title>بطاقة المراجع</title>
+              <title>بطاقة مراجع</title>
               <style>
-                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=block');
-                
-                * {
-                  margin: 0;
-                  padding: 0;
-                  box-sizing: border-box;
-                  -webkit-font-smoothing: antialiased;
-                  -moz-osx-font-smoothing: grayscale;
-                  text-rendering: optimizeLegibility;
-                }
-                
+                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=block');
+                * { margin:0; padding:0; box-sizing:border-box; }
                 html, body {
-                  width: 100%;
-                  height: 100%;
-                  direction: rtl;
-                  text-align: right;
+                  width:100%; height:100%;
+                  font-family:'Cairo','Arial',sans-serif;
+                  background:#fff;
                 }
-                
-                body {
-                  margin: 0;
-                  padding: 0;
-                  font-family: 'Cairo', 'Arial', 'Helvetica', sans-serif;
-                  background: white;
-                  color: #333;
-                  direction: rtl;
-                  text-align: right;
+                .card-wrapper {
+                  width:1280px; height:818px;
+                  position:relative;
+                  margin:0 auto;
+                  overflow:hidden;
                 }
-                
-                .print-container {
-                  width: 1011px;
-                  height: 638px;
-                  padding: 24px;
-                  box-sizing: border-box;
-                  background: white;
-                  direction: rtl;
-                  text-align: right;
-                  margin: 0 auto;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
+                .card-wrapper img.bg {
+                  width:1280px; height:818px;
+                  display:block;
+                  object-fit:cover;
                 }
-                
-                .content-wrapper {
-                  flex: 1;
-                  padding: 20px;
-                  direction: rtl;
+                .overlay-name {
+                    position: absolute;
+    top: 303px;
+    right: ${nameRight}px;
+    font-size: 45px;
+    font-weight: 800;
+    color: #1a1a2e;
+    font-family: 'Cairo', 'Arial', sans-serif;
+    direction: rtl;
+    text-align: right;
+    white-space: nowrap;
+    max-width: 600px;
+    /* overflow: hidden; */
+    text-overflow: ellipsis;
                 }
-                
-                .qr-wrapper {
-                  flex-shrink: 0;
-                  padding: 20px;
-                  text-align: center;
+                .overlay-number {
+                   position: absolute;
+    top: 470px;
+    right: 267px;
+    font-size: 45px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-family: 'Cairo', 'Arial', sans-serif;
+    direction: rtl;
+    letter-spacing: 2px;
                 }
-                
-                h1 {
-                  margin: 0 0 16px 0;
-                  font-size: 48px;
-                  font-weight: 900;
-                  color: #1a1a1a;
-                  word-break: break-word;
-                  font-family: 'Cairo', sans-serif;
-                  letter-spacing: 0.5px;
-                  direction: rtl;
+                .overlay-qr {
+                  position:absolute;
+                  top:200px;
+                  left:70px;
+                  background:#fff;
+                  padding:12px 12px 10px 12px;
+                  border-radius:14px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+                  text-align:center;
                 }
-                
-                .info-item {
-                  margin: 16px 0;
-                  font-size: 22px;
-                  color: #555;
-                  word-break: break-word;
-                  font-family: 'Cairo', sans-serif;
-                  line-height: 1.8;
-                  direction: rtl;
+                .overlay-qr-hint {
+                  margin-top:8px;
+                  font-size:14px;
+                  font-weight:700;
+                  color:#1a1a2e;
+                  font-family:'Cairo','Arial',sans-serif;
+                  text-align:center;
+                  direction:rtl;
+                  white-space:nowrap;
                 }
-                
-                .label {
-                  font-weight: 700;
-                  color: #333;
-                  display: inline;
-                }
-                
-                .value {
-                  font-weight: 500;
-                  color: #666;
-                  display: inline;
-                  margin-right: 8px;
-                }
-                
-                .qr-number {
-                  direction: ltr;
-                  unicode-bidi: embed;
-                  display: inline-block;
-                  font-family: 'Courier New', monospace;
-                  font-weight: bold;
-                  letter-spacing: 2px;
-                }
-                
-                @page {
-                  size: 1011px 638px;
-                  margin: 0;
-                  padding: 0;
-                }
-                
+                @page { size:1280px 818px; margin:0; }
                 @media print {
-                  body {
-                    margin: 0;
-                    padding: 0;
-                    width: 1011px;
-                    height: 638px;
-                    background: white;
-                  }
-                  .print-container {
-                    box-shadow: none;
-                    border: none;
-                    margin: 0;
-                    padding: 24px;
-                    width: 1011px;
-                    height: 638px;
-                  }
+                  body { width:1280px; height:818px; margin:0; padding:0; }
                 }
               </style>
             </head>
-            <body dir="rtl">
-              <div class="print-container">
-                <div class="content-wrapper">
-                  <h1>${patientName}</h1>
-                  <div class="info-item">
-                    <span class="label">${this.$t('patients.sex') || 'الجنس'}:</span>
-                    <span class="value">${patientSex}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">${this.$t('patients.qr_number') || 'رقم QR'}:</span>
-                    <span class="qr-number">${patientQR}</span>
-                  </div>
-                </div>
-                <div class="qr-wrapper">
-                  <img src="${this.generateQRCodeDataUrl(qrUrl)}" alt="QR Code" width="300" height="300" />
+            <body>
+              <div class="card-wrapper">
+                <img class="bg" src="${baseUrl}/${bgFile}" alt="card" />
+                <div class="overlay-name">${patientName}</div>
+                <div class="overlay-number">${patientQR}</div>
+                <div class="overlay-qr">
+                  <img src="${this.generateQRCodeDataUrl(qrUrl)}" alt="QR" width="220" height="220" />
+                  <div class="overlay-qr-hint">امسح الـ QR لمشاهدة ملفك الطبي</div>
                 </div>
               </div>
             </body>
@@ -325,9 +273,9 @@ export default {
         setTimeout(() => {
           w.focus();
           w.print();
-        }, 800);
+        }, 1200);
       } catch (e) {
-        console.error('❌ Error printing patient card:', e);
+        console.error('Error printing patient card:', e);
         this.$swal.fire({ 
           title: this.$t('error') || 'خطأ', 
           text: 'حدث خطأ أثناء الطباعة', 
@@ -336,7 +284,7 @@ export default {
       }
     },
 
-    // Save patient card as image
+    // Save patient card as image - draw card.jpeg then overlay text + QR on canvas
     async saveCardAsImage() {
       try {
         this.$swal.fire({
@@ -350,98 +298,112 @@ export default {
           }
         });
 
-        const patientName = this.patient.name || 'Patient';
-        const patientSex = this.getFormattedSex();
+        const patientName = this.patient.name || '';
         const patientQR = this.patient.qr_code || '';
         const qrUrl = this.getPatientLookupUrl();
         const qrImageUrl = this.generateQRCodeDataUrl(qrUrl);
 
-        // Load Cairo font before creating canvas
-        await document.fonts.load('900 96px Cairo');
-        await document.fonts.load('bold 44px Cairo');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Choose background image and name position based on sex
+        const isMale = this.patient.sex == '1' || this.patient.sex == 1;
+        const bgFile = isMale ? '/card.jpeg' : '/card2.jpeg';
+        const nameRight = isMale ? 276 : 328;  // CSS: male=276px, female=328px
 
-        // Create canvas manually to have full control over text rendering
+        // Load Cairo font
+        await document.fonts.load('800 36px Cairo');
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Card dimensions match the image: 1280×818
+        const cardW = 1280;
+        const cardH = 818;
+
         const canvas = document.createElement('canvas');
-        canvas.width = 2022;  // 1011 * 2 for scale
-        canvas.height = 1276; // 638 * 2 for scale
+        canvas.width = cardW;
+        canvas.height = cardH;
         const ctx = canvas.getContext('2d');
 
-        // Fill background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Step 1: Load and draw card.jpeg as background
+        const bgImg = new Image();
+        bgImg.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          bgImg.onload = () => {
+            ctx.drawImage(bgImg, 0, 0, cardW, cardH);
+            resolve();
+          };
+          bgImg.onerror = (err) => {
+            console.error('Failed to load card.jpeg', err);
+            reject(new Error('Failed to load card background image'));
+          };
+          bgImg.src = window.location.origin + bgFile;
+        });
 
-        // Draw border (matching the dialog card style)
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        // Step 2: Overlay patient name — synced with CSS: top:303px, right:276px(male) / 328px(female), font-size:45px
+        ctx.textAlign = 'right';
+        ctx.direction = 'rtl';
+        ctx.font = '800 45px Cairo, Arial, sans-serif';
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillText(patientName, cardW - nameRight, 303 + 20);
 
-        // Load and draw QR code image first (LEFT SIDE to match card)
+        // Step 3: Overlay QR number — synced with CSS: top:470px, right:267px, font-size:45px
+        ctx.font = '700 45px Cairo, Arial, sans-serif';
+        ctx.fillStyle = '#1a1a2e';
+        ctx.textAlign = 'right';
+        ctx.direction = 'rtl';
+        ctx.fillText(patientQR, cardW - 267, 470 + 20);
+
+        // Step 4: Load and draw QR code on the LEFT side — synced with CSS: top:240px, left:80px
         const qrImg = new Image();
         qrImg.crossOrigin = 'anonymous';
-        
         await new Promise((resolve, reject) => {
           qrImg.onload = () => {
-            // Draw QR code on LEFT side - matching card layout
-            ctx.drawImage(qrImg, 80, 188, 600, 600);
+            // White background box for QR — synced with CSS: top:200px, left:70px
+            const qrX = 70;
+            const qrY = 200;
+            const qrSize = 220;  // matches :size="220" in template
+            const pad = 14;
+
+            // Draw white rounded rect behind QR
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            const br = 12;
+            ctx.moveTo(qrX - pad + br, qrY - pad);
+            ctx.lineTo(qrX + qrSize + pad - br, qrY - pad);
+            ctx.quadraticCurveTo(qrX + qrSize + pad, qrY - pad, qrX + qrSize + pad, qrY - pad + br);
+            ctx.lineTo(qrX + qrSize + pad, qrY + qrSize + pad - br);
+            ctx.quadraticCurveTo(qrX + qrSize + pad, qrY + qrSize + pad, qrX + qrSize + pad - br, qrY + qrSize + pad);
+            ctx.lineTo(qrX - pad + br, qrY + qrSize + pad);
+            ctx.quadraticCurveTo(qrX - pad, qrY + qrSize + pad, qrX - pad, qrY + qrSize + pad - br);
+            ctx.lineTo(qrX - pad, qrY - pad + br);
+            ctx.quadraticCurveTo(qrX - pad, qrY - pad, qrX - pad + br, qrY - pad);
+            ctx.closePath();
+            ctx.fill();
+
+            // Light border
+            ctx.strokeStyle = '#d0d0d0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw QR image
+            ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+            // Draw hint text below QR — synced with CSS .overlay-qr-hint
+            ctx.textAlign = 'center';
+            ctx.direction = 'rtl';
+            ctx.font = '700 14px Cairo, Arial, sans-serif';
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillText('امسح الـ QR لمشاهدة ملفك الطبي', qrX + qrSize / 2, qrY + qrSize + pad + 16);
+
             resolve();
           };
           qrImg.onerror = reject;
           qrImg.src = qrImageUrl;
         });
 
-        // Set text properties for RIGHT SIDE
-        ctx.textAlign = 'right';
-        ctx.direction = 'rtl';
-        ctx.fillStyle = '#1a1a1a';
-
-        // Draw patient name (large) on RIGHT SIDE - with more padding top
-        ctx.font = '900 96px Cairo, Arial, sans-serif';
-        ctx.fillText(patientName, canvas.width - 80, 280);
-
-        // Draw sex label and value on RIGHT SIDE
-        ctx.font = 'bold 44px Cairo, Arial, sans-serif';
-        ctx.fillStyle = '#333';
-        const sexLabel = this.$t('patients.sex') || 'الجنس';
-        ctx.fillText(sexLabel + ':', canvas.width - 80, 400);
-        
-        ctx.font = '500 44px Cairo, Arial, sans-serif';
-        ctx.fillStyle = '#666';
-        const sexLabelWidth = ctx.measureText(sexLabel + ':').width;
-        ctx.fillText(patientSex, canvas.width - 100 - sexLabelWidth, 400);
-
-        // Draw QR number label and value on RIGHT SIDE
-        ctx.font = 'bold 44px Cairo, Arial, sans-serif';
-        ctx.fillStyle = '#333';
-        const qrLabel = this.$t('patients.qr_number') || 'رقم المراجع';
-        
-        // Draw QR number (LTR) - value above label
-        ctx.textAlign = 'right';
-        ctx.direction = 'ltr';
-        ctx.font = 'bold 44px Courier New, monospace';
-        ctx.fillStyle = '#666';
-        ctx.fillText(patientQR, canvas.width - 80, 480);
-        
-        // Draw label below value
-        ctx.textAlign = 'right';
-        ctx.direction = 'rtl';
-        ctx.font = 'bold 44px Cairo, Arial, sans-serif';
-        ctx.fillStyle = '#333';
-        ctx.fillText(qrLabel, canvas.width - 80, 540);
-
-        // Draw bottom text instruction (centered at bottom)
-        ctx.textAlign = 'center';
-        ctx.direction = 'rtl';
-        ctx.font = 'bold 40px Cairo, Arial, sans-serif';
-        ctx.fillStyle = '#555';
-        ctx.fillText('امسح الـ QR لمشاهدة ملفك الطبي', canvas.width / 2, canvas.height - 100);
-
-        // Convert canvas to blob and download
+        // Step 5: Download as image
         canvas.toBlob((blob) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           const cleanName = (this.patient.name || 'patient').replace(/[^a-zA-Z0-9آ-ي\s]/g, '').trim();
-          const fileName = `${cleanName}-${new Date().getTime()}.jpg`;
+          const fileName = `${cleanName}-card-${new Date().getTime()}.png`;
           link.href = url;
           link.download = fileName;
           document.body.appendChild(link);
@@ -455,29 +417,16 @@ export default {
             icon: 'success',
             confirmButtonText: this.$t('close') || 'إغلاق'
           });
-        }, 'image/jpeg', 0.95);
+        }, 'image/png');
 
       } catch (e) {
-        console.error('❌ Error saving card as image:', e);
-        
-        if (e.message && e.message.includes('html2canvas')) {
-          this.$swal.fire({
-            title: this.$t('error') || 'خطأ',
-            html: `<p>${this.$t('patients.please_install_html2canvas') || 'يرجى تثبيت مكتبة html2canvas'}</p>
-                   <code style="display:block; margin-top:10px; padding:10px; background:#f5f5f5; border-radius:4px; direction:ltr;">
-                   npm install html2canvas
-                   </code>`,
-            icon: 'error',
-            confirmButtonText: this.$t('close') || 'إغلاق'
-          });
-        } else {
-          this.$swal.fire({
-            title: this.$t('error') || 'خطأ',
-            text: this.$t('patients.error_saving_image') || 'حدث خطأ أثناء حفظ الصورة',
-            icon: 'error',
-            confirmButtonText: this.$t('close') || 'إغلاق'
-          });
-        }
+        console.error('Error saving card as image:', e);
+        this.$swal.fire({
+          title: this.$t('error') || 'خطأ',
+          text: this.$t('patients.error_saving_image') || 'حدث خطأ أثناء حفظ الصورة',
+          icon: 'error',
+          confirmButtonText: this.$t('close') || 'إغلاق'
+        });
       }
     }
   }
@@ -485,7 +434,90 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 
-/* Patient Card Component Styles */
+/* ===== Patient Card Preview ===== */
+/* Uses card.jpeg (1280×818) as background with text overlay */
+.patient-card-preview {
+  width: 1280px;
+  height: 818px;
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  font-family: 'Cairo', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background card image */
+.card-bg-image {
+  width: 1280px;
+  height: 818px;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Patient name overlay - positioned on السيد field */
+.overlay-name {
+     position: absolute;
+    top: 303px;
+    right: 276px;
+    font-size: 45px;
+    font-weight: 800;
+    color: #1a1a2e;
+    font-family: 'Cairo', 'Arial', sans-serif;
+    direction: rtl;
+    text-align: right;
+    white-space: nowrap;
+    max-width: 600px;
+    /* overflow: hidden; */
+    text-overflow: ellipsis;
+}
+
+/* Female card (card2.jpeg) — name field is shifted more to the right */
+.card-female .overlay-name {
+  right: 328px;
+}
+
+/* QR number overlay - positioned on الرقم field */
+.overlay-number {
+     position: absolute;
+    top: 470px;
+    right: 267px;
+    font-size: 45px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-family: 'Cairo', 'Arial', sans-serif;
+    direction: rtl;
+    letter-spacing: 2px;
+}
+
+/* QR code overlay - positioned on the LEFT side of card */
+.overlay-qr {
+  position: absolute;
+  top: 200px;
+  left: 70px;
+  background: #ffffff;
+  padding: 12px 12px 10px 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+  text-align: center;
+}
+
+/* Hint text below QR */
+.overlay-qr-hint {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  font-family: 'Cairo', 'Arial', sans-serif;
+  text-align: center;
+  direction: rtl;
+  white-space: nowrap;
+}
 </style>

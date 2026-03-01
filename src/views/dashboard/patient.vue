@@ -1,7 +1,23 @@
 <template>
   <v-container fluid class="patient-detail-page no-horizontal-scroll">
+    <!-- Patient Header Loading Skeleton -->
+    <v-card class="mb-4 patient-header-card" outlined v-if="loadingPatient">
+      <v-row no-gutters align="center">
+        <v-col cols="auto" class="pa-4">
+          <v-skeleton-loader type="avatar" width="60" height="60" />
+        </v-col>
+        <v-col>
+          <v-skeleton-loader type="text" width="200" class="mb-2" />
+          <v-skeleton-loader type="text" width="150" />
+        </v-col>
+        <v-col cols="auto" class="pa-4">
+          <v-skeleton-loader type="button" width="100" />
+        </v-col>
+      </v-row>
+    </v-card>
+
     <!-- Patient Header Card -->
-    <v-card class="mb-4 patient-header-card" outlined>
+    <v-card class="mb-4 patient-header-card" outlined v-else>
       <v-row no-gutters align="center">
         <!-- Patient Avatar -->
         <v-col cols="auto" class="pa-4">
@@ -243,7 +259,13 @@
               
               <!-- Selected Cases Table -->
               <v-card-text>
-                <div class="selected-teeth-table">
+                <!-- Cases Loading Indicator -->
+                <div v-if="loadingCases" class="text-center pa-6">
+                  <v-progress-circular indeterminate color="primary" size="40" />
+                  <div class="mt-3 grey--text text--darken-1">{{ $t('loading.loading') || 'Loading' }} {{ $t('patients.cases') || 'Cases' }}...</div>
+                </div>
+
+                <div class="selected-teeth-table" v-else>
                   <v-card flat class="teeth-template-card">
                     <v-card-title class="teeth-template-title">
                       <v-icon left>mdi-tooth-outline</v-icon>
@@ -579,8 +601,13 @@
 
           <!-- Payment Details - Loop through all bills -->
           <div class="bills-payment-loop">
+            <!-- Bills Loading Indicator -->
+            <div v-if="loadingBills" class="text-center pa-6">
+              <v-progress-circular indeterminate color="success" size="36" />
+              <div class="mt-3 grey--text text--darken-1">{{ $t('loading.loading') || 'Loading' }} {{ $t('patients.bill') || 'Bills' }}...</div>
+            </div>
             <!-- Debug: Show bills count -->
-            <div v-if="patientBills.length === 0" class="text-center pa-4 grey--text">
+            <div v-else-if="patientBills.length === 0" class="text-center pa-4 grey--text">
               {{ $t('patients.no_bills_message') }}
             </div>
             
@@ -1026,6 +1053,13 @@ export default {
       saving: false,
       loadingDoctors: false,
       activeTeethTab: 0, // 0 for permanent teeth, 1 for baby teeth
+      
+      // Progressive loading states
+      loadingPatient: true,
+      loadingCases: true,
+      loadingBills: true,
+      casesLoaded: false,
+      billsLoaded: false,
       
       // Patient Data (will be loaded from API)
       patient: {
@@ -1715,7 +1749,7 @@ export default {
       }
     },
 
-    // Load patient data from API
+    // Load patient data from API - Progressive Loading
     // Override loadInitialData from mixin
     async loadInitialData() {
       await this.loadPatientData();
@@ -1723,7 +1757,7 @@ export default {
 
     async loadPatientData() {
       try {
-        console.log('🔄 Starting loadPatientData...');
+        console.log('🔄 Starting loadPatientData (Progressive Loading)...');
 
         // Get patient ID from route
         const patientId = this.$route.params.id;
@@ -1741,88 +1775,47 @@ export default {
           throw new Error('No authentication token found');
         }
 
-        // Load patient data using the new API endpoint
-        console.log('📡 Making API request to get patient data...');
-        
-        const response = await this.$http.get(`/getPatientById/${patientId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        };
 
-        console.log('📡 API response received:', response.status);
-        const data = response.data;
-        console.log('📊 Patient data structure:', Object.keys(data));
+        // Reset loading states
+        this.loadingPatient = true;
+        this.loadingCases = true;
+        this.loadingBills = true;
+        this.casesLoaded = false;
+        this.billsLoaded = false;
+
+        // ⚡ Step 1: Load basic patient data FIRST (fast ~100-300ms)
+        console.log('📡 [Step 1] Loading basic patient data...');
+        const patientResponse = await this.$http.get(`/getPatientById/${patientId}`, { headers });
+
+        console.log('📡 [Step 1] Patient data received:', patientResponse.status);
+        const patientData = patientResponse.data?.data || patientResponse.data;
         
-        // Set patient basic info
-        console.log('👤 Processing patient basic info...');
+        // Set patient basic info immediately
         this.patient = {
-          id: data.id,
-          name: data.name,
-          phone: data.phone,
-          age: data.age,
-          address: data.address,
-          email: data.email,
-          sex: data.sex,
-          systemic_conditions: data.systemic_conditions,
-          birth_date: data.birth_date,
-          notes: data.notes,
-          rx_id: data.rx_id,
-          credit_balance: data.credit_balance || 0,
-          tooth_parts: data.tooth_parts,  // Add tooth_parts data
-          qr_code: data.qr_code  // Add qr_code from API
+          id: patientData.id,
+          name: patientData.name,
+          phone: patientData.phone,
+          age: patientData.age,
+          address: patientData.address,
+          email: patientData.email,
+          sex: patientData.sex,
+          systemic_conditions: patientData.systemic_conditions,
+          birth_date: patientData.birth_date,
+          notes: patientData.notes,
+          rx_id: patientData.rx_id,
+          credit_balance: patientData.credit_balance || 0,
+          tooth_parts: patientData.tooth_parts,
+          qr_code: patientData.qr_code
         };
         console.log('👤 Patient basic info set:', this.patient.name);
-        console.log('🦷 Patient tooth_parts:', this.patient.tooth_parts);
-        console.log('🔲 Patient qr_code:', this.patient.qr_code);
 
-        // Process cases data
-        console.log('📋 Processing cases data...');
-        this.patientCases = data.cases ? data.cases.map(caseItem => {
-          // Parse tooth number from JSON array format
-          let toothNumber = null;
-          try {
-            if (caseItem.tooth_num) {
-              const parsed = JSON.parse(caseItem.tooth_num);
-              toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
-            }
-          } catch (e) {
-            toothNumber = caseItem.tooth_num;
-          }
-
-          console.log(`📋 Case ${caseItem.id}: notes="${caseItem.notes || ''}", sessions count=${caseItem.sessions?.length || 0}`);
-
-          return {
-            id: caseItem.id,
-            server_id: caseItem.id,
-            tooth_number: toothNumber,
-            case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
-            date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
-            price: caseItem.price,
-            displayPrice: this.formatNumberWithCommas(caseItem.price || ''),
-            completed: caseItem.status_id === 43, // 43 = completed, 42 = not completed
-            notes: caseItem.notes || '',
-            operation_id: caseItem.case_categores_id,
-            status_id: caseItem.status_id,
-            sessions: caseItem.sessions || [],
-            additionalSessions: [],
-            doctor_id: caseItem.doctor_id,
-            user_id: caseItem.user_id,
-            is_paid: caseItem.is_paid,
-            case_categories: caseItem.case_categories
-          };
-        }) : [];
-        console.log('📋 Cases processed:', this.patientCases.length);
-
-        // Format cases for bill selection
-        if (data.cases && Array.isArray(data.cases)) {
-          this.availableCases = this.formatCasesForSelection(data.cases);
-        }
-
-        // Process images data
-        console.log('🖼️ Processing images data...');
-        this.patientImages = data.images ? data.images.map(image => ({
+        // Process images from basic patient data (included in getPatientById)
+        const images = patientData.images || [];
+        this.patientImages = images.map(image => ({
           id: image.id,
           image_url: image.image_url,
           imageable_id: image.imageable_id,
@@ -1830,86 +1823,18 @@ export default {
           description: image.descrption,
           created_at: image.created_at,
           updated_at: image.updated_at
-        })) : [];
-        console.log('🖼️ Images processed:', this.patientImages.length);
+        }));
+        console.log('�️ Images processed:', this.patientImages.length);
 
-        // Process bills data
-        console.log('💰 Processing bills data...');
-        console.log('💰 Raw bills from API:', data.bills);
-        this.patientBills = data.bills ? data.bills.map(bill => {
-          console.log('💰 Processing bill:', bill.id, 'use_credit:', bill.use_credit);
-          return {
-            id: bill.id,
-            server_id: bill.id,
-            billable_id: bill.billable_id,
-            patient_id: bill.patient_id,
-            price: bill.price,
-            PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : '',
-            is_paid: bill.is_paid,
-            billable_type: bill.billable_type,
-            user_id: bill.user_id,
-            clinics_id: bill.clinics_id,
-            user: bill.user || {},
-            user_name: bill.user ? bill.user.name : '',
-            created_at: bill.created_at,
-            updated_at: bill.updated_at,
-            case_id: bill.billable_id, // Use billable_id as case_id
-            billable: bill.billable, // Store the complete billable object
-            isNew: false,
-            modified: false,
-            use_credit: bill.use_credit == 1 || bill.use_credit === true // Convert to boolean from API response
-          };
-        }) : [];
-        console.log('💰 Bills processed:', this.patientBills.length);
-        console.log('💰 Bills with credit usage:', this.patientBills.filter(bill => bill.use_credit).length);
+        // Patient header is now visible! Mark patient loading as complete
+        this.loadingPatient = false;
+        console.log('✅ [Step 1] Patient header displayed immediately');
 
-        // Create available cases from bills' billable objects and existing cases
-        const casesFromBills = data.bills ? data.bills
-          .filter(bill => bill.billable) // Only bills with billable data
-          .map(bill => bill.billable) : [];
-        
-        const allCases = [...(data.cases || []), ...casesFromBills];
-        
-        // Remove duplicates based on case ID
-        const uniqueCases = allCases.filter((case_item, index, self) => 
-          index === self.findIndex(c => c.id === case_item.id)
-        );
-        
-        this.availableCases = this.formatCasesForSelection(uniqueCases);
-
-        // Load dental operations and doctors with individual error handling
-        try {
-          await this.fetchDentalOperations();
-        } catch (error) {
-          console.error('❌ Failed to load dental operations:', error);
-        }
-
-        // Load doctors for appointment booking
-        try {
-          await this.fetchDoctors();
-        } catch (error) {
-          console.error('❌ Failed to load doctors:', error);
-        }
-
-        console.log('✅ Patient data loaded successfully');
-        console.log('Patient:', this.patient);
-        console.log('Cases:', this.patientCases);
-        console.log('Images:', this.patientImages);
-        console.log('Bills:', this.patientBills);
-        
-        // Initialize Fancybox after data is loaded
+        // Initialize Fancybox for images
         this.$nextTick(() => {
           if (window.$ && window.$.fancybox) {
             window.$('[data-fancybox]').fancybox({
-              buttons: [
-                "zoom",
-                "share",
-                "slideShow",
-                "fullScreen",
-                "download",
-                "thumbs",
-                "close"
-              ],
+              buttons: ["zoom", "share", "slideShow", "fullScreen", "download", "thumbs", "close"],
               animationEffect: "zoom",
               transitionEffect: "slide",
               loop: true,
@@ -1918,8 +1843,48 @@ export default {
             });
           }
         });
+
+        // ⏱️ Step 2: Load cases and bills in PARALLEL (medium ~500-1000ms)
+        console.log('� [Step 2] Loading cases and bills in parallel...');
+        
+        const [casesResult, billsResult] = await Promise.allSettled([
+          this.loadPatientCases(patientId, headers),
+          this.loadPatientBills(patientId, headers)
+        ]);
+
+        // Handle cases result
+        if (casesResult.status === 'rejected') {
+          console.error('❌ Failed to load cases:', casesResult.reason);
+        }
+
+        // Handle bills result
+        if (billsResult.status === 'rejected') {
+          console.error('❌ Failed to load bills:', billsResult.reason);
+        }
+
+        // Build availableCases from both cases and bills' billable objects
+        this.rebuildAvailableCases();
+
+        // Step 3: Load dental operations and doctors with individual error handling
+        try {
+          await this.fetchDentalOperations();
+        } catch (error) {
+          console.error('❌ Failed to load dental operations:', error);
+        }
+
+        try {
+          await this.fetchDoctors();
+        } catch (error) {
+          console.error('❌ Failed to load doctors:', error);
+        }
+
+        console.log('✅ All patient data loaded successfully');
+
       } catch (error) {
         console.error('❌ Error loading patient data:', error);
+        this.loadingPatient = false;
+        this.loadingCases = false;
+        this.loadingBills = false;
         
         // More detailed error handling
         let errorMessage = this.$t('patients.error_loading_patient_data');
@@ -1943,6 +1908,127 @@ export default {
           confirmButtonText: this.$t('close')
         });
       }
+    },
+
+    // Load patient cases from separate API endpoint
+    async loadPatientCases(patientId, headers) {
+      try {
+        console.log('📋 Loading patient cases...');
+        this.loadingCases = true;
+
+        const response = await this.$http.get(`/getPatientCases/${patientId}`, { headers });
+        const casesData = response.data?.data || response.data?.cases || response.data || [];
+        const cases = Array.isArray(casesData) ? casesData : [];
+
+        this.patientCases = cases.map(caseItem => {
+          let toothNumber = null;
+          try {
+            if (caseItem.tooth_num) {
+              const parsed = JSON.parse(caseItem.tooth_num);
+              toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
+            }
+          } catch (e) {
+            toothNumber = caseItem.tooth_num;
+          }
+
+          return {
+            id: caseItem.id,
+            server_id: caseItem.id,
+            tooth_number: toothNumber,
+            case_type: (caseItem.case_categories || caseItem.category)?.name_ar || (caseItem.case_categories || caseItem.category)?.name || '',
+            date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
+            price: caseItem.price,
+            displayPrice: this.formatNumberWithCommas(caseItem.price || ''),
+            completed: caseItem.status_id === 43,
+            notes: caseItem.notes || '',
+            operation_id: caseItem.case_categores_id,
+            status_id: caseItem.status_id,
+            sessions: caseItem.sessions || [],
+            additionalSessions: [],
+            doctor_id: caseItem.doctor_id,
+            user_id: caseItem.user_id,
+            is_paid: caseItem.is_paid,
+            case_categories: caseItem.case_categories || caseItem.category
+          };
+        });
+
+        console.log('📋 Cases loaded:', this.patientCases.length);
+        this.casesLoaded = true;
+      } catch (error) {
+        console.error('❌ Error loading cases:', error);
+        // Fallback: cases remain empty array
+        this.patientCases = [];
+      } finally {
+        this.loadingCases = false;
+      }
+    },
+
+    // Load patient bills from separate API endpoint
+    async loadPatientBills(patientId, headers) {
+      try {
+        console.log('💰 Loading patient bills...');
+        this.loadingBills = true;
+
+        const response = await this.$http.get(`/getPatientBills/${patientId}`, { headers });
+        const billsData = response.data?.data || response.data?.bills || response.data || [];
+        const bills = Array.isArray(billsData) ? billsData : [];
+
+        this.patientBills = bills.map(bill => ({
+          id: bill.id,
+          server_id: bill.id,
+          billable_id: bill.billable_id,
+          patient_id: bill.patient_id,
+          price: bill.price,
+          PaymentDate: bill.PaymentDate ? bill.PaymentDate.split(' ')[0] : (bill.payment_date || ''),
+          is_paid: bill.is_paid,
+          billable_type: bill.billable_type,
+          user_id: bill.user_id,
+          clinics_id: bill.clinics_id,
+          user: bill.user || {},
+          user_name: bill.user ? bill.user.name : '',
+          created_at: bill.created_at,
+          updated_at: bill.updated_at,
+          case_id: bill.case_id || bill.billable_id,
+          billable: bill.billable || bill.cases,
+          isNew: false,
+          modified: false,
+          use_credit: bill.use_credit == 1 || bill.use_credit === true
+        }));
+
+        console.log('💰 Bills loaded:', this.patientBills.length);
+        this.billsLoaded = true;
+      } catch (error) {
+        console.error('❌ Error loading bills:', error);
+        // Fallback: bills remain empty array
+        this.patientBills = [];
+      } finally {
+        this.loadingBills = false;
+      }
+    },
+
+    // Rebuild available cases for bill dropdown from both cases and bills data
+    rebuildAvailableCases() {
+      const casesFromBills = this.patientBills
+        .filter(bill => bill.billable)
+        .map(bill => bill.billable);
+      
+      const rawCases = this.patientCases.map(c => ({
+        id: c.id || c.server_id,
+        case_categores_id: c.operation_id,
+        case_categories: c.case_categories,
+        tooth_num: c.tooth_number ? JSON.stringify([c.tooth_number]) : null,
+        price: c.price,
+        notes: c.notes
+      }));
+
+      const allCases = [...rawCases, ...casesFromBills];
+      
+      // Remove duplicates based on case ID
+      const uniqueCases = allCases.filter((case_item, index, self) => 
+        index === self.findIndex(c => c.id === case_item.id)
+      );
+      
+      this.availableCases = this.formatCasesForSelection(uniqueCases);
     },
 
     // Handle tooth selection from teeth component

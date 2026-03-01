@@ -1011,7 +1011,7 @@
                 this.selectedPatientForCard = {
                     id: item.id || null,
                     name: item.name || '',
-                    sex: item.sex || '',
+                    sex: item.sex,
                     qr_code: item.qr_code || '',
                     phone: item.phone || ''
                 };
