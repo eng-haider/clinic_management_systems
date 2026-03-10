@@ -420,8 +420,10 @@
     EventBus
   } from "./event-bus.js";
   import billsReport from './sub_components/billsReport.vue';
+  import cacheMixin from '@/mixins/cacheMixin';
   export default {
     name: "Dashboard",
+    mixins: [cacheMixin],
     components: {
       billsReport,
       dash_card
@@ -770,6 +772,17 @@ this.allItem=true;
             });
         } else {
 
+          const cacheKey = `cache_accounts_page_${this.current_page}`;
+          const cached = this.getCache(cacheKey);
+          if (cached) {
+              this.loadingData = false;
+              this.accounts_statistic = cached.accounts_statistic;
+              this.Cases = cached.Cases;
+              this.Conjugations = cached.Conjugations;
+              this.last_page = cached.last_page;
+              this.pageCount = cached.last_page;
+              return;
+          }
           this.axios.get('/patientsAccounsts?page=' + this.current_page, {
               headers: {
                 "Content-Type": "application/json",
@@ -793,6 +806,13 @@ this.allItem=true;
               this.last_page = res.data.meta.last_page;
               this.pageCount = res.data.meta.last_page;
 
+              this.setCache(cacheKey, {
+                  accounts_statistic: {...this.accounts_statistic},
+                  Cases: this.Cases,
+                  Conjugations: this.Conjugations,
+                  last_page: res.data.meta.last_page
+              }, this.cacheTTL.medium);
+
 
 
 
@@ -807,6 +827,14 @@ this.allItem=true;
       },
 
       getclinicDoctor() {
+        const cached = this.getCache('cache_doctors');
+        if (cached) {
+            this.doctors = cached.doctors;
+            if (cached.doctorsAll) this.doctorsAll = cached.doctorsAll;
+            this.loadingData = false;
+            this.loading = false;
+            return;
+        }
         this.loading = true;
         this.axios.get("doctors/clinic", {
             headers: {
@@ -830,8 +858,7 @@ this.allItem=true;
               this.doctorsAll.push(item)
             })
 
-
-
+            this.setCache('cache_doctors', { doctors: this.doctors, doctorsAll: [...this.doctorsAll] }, this.cacheTTL.veryLong);
 
           })
           .catch(() => {
@@ -839,7 +866,12 @@ this.allItem=true;
           });
       },
       getCase_number_stats() {
-
+        const cached = this.getCache('cache_case_stats');
+        if (cached) {
+            this.dataSource = cached;
+            this.showChar = true;
+            return;
+        }
         this.axios
           .get("cases/getCaseCategoriesCounts", {
             headers: {
@@ -850,9 +882,8 @@ this.allItem=true;
           })
           .then((res) => {
             this.dataSource = res.data.data;
-            this.showChar = true
-
-
+            this.showChar = true;
+            this.setCache('cache_case_stats', this.dataSource, this.cacheTTL.long);
           })
           .catch((err) => {
             err

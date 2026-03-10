@@ -126,10 +126,12 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
         directives: {
             mask,
         },
+        mixins: [cacheMixin],
         components: {
             // billsReport,
             // OwnerBooking,
@@ -296,6 +298,11 @@
             },
             getrecipes() {
 
+                const cached = this.getCache('cache_recipes');
+                if (cached) {
+                    this.recipes = cached;
+                    return;
+                }
                 Axios.get("getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
@@ -304,12 +311,8 @@
                         }
                     })
                     .then(res => {
-
                         this.recipes = res.data;
-
-
-
-
+                        this.setCache('cache_recipes', this.recipes, this.cacheTTL.long);
                     })
 
 
@@ -524,6 +527,8 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                                this.clearCacheByPrefix('cache_birthday');
+                                this.clearCacheByPrefix('cache_patients');
                                 this.initialize();
                             })
                             .catch(() => {
@@ -735,6 +740,14 @@
 
 
             getclinicDoctor() {
+                const cached = this.getCache('cache_doctors');
+                if (cached) {
+                    this.doctors = cached.doctors;
+                    if (cached.doctorsAll) this.doctorsAll = cached.doctorsAll;
+                    this.loadingData = false;
+                    this.loading = false;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("doctors/clinic", {
                         headers: {
@@ -755,9 +768,7 @@
                             index
                             this.doctorsAll.push(item)
                         })
-
-
-
+                        this.setCache('cache_doctors', { doctors: this.doctors, doctorsAll: [...this.doctorsAll] }, this.cacheTTL.veryLong);
                     })
                     .catch(() => {
                         this.loading = false;
@@ -766,6 +777,13 @@
 
 
             initialize() {
+                const cached = this.getCache('cache_birthday_patients');
+                if (cached) {
+                    this.loadingData = false;
+                    this.loading = false;
+                    this.desserts = cached;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("patients/getPatientsBirthDay", {
                         headers: {
@@ -779,7 +797,7 @@
                         this.loading = false;
                         this.search = null;
                         this.desserts = res.data.data;
-
+                        this.setCache('cache_birthday_patients', this.desserts, this.cacheTTL.long);
 
                     })
                     .catch(() => {
@@ -789,7 +807,11 @@
 
             getCaseCategories() {
 
-
+                const cached = this.getCache('cache_case_categories_simple');
+                if (cached) {
+                    this.CaseCategories = cached;
+                    return;
+                }
                 Axios.get("cases/CaseCategories", {
                         headers: {
                             "Content-Type": "application/json",
@@ -800,7 +822,7 @@
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
-
+                        this.setCache('cache_case_categories_simple', this.CaseCategories, this.cacheTTL.hour);
 
                     })
                     .catch(() => {

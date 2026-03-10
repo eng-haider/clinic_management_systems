@@ -417,7 +417,9 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
+        mixins: [cacheMixin],
         directives: {
             mask,
         },
@@ -680,6 +682,12 @@
                 };
             },
             getrecipes() {
+                // Check cache first
+                const cached = this.getCache('cache_recipes');
+                if (cached) {
+                    this.recipes = cached;
+                    return;
+                }
 
                 Axios.get("getrecipes", {
                         headers: {
@@ -689,15 +697,17 @@
                         }
                     })
                     .then(res => {
-
                         this.recipes = res.data;
-
-
-
-
+                        // Cache the response
+                        this.setCache('cache_recipes', res.data, this.cacheTTL.long);
                     })
-
-
+                    .catch(() => {
+                        // Try expired cache as fallback
+                        const expiredCache = this.getExpiredCache('cache_recipes');
+                        if (expiredCache) {
+                            this.recipes = expiredCache;
+                        }
+                    });
             },
             getByDocor() {
                 if (this.searchDocorId === 0) {
@@ -841,6 +851,10 @@
                                     timer: 1500
                                 });
 
+                                // Clear patient cache and reset search state so initialize fetches fresh data
+                                this.clearCacheByPrefix('cache_patients');
+                                this.isSearching = false;
+                                this.isSearchingDoctor = false;
                                 this.initialize();
                             })
                             .catch(() => {
@@ -992,6 +1006,15 @@
 
 
             getclinicDoctor() {
+                // Check cache first
+                const cached = this.getCache('cache_doctors');
+                if (cached) {
+                    this.doctors = cached.doctors;
+                    this.doctorsAll = cached.doctorsAll;
+                    this.loadingData = false;
+                    return;
+                }
+
                 const endpoint = this.$store.state.role === 'secretary' ? 'doctors/secretary' : 'doctors/clinic';
                 this.apiRequest(endpoint)
                     .then(res => {
@@ -999,9 +1022,20 @@
                         this.loading = false;
                         this.doctors = res.data.data;
                         this.doctorsAll = [{ id: 0, name: ' الكل' }, ...this.doctors];
+                        // Cache the response
+                        this.setCache('cache_doctors', {
+                            doctors: this.doctors,
+                            doctorsAll: this.doctorsAll
+                        }, this.cacheTTL.veryLong);
                     })
                     .catch(() => {
                         this.loading = false;
+                        // Try expired cache as fallback
+                        const expiredCache = this.getExpiredCache('cache_doctors');
+                        if (expiredCache) {
+                            this.doctors = expiredCache.doctors;
+                            this.doctorsAll = expiredCache.doctorsAll;
+                        }
                     });
             },
 
@@ -1009,6 +1043,20 @@
             initialize(page = 1) {
                 page
                 if (this.isSearching || this.isSearchingDoctor) return;
+
+                // Check cache first
+                const cacheKey = `cache_patients_page_${this.current_page}`;
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loadingData = false;
+                    this.loading = false;
+                    this.search = null;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.pageCount;
+                    this.desserts = cached.data;
+                    return;
+                }
+
                 this.loading = true;
                 this.apiRequest(`patients/getByUserIdv2?page=${this.current_page}`)
                     .then(res => {
@@ -1018,20 +1066,47 @@
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
                         this.desserts = res.data.data;
+                        // Cache the response
+                        this.setCache(cacheKey, {
+                            data: res.data.data,
+                            last_page: res.data.meta.last_page,
+                            pageCount: res.data.meta.last_page
+                        }, this.cacheTTL.medium);
                     })
                     .catch(() => {
                         this.loading = false;
+                        // Try expired cache as fallback
+                        const expiredCache = this.getExpiredCache(cacheKey);
+                        if (expiredCache) {
+                            this.desserts = expiredCache.data || [];
+                            this.last_page = expiredCache.last_page || 0;
+                            this.pageCount = expiredCache.pageCount || 0;
+                        }
                     });
             },
 
             getCaseCategories() {
+                // Check cache first
+                const cached = this.getCache('cache_case_categories');
+                if (cached) {
+                    this.CaseCategories = cached;
+                    return;
+                }
+
                 this.apiRequest('cases/CaseCategories')
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
+                        // Cache the response
+                        this.setCache('cache_case_categories', res.data, this.cacheTTL.hour);
                     })
                     .catch(() => {
                         this.loading = false;
+                        // Try expired cache as fallback
+                        const expiredCache = this.getExpiredCache('cache_case_categories');
+                        if (expiredCache) {
+                            this.CaseCategories = expiredCache;
+                        }
                     });
             },
 
@@ -1138,6 +1213,10 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
+                                // Clear patient cache and reset search state so initialize fetches fresh data
+                                this.clearCacheByPrefix('cache_patients');
+                                this.isSearching = false;
+                                this.isSearchingDoctor = false;
                                 this.initialize();
                                 this.close();
 
@@ -1174,6 +1253,10 @@
 
                                 this.patientInfo = res.data.data;
                                 this.dialog = false;
+                                // Clear patient cache and reset search state so initialize fetches fresh data
+                                this.clearCacheByPrefix('cache_patients');
+                                this.isSearching = false;
+                                this.isSearchingDoctor = false;
                                 this.initialize();
 
                                 if (this.$store.state.role !== 'secretary') {

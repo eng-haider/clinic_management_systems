@@ -242,6 +242,7 @@
     //Recipe
     import Swal from "sweetalert2";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     import {
         mask
     } from "vue-the-mask";
@@ -250,6 +251,7 @@
         directives: {
             mask,
         },
+        mixins: [cacheMixin],
         components: {
 
         },
@@ -381,6 +383,7 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.fetchDataByCategory(item.conjugations_categories_id);
                                 this.initialize();
                             })
@@ -412,6 +415,7 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.fetchDataByCategory(item.conjugations_categories_id);
                             })
                             .catch(() => {
@@ -445,6 +449,7 @@
                                 })
                             .then(() => {
                                 this.loadSave = false;
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
@@ -489,6 +494,7 @@
 
                                 this.categoryDialog = false;
                                 this.loadSave = false;
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.initialize()
                           
 
@@ -521,6 +527,7 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.fetchDataByCategory(this.editedItem.conjugations_categories_id);
                                 this.close();
                                 this.initialize();
@@ -565,6 +572,7 @@
                                 this.dialog = false,
                                     this.loadSave = false;
                                 // this.initialize();
+                                this.clearCacheByPrefix('cache_conjugations');
                                 this.fetchDataByCategory(this.editedItem.conjugations_categories_id)
                                 this.initialize()
                                 this.clearForm();
@@ -589,6 +597,12 @@
             //ConjugationsCategories
 
             getConjugationsCategories() {
+                const cached = this.getCache('cache_conjugations_categories');
+                if (cached) {
+                    this.ConjugationsCategories = cached;
+                    this.loading = false;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("Conjugations/ConjugationsCategories", {
                         headers: {
@@ -601,7 +615,7 @@
 
                         this.loading = false;
                         this.ConjugationsCategories = res.data.data;
-
+                        this.setCache('cache_conjugations_categories', this.ConjugationsCategories, this.cacheTTL.long);
 
                     })
                     .catch(() => {
@@ -610,6 +624,11 @@
             },
 
             fetchDataByCategory(categoryId) {
+                const cached = this.getCache('cache_conjugations_cat_' + categoryId);
+                if (cached) {
+                    this.$set(this.selectedCategoryData, categoryId, cached);
+                    return;
+                }
                 Axios.get(`/Conjugations/getByCat/${categoryId}`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -619,6 +638,7 @@
                     })
                     .then(res => {
                         this.$set(this.selectedCategoryData, categoryId, res.data.data);
+                        this.setCache('cache_conjugations_cat_' + categoryId, res.data.data, this.cacheTTL.medium);
                     })
                     .catch(() => {
                         this.$swal.fire(this.$t('not_successful'), this.$t('not_done'), "error");
@@ -651,6 +671,12 @@
             },
 
             initialize() {
+                const cached = this.getCache('cache_conjugations_cats_list');
+                if (cached) {
+                    this.ConjugationsCategories = cached;
+                    this.loading = false;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("ConjugationsCategories", {
                         headers: {
@@ -662,6 +688,7 @@
                     .then(res => {
                         this.loading = false;
                         this.ConjugationsCategories = res.data.data;
+                        this.setCache('cache_conjugations_cats_list', this.ConjugationsCategories, this.cacheTTL.medium);
                     })
                     .catch(() => {
                         this.loading = false;
@@ -702,6 +729,7 @@
                             timer: 1500
                         });
 
+                        this.clearCacheByPrefix('cache_conjugations');
                         this.initialize()
                         this.fetchDataByCategory(item.conjugations_categories_id);
                     })

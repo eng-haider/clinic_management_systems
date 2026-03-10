@@ -350,10 +350,12 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
         directives: {
             mask,
         },
+        mixins: [cacheMixin],
         components: {
 
             cases,
@@ -627,6 +629,15 @@
                 }
             },
             getclinicDoctor() {
+                const cached = this.getCache('cache_doctors');
+                if (cached) {
+                    this.doctors = cached.doctors;
+                    this.doctorsAll = cached.doctorsAll;
+                    this.doctorsIdsAll = cached.doctorsIdsAll;
+                    this.loadingData = false;
+                    this.loading = false;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("doctors/clinic", {
                         headers: {
@@ -651,7 +662,11 @@
                             this.doctorsIdsAll.push(item.id)
                         })
 
-
+                        this.setCache('cache_doctors', {
+                            doctors: this.doctors,
+                            doctorsAll: this.doctorsAll,
+                            doctorsIdsAll: this.doctorsIdsAll
+                        }, this.cacheTTL.veryLong);
 
 
                     })
@@ -863,6 +878,8 @@
                                     timer: 1500
                                 });
 
+                                this.clearCacheByPrefix('cache_cases');
+                                this.isSearching = false;
                                 this.initialize();
                             })
                             .catch(() => {
@@ -1123,7 +1140,17 @@
 
             initialize() {
                 this.loading = true;
-                if (this.isSearching) return; // Prevent initialize from running if a search is active
+                if (this.isSearching) return;
+                const cacheKey = `cache_cases_page_${this.current_page}`;
+                const cached = this.getCache(cacheKey);
+                if (cached) {
+                    this.loading = false;
+                    this.loadingData = false;
+                    this.last_page = cached.last_page;
+                    this.pageCount = cached.last_page;
+                    this.desserts = cached.data;
+                    return;
+                }
                 Axios.get(`cases/UserCasesv2?page=${this.current_page}`, {
                         headers: {
                             "Content-Type": "application/json",
@@ -1142,6 +1169,10 @@
 
                         this.desserts = res.data.data;
 
+                        this.setCache(cacheKey, {
+                            last_page: res.data.meta.last_page,
+                            data: res.data.data
+                        }, this.cacheTTL.medium);
 
                     })
                     .catch(() => {
@@ -1151,6 +1182,12 @@
 
             getCaseCategories() {
 
+                const cached = this.getCache('cache_case_categories');
+                if (cached) {
+                    this.CaseCategoriess = cached.raw;
+                    this.CaseCategories = cached.processed;
+                    return;
+                }
 
                 Axios.get("cases/CaseCategories", {
                         headers: {
@@ -1180,6 +1217,11 @@
                             })
                         }
 
+                        this.setCache('cache_case_categories', {
+                            raw: this.CaseCategoriess,
+                            processed: [...this.CaseCategories]
+                        }, this.cacheTTL.hour);
+
                         console.log(this.CaseCategories);
 
                     })
@@ -1208,6 +1250,8 @@
                         .then(() => {
                             this.loadSave = false;
                             this.close();
+                            this.clearCacheByPrefix('cache_cases');
+                            this.isSearching = false;
                             this.initialize();
 
                             this.$swal.fire({
@@ -1244,6 +1288,8 @@
 
                             //cases
                             this.loadSave = false;
+                            this.clearCacheByPrefix('cache_cases');
+                            this.isSearching = false;
                             this.initialize();
                             this.editedIndex = -1;
                             this.close();
@@ -1288,6 +1334,9 @@
                                 /// this.casesheet = true;
 
                                 this.SaveCase();
+                                this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_patients');
+                                this.isSearching = false;
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
@@ -1328,6 +1377,9 @@
                                 });
                                 this.patientInfo = res.data.data;
                                 this.dialog = false,
+                                    this.clearCacheByPrefix('cache_cases');
+                                    this.clearCacheByPrefix('cache_patients');
+                                    this.isSearching = false;
                                     this.initialize();
                                 this.addCase(this.patientInfo);
 

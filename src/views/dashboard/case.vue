@@ -545,8 +545,10 @@
 
 
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
 
+        mixins: [cacheMixin],
         props: {
             editedItem: Object,
             CaseCategories: Array,
@@ -711,7 +713,11 @@
 
             },
             getrecipes() {
-
+                const cached = this.getCache('cache_recipes');
+                if (cached) {
+                    this.recipes = cached;
+                    return;
+                }
                 Axios.get("getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
@@ -721,6 +727,7 @@
                     })
                     .then(res => {
                         this.recipes = res.data;
+                        this.setCache('cache_recipes', this.recipes, this.cacheTTL.long);
                     })
             },
 
@@ -1096,8 +1103,8 @@
 
                                 this.loadSave = false;
 
-
-
+                                this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_accounts');
 
                                 this.$swal.fire({
                                     position: "top-end",
@@ -1139,6 +1146,8 @@
 
                                 this.editedIndex = -1;
                                 this.close();
+                                this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_accounts');
                                 EventBus.$emit("changeStatusCloseCase", false);
                                 res
 

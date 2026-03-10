@@ -153,6 +153,7 @@
     //Recipe
     import Swal from "sweetalert2";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     import {
         mask
     } from "vue-the-mask";
@@ -161,6 +162,7 @@
         directives: {
             mask,
         },
+        mixins: [cacheMixin],
         components: {
 
         },
@@ -232,6 +234,7 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                                this.clearCacheByPrefix('cache_store');
                                 this.initialize();
                             })
                             .catch(() => {
@@ -276,6 +279,7 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
+                                this.clearCacheByPrefix('cache_store');
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
@@ -318,6 +322,7 @@
 
                                 this.dialog = false,
                                     this.loadSave = false;
+                                this.clearCacheByPrefix('cache_store');
                                 this.initialize();
 
 
@@ -337,6 +342,12 @@
             },
 
             initialize() {
+                const cached = this.getCache('cache_store_items');
+                if (cached) {
+                    this.items = cached;
+                    this.loading = false;
+                    return;
+                }
                 this.loading = true;
                 Axios.get("Items/GetByClinicId", {
                         headers: {
@@ -349,7 +360,7 @@
 
                         this.loading = false;
                         this.items = res.data.data;
-
+                        this.setCache('cache_store_items', this.items, this.cacheTTL.medium);
 
                     })
                     .catch(() => {

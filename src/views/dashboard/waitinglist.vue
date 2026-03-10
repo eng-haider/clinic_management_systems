@@ -112,11 +112,12 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
         directives: {
             mask,
         },
-
+        mixins: [cacheMixin],
         components: {
 
 
@@ -487,6 +488,14 @@
             async getclinicDoctor() {
 
                 if(this.$store.state.role=='secretary'){
+                const cached = this.getCache('cache_waitinglist_doctors');
+                if (cached) {
+                    this.doctors = cached;
+                    this.loadingData = false;
+                    this.loading = false;
+                    this.fetchReservations();
+                    return;
+                }
                 this.loading = true;
                 try {
                     const response = await Axios.get("doctors/secretary", {
@@ -499,6 +508,7 @@
                     this.loadingData = false;
                     this.loading = false;
                     this.doctors = response.data.data;
+                    this.setCache('cache_waitinglist_doctors', this.doctors, this.cacheTTL.veryLong);
                     this.fetchReservations();
                 } catch (error) {
                     this.loading = false;
@@ -561,7 +571,12 @@
             },
 
             getCaseCategories() {
-
+                const cached = this.getCache('cache_case_categories_simple');
+                if (cached) {
+                    this.CaseCategories = cached;
+                    this.loading = false;
+                    return;
+                }
 
                 Axios.get("cases/CaseCategories", {
                         headers: {
@@ -573,7 +588,7 @@
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
-
+                        this.setCache('cache_case_categories_simple', this.CaseCategories, this.cacheTTL.hour);
 
                     })
                     .catch(() => {

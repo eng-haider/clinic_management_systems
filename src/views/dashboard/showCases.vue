@@ -149,12 +149,13 @@ import Axios from "axios";
 import {
         EventBus
     } from "./event-bus.js";
-
+import cacheMixin from '@/mixins/cacheMixin';
 
 export default {
     directives: {
         mask,
     },
+    mixins: [cacheMixin],
     components: {
         cases,
     },
@@ -402,6 +403,8 @@ Swal.fire({
             })
             .then(() => {
                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
+                this.clearCacheByPrefix('cache_showcases');
+                this.clearCacheByPrefix('cache_cases');
                 this.initialize();
             })
             .catch(() => {
@@ -451,6 +454,12 @@ Swal.fire({
             return Array.isArray(toothNum) ? toothNum : [toothNum];
         },
         getclinicDoctor() {
+            const cached = this.getCache('cache_doctors');
+            if (cached) {
+                this.doctors = cached.doctors;
+                this.loading = false;
+                return;
+            }
             this.loading = true;
             Axios.get("doctors/clinic", {
                 headers: {
@@ -462,6 +471,7 @@ Swal.fire({
             .then(res => {
                 this.loading = false;
                 this.doctors = res.data.data;
+                this.setCache('cache_doctors', { doctors: this.doctors }, this.cacheTTL.veryLong);
             })
             .catch(() => {
                 this.loading = false;
@@ -703,6 +713,14 @@ if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
         },
         initialize() {
             this.loadingData = true;
+            const cacheKey = `cache_showcases_${this.id}`;
+            const cached = this.getCache(cacheKey);
+            if (cached) {
+                this.loadingData = false;
+                this.desserts = cached.data;
+                this.patientInfo = cached.patient;
+                return;
+            }
             Axios.get("cases/patientCases/" + this.id, {
                 headers: {
                     "Content-Type": "application/json",
@@ -714,12 +732,18 @@ if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
                 this.loadingData = false;
                 this.desserts = res.data.data;
                 this.patientInfo = res.data.patient;
+                this.setCache(cacheKey, { data: res.data.data, patient: res.data.patient }, this.cacheTTL.medium);
             })
             .catch(() => {
                 this.loadingData = false;
             });
         },
         getCaseCategories() {
+            const cached = this.getCache('cache_case_categories_simple');
+            if (cached) {
+                this.CaseCategories = cached;
+                return;
+            }
             Axios.get("cases/CaseCategories", {
                         headers: {
                             "Content-Type": "application/json",
@@ -730,7 +754,7 @@ if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
-
+                        this.setCache('cache_case_categories_simple', this.CaseCategories, this.cacheTTL.hour);
 
                     })
                     .catch(() => {
