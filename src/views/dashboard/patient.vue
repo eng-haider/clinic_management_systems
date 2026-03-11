@@ -131,7 +131,26 @@
           </div>
 
           <!-- Desktop: Show buttons horizontally -->
-          <div class="d-none d-sm-flex">
+          <div class="d-none d-sm-flex align-center">
+                  <!-- Today's Reservation Done Switch - Positioned after Edit button -->
+            <div v-if="loadingTodayReservations || todayReservations.length > 0" class="d-flex align-center mr-3">
+              <v-progress-circular
+                v-if="loadingTodayReservations || updatingReservation"
+                indeterminate size="18" width="2" color="primary" class="mr-1"
+              />
+              <template v-else>
+                <v-switch
+                  :input-value="todayReservations[0] && todayReservations[0].status_id === 2"
+                  :disabled="todayReservations[0] && todayReservations[0].status_id === 2"
+                  inset dense hide-details color="success"
+                  class="mt-0 pt-0 mr-1"
+                  @change="markReservationDone"
+                />
+                <span class="caption" style="font-family: Cairo, sans-serif; white-space: nowrap;">
+                  {{ todayReservations[0] && todayReservations[0].status_id === 2 ? 'تم ✓' : 'موعد اليوم' }}
+                </span>
+              </template>
+            </div>
             <v-btn 
               class="mr-2" 
               color="primary" 
@@ -140,6 +159,8 @@
             >
               {{ $t('edit') }}
             </v-btn>
+            
+      
             
             <v-btn 
               class="mr-2" 
@@ -257,6 +278,25 @@
               </v-card-text>
 
               
+              <!-- Without-Tooth Case Buttons -->
+              <v-card-text v-if="withoutToothOperations.length > 0" class="pb-0 pt-2">
+                <div class="d-flex flex-wrap align-center" style="gap: 8px;">
+                  <span class="caption grey--text" style="font-family: Cairo, sans-serif;">إضافة حالة بدون سن:</span>
+                  <v-btn
+                    v-for="op in withoutToothOperations"
+                    :key="op.id"
+                    small
+                    outlined
+                    color="primary"
+                    style="font-family: Cairo, sans-serif;"
+                    @click="addCaseWithoutTooth(op)"
+                  >
+                    <v-icon left small>mdi-plus</v-icon>
+                    {{ op.name }}
+                  </v-btn>
+                </div>
+              </v-card-text>
+
               <!-- Selected Cases Table -->
               <v-card-text>
                 <!-- Cases Loading Indicator -->
@@ -1148,6 +1188,11 @@ export default {
       // Track new uploaded images that need to be saved
       newUploadedImages: [],
       // Fancybox is now handling image viewing
+
+      // Today's reservation for this patient
+      todayReservations: [],
+      loadingTodayReservations: false,
+      updatingReservation: false,
     }
   },
   
@@ -1167,6 +1212,11 @@ export default {
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
       return this.patientCases.map(case_item => case_item.tooth_number);
+    },
+
+    // Categories that don't require a tooth selection
+    withoutToothOperations() {
+      return this.dentalOperations.filter(op => op.is_without_tooth == 1);
     },
     
     totalAmount() {
@@ -1692,7 +1742,8 @@ export default {
         id: category.id,
         name: category.name_ar,
         name_en: category.name_en,
-        order: category.order
+        order: category.order,
+        is_without_tooth: category.is_without_tooth
       }));
       
       console.log('🦷 Dental operations loaded:', this.dentalOperations.length, this.dentalOperations);
@@ -1746,6 +1797,98 @@ export default {
         this.doctors = [
           { id: 1, name: this.$t('patients.default_doctor'), name_ar: this.$t('patients.default_doctor') }
         ];
+      }
+    },
+
+    // Fetch today's reservation for this patient and mark it done
+    async fetchTodayReservations() {
+      try {
+        this.loadingTodayReservations = true;
+        const patientId = this.$route.params.id;
+        const token = this.$store.state.AdminInfo?.token;
+        const response = await this.$http.get(
+          `/reservations/today/patient/${patientId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: 'Bearer ' + token
+            },
+            timeout: 15000
+          }
+        );
+        
+        // Handle response structure
+        if (response.data?.status && response.data?.data) {
+          this.todayReservations = response.data.data;
+        } else {
+          this.todayReservations = response.data?.data || response.data || [];
+        }
+        
+        console.log('📅 Today reservations loaded:', this.todayReservations.length, this.todayReservations);
+      } catch (error) {
+        console.error('❌ Error fetching today reservations:', error);
+        this.todayReservations = [];
+      } finally {
+        this.loadingTodayReservations = false;
+      }
+    },
+
+    async markReservationDone(val) {
+      if (!this.todayReservations.length) return;
+      const reservation = this.todayReservations[0];
+      
+      // Only allow marking as done, not reverting
+      if (!val) {
+        console.log('⚠️ Cannot revert done status');
+        return;
+      }
+      
+      try {
+        this.updatingReservation = true;
+        const token = this.$store.state.AdminInfo?.token;
+        
+        const response = await this.$http.post(
+          `/reservations/${reservation.id}/done`,
+          {},
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: 'Bearer ' + token
+            },
+            timeout: 15000
+          }
+        );
+        
+        console.log('✅ Reservation marked as done:', response.data);
+        
+        // Update local state with new status_id = 2 (Done)
+        if (response.data?.status && response.data?.data) {
+          this.$set(this.todayReservations, 0, { ...reservation, status_id: 2 });
+          
+          // Show success message
+          this.$swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: response.data.message || 'تم تحديث حالة الموعد بنجاح',
+            showConfirmButton: false,
+            timer: 1500
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error updating reservation status:', error);
+        
+        // Show error message
+        const errorMessage = error.response?.data?.message || 'حدث خطأ أثناء تحديث حالة الموعد';
+        this.$swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: errorMessage,
+          confirmButtonText: 'موافق'
+        });
+      } finally {
+        this.updatingReservation = false;
       }
     },
 
@@ -1876,6 +2019,12 @@ export default {
           await this.fetchDoctors();
         } catch (error) {
           console.error('❌ Failed to load doctors:', error);
+        }
+
+        try {
+          await this.fetchTodayReservations();
+        } catch (error) {
+          console.error('❌ Failed to load today reservations:', error);
         }
 
         console.log('✅ All patient data loaded successfully');
@@ -2368,6 +2517,29 @@ export default {
       this.hideContextMenu();
     },
 
+    // Add a case without a tooth number (for is_without_tooth categories)
+    addCaseWithoutTooth(operation) {
+      const operationName = operation.name || operation.name_ar;
+      const newCase = {
+        id: Date.now() + Math.floor(Math.random() * 10000),
+        server_id: null,
+        tooth_number: null,
+        case_type: operationName,
+        date: new Date().toISOString().substr(0, 10),
+        price: null,
+        displayPrice: '',
+        completed: false,
+        notes: '',
+        operation_id: operation.id,
+        status_id: 42,
+        sessions: [],
+        additionalSessions: [],
+        modified: true
+      };
+      this.patientCases.unshift(newCase);
+      this.$nextTick(() => this.$forceUpdate());
+    },
+
     // Add new case for the patient
    addCase(toothNumber, operation) {
       // Check if case already exists for this tooth and operation
@@ -2855,7 +3027,7 @@ export default {
         
         const requestBody = {
           case_categores_id: caseItem.operation_id,
-          tooth_num: [parseInt(caseItem.tooth_number)],
+          tooth_num: caseItem.tooth_number != null ? [parseInt(caseItem.tooth_number)] : null,
           status_id: caseItem.completed ? 43 : 42,
           sessions: sessionsToSave, // Only save additional sessions, not main notes
           bills: [{
