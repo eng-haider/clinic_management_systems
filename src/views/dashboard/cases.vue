@@ -592,6 +592,8 @@
                     })
                     .then((response) => {
                         response
+                        this.clearCacheByPrefix('cache_cases');
+                        this.clearCacheByPrefix('cache_showcases');
                         this.initialize(); // Refresh data if needed
                     })
                     .catch((error) => {
@@ -879,6 +881,7 @@
                                 });
 
                                 this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_showcases');
                                 this.isSearching = false;
                                 this.initialize();
                             })
@@ -1251,6 +1254,7 @@
                             this.loadSave = false;
                             this.close();
                             this.clearCacheByPrefix('cache_cases');
+                            this.clearCacheByPrefix('cache_showcases');
                             this.isSearching = false;
                             this.initialize();
 
@@ -1289,6 +1293,7 @@
                             //cases
                             this.loadSave = false;
                             this.clearCacheByPrefix('cache_cases');
+                            this.clearCacheByPrefix('cache_showcases');
                             this.isSearching = false;
                             this.initialize();
                             this.editedIndex = -1;
@@ -1336,6 +1341,7 @@
                                 this.SaveCase();
                                 this.clearCacheByPrefix('cache_cases');
                                 this.clearCacheByPrefix('cache_patients');
+                                this.clearCacheByPrefix('cache_showcases');
                                 this.isSearching = false;
                                 this.initialize();
                                 this.close();
@@ -1379,6 +1385,7 @@
                                 this.dialog = false,
                                     this.clearCacheByPrefix('cache_cases');
                                     this.clearCacheByPrefix('cache_patients');
+                                    this.clearCacheByPrefix('cache_showcases');
                                     this.isSearching = false;
                                     this.initialize();
                                 this.addCase(this.patientInfo);

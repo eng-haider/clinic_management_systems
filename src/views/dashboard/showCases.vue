@@ -433,6 +433,8 @@ Swal.fire({
       })
       .then((response) => {
         response
+        this.clearCacheByPrefix('cache_cases');
+        this.clearCacheByPrefix('cache_showcases');
         this.initialize(); // Refresh data if needed
       })
       .catch((error) => {
@@ -692,6 +694,8 @@ if (!Array.isArray(this.editedItem.root_stuffing.oburation)) {
                 this.casesheet = false;
                 this.Recipe = false;
                 this.loadSave = false;
+                this.clearCacheByPrefix('cache_cases');
+                this.clearCacheByPrefix('cache_showcases');
                 this.editedItem = Object.assign({}, this.editedItem);
                 this.initialize();
                 Swal.fire(

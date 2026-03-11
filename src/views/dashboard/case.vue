@@ -1105,6 +1105,7 @@
 
                                 this.clearCacheByPrefix('cache_cases');
                                 this.clearCacheByPrefix('cache_accounts');
+                                this.clearCacheByPrefix('cache_showcases');
 
                                 this.$swal.fire({
                                     position: "top-end",
@@ -1148,6 +1149,7 @@
                                 this.close();
                                 this.clearCacheByPrefix('cache_cases');
                                 this.clearCacheByPrefix('cache_accounts');
+                                this.clearCacheByPrefix('cache_showcases');
                                 EventBus.$emit("changeStatusCloseCase", false);
                                 res
 

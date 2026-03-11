@@ -350,12 +350,14 @@
 
 
     import Axios from "axios";
+    import cacheMixin from '@/mixins/cacheMixin';
     export default {
 
         // props: {
         //     editedItem: Object,
 
         // },
+        mixins: [cacheMixin],
         components: {
             // DxFileUploader,
             teeth,
@@ -837,6 +839,8 @@
                             .then(() => {
                                 this.loadSave = false;
                                 this.close();
+                                this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_showcases');
                                 this.initialize();
 
                               
@@ -875,6 +879,8 @@
                                 res
                                 //cases
                                 this.loadSave = false;
+                                this.clearCacheByPrefix('cache_cases');
+                                this.clearCacheByPrefix('cache_showcases');
                                 this.initialize();
                                 this.editedIndex = -1;
                                 this.close();
