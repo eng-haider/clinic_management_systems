@@ -52,7 +52,6 @@
 <script>
 import { Chart, registerables } from 'chart.js';
 import dash_card from '../../components/core/dash_card.vue';
-import cacheMixin from '@/mixins/cacheMixin';
 
 Chart.register(...registerables);
 
@@ -60,7 +59,6 @@ export default {
   components: {
     dash_card
   },
-  mixins: [cacheMixin],
   data() {
     return {
       accounts_statistic: [],
@@ -165,12 +163,6 @@ export default {
       });
     },
     getBooking() {
-      const cached = this.getCache('cache_dashboard_booking');
-      if (cached) {
-        this.booking = cached;
-        this.loadingData = false;
-        return;
-      }
       const today = new Date();
       const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
       this.axios.get(`https://tctate.com/api/api/reservation/owner/search?filter[BetweenDate]=${date}_${date}.&filter[status_id]=&filter[user.user_phone]=&filter[user.full_name]=&sort=-id&page=1`, {
@@ -183,20 +175,12 @@ export default {
       .then(res => {
         this.loadingData = false;
         this.booking = res.data.data;
-        this.setCache('cache_dashboard_booking', this.booking, this.cacheTTL.short);
       })
       .catch(() => {
         this.loadingData = false;
       });
     },
     getAccountsCounts() {
-      const cached = this.getCache('cache_accounts_stats');
-      if (cached) {
-        this.accounts_statistic = cached;
-        this.loadingData = false;
-        this.createCharts();
-        return;
-      }
       this.axios.get(`/patientsAccounsts/dash?page=${this.current_page}`, {
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +191,6 @@ export default {
       .then(res => {
         this.loadingData = false;
         this.accounts_statistic = res.data;
-        this.setCache('cache_accounts_stats', this.accounts_statistic, this.cacheTTL.medium);
         this.createCharts();
       })
       .catch(() => {
@@ -215,12 +198,6 @@ export default {
       });
     },
     getCase_number_stats() {
-      const cached = this.getCache('cache_case_stats');
-      if (cached) {
-        this.dataSource = cached;
-        this.createCharts();
-        return;
-      }
       this.axios.get("cases/getCaseCategoriesCounts", {
         headers: {
           "Content-Type": "application/json",
@@ -230,7 +207,6 @@ export default {
       })
       .then(res => {
         this.dataSource = res.data.data;
-        this.setCache('cache_case_stats', this.dataSource, this.cacheTTL.long);
         this.createCharts();
       })
       .catch(err => {
@@ -238,11 +214,6 @@ export default {
       });
     },
     getDashbourdCounts() {
-      const cached = this.getCache('cache_dashboard_counts');
-      if (cached) {
-        this.DashbourdCounts = cached;
-        return;
-      }
       this.axios.get("cases/getDashbourdCounts", {
         headers: {
           "Content-Type": "application/json",
@@ -252,7 +223,6 @@ export default {
       })
       .then(res => {
         this.DashbourdCounts = res.data;
-        this.setCache('cache_dashboard_counts', this.DashbourdCounts, this.cacheTTL.medium);
       })
       .catch(() => {
         this.loadingData = false;

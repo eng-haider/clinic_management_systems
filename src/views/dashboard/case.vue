@@ -545,10 +545,9 @@
 
 
     import Axios from "axios";
-    import cacheMixin from '@/mixins/cacheMixin';
     export default {
 
-        mixins: [cacheMixin],
+        mixins: [],
         props: {
             editedItem: Object,
             CaseCategories: Array,
@@ -571,9 +570,9 @@
             return {
                 oldDoctors: {},
                 recipes: [],
-                UP_url: 'https://apismartclinicv2.tctate.com/public/api/cases/uploude_image',
+                UP_url: 'https://yasser-api.tctate.com/public/api/cases/uploude_image',
                 dropzoneOptions: {
-                    url: 'https://apismartclinicv2.tctate.com/api/cases/uploude_image',
+                    url: 'https://yasser-api.tctate.com/api/cases/uploude_image',
                     thumbnailWidth: 150,
                     maxFilesize: 5.5,
 
@@ -713,11 +712,6 @@
 
             },
             getrecipes() {
-                const cached = this.getCache('cache_recipes');
-                if (cached) {
-                    this.recipes = cached;
-                    return;
-                }
                 Axios.get("getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
@@ -727,7 +721,6 @@
                     })
                     .then(res => {
                         this.recipes = res.data;
-                        this.setCache('cache_recipes', this.recipes, this.cacheTTL.long);
                     })
             },
 
@@ -1103,10 +1096,6 @@
 
                                 this.loadSave = false;
 
-                                this.clearCacheByPrefix('cache_cases');
-                                this.clearCacheByPrefix('cache_accounts');
-                                this.clearCacheByPrefix('cache_showcases');
-
                                 this.$swal.fire({
                                     position: "top-end",
                                     icon: "success",
@@ -1147,9 +1136,6 @@
 
                                 this.editedIndex = -1;
                                 this.close();
-                                this.clearCacheByPrefix('cache_cases');
-                                this.clearCacheByPrefix('cache_accounts');
-                                this.clearCacheByPrefix('cache_showcases');
                                 EventBus.$emit("changeStatusCloseCase", false);
                                 res
 

@@ -223,12 +223,10 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
-    import cacheMixin from '@/mixins/cacheMixin';
     export default {
         directives: {
             mask,
         },
-        mixins: [cacheMixin],
         components: {
 
         },
@@ -405,8 +403,6 @@ if (this.$refs.form.validate()) {
 
                 this.patientInfo = res.data.data;
                 this.dialog = false,
-                    this.clearCacheByPrefix('cache_clinic_doctors');
-                    this.clearCacheByPrefix('cache_doctors');
                     this.initialize();
 
 
@@ -578,13 +574,6 @@ if (this.$refs.form.validate()) {
 
 
             initialize() {
-                const cached = this.getCache('cache_clinic_doctors_info');
-                if (cached) {
-                    this.loadingData = false;
-                    this.loading = false;
-                    this.desserts = cached;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("doctors/clinicDoctorInfo", {
                         headers: {
@@ -598,7 +587,6 @@ if (this.$refs.form.validate()) {
                         this.loading = false;
                         this.search = null;
                         this.desserts = res.data;
-                        this.setCache('cache_clinic_doctors_info', this.desserts, this.cacheTTL.long);
                     })
                     .catch(() => {
                         this.loading = false;

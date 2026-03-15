@@ -34,7 +34,7 @@ Vue.use(VueCurrencyFilter, {
 Vue.mixin({
   data() {
     return {
-      Url: 'https://apismartclinicv2.tctate.com',
+      Url: 'https://yasser-api.tctate.com',
       http: 'http://'
     }
   }

@@ -118,10 +118,9 @@
     import RecipesItems from '../../components/RecipesItems.vue';
     import Swal from "sweetalert2";
     import Axios from "axios";
-    import cacheMixin from '@/mixins/cacheMixin';
     export default {
 
-        mixins: [cacheMixin],
+        mixins: [],
         components: {
 
             Recipe,
@@ -201,11 +200,6 @@
         methods: {
 
             getpatient() {
-                const cached = this.getCache('cache_patients_list');
-                if (cached) {
-                    this.patients = cached;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("patients/getByUserId", {
                         headers: {
@@ -216,7 +210,6 @@
                     })
                     .then(res => {
                         this.patients = res.data.data;
-                        this.setCache('cache_patients_list', this.patients, this.cacheTTL.medium);
                     })
                     .catch(() => {
 
@@ -258,12 +251,6 @@
             },
 
             initialize() {
-                const cached = this.getCache('cache_recipes_list');
-                if (cached) {
-                    this.desserts = cached;
-                    this.loading = false;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("getrecipes", {
                         headers: {
@@ -276,7 +263,6 @@
 
                         this.desserts = res.data;
                         this.loading = false;
-                        this.setCache('cache_recipes_list', this.desserts, this.cacheTTL.long);
                     })
 
             },
@@ -330,7 +316,6 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                this.clearCacheByPrefix('cache_recipes');
                                 this.initialize();
                             })
                             .catch(() => {
@@ -451,12 +436,6 @@
             },
 
             initializeRecipeItems() {
-                const cached = this.getCache('cache_recipe_items');
-                if (cached) {
-                    this.recipesItems = cached;
-                    this.loading = false;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("recipes-items/getByDoctorId", {
                         headers: {
@@ -468,7 +447,6 @@
                     .then(res => {
                         this.recipesItems = res.data;
                         this.loading = false;
-                        this.setCache('cache_recipe_items', this.recipesItems, this.cacheTTL.long);
                     })
                     .catch(() => {
                         this.loading = false;

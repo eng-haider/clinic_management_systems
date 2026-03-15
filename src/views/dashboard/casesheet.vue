@@ -271,17 +271,22 @@
 
 
 
-                    <v-chip style="margin:2px" color="primary" v-if="item.doctors[0]">
+                    <v-chip style="margin:2px" color="primary" v-if="item.doctors && item.doctors[0]">
                         <v-icon left>
                             mdi-account-circle-outline
                         </v-icon>{{ item.doctors[0].name }}
                     </v-chip>
+                    <span v-else-if="item.doctor_id">
+                        {{ $t('datatable.doctor') }} #{{ item.doctor_id }}
+                    </span>
+                    <span v-else>-</span>
 
 
                 </template>
 
 
-                <template v-slot:[`item.casesx`]="{ item }"
+                <!-- Cases button commented out - cases_count not in search API response -->
+                <!-- <template v-slot:[`item.casesx`]="{ item }"
                     v-if="$store.state.AdminInfo.Permissions.includes('show_cases')">
 
 
@@ -295,12 +300,13 @@
 
 
 
-                </template>
+                </template> -->
 
 
 
 
-                <template v-slot:[`item.addCase`]="{ item }"
+                <!-- Add case button commented out - not needed in search results -->
+                <!-- <template v-slot:[`item.addCase`]="{ item }"
                     v-if="$store.state.AdminInfo.Permissions.includes('add_case')">
 
 
@@ -317,7 +323,7 @@
 
 
 
-                </template>
+                </template> -->
 
 
                 <template v-slot:[`item.Recipe`]="{ item }"
@@ -351,45 +357,27 @@
 
                 </template>
 
-                <template v-slot:[`item.bills`]="{ item }"
-                    v-if="$store.state.AdminInfo.Permissions.includes('show_accounts')">
+             
 
 
-                    <span style="display:none">{{item.id}}</span>
-
-
-
-                    <v-btn @click="openbill(item)" v-if="item.cases.length>0" dense color="#3b6a75"
+                <!-- Cases Button - Navigate to Patient Page -->
+                <template v-slot:[`item.casesx`]="{ item }">
+                    <v-btn dense @click="$router.push('/patient/'+item.id)" color="#0a304ed4"
                         style="color:#fff;height:28px;font-weight:bold">
-                        <!-- <i class="far fa-clock" style="position: relative;left:5px"></i> -->
-
-                        {{ $t("patients.account") }}
-
-
+                        <i class="fas fa-tooth" style="position: relative;left:5px"></i>
+                        الحالات
                     </v-btn>
-
                 </template>
-
 
                 <!-- Custom Actions Column Slot -->
                 <template v-slot:[`item.actions`]="{ item }">
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{  }">
-                            <v-icon class="ml-5" @click="editItem(item)" v-if="!item.isDeleted" v-bind="attrs">
-                                mdi-pencil
-                            </v-icon>
-                        </template>
-                        <span>{{ $t("edit") }}</span>
-                    </v-tooltip>
-
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-icon @click="deleteItem(item)" v-if="!item.isDeleted" v-bind="attrs">
-                                mdi-delete
-                            </v-icon>
-                        </template>
-                        <span>{{ $t("Delete") }}</span>
-                    </v-tooltip>
+                    <v-btn small icon color="primary" @click="editItem(item)">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    
+                    <v-btn small icon color="error" @click="deleteItem(item)">
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
                 </template>
 
 
@@ -417,9 +405,7 @@
         mask
     } from "vue-the-mask";
     import Axios from "axios";
-    import cacheMixin from '@/mixins/cacheMixin';
     export default {
-        mixins: [cacheMixin],
         directives: {
             mask,
         },
@@ -538,81 +524,10 @@
                     }
                 },
                 doctors: [],
-                headers: [{
-                        text: this.$t('datatable.name'),
-                        align: "start",
-                        value: "names"
-                    }, {
-                        text: this.$t('datatable.phone'),
-                        align: "start",
-                        value: "phone"
-                    }, {
-                        text: this.$t('datatable.phone') + ' 2',
-                        align: "start",
-                        value: "phone1"
-                    },
-
-                    {
-                        text: this.$t('datatable.age'),
-                        align: "start",
-                        value: "age"
-                    },
-
-                    this.$store.state.role == 'secretary' ? {
-                        text: this.$t('datatable.data_create'),
-                        align: "start",
-                        value: "created_at"
-                    } : '',
-
-                    this.$store.state.role == 'secretary' || this.$store.state.role == 'adminDoctor' ? {
-                        text: this.$t('datatable.doctor'),
-                        align: "start",
-                        value: "doctor"
-                    } : '',
-
-
-
-
-
-
-                    {
-                        text: 'الحالات',
-                        value: "casesx",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "addCase",
-                        sortable: false
-                    },
-                    //Recipe
-
-                    {
-                        text: '',
-                        value: "Recipe",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "booking",
-                        sortable: false
-                    },
-                    {
-                        text: '',
-                        value: "bills",
-                        sortable: false
-                    },
-                    //booking
-                    //booking
-                    {
-                        text: this.$t('Processes'),
-                        value: "actions",
-                        sortable: false
-                    }
-                ]
+                // Headers moved to computed property for proper conditional handling
             }
         },
-
+        
         methods: {
             apiRequest(url, method = 'get', data = null) {
                 return Axios({
@@ -682,13 +597,6 @@
                 };
             },
             getrecipes() {
-                // Check cache first
-                const cached = this.getCache('cache_recipes');
-                if (cached) {
-                    this.recipes = cached;
-                    return;
-                }
-
                 Axios.get("getrecipes", {
                         headers: {
                             "Content-Type": "application/json",
@@ -698,14 +606,9 @@
                     })
                     .then(res => {
                         this.recipes = res.data;
-                        // Cache the response
-                        this.setCache('cache_recipes', res.data, this.cacheTTL.long);
                     })
                     .catch(() => {
-                        // Try expired cache as fallback
-                        const expiredCache = this.getExpiredCache('cache_recipes');
-                        if (expiredCache) {
-                            this.recipes = expiredCache;
+                        this.recipes = [];
                         }
                     });
             },
@@ -851,8 +754,6 @@
                                     timer: 1500
                                 });
 
-                                // Clear patient cache and reset search state so initialize fetches fresh data
-                                this.clearCacheByPrefix('cache_patients');
                                 this.isSearching = false;
                                 this.isSearchingDoctor = false;
                                 this.initialize();
@@ -1006,15 +907,6 @@
 
 
             getclinicDoctor() {
-                // Check cache first
-                const cached = this.getCache('cache_doctors');
-                if (cached) {
-                    this.doctors = cached.doctors;
-                    this.doctorsAll = cached.doctorsAll;
-                    this.loadingData = false;
-                    return;
-                }
-
                 const endpoint = this.$store.state.role === 'secretary' ? 'doctors/secretary' : 'doctors/clinic';
                 this.apiRequest(endpoint)
                     .then(res => {
@@ -1022,20 +914,11 @@
                         this.loading = false;
                         this.doctors = res.data.data;
                         this.doctorsAll = [{ id: 0, name: ' الكل' }, ...this.doctors];
-                        // Cache the response
-                        this.setCache('cache_doctors', {
-                            doctors: this.doctors,
-                            doctorsAll: this.doctorsAll
-                        }, this.cacheTTL.veryLong);
                     })
                     .catch(() => {
                         this.loading = false;
-                        // Try expired cache as fallback
-                        const expiredCache = this.getExpiredCache('cache_doctors');
-                        if (expiredCache) {
-                            this.doctors = expiredCache.doctors;
-                            this.doctorsAll = expiredCache.doctorsAll;
-                        }
+                        this.doctors = [];
+                        this.doctorsAll = [{ id: 0, name: ' الكل' }];
                     });
             },
 
@@ -1043,19 +926,6 @@
             initialize(page = 1) {
                 page
                 if (this.isSearching || this.isSearchingDoctor) return;
-
-                // Check cache first
-                const cacheKey = `cache_patients_page_${this.current_page}`;
-                const cached = this.getCache(cacheKey);
-                if (cached) {
-                    this.loadingData = false;
-                    this.loading = false;
-                    this.search = null;
-                    this.last_page = cached.last_page;
-                    this.pageCount = cached.pageCount;
-                    this.desserts = cached.data;
-                    return;
-                }
 
                 this.loading = true;
                 this.apiRequest(`patients/getByUserIdv2?page=${this.current_page}`)
@@ -1066,44 +936,31 @@
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
                         this.desserts = res.data.data;
-                        // Cache the response
-                        this.setCache(cacheKey, {
-                            data: res.data.data,
-                            last_page: res.data.meta.last_page,
-                            pageCount: res.data.meta.last_page
-                        }, this.cacheTTL.medium);
+                        console.log('✅ Patients loaded:', this.desserts.length);
                     })
-                    .catch(() => {
+                    .catch((error) => {
+                        console.error('❌ Error loading patients:', error);
                         this.loading = false;
-                        // Try expired cache as fallback
-                        const expiredCache = this.getExpiredCache(cacheKey);
-                        if (expiredCache) {
-                            this.desserts = expiredCache.data || [];
-                            this.last_page = expiredCache.last_page || 0;
-                            this.pageCount = expiredCache.pageCount || 0;
+                        this.loadingData = false;
+                        this.desserts = [];
+                        this.last_page = 0;
+                        this.pageCount = 0;
+                        } else {
+                            this.desserts = [];
+                            console.log('⚠️ No cache available, showing empty table');
                         }
                     });
             },
 
             getCaseCategories() {
-                // Check cache first
-                const cached = this.getCache('cache_case_categories');
-                if (cached) {
-                    this.CaseCategories = cached;
-                    return;
-                }
-
                 this.apiRequest('cases/CaseCategories')
                     .then(res => {
                         this.loading = false;
                         this.CaseCategories = res.data;
-                        // Cache the response
-                        this.setCache('cache_case_categories', res.data, this.cacheTTL.hour);
                     })
                     .catch(() => {
                         this.loading = false;
-                        // Try expired cache as fallback
-                        const expiredCache = this.getExpiredCache('cache_case_categories');
+                        this.CaseCategories = [];
                         if (expiredCache) {
                             this.CaseCategories = expiredCache;
                         }
@@ -1213,8 +1070,6 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                // Clear patient cache and reset search state so initialize fetches fresh data
-                                this.clearCacheByPrefix('cache_patients');
                                 this.isSearching = false;
                                 this.isSearchingDoctor = false;
                                 this.initialize();
@@ -1253,8 +1108,6 @@
 
                                 this.patientInfo = res.data.data;
                                 this.dialog = false;
-                                // Clear patient cache and reset search state so initialize fetches fresh data
-                                this.clearCacheByPrefix('cache_patients');
                                 this.isSearching = false;
                                 this.isSearchingDoctor = false;
                                 this.initialize();
@@ -1294,6 +1147,74 @@
 
         },
         computed: {
+            // Build headers dynamically based on role to avoid empty string issues
+            headers() {
+                const baseHeaders = [
+                    {
+                        text: this.$t('datatable.name'),
+                        align: "start",
+                        value: "name"
+                    },
+                    {
+                        text: this.$t('datatable.phone'),
+                        align: "start",
+                        value: "phone"
+                    },
+                    {
+                        text: this.$t('datatable.phone') + ' 2',
+                        align: "start",
+                        value: "phone1"
+                    },
+                    {
+                        text: this.$t('datatable.age'),
+                        align: "start",
+                        value: "age"
+                    }
+                ];
+
+                // Add conditional headers based on role
+                if (this.$store.state.role == 'secretary') {
+                    baseHeaders.push({
+                        text: this.$t('datatable.data_create'),
+                        align: "start",
+                        value: "created_at"
+                    });
+                }
+
+                if (this.$store.state.role == 'secretary' || this.$store.state.role == 'adminDoctor') {
+                    baseHeaders.push({
+                        text: this.$t('datatable.doctor'),
+                        align: "start",
+                        value: "doctor"
+                    });
+                }
+
+                // Add action columns
+                baseHeaders.push(
+                    {
+                        text: 'الحالات',
+                        value: "casesx",
+                        sortable: false
+                    },
+                    {
+                        text: '',
+                        value: "Recipe",
+                        sortable: false
+                    },
+                    {
+                        text: '',
+                        value: "booking",
+                        sortable: false
+                    },
+                    {
+                        text: this.$t('Processes'),
+                        value: "actions",
+                        sortable: false
+                    }
+                );
+
+                return baseHeaders;
+            },
             formTitle() {
                 return this.editedIndex === -1 ? this.$t('patients.addnewpatients') : this.$t('update');
 

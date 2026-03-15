@@ -66,11 +66,9 @@
   import {
     EventBus
   } from "./event-bus.js";
-  import cacheMixin from '@/mixins/cacheMixin';
   //   import billsReport from './sub_components/billsReport.vue';
   export default {
     name: "Dashboard",
-    mixins: [cacheMixin],
 
 
     data() {
@@ -139,15 +137,6 @@
 
 
       getclinicDoctor() {
-        const cached = this.getCache('cache_doctors_reports');
-        if (cached) {
-            this.doctors = cached.doctors;
-            this.doctorsAll = cached.doctorsAll;
-            this.doctorsIdsAll = cached.doctorsIdsAll;
-            this.loadingData = false;
-            this.loading = false;
-            return;
-        }
         this.loading = true;
         Axios.get("doctors/clinic", {
             headers: {
@@ -171,12 +160,6 @@
               this.doctorsAll.push(item)
               this.doctorsIdsAll.push(item.id)
             })
-
-            this.setCache('cache_doctors_reports', {
-                doctors: this.doctors,
-                doctorsAll: [...this.doctorsAll],
-                doctorsIdsAll: [...this.doctorsIdsAll]
-            }, this.cacheTTL.veryLong);
 
           })
           .catch(() => {
@@ -406,12 +389,6 @@
 
 
       getCase_number_stats() {
-        const cached = this.getCache('cache_case_stats');
-        if (cached) {
-            this.dataSource = cached;
-            this.showChar = true;
-            return;
-        }
         this.axios
           .get("cases/getCaseCategoriesCounts", {
             headers: {
@@ -423,7 +400,6 @@
           .then((res) => {
             this.dataSource = res.data.data;
             this.showChar = true;
-            this.setCache('cache_case_stats', this.dataSource, this.cacheTTL.long);
           })
           .catch((err) => {
             err

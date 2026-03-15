@@ -199,7 +199,6 @@
     //Recipe
     import Swal from "sweetalert2";
     import Axios from "axios";
-    import cacheMixin from '@/mixins/cacheMixin';
     import {
         mask
     } from "vue-the-mask";
@@ -208,7 +207,6 @@
         directives: {
             mask,
         },
-        mixins: [cacheMixin],
         components: {
 
         },
@@ -312,7 +310,6 @@
                             })
                             .then(() => {
                                 this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                                this.clearCacheByPrefix('cache_conjugations');
                                 this.initialize();
                             })
                             .catch(() => {
@@ -357,7 +354,6 @@
                             })
                             .then(() => {
                                 this.loadSave = false;
-                                this.clearCacheByPrefix('cache_conjugations');
                                 this.initialize();
                                 this.close();
                                 this.$swal.fire({
@@ -400,7 +396,6 @@
 
                                 this.dialog = false,
                                     this.loadSave = false;
-                                this.clearCacheByPrefix('cache_conjugations');
                                 this.initialize();
 
 
@@ -423,12 +418,6 @@
             //ConjugationsCategories
 
             getConjugationsCategories() {
-                const cached = this.getCache('cache_conjugations_categories');
-                if (cached) {
-                    this.ConjugationsCategories = cached;
-                    this.loading = false;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("Conjugations/ConjugationsCategories", {
                         headers: {
@@ -441,7 +430,6 @@
 
                         this.loading = false;
                         this.ConjugationsCategories = res.data.data;
-                        this.setCache('cache_conjugations_categories', this.ConjugationsCategories, this.cacheTTL.long);
 
                     })
                     .catch(() => {
@@ -451,12 +439,6 @@
 
 
             initialize() {
-                const cached = this.getCache('cache_conjugations_list');
-                if (cached) {
-                    this.items = cached;
-                    this.loading = false;
-                    return;
-                }
                 this.loading = true;
                 Axios.get("Conjugations/GetByClinicId", {
                         headers: {
@@ -469,7 +451,6 @@
 
                         this.loading = false;
                         this.items = res.data.data;
-                        this.setCache('cache_conjugations_list', this.items, this.cacheTTL.medium);
 
                     })
                     .catch(() => {
@@ -504,7 +485,6 @@
                 })
                 .then(() => {
                     this.$swal.fire(this.$t('Successfully'), this.$t('done'), "success");
-                    this.clearCacheByPrefix('cache_conjugations');
                     this.initialize();
                 })
                 .catch(() => {
