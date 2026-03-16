@@ -1187,8 +1187,23 @@
 
                 const cached = this.getCache('cache_case_categories');
                 if (cached) {
-                    this.CaseCategoriess = cached.raw;
-                    this.CaseCategories = cached.processed;
+                    // Handle both plain array (cached by other components) and legacy {raw, processed} formats
+                    const categories = Array.isArray(cached) ? cached : (cached.raw || []);
+                    this.CaseCategoriess = categories;
+                    this.CaseCategories = [{
+                        id: 0,
+                        name_ar: this.$t('all'),
+                        name_en: '',
+                        updated_at: '2022-02-02T12:20:30.000000Z'
+                    }];
+                    for (var j = 0; j < categories.length; j++) {
+                        this.CaseCategories.push({
+                            id: categories[j].id,
+                            name_ar: categories[j].name_ar,
+                            name_en: '',
+                            updated_at: categories[j].updated_at
+                        });
+                    }
                     return;
                 }
 
@@ -1201,31 +1216,27 @@
                     })
                     .then(res => {
                         this.loading = false;
-                        //  this.CaseCategories
-                        this.CaseCategoriess = res.data;
-                        this.CaseCategoriess = res.data;
+                        // Handle both plain array and paginated {data: [...]} response formats
+                        const categories = Array.isArray(res.data) ? res.data : (res.data.data || []);
+                        this.CaseCategoriess = categories;
 
-                        this.CaseCategories.push({
+                        this.CaseCategories = [{
                             id: 0,
                             name_ar: this.$t('all'),
                             name_en: '',
                             updated_at: '2022-02-02T12:20:30.000000Z'
-                        })
-                        for (var i = 0; i < this.CaseCategoriess.length; i++) {
+                        }];
+                        for (var i = 0; i < categories.length; i++) {
                             this.CaseCategories.push({
-                                id: this.CaseCategoriess[i].id,
-                                name_ar: this.CaseCategoriess[i].name_ar,
+                                id: categories[i].id,
+                                name_ar: categories[i].name_ar,
                                 name_en: '',
-                                updated_at: this.CaseCategoriess[i].updated_at
-                            })
+                                updated_at: categories[i].updated_at
+                            });
                         }
 
-                        this.setCache('cache_case_categories', {
-                            raw: this.CaseCategoriess,
-                            processed: [...this.CaseCategories]
-                        }, this.cacheTTL.hour);
-
-                        console.log(this.CaseCategories);
+                        // Store as raw array for compatibility with other components using same cache key
+                        this.setCache('cache_case_categories', categories, this.cacheTTL.hour);
 
                     })
                     .catch(() => {
