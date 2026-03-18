@@ -637,20 +637,15 @@
                 return x.slice(0, 10);
             },
             getMoreitems() {
-
-                if (this.current_page <= this.last_page) {
-
-                    if (this.isSearchingDoctor) {
-                        this.current_page = this.page;
-                        this.getByDocor();
-                    } else if (this.isSearching) {
-                        this.current_page = this.page;
-                        this.initialize();
-                    } else {
-                        this.current_page = this.page;
-                        this.initialize();
-                    }
-
+                if (this.isSearchingDoctor) {
+                    this.current_page = this.page;
+                    this.getByDocor();
+                } else if (this.isSearching) {
+                    this.current_page = this.page;
+                    this.seachs();
+                } else {
+                    this.current_page = this.page;
+                    this.initialize();
                 }
             },
             reset() {
@@ -715,15 +710,18 @@
                     return this.initialize();
                 }
                 this.isSearchingDoctor = true;
+                this.loadingData = true;
                 this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${this.current_page}`)
                     .then(res => {
                         this.loading = false;
+                        this.loadingData = false;
                         this.last_page = res.data.meta.last_page;
                         this.pageCount = res.data.meta.last_page;
                         this.desserts = res.data.data;
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingData = false;
                     });
             },
 
@@ -991,9 +989,11 @@
             },
             seachs() {
                 this.isSearching = true;
-                this.apiRequest(`patients/searchv2/${this.search}`)
+                this.loadingData = true;
+                this.apiRequest(`patients/searchv2/${this.search}?page=${this.current_page}`)
                     .then(res => {
                         this.loading = false;
+                        this.loadingData = false;
                         this.allItem = true;
                         this.desserts = res.data.data;
                         this.last_page = res.data.meta.last_page;
@@ -1001,6 +1001,7 @@
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingData = false;
                     });
             },
 
@@ -1057,6 +1058,7 @@
                     return;
                 }
 
+                this.loadingData = true;
                 this.loading = true;
                 this.apiRequest(`patients/getByUserIdv2?page=${this.current_page}`)
                     .then(res => {
@@ -1075,6 +1077,7 @@
                     })
                     .catch(() => {
                         this.loading = false;
+                        this.loadingData = false;
                         // Try expired cache as fallback
                         const expiredCache = this.getExpiredCache(cacheKey);
                         if (expiredCache) {
