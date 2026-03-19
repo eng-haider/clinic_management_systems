@@ -1694,7 +1694,8 @@ export default {
         status_id: 42, // Default status (not completed)
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
+        isNew: true // Mark as unsaved case
       };
       
       // Add to the beginning of the cases array
@@ -2534,7 +2535,8 @@ export default {
         status_id: 42,
         sessions: [],
         additionalSessions: [],
-        modified: true
+        modified: true,
+        isNew: true // Mark as unsaved case
       };
       this.patientCases.unshift(newCase);
       this.$nextTick(() => this.$forceUpdate());
@@ -2566,7 +2568,8 @@ export default {
         status_id: 42, // Default status
         sessions: [],
         additionalSessions: [],
-        modified: true // Mark as new/modified for save
+        modified: true, // Mark as new/modified for save
+        isNew: true // Mark as unsaved case
       };
       
       // Only add to local array - no API call
@@ -2646,6 +2649,9 @@ export default {
       if (index !== -1) {
         // Update the sessions array
         this.patientCases[index].sessions = caseItem.sessions;
+        
+        // Mark case as modified so it gets saved
+        this.patientCases[index].modified = true;
       }
     },
     
@@ -2656,6 +2662,9 @@ export default {
       if (index !== -1) {
         // Update the additionalSessions array
         this.patientCases[index].additionalSessions = caseItem.additionalSessions;
+        
+        // Mark case as modified so it gets saved
+        this.patientCases[index].modified = true;
       }
     },
     
@@ -2674,6 +2683,9 @@ export default {
         // Add the new session to the case
         this.patientCases[index].additionalSessions.push(newSession);
         
+        // Mark case as modified so it gets saved
+        this.patientCases[index].modified = true;
+        
         // Optimistically update the UI
         this.$forceUpdate();
       }
@@ -2691,17 +2703,13 @@ export default {
         cancelButtonText: "لا، تراجع"
       }).then((result) => {
         if (result.isConfirmed) {
-          // Make API call to delete case from server
-          this.$http.delete(`cases/${caseItem.id}`, {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: "Bearer " + this.$store.state.AdminInfo.token
-            }
-          })
-          .then(() => {
-            // Find the case in the array and remove it after successful API call
-            const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+          // Check if this is an unsaved case (newly created but not saved)
+          // Unsaved cases have isNew flag or temporary IDs (negative or very large numbers)
+          const isUnsavedCase = caseItem.isNew || !caseItem.id || caseItem.id < 0 || caseItem.id > 9999999999;
+          
+          if (isUnsavedCase) {
+            // For unsaved cases, just remove from array without API call
+            const index = this.patientCases.findIndex(c => c === caseItem || c.id === caseItem.id);
             if (index !== -1) {
               this.patientCases.splice(index, 1);
             }
@@ -2713,17 +2721,41 @@ export default {
               icon: "success",
               confirmButtonText: "موافق"
             });
-          })
-          .catch((error) => {
-            console.error('Delete case error:', error);
-            // Show error message
-            this.$swal.fire({
-              title: "خطأ",
-              text: "حدث خطأ أثناء حذف الحالة",
-              icon: "error",
-              confirmButtonText: "موافق"
+          } else {
+            // For saved cases, make API call to delete from server
+            this.$http.delete(`cases/${caseItem.id}`, {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: "Bearer " + this.$store.state.AdminInfo.token
+              }
+            })
+            .then(() => {
+              // Find the case in the array and remove it after successful API call
+              const index = this.patientCases.findIndex(c => c.id === caseItem.id);
+              if (index !== -1) {
+                this.patientCases.splice(index, 1);
+              }
+              
+              // Show success message
+              this.$swal.fire({
+                title: "تم الحذف",
+                text: "تم حذف الحالة بنجاح",
+                icon: "success",
+                confirmButtonText: "موافق"
+              });
+            })
+            .catch((error) => {
+              console.error('Delete case error:', error);
+              // Show error message
+              this.$swal.fire({
+                title: "خطأ",
+                text: "حدث خطأ أثناء حذف الحالة",
+                icon: "error",
+                confirmButtonText: "موافق"
+              });
             });
-          });
+          }
         }
       });
     },
@@ -3049,9 +3081,11 @@ export default {
           }
         });
         
-        // Update case with server ID
+        // Update case with server ID and remove isNew flag
         caseItem.server_id = response.data.id;
+        caseItem.id = response.data.id; // Update ID to server ID
         caseItem.modified = false;
+        caseItem.isNew = false; // Mark as saved
         
       } catch (error) {
         console.error('Error saving new case:', error);
