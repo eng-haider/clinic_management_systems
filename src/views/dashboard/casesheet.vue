@@ -399,8 +399,16 @@
             </v-data-table>
 
         </v-container>
-        <v-pagination class="pagination" total-visible="20" v-model="page" color="#c7000b"
-            style="position: relative; top: 20px;" circle="" :length="pageCount">
+        <v-pagination 
+            v-if="pageCount > 0"
+            class="pagination" 
+            total-visible="20" 
+            v-model="page" 
+            color="#c7000b"
+            style="position: relative; top: 20px;" 
+            circle="" 
+            :length="Math.max(pageCount, 1)"
+        >
         </v-pagination>
 
     </div>
@@ -713,11 +721,26 @@
                 this.loadingData = true;
                 this.apiRequest(`patients/getByDoctor/${this.searchDocorId}?page=${this.current_page}`)
                     .then(res => {
+                        console.log('Doctor API Response:', res.data);
                         this.loading = false;
                         this.loadingData = false;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
-                        this.desserts = res.data.data;
+                        
+                        // Handle different API response structures
+                        if (res.data.meta) {
+                            this.last_page = res.data.meta.last_page || 1;
+                            this.pageCount = res.data.meta.last_page || 1;
+                        } else if (res.data.last_page) {
+                            this.last_page = res.data.last_page;
+                            this.pageCount = res.data.last_page;
+                        } else {
+                            // Fallback: calculate pages based on total and per_page
+                            const total = res.data.total || res.data.data?.length || 0;
+                            const perPage = 15; // Default items per page
+                            this.last_page = Math.ceil(total / perPage) || 1;
+                            this.pageCount = this.last_page;
+                        }
+                        
+                        this.desserts = res.data.data || res.data || [];
                     })
                     .catch(() => {
                         this.loading = false;
@@ -992,12 +1015,26 @@
                 this.loadingData = true;
                 this.apiRequest(`patients/searchv2/${this.search}?page=${this.current_page}`)
                     .then(res => {
+                        console.log('Search API Response:', res.data);
                         this.loading = false;
                         this.loadingData = false;
                         this.allItem = true;
-                        this.desserts = res.data.data;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
+                        this.desserts = res.data.data || res.data || [];
+                        
+                        // Handle different API response structures
+                        if (res.data.meta) {
+                            this.last_page = res.data.meta.last_page || 1;
+                            this.pageCount = res.data.meta.last_page || 1;
+                        } else if (res.data.last_page) {
+                            this.last_page = res.data.last_page;
+                            this.pageCount = res.data.last_page;
+                        } else {
+                            // Fallback: calculate pages based on total and per_page
+                            const total = res.data.total || res.data.data?.length || 0;
+                            const perPage = 15; // Default items per page
+                            this.last_page = Math.ceil(total / perPage) || 1;
+                            this.pageCount = this.last_page;
+                        }
                     })
                     .catch(() => {
                         this.loading = false;
@@ -1062,17 +1099,32 @@
                 this.loading = true;
                 this.apiRequest(`patients/getByUserIdv2?page=${this.current_page}`)
                     .then(res => {
+                        console.log('API Response:', res.data);
                         this.loading = false;
                         this.loadingData = false;
                         this.search = null;
-                        this.last_page = res.data.meta.last_page;
-                        this.pageCount = res.data.meta.last_page;
-                        this.desserts = res.data.data;
+                        
+                        // Handle different API response structures
+                        if (res.data.meta) {
+                            this.last_page = res.data.meta.last_page || 1;
+                            this.pageCount = res.data.meta.last_page || 1;
+                        } else if (res.data.last_page) {
+                            this.last_page = res.data.last_page;
+                            this.pageCount = res.data.last_page;
+                        } else {
+                            // Fallback: calculate pages based on total and per_page
+                            const total = res.data.total || res.data.data?.length || 0;
+                            const perPage = 15; // Default items per page
+                            this.last_page = Math.ceil(total / perPage) || 1;
+                            this.pageCount = this.last_page;
+                        }
+                        
+                        this.desserts = res.data.data || res.data || [];
                         // Cache the response
                         this.setCache(cacheKey, {
-                            data: res.data.data,
-                            last_page: res.data.meta.last_page,
-                            pageCount: res.data.meta.last_page
+                            data: res.data.data || res.data || [],
+                            last_page: this.last_page,
+                            pageCount: this.pageCount
                         }, this.cacheTTL.medium);
                     })
                     .catch(() => {
