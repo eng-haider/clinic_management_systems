@@ -609,7 +609,6 @@
                     })
                     .catch(() => {
                         this.recipes = [];
-                        }
                     });
             },
             getByDocor() {
@@ -945,10 +944,6 @@
                         this.desserts = [];
                         this.last_page = 0;
                         this.pageCount = 0;
-                        } else {
-                            this.desserts = [];
-                            console.log('⚠️ No cache available, showing empty table');
-                        }
                     });
             },
 
@@ -961,9 +956,6 @@
                     .catch(() => {
                         this.loading = false;
                         this.CaseCategories = [];
-                        if (expiredCache) {
-                            this.CaseCategories = expiredCache;
-                        }
                     });
             },
 
