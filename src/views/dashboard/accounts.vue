@@ -595,7 +595,7 @@
           .then(res => {
             this.loadingData = false;
 
-            this.Cases = res.data.data.data;
+            this.Cases = res.data.data;
             this.Conjugations = res.data.Conjugations;
 
 
@@ -609,8 +609,8 @@
             this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
 
 
-            this.last_page = res.data.data.last_page;
-            this.pageCount = res.data.data.last_page;
+            this.last_page = res.data.last_page;
+            this.pageCount = res.data.last_page;
 
 
 
@@ -741,7 +741,7 @@ this.allItem=true;
             .then(res => {
               this.loadingData = false;
 
-              this.Cases = res.data.data.data;
+              this.Cases = res.data.data;
 
               this.Conjugations = res.data.Conjugations;
 
@@ -755,8 +755,8 @@ this.allItem=true;
 
               this.accounts_statistic.Conjugationsprice = res.data.Conjugationsprice;
 
-              this.last_page = res.data.data.last_page;
-              this.pageCount = res.data.data.last_page;
+              this.last_page = res.data.last_page;
+              this.pageCount = res.data.last_page;
 
 
 
@@ -785,12 +785,12 @@ this.allItem=true;
 
               this.accounts_statistic.paid = res.data.paid;
               this.accounts_statistic.remainingamount = res.data.remainingamount;
-              this.Cases = res.data.data.data;
+              this.Cases = res.data.data;
               this.Conjugations = res.data.Conjugations;
 
 
-              this.last_page = res.data.data.last_page;
-              this.pageCount = res.data.data.last_page;
+              this.last_page = res.data.last_page;
+              this.pageCount = res.data.last_page;
             })
             .catch(() => {
               this.loading = false;
