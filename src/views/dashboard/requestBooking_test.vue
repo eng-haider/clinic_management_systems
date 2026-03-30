@@ -271,9 +271,9 @@ export default {
   data() {
     return {
       // Calendar state
-      focus: "2026-03-01",
-      startDate: "2026-03-01",
-      endDate: "2027-04-01",
+      focus: "2026-04-01",
+      startDate: "2026-04-01",
+      endDate: "2027-05-01",
       reservations: [],
       
       // Dialog state
