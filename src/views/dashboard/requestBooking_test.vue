@@ -276,6 +276,8 @@ export default {
       endDate: "2027-06-01",
       reservations: [],
       
+
+      
       // Dialog state
       dialog: false,
       bookingDialog: false,
