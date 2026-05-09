@@ -179,9 +179,9 @@
                   <!-- Permanent Teeth Tab -->
                   <v-tab-item>
                     <div class="teeth-container">
-                      <teeth 
+                      <teeth
                         :categories="dentalOperations"
-                        :tooth_num="selectedTeethNumbers" 
+                        :tooth_num="permanentTeethNumbers"
                         :id="1"
                         @case-added="handleCaseAdded"
                       />
@@ -191,9 +191,9 @@
                   <!-- Baby Teeth Tab -->
                   <v-tab-item>
                     <div class="teeth-container">
-                      <babyTeeth 
+                      <babyTeeth
                         :categories="dentalOperations"
-                        :tooth_num="selectedTeethNumbers" 
+                        :tooth_num="babyTeethNumbers"
                         :id="2"
                         @case-added="handleCaseAdded"
                       />
@@ -1108,10 +1108,25 @@ export default {
   computed: {
     // Get selected teeth numbers for highlighting
     selectedTeethNumbers() {
-      // Filter out null tooth numbers (like teeth cleaning cases)
       return this.patientCases
         .map(case_item => case_item.tooth_number)
         .filter(tooth_number => tooth_number !== null && tooth_number !== undefined);
+    },
+
+    // Only permanent teeth numbers (FDI 11-48) for the teeth component
+    permanentTeethNumbers() {
+      return this.selectedTeethNumbers.filter(n => {
+        const num = parseInt(n);
+        return num >= 11 && num <= 48;
+      });
+    },
+
+    // Only baby teeth numbers (FDI 51-85) for the babyTeeth component
+    babyTeethNumbers() {
+      return this.selectedTeethNumbers.filter(n => {
+        const num = parseInt(n);
+        return num >= 51 && num <= 85;
+      });
     },
     
     totalAmount() {
@@ -1599,12 +1614,18 @@ export default {
       
       // Add to the beginning of the cases array
       this.patientCases.unshift(newCase);
-      
+
+      // Auto-switch to the correct tab based on tooth number
+      if (!isTeethCleaning && caseData.toothNumber) {
+        const num = parseInt(caseData.toothNumber);
+        this.activeTeethTab = (num >= 51 && num <= 85) ? 1 : 0;
+      }
+
       // Force UI update
       this.$nextTick(() => {
         this.$forceUpdate();
       });
-      
+
       console.log('New case added:', newCase);
       
      
@@ -1726,12 +1747,10 @@ export default {
       const toothNum = parseInt(toothNumber);
       console.log('🦷 Last case tooth number:', toothNum);
 
-      // Check if tooth number is between 1 and 20 (baby teeth range)
-      if (toothNum >= 1 && toothNum <= 20) {
-        console.log('🦷 Auto-selecting Baby Teeth tab (tooth number in range 1-20)');
+      // Baby teeth use FDI numbers 51-85
+      if (toothNum >= 51 && toothNum <= 85) {
         this.activeTeethTab = 1; // Switch to baby teeth tab
       } else {
-        console.log('🦷 Auto-selecting Permanent Teeth tab (tooth number > 20)');
         this.activeTeethTab = 0; // Keep permanent teeth tab
       }
     },
