@@ -22,13 +22,25 @@
             <div class="patient-sub-info" v-if="patient.phone">
                <div class="patient-phone d-flex align-center">
                 <v-icon size="16" class="mr-1">mdi-whatsapp</v-icon>
-                <a 
-                  :href="getWhatsAppLink(patient.phone)" 
-                  target="_blank" 
+                <a
+                  :href="getWhatsAppLink(patient.phone)"
+                  target="_blank"
                   class="whatsapp-link text-decoration-none"
                 >
                   <div class="case-title" style="direction: ltr; margin-right: 5px;">
                     {{ formatPhone(patient.phone) }}
+                  </div>
+                </a>
+              </div>
+              <div class="patient-phone d-flex align-center mt-1" v-if="patient.phone2">
+                <v-icon size="16" class="mr-1">mdi-whatsapp</v-icon>
+                <a
+                  :href="getWhatsAppLink(patient.phone2)"
+                  target="_blank"
+                  class="whatsapp-link text-decoration-none"
+                >
+                  <div class="case-title" style="direction: ltr; margin-right: 5px;">
+                    {{ formatPhone(patient.phone2) }}
                   </div>
                 </a>
               </div>
@@ -183,7 +195,7 @@
                         :categories="dentalOperations"
                         :tooth_num="permanentTeethNumbers"
                         :id="1"
-                        @case-added="handleCaseAdded"
+                        @case-added="(data) => handleCaseAdded(data, 'permanent')"
                       />
                     </div>
                   </v-tab-item>
@@ -195,7 +207,7 @@
                         :categories="dentalOperations"
                         :tooth_num="babyTeethNumbers"
                         :id="2"
-                        @case-added="handleCaseAdded"
+                        @case-added="(data) => handleCaseAdded(data, 'baby')"
                       />
                     </div>
                   </v-tab-item>
@@ -1020,6 +1032,7 @@ export default {
         id: null,
         name: '',
         phone: '',
+        phone2: '',
         age: null,
         address: '',
         email: '',
@@ -1113,20 +1126,18 @@ export default {
         .filter(tooth_number => tooth_number !== null && tooth_number !== undefined);
     },
 
-    // Only permanent teeth numbers (FDI 11-48) for the teeth component
+    // Tooth numbers for the permanent teeth diagram — excludes any case that came from the baby teeth component
     permanentTeethNumbers() {
-      return this.selectedTeethNumbers.filter(n => {
-        const num = parseInt(n);
-        return num >= 11 && num <= 48;
-      });
+      return this.patientCases
+        .filter(c => c.tooth_number !== null && c.tooth_number !== undefined && !c.is_baby_tooth)
+        .map(c => c.tooth_number);
     },
 
-    // Only baby teeth numbers (FDI 51-85) for the babyTeeth component
+    // Tooth numbers for the baby teeth diagram — includes cases that came from the baby teeth component
     babyTeethNumbers() {
-      return this.selectedTeethNumbers.filter(n => {
-        const num = parseInt(n);
-        return num >= 51 && num <= 85;
-      });
+      return this.patientCases
+        .filter(c => c.tooth_number !== null && c.tooth_number !== undefined && c.is_baby_tooth)
+        .map(c => c.tooth_number);
     },
     
     totalAmount() {
@@ -1565,8 +1576,9 @@ export default {
     },
 
     // Handle case added from teeth component
-    handleCaseAdded(caseData) {
-      console.log('Case added from teeth component:', caseData);
+    // source: 'permanent' | 'baby'
+    handleCaseAdded(caseData, source = 'permanent') {
+      console.log('Case added from teeth component:', caseData, 'source:', source);
       
       if (!caseData || !caseData.toothNumber || !caseData.operation) {
         console.error('Invalid case data received:', caseData);
@@ -1592,11 +1604,14 @@ export default {
         doctorName = this.$store.state.AdminInfo?.name || '';
       }
       
+      const isBabyTooth = source === 'baby';
+
       // Create new case object (allowing multiple categories for same tooth)
       const newCase = {
         id: Date.now() + Math.floor(Math.random() * 10000), // Unique temporary ID
         server_id: null, // Will be set after saving to server
         tooth_number: isTeethCleaning ? null : caseData.toothNumber, // Set to null for teeth cleaning
+        is_baby_tooth: isBabyTooth, // Track which diagram this came from for correct highlighting
         case_type: operationName,
         date: new Date().toISOString().substr(0, 10),
         price: null,
@@ -1611,14 +1626,13 @@ export default {
         doctor_name: doctorName,
         modified: true // Mark as new/modified for save
       };
-      
+
       // Add to the beginning of the cases array
       this.patientCases.unshift(newCase);
 
-      // Auto-switch to the correct tab based on tooth number
-      if (!isTeethCleaning && caseData.toothNumber) {
-        const num = parseInt(caseData.toothNumber);
-        this.activeTeethTab = (num >= 51 && num <= 85) ? 1 : 0;
+      // Stay on the tab that originated the action
+      if (!isTeethCleaning) {
+        this.activeTeethTab = isBabyTooth ? 1 : 0;
       }
 
       // Force UI update
@@ -1720,39 +1734,16 @@ export default {
       }
     },
 
-    // Automatically select teeth tab based on last case's tooth number
-    autoSelectTeethTab(cases) {
-      if (!cases || cases.length === 0) {
-        console.log('🦷 No cases found, keeping default tab (permanent teeth)');
-        this.activeTeethTab = 0; // Default to permanent teeth
+    // Automatically select teeth tab based on the most recent case's source
+    autoSelectTeethTab() {
+      if (!this.patientCases || this.patientCases.length === 0) {
+        this.activeTeethTab = 0;
         return;
       }
 
-      // Get the last case (most recent)
-      const lastCase = cases[cases.length - 1];
-      console.log('🦷 Last case:', lastCase);
-
-      // Parse tooth number from the last case
-      let toothNumber = null;
-      try {
-        if (lastCase.tooth_num) {
-          const parsed = JSON.parse(lastCase.tooth_num);
-          toothNumber = Array.isArray(parsed) ? parsed[0] : parsed;
-        }
-      } catch (e) {
-        toothNumber = lastCase.tooth_num;
-      }
-
-      // Convert to number if it's a string
-      const toothNum = parseInt(toothNumber);
-      console.log('🦷 Last case tooth number:', toothNum);
-
-      // Baby teeth use FDI numbers 51-85
-      if (toothNum >= 51 && toothNum <= 85) {
-        this.activeTeethTab = 1; // Switch to baby teeth tab
-      } else {
-        this.activeTeethTab = 0; // Keep permanent teeth tab
-      }
+      // Use the most recent case (first in array after unshift) to pick the tab
+      const lastCase = this.patientCases[0];
+      this.activeTeethTab = lastCase.is_baby_tooth ? 1 : 0;
     },
 
     // Load patient data from API
@@ -1801,6 +1792,7 @@ export default {
           id: data.id,
           name: data.name,
           phone: data.phone,
+          phone2: data.phone2 || '',
           age: data.age,
           address: data.address,
           email: data.email,
@@ -1827,10 +1819,12 @@ export default {
             toothNumber = caseItem.tooth_num;
           }
 
+          const toothNum = parseInt(toothNumber);
           return {
             id: caseItem.id,
             server_id: caseItem.id,
             tooth_number: toothNumber,
+            is_baby_tooth: toothNum >= 51 && toothNum <= 85, // FDI baby teeth range
             case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
             date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
             price: caseItem.price,
@@ -1914,7 +1908,7 @@ export default {
         this.availableCases = this.formatCasesForSelection(uniqueCases);
 
         // Automatically select teeth tab based on last case's tooth number
-        this.autoSelectTeethTab(data.cases);
+        this.autoSelectTeethTab();
 
         // Load dental operations and doctors with individual error handling
         try {

@@ -209,24 +209,22 @@
                             </v-select>
                         </v-flex> -->
 
-                        <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="payment-filter">
-                            <v-select
-                                v-model="billingStatusFilter"
-                                :items="[
-                                    { text: 'جميع المراجعين', value: null },
-                                    { text: 'مدفوع بالكامل', value: 'all_paid' },
-                                    { text: 'غير مدفوع نهائياً', value: 'none_paid' },
-                                    { text: 'مدفوع جزئياً', value: 'some_paid' }
-                                ]"
-                                item-text="text"
-                                item-value="value"
-                                label="حالة الدفع"
-                                @change="initialize()"
-                                clearable
-                                dense
-                                outlined
-                                style="width: 100%; max-width: 300px;"
-                            ></v-select>
+                        <v-flex xs12 pt-4 pb-2 class="case-payment-filter">
+                            <div>
+                                <label class="text-caption" style="margin-right: 12px;">حالة الحالات:</label>
+                                <v-btn-toggle
+                                    v-model="casePaymentFilter"
+                                    @change="onCasePaymentFilterChange"
+                                    dense
+                                    mandatory
+                                    color="primary"
+                                    class="mt-1"
+                                >
+                                    <v-btn value="all" class="px-3">الكل</v-btn>
+                                    <v-btn value="all_paid" class="px-3">مدفوع بالكامل</v-btn>
+                                    <v-btn value="has_unpaid" class="px-3">لديه حالات غير مدفوعة</v-btn>
+                                </v-btn-toggle>
+                            </div>
                         </v-flex>
 
                         <v-flex xs12 md3 sm3 pt-5 style="  margin-right: 5px;" class="credit-filter" v-if="$store.getters.useCreditSystem">
@@ -250,6 +248,10 @@
 
 
                     </v-layout>
+
+                    <v-alert v-if="casePaymentError" type="error" dismissible @input="casePaymentError=null" class="mx-4 mt-2">
+                        {{ casePaymentError }}
+                    </v-alert>
                 </template>
 
 
@@ -264,11 +266,11 @@
 
 
                 <template v-slot:[`item.phone`]="{ item }">
-                    <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.phone}}</p>
+                    <p @click="editItem(item)" style="direction: ltr; text-align: right;">{{item.phone}}</p>
                 </template>
 
                 <template v-slot:[`item.age`]="{ item }">
-                    <p @click="editItem(item)" style="direction: ltr; text-align: end;">{{item.age}}</p>
+                    <p @click="editItem(item)" style="direction: ltr; text-align: right;">{{item.age}}</p>
                 </template>
 
                 <!-- <template v-slot:[`item.sex`]="{ item }">
@@ -350,6 +352,13 @@
                 </template>
 
 
+                <!-- Case Payment Badge Column -->
+                <template v-slot:[`item.case_payment_badge`]="{ item }">
+                    <v-chip x-small :color="casePaymentBadgeColor(item)" dark>
+                        {{ casePaymentBadgeText(item) }}
+                    </v-chip>
+                </template>
+
                 <!-- Custom Actions Column Slot -->
                 <template v-slot:[`item.actions`]="{ item }">
                     <v-tooltip bottom>
@@ -389,7 +398,19 @@
 
 
                 <template v-slot:no-data>
-                    <v-btn color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
+                    <div class="text-center py-4">
+                        <p v-if="casePaymentFilter && casePaymentFilter !== 'all'" class="mb-3">
+                            لا يوجد مراجعون يطابقون هذا الفلتر.
+                        </p>
+                        <v-btn
+                            v-if="casePaymentFilter && casePaymentFilter !== 'all'"
+                            color="primary"
+                            @click="resetCasePaymentFilter"
+                        >
+                            عرض الكل
+                        </v-btn>
+                        <v-btn v-else color="primary" @click="initialize">{{ $t("Reloading") }}</v-btn>
+                    </div>
                 </template>
             </v-data-table>
 
@@ -442,9 +463,11 @@
                 // Add timeout variable
                 paginationTimeout: null,
                 
-                // Add billing status filter
-                billingStatusFilter: null, // null = all, 'all_paid' = fully paid, 'none_paid' = not paid, 'some_paid' = partially paid
-                
+                // Case payment status filter (new)
+                casePaymentFilter: 'all', // 'all' | 'all_paid' | 'has_unpaid'
+                casePaymentError: null,   // Error message for 422
+                currentAbortController: null, // For request cancellation
+
                 // Add credit status filter
                 creditStatusFilter: null, // null = all, 'has_credit' = has credit balance, 'no_credit' = no credit balance
                 
@@ -633,6 +656,11 @@
                     //booking
                     //booking
                     {
+                        text: 'حالة الحالات',
+                        value: "case_payment_badge",
+                        sortable: false
+                    },
+                    {
                         text: this.$t('Processes'),
                         value: "actions",
                         sortable: false
@@ -646,6 +674,11 @@
             handlePaginationChange(newPage) {
                 this.tableOptions.page = newPage;
                 this.page = newPage;
+
+                this.$router.replace({
+                    query: { ...this.$route.query, page: newPage > 1 ? String(newPage) : undefined }
+                });
+
                 this.loadTableData();
             },
 
@@ -699,8 +732,8 @@
             },
 
             // Generate cache key for paginated data
-            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', billingStatus = null, creditStatus = null) {
-                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_bs${billingStatus}_cs${creditStatus}`;
+            generateCacheKey(baseKey, page, perPage, searchTerm = '', doctorId = '', creditStatus = null) {
+                return `${baseKey}_p${page}_pp${perPage}_s${searchTerm}_d${doctorId}_cs${creditStatus}`;
             },
 
             // WhatsApp Methods
@@ -922,6 +955,71 @@
                 });
             },
 
+            fetchByPaymentStatus(caseStatus, page, perPage) {
+                const controller = new AbortController();
+                this.currentAbortController = controller;
+
+                return Axios.get(
+                    'https://titaniumapi.tctate.com/api/patients/getPatientsByCasePaymentStatus',
+                    {
+                        params: { case_status: caseStatus, page, per_page: perPage },
+                        signal: controller.signal,
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: "Bearer " + this.$store.state.AdminInfo.token
+                        }
+                    }
+                );
+            },
+
+            casePaymentBadgeText(item) {
+                if (!item.cases || item.cases.length === 0) {
+                    return 'لا توجد حالات';
+                }
+
+                const allPaid = item.cases.every(c => c.is_paid === 1);
+                const allUnpaid = item.cases.every(c => c.is_paid !== 1);
+
+                if (allPaid) return 'مدفوع';
+                if (allUnpaid) return 'غير مدفوع';
+                return 'جزئي';
+            },
+
+            casePaymentBadgeColor(item) {
+                if (!item.cases || item.cases.length === 0) {
+                    return 'grey';
+                }
+
+                const allPaid = item.cases.every(c => c.is_paid === 1);
+                const allUnpaid = item.cases.every(c => c.is_paid !== 1);
+
+                if (allPaid) return 'green';
+                if (allUnpaid) return 'red';
+                return 'amber';
+            },
+
+            onCasePaymentFilterChange(val) {
+                if (this.currentAbortController) {
+                    this.currentAbortController.abort();
+                }
+
+                this.tableOptions.page = 1;
+                this.page = 1;
+                this.casePaymentError = null;
+
+                this.$router.replace({
+                    query: { ...this.$route.query, caseStatus: val && val !== 'all' ? val : undefined, page: undefined }
+                });
+
+                this.loadTableData();
+            },
+
+            resetCasePaymentFilter() {
+                this.casePaymentFilter = 'all';
+                this.onCasePaymentFilterChange('all');
+            },
+
             getFormattedDate(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -994,38 +1092,35 @@
                 if (this.searchDocorId == 0) {
                     return this.initialize();
                 }
-                
+
                 // Clear doctor search cache before performing new search
                 this.clearDoctorSearchCache();
-                
+
                 this.isSearchingDoctor = true;
                 this.loadingData = true;
-                
+
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                
-                // Build API URL with billing status parameter for doctor search
+
+                // Build API URL with credit status parameter for doctor search
                 let apiUrl = `https://titaniumapi.tctate.com/api/patients/getByDoctor/${this.searchDocorId}?page=${currentPage}&per_page=${itemsPerPage}`;
-                if (this.billingStatusFilter) {
-                    apiUrl += `&billing_status=${this.billingStatusFilter}`;
-                }
                 if (this.creditStatusFilter) {
                     apiUrl += `&credit_status=${this.creditStatusFilter}`;
                 }
-                
+
                 // Don't use cache for doctor search - always fetch fresh data
                 this.apiRequest(apiUrl)
                     .then(res => {
                         this.loadingData = false;
-                        
+
                         if (res.data && res.data.data) {
                             this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
                             this.desserts = res.data.data;
                             this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
                             this.page = currentPage;
-                            
+
                             // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.billingStatusFilter, this.creditStatusFilter);
+                            const cacheKey = this.generateCacheKey('doctor_patients', currentPage, itemsPerPage, '', this.searchDocorId, this.creditStatusFilter);
                             this.setCache(cacheKey, {
                                 data: res.data.data,
                                 total: this.totalItems,
@@ -1042,7 +1137,7 @@
                     .catch((error) => {
                         this.loadingData = false;
                         console.error('Doctor search error:', error);
-                        
+
                         // Show error message to user
                         this.$swal.fire({
                             title: "خطأ في البحث",
@@ -1050,7 +1145,7 @@
                             icon: "error",
                             confirmButtonText: "اغلاق",
                         });
-                        
+
                         // Reset to empty results
                         this.desserts = [];
                         this.totalItems = 0;
@@ -1365,31 +1460,28 @@
             performSearch() {
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                
+
                 // Build search API URL with filters
                 let searchUrl = `https://titaniumapi.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
-                if (this.billingStatusFilter) {
-                    searchUrl += `&billing_status=${this.billingStatusFilter}`;
-                }
                 if (this.creditStatusFilter) {
                     searchUrl += `&credit_status=${this.creditStatusFilter}`;
                 }
-                
+
                 // Don't use cache for search - always fetch fresh data
-                this.apiRequest(`https://titaniumapi.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`)
+                this.apiRequest(searchUrl)
                     .then(res => {
                         this.loadingData = false;
                         this.allItem = true;
-                        
+
                         // Check if response has data
                         if (res.data && res.data.data) {
                             this.desserts = res.data.data;
                             this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
                             this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
                             this.page = currentPage;
-                            
+
                             // Cache the fresh response
-                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search, '', this.billingStatusFilter, this.creditStatusFilter);
+                            const cacheKey = this.generateCacheKey('search_patients', currentPage, itemsPerPage, this.search, '', this.creditStatusFilter);
                             this.setCache(cacheKey, {
                                 data: res.data.data,
                                 total: res.data.meta ? res.data.meta.total : res.data.data.length,
@@ -1406,7 +1498,7 @@
                     .catch((error) => {
                         this.loadingData = false;
                         console.error('Search error:', error);
-                        
+
                         // Show error message to user
                         this.$swal.fire({
                             title: "خطأ في البحث",
@@ -1414,7 +1506,7 @@
                             icon: "error",
                             confirmButtonText: "اغلاق",
                         });
-                        
+
                         // Reset to empty results
                         this.desserts = [];
                         this.totalItems = 0;
@@ -1468,14 +1560,57 @@
                     this.search = '';
                     this.searchDocorId = '';
                 }
-                
+
                 this.loadingData = true;
-                
+                this.casePaymentError = null;
+
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.billingStatusFilter, this.creditStatusFilter);
-                
+
+                // Handle case payment filter (new endpoint)
+                if (this.casePaymentFilter && this.casePaymentFilter !== 'all') {
+                    this.fetchByPaymentStatus(this.casePaymentFilter, currentPage, itemsPerPage)
+                        .then(res => {
+                            this.loadingData = false;
+
+                            if (res.data && res.data.data) {
+                                this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                                this.desserts = res.data.data;
+                                this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
+                                this.page = currentPage;
+                            } else {
+                                this.desserts = [];
+                                this.totalItems = 0;
+                                this.pageCount = 0;
+                                this.page = 1;
+                            }
+                        })
+                        .catch((error) => {
+                            this.loadingData = false;
+                            if (error.name === 'CanceledError' || error.name === 'AbortError') return;
+
+                            const status = error.response?.status;
+                            if (status === 422) {
+                                this.casePaymentError = error.response.data.message || 'حالة الفلتر غير صحيحة';
+                            } else {
+                                this.$swal.fire({
+                                    title: 'خطأ',
+                                    text: 'حدث خطأ أثناء جلب البيانات',
+                                    icon: 'error',
+                                    confirmButtonText: 'اغلاق'
+                                });
+                            }
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                        });
+                    return;
+                }
+
+                // Existing getByUserIdv3 path (no case payment filter - showing "all")
+                const cacheKey = this.generateCacheKey('all_patients', currentPage, itemsPerPage, '', '', this.creditStatusFilter);
+
                 const cached = this.getCache(cacheKey);
                 if (cached) {
                     this.loadingData = false;
@@ -1486,28 +1621,25 @@
                     this.page = currentPage;
                     return;
                 }
-                
-                // Build API URL with billing status parameter
+
+                // Build API URL with credit status parameter
                 let apiUrl = `https://titaniumapi.tctate.com/api/patients/getByUserIdv3?page=${currentPage}&per_page=${itemsPerPage}`;
-                if (this.billingStatusFilter) {
-                    apiUrl += `&billing_status=${this.billingStatusFilter}`;
-                }
                 if (this.creditStatusFilter) {
                     apiUrl += `&credit_status=${this.creditStatusFilter}`;
                 }
-                
+
                 this.apiRequest(apiUrl)
                     .then(res => {
                         this.loadingData = false;
                         this.search = null;
-                        
+
                         if (res.data && res.data.data) {
                             this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
                             this.desserts = res.data.data;
                             this.pageCount = res.data.meta ? Math.ceil(res.data.meta.total / itemsPerPage) : Math.ceil(res.data.data.length / itemsPerPage);
                             this.last_page = res.data.meta ? res.data.meta.last_page : 1;
                             this.page = currentPage;
-                            
+
                             // Cache the response
                             this.setCache(cacheKey, {
                                 data: res.data.data,
@@ -1525,7 +1657,7 @@
                     .catch((error) => {
                         this.loadingData = false;
                         console.error('Initialize error:', error);
-                        
+
                         // Try to use expired cache as fallback
                         const expiredCache = localStorage.getItem(cacheKey);
                         if (expiredCache) {
@@ -1915,6 +2047,20 @@
          
         },
         created() {
+            const qs = this.$route.query;
+
+            if (qs.caseStatus && ['all_paid', 'has_unpaid'].includes(qs.caseStatus)) {
+                this.casePaymentFilter = qs.caseStatus;
+            }
+
+            if (qs.page) {
+                const p = parseInt(qs.page, 10);
+                if (!isNaN(p) && p > 0) {
+                    this.tableOptions.page = p;
+                    this.page = p;
+                }
+            }
+
             this.initialize();
             this.getrecipes();
             this.getclinicDoctor();

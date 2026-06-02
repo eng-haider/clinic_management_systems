@@ -69,13 +69,26 @@
 
               <!-- Phone Field -->
               <v-col class="py-0" cols="12" sm="6" md="6">
-                <v-text-field 
-                  v-model="editedItem.phone" 
+                <v-text-field
+                  v-model="editedItem.phone"
                   v-mask="mask"
-                  placeholder="07XX XXX XXXX" 
+                  placeholder="07XX XXX XXXX"
                   style="direction:ltr"
                   onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
-                  :label="$t('datatable.phone')" 
+                  :label="$t('datatable.phone')"
+                  outlined
+                />
+              </v-col>
+
+              <!-- Phone2 Field -->
+              <v-col class="py-0" cols="12" sm="6" md="6">
+                <v-text-field
+                  v-model="editedItem.phone2"
+                  v-mask="mask"
+                  placeholder="07XX XXX XXXX"
+                  style="direction:ltr"
+                  onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                  :label="$t('datatable.phone') + ' 2'"
                   outlined
                 />
               </v-col>
@@ -257,6 +270,7 @@ export default {
         sex: "",
         address: "",
         phone: "",
+        phone2: "",
         rx_id: "",
         is_scheduled_today: false,
         doctors: "",
