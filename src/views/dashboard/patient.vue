@@ -1641,8 +1641,56 @@ export default {
       });
 
       console.log('New case added:', newCase);
-      
-     
+
+
+    },
+
+    // --- Baby/permanent diagram origin persistence ---------------------------
+    // The baby (mixed dentition) diagram emits tooth numbers that overlap with
+    // the permanent diagram (lower teeth use quadrant 3/4 numbers, plus it shows
+    // permanent molars). So the tooth number alone can't tell which component a
+    // case belongs to. We persist the originating diagram per case id so cases
+    // reload into the correct component (baby vs permanent).
+    babyToothStorageKey() {
+      return `baby_tooth_cases_${this.$route.params.id}`;
+    },
+
+    getBabyToothIds() {
+      try {
+        const raw = localStorage.getItem(this.babyToothStorageKey());
+        const ids = raw ? JSON.parse(raw) : [];
+        return Array.isArray(ids) ? ids.map(id => String(id)) : [];
+      } catch (e) {
+        console.warn('Failed to read baby tooth ids:', e);
+        return [];
+      }
+    },
+
+    setBabyToothFlag(serverId, isBaby) {
+      if (serverId === null || serverId === undefined) return;
+      const id = String(serverId);
+      const ids = new Set(this.getBabyToothIds());
+      if (isBaby) {
+        ids.add(id);
+      } else {
+        ids.delete(id);
+      }
+      try {
+        localStorage.setItem(this.babyToothStorageKey(), JSON.stringify([...ids]));
+      } catch (e) {
+        console.warn('Failed to persist baby tooth flag:', e);
+      }
+    },
+
+    // Decide whether a case loaded from the API belongs to the baby diagram.
+    // Priority: authoritative API flag -> local persistence -> FDI range guess.
+    resolveIsBabyTooth(caseItem, toothNum, babyToothIds) {
+      const apiFlag = caseItem.is_baby_tooth;
+      if (apiFlag === true || apiFlag === 1 || apiFlag === '1') return true;
+      if (apiFlag === false || apiFlag === 0 || apiFlag === '0') return false;
+      // No authoritative flag from the API.
+      if (babyToothIds.has(String(caseItem.id))) return true;
+      return toothNum >= 51 && toothNum <= 85; // FDI baby teeth range fallback
     },
 
     // Fetch dental operations from API
@@ -1807,6 +1855,10 @@ export default {
 
         // Process cases data
         console.log('📋 Processing cases data...');
+        // Locally persisted set of case ids that came from the baby teeth diagram.
+        // Needed because the baby diagram emits tooth numbers that overlap with the
+        // permanent diagram, so the tooth number alone can't tell them apart.
+        const babyToothIds = new Set(this.getBabyToothIds());
         this.patientCases = data.cases ? data.cases.map(caseItem => {
           // Parse tooth number from JSON array format
           let toothNumber = null;
@@ -1824,7 +1876,9 @@ export default {
             id: caseItem.id,
             server_id: caseItem.id,
             tooth_number: toothNumber,
-            is_baby_tooth: toothNum >= 51 && toothNum <= 85, // FDI baby teeth range
+            // Prefer the authoritative flag from the API, then the locally
+            // persisted origin, and only then fall back to the FDI range guess.
+            is_baby_tooth: this.resolveIsBabyTooth(caseItem, toothNum, babyToothIds),
             case_type: caseItem.case_categories ? caseItem.case_categories.name_ar : '',
             date: caseItem.created_at ? caseItem.created_at.split('T')[0] : '',
             price: caseItem.price,
@@ -2817,6 +2871,7 @@ export default {
         const requestBody = {
           case_categores_id: caseItem.operation_id,
           tooth_num: toothNumbers,
+          is_baby_tooth: !!caseItem.is_baby_tooth, // Persist which diagram this came from
           status_id: caseItem.completed ? 43 : 42,
           sessions: [{
             note: caseItem.notes || "",
@@ -2832,7 +2887,7 @@ export default {
           price: caseItem.price ? caseItem.price.toString() : "0",
           patient_id: this.patient.id ? this.patient.id.toString() : ""
         };
-        
+
         const response = await this.$http.post('https://titaniumapi.tctate.com/api/cases', requestBody, {
           headers: {
             "Content-Type": "application/json",
@@ -2840,11 +2895,15 @@ export default {
             Authorization: "Bearer " + this.$store.state.AdminInfo.token
           }
         });
-        
+
         // Update case with server ID
         caseItem.server_id = response.data.id;
         caseItem.modified = false;
-        
+
+        // Remember locally that this case belongs to the baby teeth diagram so it
+        // reloads into the correct component even if the API drops the flag.
+        this.setBabyToothFlag(response.data.id, caseItem.is_baby_tooth);
+
       } catch (error) {
         console.error('Error saving new case:', error);
         throw error;
@@ -2864,11 +2923,12 @@ export default {
           status_id: caseItem.completed ? 43 : 42,
           images: [],
           tooth_num: toothNumString,
+          is_baby_tooth: !!caseItem.is_baby_tooth, // Persist which diagram this came from
           notes: caseItem.notes || "",
           price: caseItem.price.toString(),
           sessions: caseItem.sessions || []
         };
-        
+
         const response = await this.$http.patch(`https://titaniumapi.tctate.com/api/cases_v2/${caseItem.server_id}`, requestBody, {
           headers: {
             "Content-Type": "application/json",
@@ -2876,10 +2936,13 @@ export default {
             Authorization: "Bearer " + this.$store.state.AdminInfo.token
           }
         });
-        
+
         // Clear modified flag
         caseItem.modified = false;
-        
+
+        // Keep the local baby/permanent origin in sync.
+        this.setBabyToothFlag(caseItem.server_id, caseItem.is_baby_tooth);
+
       } catch (error) {
         console.error('Error updating case:', error);
         throw error;
