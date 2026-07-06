@@ -307,17 +307,16 @@
 
                         <v-flex xs12 sm6 md2 class="payment-filter">
                             <v-select
-                                v-model="billingStatusFilter"
+                                v-model="casePaymentFilter"
                                 :items="[
                                     { text: 'جميع المراجعين', value: null },
-                                    { text: 'مدفوع بالكامل', value: 'all_paid' },
-                                    { text: 'غير مدفوع نهائياً', value: 'none_paid' },
-                                    { text: 'مدفوع جزئياً', value: 'some_paid' }
+                                    { text: 'مدفوعة بالكامل', value: 'all_paid' },
+                                    { text: 'يوجد غير مدفوع', value: 'has_unpaid' }
                                 ]"
                                 item-text="text"
                                 item-value="value"
-                                label="حالة الدفع"
-                                @change="initialize()"
+                                label="حالة دفع الحالات"
+                                @change="onCasePaymentFilterChange"
                                 clearable
                                 dense
                                 outlined
@@ -557,7 +556,11 @@
                 
                 // Add billing status filter
                 billingStatusFilter: null, // null = all, 'all_paid' = fully paid, 'none_paid' = not paid, 'some_paid' = partially paid
-                
+
+                // Case payment status filter (uses dedicated getPatientsByCasePaymentStatus endpoint)
+                casePaymentFilter: null, // null = all, 'all_paid' = all cases paid, 'has_unpaid' = has at least one unpaid case
+                isFilteringPayment: false, // true while the case payment filter drives the list
+
                 // Add credit status filter
                 creditStatusFilter: null, // null = all, 'has_credit' = has credit balance, 'no_credit' = no credit balance
                 
@@ -779,6 +782,61 @@
                 this.tableOptions.page = newPage;
                 this.page = newPage;
                 this.loadTableData();
+            },
+
+            // Keep the current page (and active filter) in the URL so returning from a
+            // patient page (browser back) restores the same page and list state.
+            syncUrl() {
+                const query = {};
+                const page = parseInt(this.tableOptions.page, 10) || 1;
+                if (page > 1) query.page = String(page);
+
+                if (this.isSearching && this.search) {
+                    query.search = this.search;
+                } else if (this.isSearchingDoctor && this.searchDocorId) {
+                    query.doctor = String(this.searchDocorId);
+                } else if (this.isFilteringPayment && this.casePaymentFilter) {
+                    query.payment = this.casePaymentFilter;
+                }
+                if (this.from) query.from = this.from;
+                if (this.to) query.to = this.to;
+
+                const c = this.$route.query;
+                const unchanged = c.page === query.page &&
+                    c.search === query.search &&
+                    c.doctor === query.doctor &&
+                    c.payment === query.payment &&
+                    c.from === query.from &&
+                    c.to === query.to;
+                if (!unchanged) {
+                    // replace (not push) so pagination doesn't flood the history stack.
+                    this.$router.replace({ query }).catch(() => {});
+                }
+            },
+
+            // Restore page / filter / search from the URL query on load.
+            restoreFromUrl() {
+                const q = this.$route.query;
+
+                const page = parseInt(q.page, 10);
+                if (page && page > 0) {
+                    this.tableOptions.page = page;
+                    this.page = page;
+                }
+
+                if (q.payment && ['all_paid', 'has_unpaid'].includes(q.payment)) {
+                    this.casePaymentFilter = q.payment;
+                    this.isFilteringPayment = true;
+                } else if (q.search) {
+                    this.search = q.search;
+                    this.isSearching = true;
+                } else if (q.doctor) {
+                    this.searchDocorId = q.doctor;
+                    this.isSearchingDoctor = true;
+                }
+
+                if (q.from) this.from = q.from;
+                if (q.to) this.to = q.to;
             },
 
             // Cache management methods
@@ -1203,13 +1261,102 @@
             },
 
             loadTableData() {
-                if (this.isSearching) {
+                if (this.isFilteringPayment) {
+                    this.getByCasePaymentStatus();
+                } else if (this.isSearching) {
                     this.seachs();
                 } else if (this.isSearchingDoctor) {
                     this.getByDocor();
                 } else {
                     this.initialize();
                 }
+            },
+
+            // Triggered when the case payment status filter changes
+            onCasePaymentFilterChange() {
+                // Reset pagination for the new filter
+                this.tableOptions.page = 1;
+                this.page = 1;
+
+                if (this.casePaymentFilter) {
+                    // The dedicated endpoint only accepts case_status, so it overrides
+                    // the search / doctor filters while active.
+                    this.isFilteringPayment = true;
+                    this.isSearching = false;
+                    this.isSearchingDoctor = false;
+                    this.search = '';
+                    this.getByCasePaymentStatus();
+                } else {
+                    this.isFilteringPayment = false;
+                    this.initialize();
+                }
+            },
+
+            // Fetch patients filtered by the payment status of their cases
+            // GET /api/patients/getPatientsByCasePaymentStatus?case_status=all_paid|has_unpaid
+            getByCasePaymentStatus() {
+                if (!this.casePaymentFilter) {
+                    this.isFilteringPayment = false;
+                    return this.initialize();
+                }
+
+                this.isFilteringPayment = true;
+                this.loadingData = true;
+                this.syncUrl();
+
+                const currentPage = this.tableOptions.page || 1;
+                const itemsPerPage = this.tableOptions.itemsPerPage || 10;
+
+                const apiUrl = `https://smartclinicv5.tctate.com/api/patients/getPatientsByCasePaymentStatus?case_status=${this.casePaymentFilter}&page=${currentPage}&per_page=${itemsPerPage}`;
+
+                this.apiRequest(apiUrl)
+                    .then(res => {
+                        this.loadingData = false;
+                        this.allItem = true;
+
+                        if (res.data && res.data.data) {
+                            this.desserts = this.normalizePaymentPatients(res.data.data);
+                            this.totalItems = res.data.meta ? res.data.meta.total : res.data.data.length;
+                            this.pageCount = res.data.meta ?
+                                res.data.meta.last_page :
+                                Math.ceil(res.data.data.length / itemsPerPage);
+                            this.page = res.data.meta ? res.data.meta.current_page : currentPage;
+                        } else {
+                            this.desserts = [];
+                            this.totalItems = 0;
+                            this.pageCount = 0;
+                            this.page = 1;
+                        }
+                    })
+                    .catch((error) => {
+                        this.loadingData = false;
+
+                        // On 422 the API returns a validation message; surface it as-is.
+                        const apiMessage = error.response && error.response.data && error.response.data.message;
+                        this.$swal.fire({
+                            title: "خطأ",
+                            text: apiMessage || "حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.",
+                            icon: "error",
+                            confirmButtonText: "اغلاق",
+                        });
+
+                        this.desserts = [];
+                        this.totalItems = 0;
+                        this.pageCount = 0;
+                    });
+            },
+
+            // Normalize the payment-status endpoint shape (PascalCase relations) to the
+            // shape the data table expects (item.cases / item.doctors).
+            normalizePaymentPatients(list) {
+                return list.map(p => {
+                    const cases = Array.isArray(p.Cases) ? p.Cases : (p.cases || []);
+                    let doctors = p.doctors;
+                    if (!doctors && p.Doctors && p.Doctors.User) {
+                        doctors = { id: p.Doctors.id, name: p.Doctors.User.name };
+                    }
+                    return { ...p, cases, doctors };
+                });
             },
 
             // Open the patient dialog for adding new patient
@@ -1336,8 +1483,12 @@
                 this.clearDoctorSearchCache();
                 
                 this.isSearchingDoctor = true;
+                // A doctor search supersedes the case payment filter.
+                this.isFilteringPayment = false;
+                this.casePaymentFilter = null;
                 this.loadingData = true;
-                
+                this.syncUrl();
+
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
                 
@@ -1693,6 +1844,9 @@
 
                 // Otherwise, use searchv2
                 this.isSearching = true;
+                // A text search supersedes the case payment filter.
+                this.isFilteringPayment = false;
+                this.casePaymentFilter = null;
                 // Reset pagination for new search
                 if (this.tableOptions.page === 1) {
                     // If we're already on page 1, proceed with search
@@ -1715,9 +1869,10 @@
 
 
             performSearch() {
+                this.syncUrl();
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
-                
+
                 // Build search API URL with filters
                 let searchUrl = `https://smartclinicv5.tctate.com/api/patients/searchv2/${this.search}?page=${currentPage}&per_page=${itemsPerPage}`;
                 if (this.billingStatusFilter) {
@@ -1823,9 +1978,14 @@
                     this.search = '';
                     this.searchDocorId = '';
                 }
-                
+
+                // Showing the full list turns off the case payment filter.
+                this.isFilteringPayment = false;
+                this.casePaymentFilter = null;
+
+                this.syncUrl();
                 this.loadingData = true;
-                
+
                 // Get pagination parameters from tableOptions
                 const currentPage = this.tableOptions.page || 1;
                 const itemsPerPage = this.tableOptions.itemsPerPage || 10;
@@ -2273,7 +2433,9 @@
          
         },
         created() {
-            this.initialize();
+            // Restore page / filter / search from the URL, then load the matching list.
+            this.restoreFromUrl();
+            this.loadTableData();
             this.getrecipes();
             this.getclinicDoctor();
             this.getCaseCategories();
