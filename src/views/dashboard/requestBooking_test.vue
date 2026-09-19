@@ -32,14 +32,58 @@
       </v-btn>
     </v-app-bar>
 
+    <!-- Month navigation / filter -->
+    <v-row align="center" class="mb-2">
+      <v-col cols="12" md="7" class="d-flex align-center flex-wrap">
+        <v-btn outlined small color="primary" class="mx-1" @click="setToday">
+          {{ $t("today") }}
+        </v-btn>
+        <v-btn icon small color="primary" @click="$refs.calendar.prev()">
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+        <v-btn icon small color="primary" @click="$refs.calendar.next()">
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn>
+        <span class="text-h6 mx-2">{{ calendarTitle }}</span>
+      </v-col>
+
+      <v-col cols="12" md="5">
+        <v-menu 
+          v-model="monthMenu" 
+          :close-on-content-click="false" 
+          transition="scale-transition" 
+          offset-y
+          max-width="290px" 
+          min-width="290px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field 
+              :value="calendarTitle" 
+              :label="$t('month')" 
+              prepend-icon="mdi-calendar-month" 
+              readonly 
+              dense 
+              outlined 
+              hide-details
+              v-bind="attrs" 
+              v-on="on">
+            </v-text-field>
+          </template>
+          <v-date-picker 
+            v-if="monthMenu" 
+            v-model="selectedMonth" 
+            type="month" 
+            no-title
+            @input="monthMenu = false">
+          </v-date-picker>
+        </v-menu>
+      </v-col>
+    </v-row>
+
     <v-row>
   <v-col>
     <v-calendar 
       ref="calendar" 
       v-model="focus" 
-      :start="startDate" 
-      :end="endDate" 
-      :max="endDate" 
       :events="reservations" 
       type="month" 
       :event-color="getEventColor" 
@@ -240,6 +284,12 @@
   import axios from 'axios';
   import Multiselect from 'vue-multiselect'
   import { EventBus } from './event-bus.js';
+
+  // Local-time YYYY-MM-DD (toISOString would shift the day near midnight)
+  const toDateString = (date) => {
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  };
   // import cacheManager from '@/utils/cache'; // Commented out - cache not working properly
 
   export default {
@@ -283,9 +333,8 @@
         dialog: false,
         book_details: {},
         send_msg: false,
-        focus: "2026-09-01", // Focus on October by default
-        startDate: "2026-09-01", // Start of October
-        endDate: "2026-10-01", // End of November
+        focus: toDateString(new Date()), // Current month by default
+        monthMenu: false,
 
         valid: true,
 
@@ -325,8 +374,6 @@
       
       console.log('📅 Auto-detected current month dates:', {
         focus: this.focus,
-        startDate: this.startDate,
-        endDate: this.endDate,
         currentMonth: currentMonth,
         currentYear: currentYear
       });
@@ -373,6 +420,28 @@
       clinicName() {
         return this.$store.state.AdminInfo.clinics_info?.name || '';
       },
+
+      // YYYY-MM for the month picker, kept in sync with the calendar focus
+      selectedMonth: {
+        get() {
+          return this.focus.substr(0, 7);
+        },
+        set(value) {
+          this.focus = `${value}-01`;
+        }
+      },
+
+      calendarTitle() {
+        const [year, month] = this.focus.split('-').map(Number);
+        const date = new Date(year, month - 1, 1);
+        const locale = this.$i18n.locale === 'ar' ? 'ar-u-nu-latn' : this.$i18n.locale;
+
+        try {
+          return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+        } catch (e) {
+          return date.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+        }
+      },
       
       // Cache-related computed properties - COMMENTED OUT (not working properly)
       /*
@@ -417,16 +486,12 @@
       // Auto-generate current month dates
       getCurrentMonthStart() {
         const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth(); // 0-indexed
-        return new Date(year, month, 1).toISOString().split('T')[0]; // First day of current month
+        return toDateString(new Date(now.getFullYear(), now.getMonth(), 1)); // First day of current month
       },
 
-      getCurrentMonthEnd() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth(); // 0-indexed
-        return new Date(year, month + 1, 0).toISOString().split('T')[0]; // Last day of current month
+      // Jump the calendar back to the current month
+      setToday() {
+        this.focus = toDateString(new Date());
       },
 
       // Extract first name from doctor's full name
@@ -1142,13 +1207,9 @@
         
         // Reset calendar to current month
         this.focus = this.getCurrentMonthStart();
-        this.startDate = this.getCurrentMonthStart();
-        this.endDate = this.getCurrentMonthEnd();
         
         console.log('🔄 Force refreshed to current month:', {
           focus: this.focus,
-          startDate: this.startDate,
-          endDate: this.endDate,
           currentMonth: new Date().getMonth() + 1
         });
         
