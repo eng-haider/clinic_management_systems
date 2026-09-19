@@ -215,6 +215,8 @@
   "appointment_details": "تفاصيل الموعد",
   "whatsapp_chat": "دردشة واتساب",
   "delete_appointment": "حذف الموعد",
+  "today": "اليوم",
+  "month": "الشهر",
   "select_patient": "اختر المريض",
   "from_time": "من الوقت",
   "to_time": "إلى الوقت",

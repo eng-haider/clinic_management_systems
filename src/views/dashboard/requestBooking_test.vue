@@ -1,13 +1,57 @@
 <template>
   <v-container fluid>
+    <!-- Month navigation / filter -->
+    <v-row align="center" class="mb-2">
+      <v-col cols="12" md="7" class="d-flex align-center flex-wrap">
+        <v-btn outlined small color="primary" class="mx-1" @click="setToday">
+          {{ $t("today") }}
+        </v-btn>
+        <v-btn icon small color="primary" @click="$refs.calendar.prev()">
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+        <v-btn icon small color="primary" @click="$refs.calendar.next()">
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn>
+        <span class="text-h6 mx-2">{{ calendarTitle }}</span>
+      </v-col>
+
+      <v-col cols="12" md="5">
+        <v-menu 
+          v-model="monthMenu" 
+          :close-on-content-click="false" 
+          transition="scale-transition" 
+          offset-y
+          max-width="290px" 
+          min-width="290px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field 
+              :value="calendarTitle" 
+              :label="$t('month')" 
+              prepend-icon="mdi-calendar-month" 
+              readonly 
+              dense 
+              outlined 
+              hide-details
+              v-bind="attrs" 
+              v-on="on">
+            </v-text-field>
+          </template>
+          <v-date-picker 
+            v-if="monthMenu" 
+            v-model="selectedMonth" 
+            type="month" 
+            no-title
+            @input="monthMenu = false">
+          </v-date-picker>
+        </v-menu>
+      </v-col>
+    </v-row>
+
     <v-row>
       <v-col>
         <v-calendar 
           ref="calendar" 
           v-model="focus" 
-          :start="startDate" 
-          :end="endDate" 
-          :max="endDate" 
           :events="reservations" 
           type="month" 
           :event-color="getEventColor" 
@@ -264,6 +308,12 @@
 import axios from 'axios';
 import Multiselect from 'vue-multiselect';
 
+// Local-time YYYY-MM-DD (toISOString would shift the day near midnight)
+const toDateString = (date) => {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
 export default {
   components: {
     Multiselect
@@ -271,12 +321,9 @@ export default {
   data() {
     return {
       // Calendar state
-      focus: "2026-08-01",
-      startDate: "2026-08-01",
-      endDate: "2027-09-01",
+      focus: toDateString(new Date()),
+      monthMenu: false,
       reservations: [],
-      
-
       
       // Dialog state
       dialog: false,
@@ -327,6 +374,28 @@ export default {
   },
   
   computed: {
+    // YYYY-MM for the month picker, kept in sync with the calendar focus
+    selectedMonth: {
+      get() {
+        return this.focus.substr(0, 7);
+      },
+      set(value) {
+        this.focus = `${value}-01`;
+      }
+    },
+    
+    calendarTitle() {
+      const [year, month] = this.focus.split('-').map(Number);
+      const date = new Date(year, month - 1, 1);
+      const locale = this.$i18n.locale === 'ar' ? 'ar-u-nu-latn' : this.$i18n.locale;
+      
+      try {
+        return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+      } catch (e) {
+        return date.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+      }
+    },
+    
     clinicName() {
       return this.$store.state.AdminInfo.clinics_info?.name || '';
     },
@@ -464,6 +533,11 @@ export default {
       .finally(() => {
         this.loadingData = false;
       });
+    },
+    
+    // Calendar navigation
+    setToday() {
+      this.focus = toDateString(new Date());
     },
     
     // Calendar event handling methods
